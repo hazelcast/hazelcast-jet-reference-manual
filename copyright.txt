@@ -1,9 +1,0 @@
-Jet - Hazelcast | Documentation: version 0.2-SNAPSHOT 
-
-Publication date Aug 24, 2016
-
-Copyright © 2016 Hazelcast, Inc.
-
-
-Permission to use, copy, modify and distribute this document for any purpose and without fee is hereby granted in perpetuity, provided that the above copyright notice
-and this paragraph appear in all copies.

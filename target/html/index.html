@@ -79,7 +79,7 @@
 						<a href="http://jet.hazelcast.org"><img src="assets/img/logo.png" style="width: 270px;padding-top: 8px"/></a>
 					</div>
 					<div style="float:left;padding-top: 30px;padding-left: 30px;">
-					<a href=""></a> <span style="font-size:36px;color:##113847"> Reference Manual </span> <span style="font-size:12px;color:##113847"> Version: 0.2-SNAPSHOT - Publication Date : Aug 24, 2016 </span>
+					<a href=""></a> <span style="font-size:36px;color:##113847"> Reference Manual </span> <span style="font-size:12px;color:##113847"> Version: 0.2-SNAPSHOT - Publication Date : Aug 25, 2016 </span>
 					</div>
 				</div>
 			</div>
@@ -109,6 +109,44 @@
                 
     <ol>
     
+        <li>
+            <a href="index.html#configuration">Configuration</a>
+            
+                
+    <ol>
+    
+</ol>
+
+            
+        </li>
+    
+        <li>
+            <a href="index.html#example-configuration">Example Configuration</a>
+            
+                
+    <ol>
+    
+</ol>
+
+            
+        </li>
+    
+        <li>
+            <a href="index.html#retrieving-deployed-resources-on-the-processor">Retrieving deployed resources on the Processor</a>
+            
+                
+    <ol>
+    
+        <li>
+            <a href="index.html#example">Example</a>
+            
+        </li>
+    
+</ol>
+
+            
+        </li>
+    
 </ol>
 
             
@@ -131,13 +169,138 @@
 <p>Welcome to the Jet Reference Manual. This manual includes concepts, instructions, and samples to guide you on how to use Jet and build Jet applications.</p>
 <p>As the reader of this manual, you must be familiar with the Java programming language and you should have installed your preferred Integrated Development Environment (IDE).</p>
 <a name="code-deployment"></a><h1 id="code-deployment">Code Deployment</h1>
-<p>Jet enables you to distribute various resources to be used in your processors. Those resources can be a class files, JAR files or any type of files.</p>
+<p>Code deployment feature enables you to distribute various resources to be used in your processors.
+Those resources can be a class file, JAR file or any type of file. By deploying your classes/JAR files to the cluster, you don&#39;t need to worry about restarting the cluster to update the business logic anymore. The only thing you need to do is just configure required class/JAR files for your Job and Hazelcast Jet will handle the distribution of your classes to the all nodes and loading of them when required. Hazelcast JET also provides isolation of the resources in the Job scope.</p>
+<a name="configuration"></a><h2 id="configuration">Configuration</h2>
+<p>You can use any of the following methods to specify the deployment on your <code>JobConfig</code> object. The specified with resource will be uploaded to the all worker nodes when the Job starts it&#39;s execution.</p>
+<pre><code class="lang-java">/**
+  * Add class to the job classLoader
+  *
+  * @param classes classes, which will be used during calculation
+  */
+ public void addClass(Class... classes)
+
+ /**
+  * Add JAR to the job classLoader
+  *
+  * @param url location of the JAR file
+  */
+ public void addJar(URL url)
+
+ /**
+  * Add JAR to the job classLoader
+  *
+  * @param url location of the JAR file
+  * @param id  identifier for the JAR file
+  */
+ public void addJar(URL url, String id)
+
+ /**
+  * Add JAR to the job classLoader
+  *
+  * @param file the JAR file
+  */
+ public void addJar(File file)
+
+ /**
+  * Add JAR to the job classLoader
+  *
+  * @param file the JAR file
+  * @param id   identifier for the JAR file
+  */
+ public void addJar(File file, String id)
+
+ /**
+  * Add JAR to the job classLoader
+  *
+  * @param path path the JAR file
+  */
+ public void addJar(String path)
+
+ /**
+  * Add JAR to the job classLoader
+  *
+  * @param path path the JAR file
+  * @param id   identifier for the JAR file
+  */
+ public void addJar(String path, String id)
+
+ /**
+  * Add resource to the job classLoader
+  *
+  * @param url source url with classes
+  */
+ public void addResource(URL url)
+
+ /**
+  * Add resource to the job classLoader
+  *
+  * @param url source url with classes
+  * @param id  identifier for the resource
+  */
+ public void addResource(URL url, String id)
+
+ /**
+  * Add resource to the job classLoader
+  *
+  * @param file resource file
+  */
+ public void addResource(File file)
+
+ /**
+  * Add resource to the job classLoader
+  *
+  * @param file resource file
+  * @param id   identifier for the resource
+  */
+ public void addResource(File file, String id)
+
+ /**
+  * Add resource to the job classLoader
+  *
+  * @param path path of the resource
+  */
+ public void addResource(String path)
+
+ /**
+  * Add resource to the job classLoader
+  *
+  * @param path path of the resource
+  * @param id   identifier for the resource
+  */
+ public void addResource(String path, String id)
+</code></pre>
+<a name="example-configuration"></a><h2 id="example-configuration">Example Configuration</h2>
+<pre><code class="lang-java">JobConfig config = new JobConfig();
+String jarPath = &quot;/path/to/jar/file.jar&quot;;
+config.addJar(path);
+
+Job job = JetEngine.getJob(hazelcastInstance, name, dag, config);
+job.execute(); // The JAR file will be uploaded to the all nodes
+// All the classes it contains will be loaded by the worker class loader
+</code></pre>
+<a name="retrieving-deployed-resources-on-the-processor"></a><h2 id="retrieving-deployed-resources-on-the-processor">Retrieving deployed resources on the Processor</h2>
+<p>All the deployments will be available as a resource to the <code>Processor</code> class loader. To access those resources inside the processor you need to get a reference to the class loader, then access to the resource either using <code>getResource(String name)</code> or <code>getResourceAsStream(String name)</code> methods. Resources can be accessed via their file names or with the identifiers (if assigned any while configuring the deployment).</p>
+<a name="example"></a><h3 id="example">Example</h3>
+<pre><code class="lang-java">@Override
+public boolean process(ProducerInputStream inputStream,
+                       ConsumerOutputStream outputStream,
+                       String sourceName, ProcessorContext processorContext) throws Exception {
+
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    URL url = contextClassLoader.getResource(&quot;lookupTable&quot;);
+    // URL points to the deployed `lookupTable` resource.
+    ....
+    return true;
+}
+</code></pre>
+<a name=""></a><h1 id="-">#</h1>
 
 
 
 
 				</div>
-				<a class="sendfix" href="https://github.com/hazelcast/hazelcast-reference-manual/issues/new" target="_blank">Send Us a Fix!</a>
+				<a class="sendfix" href="https://github.com/hazelcast/hazelcast-jet-reference-manual/issues/new" target="_blank">Send Us a Fix!</a>
 		</div>
 	</div>
 </body>

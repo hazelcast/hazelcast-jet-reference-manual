@@ -9,7 +9,7 @@ function buildDocumentation {
     if [ "$2" != "--skipPDF" ]; then
         createPDF
     fi
-    # delete
+    delete
     echo "Done"
 }
 
