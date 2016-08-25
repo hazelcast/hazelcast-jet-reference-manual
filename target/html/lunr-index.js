@@ -19,7 +19,7 @@ documentTitles["index.html#code-deployment"] = "Code Deployment";
 index.add({
     url: "index.html#code-deployment",
     title: "Code Deployment",
-    body: "# Code Deployment Code deployment feature enables you to distribute various resources to be used in your processors. Those resources can be a class file, JAR file or any type of file. By deploying your classes/JAR files to the cluster, you don't need to worry about restarting the cluster to update the business logic anymore. The only thing you need to do is just configure required class/JAR files for your Job and Hazelcast Jet will handle the distribution of your classes to the all nodes and loading of them when required. Hazelcast JET also provides isolation of the resources in the Job scope.  "
+    body: "# Code Deployment Code deployment feature enables you to distribute various resources to be used in your processors. Those resources can be a class file, JAR file or any type of file. By deploying your classes/JAR files to the cluster, you don't need to worry about restarting the cluster to update the business logic anymore. The only thing you need to do is just configure required class/JAR files for your Job and Hazelcast Jet will handle the distribution of your classes to the all nodes and loading of them when required. Hazelcast JET also provides isolation of the resources in the Job scope.  Note: The deployed classes will be available only to Jet Processors' classloader. If you'd like to use Hazelcast data structures as sources or sinks, the types you want to store in Hazelcast data structures must be present on the Hazelcast classpath.  "
 });
 
 documentTitles["index.html#configuration"] = "Configuration";
@@ -40,14 +40,14 @@ documentTitles["index.html#retrieving-deployed-resources-on-the-processor"] = "R
 index.add({
     url: "index.html#retrieving-deployed-resources-on-the-processor",
     title: "Retrieving deployed resources on the Processor",
-    body: "## Retrieving deployed resources on the Processor  All the deployments will be available as a resource to the `Processor` class loader. To access those resources inside the processor you need to get a reference to the class loader, then access to the resource either using `getResource(String name)` or `getResourceAsStream(String name)` methods. Resources can be accessed via their file names or with the identifiers (if assigned any while configuring the deployment).   "
+    body: "## Retrieving deployed resources on the Processor  All the deployments will be available as a resource to the `Processor` class loader. To access those resources inside a processor, you need to get a reference to the class loader, then access to the resource either using `getResource(String name)` or `getResourceAsStream(String name)` methods. Resources can be accessed via their file names or with the identifiers (if assigned any while configuring the deployment).   "
 });
 
 documentTitles["index.html#example"] = "Example";
 index.add({
     url: "index.html#example",
     title: "Example",
-    body: "### Example ```java @Override public boolean process(ProducerInputStream inputStream,                        ConsumerOutputStream outputStream,                        String sourceName, ProcessorContext processorContext) throws Exception {      ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();     URL url = contextClassLoader.getResource(\&quot;lookupTable\&quot;);     // URL points to the deployed `lookupTable` resource.     ....     return true; } ```     ##    "
+    body: "### Example ```java @Override public boolean process(ProducerInputStream inputStream,                        ConsumerOutputStream outputStream,                        String sourceName, ProcessorContext processorContext) throws Exception {      ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();     URL url = contextClassLoader.getResource(\&quot;lookupTable\&quot;);     // URL points to the deployed `lookupTable` resource.     ....     return true; } ```    "
 });
 
 
