@@ -9,7 +9,17 @@ Note: The deployed classes will be available only to Jet Processors' classloader
 
 You can use any of the following methods to specify the deployment on your `JobConfig` object. The specified with resource will be uploaded to the all worker nodes when the Job starts it's execution.
 
+If no deployment directory has been provided, temporary folder will be created and used as a deployment storage on the Jet Nodes.
+
 ```java
+/**
+ * Sets the name of the directory to be used for deployment
+ *
+ * @param deploymentDirectory name of the directory
+ * @return the current job configuration
+ */
+ public JobConfig setDeploymentDirectory(String deploymentDirectory)
+
 /**
   * Add class to the job classLoader
   *

@@ -174,7 +174,16 @@ Those resources can be a class file, JAR file or any type of file. By deploying 
 <p>Note: The deployed classes will be available only to Jet Processors&#39; classloader. If you&#39;d like to use Hazelcast data structures as sources or sinks, the types you want to store in Hazelcast data structures must be present on the Hazelcast classpath.</p>
 <a name="configuration"></a><h2 id="configuration">Configuration</h2>
 <p>You can use any of the following methods to specify the deployment on your <code>JobConfig</code> object. The specified with resource will be uploaded to the all worker nodes when the Job starts it&#39;s execution.</p>
+<p>If no deployment directory has been provided, temporary folder will be created and used as a deployment storage on the Jet Nodes.</p>
 <pre><code class="lang-java">/**
+ * Sets the name of the directory to be used for deployment
+ *
+ * @param deploymentDirectory name of the directory
+ * @return the current job configuration
+ */
+ public JobConfig setDeploymentDirectory(String deploymentDirectory)
+
+/**
   * Add class to the job classLoader
   *
   * @param classes classes, which will be used during calculation
