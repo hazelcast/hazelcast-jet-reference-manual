@@ -1,10 +1,3 @@
-# Table of Contents
-
-* [Code Deployment](#code-deployment)
-* [Configuring Resources](#configuring-resources)
-  * [Example Code for Configuration](#example-code-for-configuration)
-* [Retrieving Deployed Resources on the Processor](#retrieving-deployed-resources-on-the-processor)
-  * [Example Code for Resource Access](#example-code-for-resource-access) 
 
 # Code Deployment
 
