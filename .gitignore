@@ -1,0 +1,16 @@
+target/
+.project
+.classpath
+.settings/
+.idea/
+.patch
+*.iml
+.DS_Store
+node_modules
+
+# temporary build files
+src/images
+copyright.txt
+index.md
+manifest.json
+title.txt
