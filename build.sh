@@ -116,7 +116,7 @@ and this paragraph appear in all copies." >> ${COPYRIGHT_FILE_NAME}
         $(rm -rf "./title.txt")
     fi
     echo "Creating title page"
-    echo "%Hazelcast Documentation" >> title.txt
+    echo "%Hazelcast Jet Documentation" >> title.txt
     echo "%version "${VERSION} >> title.txt
     echo "%"${DATE} >> title.txt
 

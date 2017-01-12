@@ -1,3 +1,11 @@
 # You can now add comments using a hash-sign upfront the line :)
-src/Preface.md
-src/CodeDeployment.md
+src/preface.md
+src/introduction.md
+src/getting_started.md
+src/word_count.md
+src/overview.md
+src/api.md
+src/configuration.md
+src/java.util.stream.md
+src/architecture.md
+src/modules.md
