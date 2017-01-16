@@ -4,7 +4,6 @@
 
 ## XML Configuration
 
-
 ## List of Options
 
 <table>
