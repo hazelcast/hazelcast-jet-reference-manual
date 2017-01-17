@@ -22,17 +22,20 @@
     <tr>
         <td>Temp Directory</td>
         <td>
-            Directory where temporary files will be placed, such as JAR files submitted by clients.
+            Directory where temporary files will be placed, such as JAR files 
+            submitted by clients.
         </td>
         <td>Jet will create a temp directory, which will be deleted on exit.</td>
     </tr>
     <tr>
         <td>Flow Control Period</td>
         <td>
-            While executing a Jet job there is the issue of regulating the rate at which one member of the cluster sends
-             data to another member. The receiver will regularly report to each sender how much more data it
-             is allowed to send over a given DAG edge. This option sets the length (in milliseconds) of the interval
-              between flow-control packets.
+            While executing a Jet job there is the issue of regulating the rate at
+            which one member of the cluster sends data to another member. The
+            receiver will regularly report to each sender how much more data it
+            is allowed to send over a given DAG edge. This option sets the 
+            length (in milliseconds) of the interval between flow-control 
+            packets.
         </td>
         <td>100ms</td>
     </tr>

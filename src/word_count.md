@@ -1,11 +1,13 @@
 # Quickstart: Word Count
 
-In this example, we will go through building a word count application using Jet.
+In this example, we will go through building a word count application 
+using Jet.
 
 ## Starting a Jet cluster
 
-To start a new Jet cluster, we need to start Jet instances. Typically these would be started on separate machines, 
-but for the purposes of this tutorial we will be using the same JVM for both of the instances.
+To start a new Jet cluster, we need to start Jet instances. Typically 
+these would be started on separate machines, but for the purposes of 
+this tutorial we will be using the same JVM for both of the instances.
 
 ```java
 public class WordCount {
@@ -16,7 +18,8 @@ public class WordCount {
 }
 ```
 
-The two nodes should automatically form a cluster, as they will by default use multicast to discover each other. 
+The two nodes should automatically form a cluster, as they will by 
+default use multicast to discover each other. 
 You should some output like:
 
 ```
@@ -26,7 +29,8 @@ Members [2] {
 }
 ```
 
-which means the nodes successfully formed a cluster. Don't forget to shutdown the nodes afterwards, by adding 
+which means the nodes successfully formed a cluster. Don't forget to 
+shutdown the nodes afterwards, by adding 
 
 ```
 Jet.shutdownAll();
@@ -36,8 +40,9 @@ as the last line of your application.
 
 ## Populating some data
 
-To be able to do a word count, we need some source data. Jet has built in readers for maps and lists from Hazelcast,
- so we will go ahead and populate an IMap with some lines of text:
+To be able to do a word count, we need some source data. Jet has built in 
+readers for maps and lists from Hazelcast, so we will go ahead and
+populate an `IMap` with some lines of text:
 
 ```java
 IStreamMap<Integer, String> map = instance1.getMap("lines");
@@ -62,8 +67,10 @@ map.put(14, "in short, the period was so far like the present period, that some 
  
 ## Single thread computation
 
-Now that we have some data populated, we want to count how many times each word occurs in this text. If we want to do a word count 
-without using a DAG and in a single-threaded computation, we could do it like this:
+Now that we have some data populated, we want to count how many times 
+each word occurs in this text. If we want to do a word count without 
+using a DAG and in a single-threaded computation, we could do it like 
+this:
 
 ```java
 Pattern pattern = Pattern.compile("\\s+");
@@ -75,8 +82,9 @@ for (String line : map.values()) {
 }
 ```
 
-However, as soon as we try to scale this computation across multiple threads, and even across multiple machines, then it 
-is clear that we would need to model it differently.
+However, as soon as we try to scale this computation across multiple 
+threads, and even across multiple machines, then it is clear that we 
+would need to model it differently.
 
 ## Modelling Word Count in terms of a DAG
 
@@ -90,40 +98,53 @@ We can represent these steps as a DAG:
 
 TODO: include DAG picture
 
-Each _vertex_ in the DAG can be executed in turn in a single threaded environment. To execute these steps in parallel,
- we need to introduce _concurrent queues_ between the vertices, as each might be processing data at different speeds.
+Each _vertex_ in the DAG can be executed in turn in a single threaded 
+environment. To execute these steps in parallel, we need to introduce 
+_concurrent queues_ between the vertices, as each might be processing 
+data at different speeds.
 
 TODO: include picture
 
-We can also start sharding the data, so that we can have multiple generator vertices, each processing a different line:
+We can also start sharding the data, so that we can have multiple 
+generator vertices, each processing a different line:
  
 TODO: include picture
  
-The accumulation step can also be parallelised by making sure that the same word always goes to the same accumulator - 
-this way we can ensure the total counts are correct. This is called _partitioning_ in Jet, and is achieved by creating a 
-_parittioned edge_ in the DAG, which ensures the words with same _hash code_ are transmitted to the same instance of the vertex.
+The accumulation step can also be parallelised by making sure that the 
+same word always goes to the same accumulator - this way we can 
+ensure the total counts are correct. This is called _partitioning_ in Jet,
+and is achieved by creating a _parittioned edge_ in the DAG, which
+ensures the words with same _hash code_ are transmitted to the same 
+instance of the vertex.
   
 TODO: include picture
    
-The final step is making our computation distributed across several machines. This requires the addition of another vertex in the DAG,
-which will combine results from each local accumulator into a global result. 
+The final step is making our computation distributed across several 
+machines. This requires the addition of another vertex in the DAG, 
+which will combine results from each local accumulator into a global 
+result. 
 
 TODO: include picture
  
 ## Jet Implementation
  
-Now we will implement this DAG in Jet. The first step is to create a source vertex:
+Now we will implement this DAG in Jet. The first step is to create a 
+source vertex:
  
  ```java
 Vertex source = new Vertex("source", Processors.mapReader("lines"));
 ```
 
-This is a simple vertex, which will read the lines from the `IMap` and emit items of type `Map.Entry<Integer, String>` 
-to the next vertex. The key of the entry is the line number, and the value is the line itself. 
-We can use the built in map reader processor here, which can read a distributed IMap.
+This is a simple vertex, which will read the lines from the `IMap` and
+emit items of type `Map.Entry<Integer, String>` to the next vertex. 
+The key of the entry is the line number, and the value is the line itself.
+We can use the built in map reader processor here, which can read a 
+distributed IMap.
 
-The next vertex is the `Generator`. The responsibility of this vertex is to take incoming lines, and split them into words. 
-This operation can be represented using a _flat map_ processor, which comes built in with Jet:
+The next vertex is the `Generator`. The responsibility of this vertex is
+to take incoming lines, and split them into words. This operation can
+be represented using a _flat map_ processor, which comes built in with 
+Jet:
 
 ```java
 final Pattern PATTERN = Pattern.compile("\\w+");
@@ -134,13 +155,17 @@ Vertex generator = new Vertex("generator",
 );
 ```
 
-This vertex will take an item of type `Map.Entry<Integer, String>` and then split the value part of the entry into words. 
-The key is ignored, as the line number is not useful for the purposes of word count. We will set a count of 1 for each word here,
- and the counts will be combined in the later stages of the computation. The vertex should emit entries of the kind (word, 1), 
- which will have the type `Map.Entry<String, Long>`. The `Traverser` interface is designed to be used by the built in Jet processors. 
+This vertex will take an item of type `Map.Entry<Integer, String>` and 
+then split the value part of the entry into words. The key is ignored, 
+as the line number is not useful for the purposes of word count. We 
+will set a count of 1 for each word here, and the counts will be
+ combined in the later stages of the computation. The vertex should emit 
+entries of the kind (word, 1), which will have the type 
+`Map.Entry<String, Long>`. The `Traverser` interface is designed to 
+be used by the built in Jet processors. 
 
-The next vertex will do the grouping of the words and emit the count for each word. We can use the built in `groupAndAccumulate` 
-`Processor`.
+The next vertex will do the grouping of the words and emit the count 
+for each word. We can use the built in `groupAndAccumulate` `Processor`.
 
 ```java
 Vertex accumulator = new Vertex("accumulator",
@@ -150,15 +175,19 @@ Vertex accumulator = new Vertex("accumulator",
 );
 ```
 
-This processor will take items of type `Map.Entry<String, Long>`, where the key is the word and the value is the count. 
-The expected output is of the same type, with the counts for each word combined together. The processor can only emit 
-the final values after it has exhausted all the data.
+This processor will take items of type `Map.Entry<String, Long>`, where
+the key is the word and the value is the count. The expected output is of
+the same type, with the counts for each word combined together. The
+processor can only emit the final values after it has exhausted all the
+data.
 
-The accumulation lambda given to the `groupAndAccumulate` processor combines the current known count with the count 
-from the new entry.
+The accumulation lambda given to the `groupAndAccumulate` 
+processor combines the current known count with the count from the new
+entry.
 
-This vertex will do _local_ accumulation of word counts on each node. The next step is to do a _global_ accumulation of counts.
-This is the combination step:
+This vertex will do _local_ accumulation of word counts on each node. 
+The next step is to do a _global_ accumulation of counts. This is the
+combination step:
 
 ```java
 Vertex combiner = new Vertex("combiner",
@@ -168,15 +197,18 @@ Vertex combiner = new Vertex("combiner",
 );
 ```
 
-This vertex is identical to the previous one - since accumulation and combination in this case are identical.
+This vertex is identical to the previous one - since accumulation and 
+combination in this case are identical.
 
-The final vertex is the output - we want to store the output in another IMap:
+The final vertex is the output - we want to store the output in another 
+IMap:
 
 ```java
 Vertex sink = new Vertex("sink", Processors.mapWriter("counts"));
 ```
 
-Next, we add the vertices to our DAG, and connect the vertices together with edges:
+Next, we add the vertices to our DAG, and connect the vertices together 
+with edges:
 
 ```java
 DAG dag = new DAG()
@@ -194,7 +226,8 @@ DAG dag = new DAG()
         .edge(between(combiner, sink));
 ```
 
-Let's take a closer look at some of theconnections between the vertices. First, source and generator:
+Let's take a closer look at some of theconnections between the vertices.
+First, source and generator:
 
 ```java
 .edge(between(generator, accumulator)
@@ -202,8 +235,10 @@ Let's take a closer look at some of theconnections between the vertices. First, 
 
 ```
 
-The edge between the generator and accumulator is _partitioned_, because all entries with the same word as key 
-needs to be processed by the same instance of the vertex. Otherwise the same word would be duplicated across many instances.
+The edge between the generator and accumulator is _partitioned_, because 
+all entries with the same word as key needs to be processed by the 
+same instance of the vertex. Otherwise the same word would be duplicated
+across many instances.
 
 
 ```java
@@ -212,10 +247,14 @@ needs to be processed by the same instance of the vertex. Otherwise the same wor
         .<Map.Entry<String, Long>, String>partitionedByKey(Entry::getKey))
 ```
 
-The edge between the `accumulator` and `combiner` is also _partitioned_, similar to the edge between the `generator` and `accumulator`. 
-However, there is also a key difference: the edge is also _distributed_. A _distributed_ edge allows items to be sent to other nodes.
-Since this edge is both partitioned and distributed, the partitioning will be across all the nodes: all entries with the same word as key
-will be sent to a single processor instance in the whole cluster. This ensures that we get the correct total count for a word.
+The edge between the `accumulator` and `combiner` is also _partitioned_,
+similar to the edge between the `generator` and `accumulator`. However,
+there is also a key difference: the edge is also _distributed_. A 
+_distributed_ edge allows items to be sent to other nodes. Since this 
+edge is both partitioned and distributed, the partitioning will be across
+all the nodes: all entries with the same word as key will be sent to 
+a single processor instance in the whole cluster. This ensures that we
+get the correct total count for a word.
 
 To run the DAG and print out the results, we simply do:
 ```java
@@ -233,7 +272,8 @@ short=1, period=2, had=2, wisdom=1, received=1, superlative=1, age=2, darkness=1
   spring=1, authorities=1, way=1, for=2]
 ```
 
-An executable version of this sample can be found at the [Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples)
+An executable version of this sample can be found at the
+ [Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples)
 
 
 
