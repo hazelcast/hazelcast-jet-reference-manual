@@ -8,7 +8,7 @@ separate product, with features not available in Hazelcast.
 Jet also introduces distributed `java.util.stream` support for 
 Hazelcast IMDG data structures, such as `IMap` and `IList`.
 
-## Data Processing Model
+## Data Processing Model
 
 Jet provides high performance in memory data processing by modelling 
 a computation as a _Directed Acyclic Graph (DAG)_ of processing vertices.
@@ -17,9 +17,3 @@ vertices are linked together through _edges_.
 
 The DAG models the dependencies between the steps in the computation 
 and is flexible enough to model almost any computation.
-
-
-
-
-
-

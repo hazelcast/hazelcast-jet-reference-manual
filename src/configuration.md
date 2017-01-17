@@ -1,8 +1,8 @@
 # Configuration
 
-## Programmatic Configuration
+## Programmatic Configuration
 
-## XML Configuration
+## XML Configuration
 
 ## List of Options
 

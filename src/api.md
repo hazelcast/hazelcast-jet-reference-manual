@@ -1,13 +1,13 @@
-# API Reference
+# API Reference
 
-## DAG
+## DAG
 
 The _directed acyclic graph_ defines the computation to be performed
 in a declerative manner - by listing all the different vertices and how 
 they are connected via edges. The DAG itself is portable between Jet 
 instances.
 
-## Job
+## Job
 
 A `Job` could be thought of as an executable version of a DAG. Where 
 as a DAG describes the computation, once a `Job` is created, it can be
@@ -38,7 +38,7 @@ Since the whole DAG is distributed on each node, there will also be a
 _global parallelism_, which is the total number of processor 
 instances across the whole cluster.
 
-## Processor
+## Processor
 
 The Processor is where input streams are transformed into output streams. 
 Each Vertex will have one ore more corresponding `Processor` instances. 
@@ -48,7 +48,7 @@ can act as a data source, data sink or an intermediate, or any combination
 of these. It can join multiple data streams into one or split a single 
 input into multiple outputs. 
 
-###  Instantiation
+###  Instantiation
 
 Some processors are either stateless or are not dependent on some initial 
 value, but in some cases it is necessary to have fine  possible to control 
@@ -58,19 +58,19 @@ exactly how these `Processor` instances are generated
 
 #### ProcessorSupplier
 
-### AbstractProcessor
+### AbstractProcessor
 
 `AbstractProcessor` is a convenience class designed to take away some of the 
 complexity of writing cooperative processors, and 
 provides some utility methods for this purpose.
 
-## Edge
+## Edge
 
 An edge represents a link between two vertices in the DAG. Data flows 
 from between two vertices along an edge, and this flow can be controlled
 by various methods on the Edge API.
 
-### Ordinals
+### Ordinals
 
 Each edge has an ordinal at the source and one at the destination. If a
 vertex will only have a single input or output, the ordinal will 
@@ -90,7 +90,7 @@ The edge with the large input would be lower priority than the others,
 so that all of the small inputs can be buffered in memory before 
 starting to stream the larger input.
 
-### Local and Distributed Edges
+### Local and Distributed Edges
 
 All edges are local by default: the items are only forwarded to `Processor`s 
 on the same on the same node. If an edge is specified as `distributed`, then
@@ -98,13 +98,13 @@ it might be forwarded to `Processor` instances running on other nodes. This
 option can be combinedwith [Forwarding Patterns](forwarding-patterns) for 
 various forwarding patterns.
 
-### Forwarding Patterns
+### Forwarding Patterns
 
 Forwarding patterns control how data is forwarded along an edge. Since
 there can be multiple processor instances on the destination vertex, 
 a choice needs to be made about which processor(s) will receive the items.
 
-#### Variable Unicast
+#### Variable Unicast
 
 This is the default forwarding pattern. For each item, a single destination 
 processor is chosen, with no specific restrictions on the choice. The only 
@@ -122,7 +122,7 @@ Broadcast edges are typically used with _hash join_ operations, where each
 memory, and will join it against a "large" side, which is typically retrieved
 in a streaming fashion.
 
-#### Partitioned
+#### Partitioned
 
 Each item is sent to the one processor responsible for the item's 
 partition ID. On a distributed edge, the processor is unique across the 
@@ -136,7 +136,7 @@ forwarding pattern where all items will be assigned the same, randomly
 chosen partition ID. Therefore all items will be directed to the same
 processor.
 
-### Buffered Edges
+### Buffered Edges
 
 A buffered edge is to enable some special-case edges to be able to buffer 
 unlimited amount of data. Imagine the following scenario:
@@ -152,7 +152,7 @@ higher-priority input to be consumed, this will result in a deadlock.
 The deadlock is resolved by activating unbounded buffering on the 
 lower-priority edge.
 
-### Tuning Edges
+### Tuning Edges
 
 Edges have some configuration properties which can be used for tuning how 
 the items are transmitted. The following options
@@ -233,4 +233,3 @@ are available:
             <td>3</td>
         </tr>
 </table>
-

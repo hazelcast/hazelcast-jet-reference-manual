@@ -7,4 +7,3 @@ for building applications.
 As the reader of this manual, you must be familiar with the Java
 programming language and you should have installed your preferred 
 Integrated Development Environment (IDE).
-

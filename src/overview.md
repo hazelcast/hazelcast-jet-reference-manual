@@ -5,14 +5,14 @@ Hazelcast IMDG for cluster forming and maintenance; data partitioning;
 and networking. For more information about Hazelcast IMDG, see the 
 [latest Hazelcast reference manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html).
 
-## Cluster
+## Cluster
 
 Jet is meant to be run on several machines forming a cluster, although it 
 is also possible to run it on a single node for testing purposes. There 
 are several ways to configure the nodes for discovery, explained in detail 
 in the [Hazelcast reference manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#setting-up-clusters).
 
-## Directed Acyclic Graph
+## Directed Acyclic Graph
 
 The user describes the computation job in the form of a _directed acyclic 
 graph_ (DAG). Each vertex performs a step in the computation and emits 
@@ -43,8 +43,8 @@ employing _local partitioned_ edges as well. Local edges are implemented
 with the most efficient kind of concurrent queue: single-producer, 
 single-consumer bounded queue. It employs wait-free algorithms on both 
 sides and avoids `volatile` writes by using `lazySet`.
- 
-### Processor
+
+### Processor 
 
 A processor's work can be conceptually described as follows: receive data 
 from zero or more input streams and emit data into zero or more output 
@@ -81,7 +81,7 @@ Processors can be stateful and don't need to be thread-safe. A single
 instance will be called by a single thread at a time, although not 
 necessarily always the same thread.
 
-## Cooperative multithreading
+## Cooperative multithreading
 
 Cooperative multithreading is one of the core features of Jet and can be 
 roughly compared to [green threads](https://en.wikipedia.org/wiki/Green_threads).
@@ -99,7 +99,7 @@ The point of cooperative multithreading is much lower context-switching
 cost and precise knowledge of the status of a processor's input and 
 output buffers, which determines its ability to make progress.
 
-#### Non-cooperative Processors
+#### Non-cooperative Processors
 
 For some parts of a Jet job, blocking or otherwise long-running 
 operations cannot be avoided. Typically this happens on sources and sinks

@@ -24,8 +24,8 @@ You should some output like:
 
 ```
 Members [2] {
-	Member [10.0.1.3]:5701 - f1e30062-e87e-4e97-83bc-6b4756ef6ea3
-	Member [10.0.1.3]:5702 - d7b66a8c-5bc1-4476-a528-795a8a2d9d97 this
+Member [10.0.1.3]:5701 - f1e30062-e87e-4e97-83bc-6b4756ef6ea3
+Member [10.0.1.3]:5702 - d7b66a8c-5bc1-4476-a528-795a8a2d9d97 this
 }
 ```
 
@@ -38,7 +38,7 @@ Jet.shutdownAll();
 
 as the last line of your application.
 
-## Populating some data
+## Populating some data
 
 To be able to do a word count, we need some source data. Jet has built in 
 readers for maps and lists from Hazelcast, so we will go ahead and
@@ -46,26 +46,26 @@ populate an `IMap` with some lines of text:
 
 ```java
 IStreamMap<Integer, String> map = instance1.getMap("lines");
-map.put(0, "It was the best of times,");
-map.put(1, "it was the worst of times,");
-map.put(2, "it was the age of wisdom,");
-map.put(3, "it was the age of foolishness,");
-map.put(4, "it was the epoch of belief,");
-map.put(5, "it was the epoch of incredulity,");
-map.put(6, "it was the season of Light,");
-map.put(7, "it was the season of Darkness");
-map.put(8, "it was the spring of hope,");
-map.put(9, "it was the winter of despair,");
-map.put(10, "we had everything before us,");
-map.put(11, "we had nothing before us,");
-map.put(12, "we were all going direct to Heaven,");
-map.put(13, "we were all going direct the other way --");
-map.put(14, "in short, the period was so far like the present period, that some of "
+ map.put(0, "It was the best of times,");
+ map.put(1, "it was the worst of times,");
+ map.put(2, "it was the age of wisdom,");
+ map.put(3, "it was the age of foolishness,");
+ map.put(4, "it was the epoch of belief,");
+ map.put(5, "it was the epoch of incredulity,");
+ map.put(6, "it was the season of Light,");
+ map.put(7, "it was the season of Darkness");
+ map.put(8, "it was the spring of hope,");
+ map.put(9, "it was the winter of despair,");
+ map.put(10, "we had everything before us,");
+ map.put(11, "we had nothing before us,");
+ map.put(12, "we were all going direct to Heaven,");
+ map.put(13, "we were all going direct the other way --");
+ map.put(14, "in short, the period was so far like the present period, that some of "
      + "its noisiest authorities insisted on its being received, for good or for "
      + "evil, in the superlative degree of comparison only.");
 ```
  
-## Single thread computation
+## Single thread computation
 
 Now that we have some data populated, we want to count how many times 
 each word occurs in this text. If we want to do a word count without 
@@ -86,7 +86,7 @@ However, as soon as we try to scale this computation across multiple
 threads, and even across multiple machines, then it is clear that we 
 would need to model it differently.
 
-## Modelling Word Count in terms of a DAG
+## Modelling Word Count in terms of a DAG
 
 The word count computation can be roughly divided into three steps:
 
@@ -274,6 +274,3 @@ short=1, period=2, had=2, wisdom=1, received=1, superlative=1, age=2, darkness=1
 
 An executable version of this sample can be found at the
  [Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples)
-
-
-

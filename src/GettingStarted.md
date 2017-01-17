@@ -1,6 +1,6 @@
 # Getting Started
 
-## Requirements
+## Requirements
 
 Jet requires a minimum JDK version of 8.
 
@@ -11,21 +11,20 @@ project.
 
 ```xml
 <dependencies>
-	<dependency>
-		<groupId>com.hazelcast.jet</groupId>
-		<artifactId>hazelcast-jet</artifactId>
-		<version>0.3</version>
-	</dependency>
+ <dependency>
+  <groupId>com.hazelcast.jet</groupId>
+  <artifactId>hazelcast-jet</artifactId>
+  <version>0.3</version>
+ </dependency>
 </dependencies>
 ```
 
-## Gradle
+## Gradle
 ```groovy
 compile 'com.hazelcast.jet:hazelcast-jet:0.3'
 ```
 
-## Download
+## Download
 
 Alternatively, you can download the latest [distribution package for Jet](http://jet.hazelcast.org/download/)
 and add the `hazelcast-jet-<version>.jar` file to your classpath.
-   
