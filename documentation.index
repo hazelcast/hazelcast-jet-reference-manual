@@ -6,6 +6,8 @@ src/WordCount.md
 src/Overview.md
 src/API.md
 src/Configuration.md
-src/UtilSupport.md
+src/ResourceDeployment.md
+src/CustomSources.md
+src/JavaUtilStream.md
 src/Architecture.md
 src/Modules.md
