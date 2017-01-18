@@ -139,8 +139,8 @@ This type is designed to be implemented by the user, but the
 `Processors` utility class provides implementations covering most cases.
 Custom meta-suppliers are expected to be needed primarily to implement a
 custom data source or sink. Instances of this type are serialized and
-transfered as a part of each `Vertex` instance in a `DAG`. The
-_coordinator_ member deserialies it to retrieve `ProcessorSupplier`s.
+transferred as a part of each `Vertex` instance in a `DAG`. The
+_coordinator_ member deserializes it to retrieve `ProcessorSupplier`s.
 Before being asked for `ProcessorSupplier`s, the meta-supplier is given
 access to the Hazelcast instance so it can find out the parameters of
 the cluster the job will run on. Most typically, the meta-supplier in
@@ -154,13 +154,16 @@ meta-supplier is custom-implemented and complete the logic of a
 distributed data source's partition assignment. It supplies instances of
 `Processor` ready to start executing the vertex's logic.
 
+For more guidance on how these interfaces can be implemented, see
+the section [Implementing Custom Sources and Sinks](#implementing-custom-sources-and-sinks).
+
 #### SimpleProcessorSupplier
 
 This is a simple functional interface, a serializable specialization of
 `Supplier<Processor>`. It allows the user a means of implementing the
 processor meta-supplier in the simplest, but also the most common case
 where processor instances can be created without reference to any
-context parameters. Tipically, only the sources and sinks will require
+context parameters. Typically, only the sources and sinks will require
 context-sensitive configuration and the user will most likely not have
 to implement them.
 
@@ -205,6 +208,8 @@ over the edge and each processor of the downstream vertex receives a
 part of that stream. Several properties of the `Edge` control the
 routing from upstream to downstream processors.
 
+There can only be a single edge between two vertices.
+
 ### Ordinals
 
 An edge is connected to a vertex with a given _ordinal_, which
@@ -214,6 +219,10 @@ came in. Things are similar on the outbound side: the processor emits an
 item to a given ordinal, but also has the option to emit the same item
 to all ordinals. This is the most typical case and allows easy
 replication of a data stream across several edges.
+
+Edges by default will have ordinal 0. Two outgoing edges from or
+incoming edges to the same vertex must have different ordinals, and gaps
+in ordinal sequence are not allowed.
 
 ### Priority
 
@@ -250,9 +259,9 @@ set to route each particular item to.
 
 This is the default forwarding pattern. For each item a single
 destination processor is chosen with no further restrictions on the
-choice. The only guarantee given by this method is that the item will be
-received by exactly one processor, but typically care will be taken to
-"spray" the items equally over all the reception candidates.
+choice. The only guarantee given by this pattern is that the item will
+be received by exactly one processor, but typically care will be taken
+to "spray" the items equally over all the reception candidates.
 
 This choice makes sense when the data doesn't have to be partitioned,
 usually implying a downstream vertex which can compute the result based
@@ -262,7 +271,7 @@ on each item in isolation.
 
 The item is sent to all candidate receivers. This is useful when some
 small amount of data must be broadcast to all downstream vertices.
-Usually such vertices will have other inbound edges in addition to  the
+Usually such vertices will have other inbound edges in addition to the
 broadcasting one, and will use the broadcast data as context while
 processing the other edges. In such cases the broadcasting edge will
 have a raised priority. There are other useful combinations, like a
@@ -274,6 +283,27 @@ Each item is sent to the one processor responsible for the item's
 partition ID. On a distributed edge, this processor will be unique
 across the whole cluster. On a local edge, each member will have its
 own processor for each partition ID.
+
+Each processor can be assigned multiple partitions. The global umber of
+partitions is controlled by the number of partitions in the underlying
+Hazelcast configuration. For more information about Hazelcast
+partitioning, see the [Hazelcast reference guide](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#data-partitioning)
+
+To calculate the partition ID for an item, by default Hazelcast
+partitioning is used:
+
+1. The partition key is serialized and converted into a byte array.
+2. The byte array is hashed using Murmur3.
+3. The result of the hash is mod by the number of partitions.
+
+Partitioned edges can take an optional `keyExtractor` function which
+ maps an item to its partition key. If no `keyExtractor` is specified,
+the whole object as a whole is used as the partition key.
+
+For even more control over how the partition ID is calculated, you can
+implement a custom `Partitioner`. Special care must be taken to make
+sure that this function returns the same result for same items on all
+members in the cluster.
 
 #### All to One
 
@@ -297,82 +327,82 @@ buffering on the lower-priority edge.
 
 ### Tuning Edges
 
-Edges have some configuration properties which can be used for tuning how
-the items are transmitted. The following options
-are available:
+Edges have some configuration properties which can be used for tuning
+how the items are transmitted. The following options are available:
 
 <table>
-    <tr>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Default Value</th>
-    </tr>
-    <tr>
-        <td>High Water Mark</td>
-        <td>
-            A Processor deposits its output items to its Outbox. It is an
-            unbounded buffer, but has a "high water mark" which
-            should be respected by a well-behaving processor. When its outbox reaches
-            the high water mark, the processor should yield control back to its caller.
-        <td>2048</td>
-    </tr>
-    <tr>
-        <td>Queue Size</td>
-        <td>
-            When data needs to travel between two processors on the
-            same cluster member, it is sent over a concurrent
-            single-producer, single-consumer (SPSC) queue of fixed
-            size. This options controls the size of the queue.
-            <br/>
-            Since there are several processors executing the logic of each vertex,
-            and since the queues are SPSC, there will be a total of
-            `senderParallelism` * `receiverParallelism` queues
-            representing the edge on each member. Care should be taken
-            to strike a balance between performance and memory usage.
-        <td>1024</td>
-    </tr>
-    <tr>
-        <td>Packet Size Limit</td>
-        <td>
-            For a distributed edge, data is sent to a remote member via
-            Hazelcast network packets. Each packet is dedicated to the
-            data of a single edge, but may contain any number of
-            data items. This setting limits
-            the size of the packet in bytes. Packets should be large
-            enough to drown out any fixed overheads,
-            but small enough to allow good interleaving with other packets.
-            <br/>
-            Note that a single item cannot straddle packets,
-            therefore  the maximum packet size can exceed the value
-            configured here by the size of a single data item.
-            <p/>
-            This setting has no effect on a non-distributed edge.
-        <td>16384</td>
-    </tr>
-    <tr>
-            <td>Receive Window Multiplier</td>
-            <td>
-                For each distributed edge the receiving member regularly sends
-                flow-control ("ack") packets to its sender which
-                prevent it from sending too much data and overflowing the buffers.
-                The sender is allowed to send the data one receive
-                window further than the last acknowledged byte and the
-                receive window is sized in proportion to the rate of
-                processing at the receiver.
-                <br/>
-                Ack packets are sent in regular intervals and the
-                receive window multiplier sets the factor of the linear
-                relationship between the amount of data processed
-                within one such interval and the size of the receive window.
-                <br/>
-                To put it another way, let us define an ackworth to
-                be  the amount of data processed between two consecutive
-                ack packets. The receive window multiplier determines
-                the number of ackworths the sender can be ahead of
-                the last acked byte.
-                <br/>
-                This setting has no effect on a non-distributed edge.
-             </td>
-            <td>3</td>
-        </tr>
+  <tr>
+    <th style="width: 25%;">Name</th>
+    <th>Description</th>
+    <th>Default Value</th>
+  </tr>
+  <tr>
+    <td>High Water Mark</td>
+    <td>
+      A Processor deposits its output items to its Outbox. It is an
+      unbounded buffer, but has a "high water mark" which should be
+      respected by a well-behaving processor. When its outbox reaches
+      the high water mark,the processor should yield control back to its
+      caller.
+    </td>
+    <td>2048</td>
+  </tr>
+  <tr>
+    <td>Queue Size</td>
+    <td>
+      When data needs to travel between two processors on the same
+      cluster member, it is sent over a concurrent single-producer,
+      single-consumer (SPSC) queue of fixed size. This options controls
+      the size of the queue.
+      <br/>
+      Since there are several processors executing the logic of each
+      vertex, and since the queues are SPSC, there will be a total of
+      <code>senderParallelism * receiverParallelism</code> queues
+      representing the edge on each member. Care should be taken to
+      strike a balance between performance and memory usage.
+    </td>
+    <td>1024</td>
+  </tr>
+  <tr>
+    <td>Packet Size Limit</td>
+    <td>
+      For a distributed edge, data is sent to a remote member via
+      Hazelcast network packets. Each packet is dedicated to the data of
+      a single edge, but may contain any number of data items. This
+      setting limits the size of the packet in bytes. Packets should be
+      large enough to drown out any fixed overheads, but small enough to
+      allow good interleaving with other packets.
+      <br/>
+      Note that a single item cannot straddle packets, therefore the
+      maximum packet size can exceed the value configured here by the
+      size of a single data item.
+      <br/>
+      This setting has no effect on a non-distributed edge.
+    </td>
+    <td>16384</td>
+  </tr>
+  <tr>
+    <td>Receive Window Multiplier</td>
+    <td>
+      For each distributed edge the receiving member regularly sends
+      flow-control ("ack") packets to its sender which prevent it from
+      sending too much data and overflowing the buffers. The sender is
+      allowed to send the data one receive window further than the last
+      acknowledged byte and the receive window is sized in proportion to
+      the rate of processing at the receiver.
+      <br/>
+      Ack packets are sent in regular intervals and the receive window
+      multiplier sets the factor of the linear relationship between the
+      amount of data processed within one such interval and the size of
+      the receive window.
+      <br/>
+      To put it another way, let us define an ackworth to be  the amount
+      of data processed between two consecutive ack packets. The receive
+      window multiplier determines the number of ackworths the sender
+      can be ahead of the last acked byte.
+      <br/>
+      This setting has no effect on a non-distributed edge.
+     </td>
+     <td>3</td>
+  </tr>
 </table>

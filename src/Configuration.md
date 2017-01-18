@@ -34,13 +34,13 @@ configuration will be loaded.
 
 TODO: link to sample XML configuration
 
-## Configuring underlying Hazelcast instance
+## Configuring underlying Hazelcast instance
 
 Each Jet member or client, will have a respective underlying Hazelcast
 member or client. For specific configuration options for Hazelcast
 IMDG, see the [Hazelcast Reference Manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#understanding-configuration)
 
-### Programmatic
+### Programmatic
 
 The underlying IMDG configuration can be configured as follows:
 
@@ -51,7 +51,7 @@ JetConfig jetConfig = new JetConfig();
 jetConfig.getHazelcastConfig().getGroupConfig().setName("test");
 JetInstance jet = Jet.newJetInstance(jetConfig);
 ```
-#### Client
+#### Client
 
 ````java
 ClientConfig clientConfig = new ClientConfig();
