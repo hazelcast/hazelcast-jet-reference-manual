@@ -2,245 +2,284 @@
 
 ## DAG
 
-The _directed acyclic graph_ defines the computation to be done via
-a topology of [Edges](#edge) and [Vertices](#vertex). The DAG itself is
-portable between Jet clusters and can be reused between jobs.
+`DAG` stands for the _directed acyclic graph_ which models the
+computation to be performed by a Jet job. Vertices are units of data
+processing and edges are units of data routing and transfer. A `DAG`
+instance is serializable and the client sends it over the network
+when submitting a job for execution.
 
 ## Job
 
-A `Job` could be thought of as an executable version of a DAG. Where
-as a DAG describes the computation, once a `Job` is created, it can be
-executed one or more times.
+`Job` is a handle to the execution of a DAG. The same `Job` instance can
+be submitted for execution many times. It also holds additional
+information, such as the resources that need to be deployed along with
+the DAG.
 
-A Job also holds additional information, such as the resources that
-need to be deployed along with the DAG.
-
-Also see: [Resource Deployment](#resource-deployment)
+See also: [Resource Deployment](#resource-deployment)
 
 ## Vertex
 
-Vertex is the main unit of work in a Jet computation. A vertex receives
-input from its inbound edges, and pushes data out through it's outbound
-edges in the graph. Each Vertex has corresponding `Processor`
-instances, which are responsible for transforming zero or more inputs to
-zero or more outputs.
+Vertex is the main unit of work in a Jet computation. Conceptually, it
+receives input from its inbound edges and emits data to its outbound
+edges. Practically, it is a number of `Processor` instances which
+receive each its own part of the full stream traveling over the inbound
+edges, and likewise emits its own part of the full stream going down
+the outbound edges.
 
 ### Local and Global Parallelism
 
-The vertex is implemented by one or more instances of `Processor`. The
-number of `Processor` instances for each vertex is implemented by
-the `parallelism` option. The number of instances on a single node are
-by default equal to the number of Jet execution threads, which in
-turn default to number of OS threads on the machine.
+The vertex is implemented by one or more instances of `Processor` on
+each member. This number is configurable for each vertex individually:
+it is its `localParallelism` property. A new `Vertex` instance has this
+property set to `-1`, which requests to use the default value equal to
+the configured size of the cooperative thread pool. The latter defaults
+to `Runtime.availableProcessors()`.
 
-Since the whole DAG is distributed on each node, there will also be a
-_global parallelism_, which is the total number of processor
-instances across the whole cluster.
+The _global parallelism_ of the vertex is also an important value,
+especially in terms of the distribution of partitions among processors.
+It is equal to local parallelism multiplied by cluster size.
+
 
 ## Processor
 
-The Processor is where input streams are transformed into output streams.
-Each Vertex will have one ore more corresponding `Processor` instances.
+`Processor` is the main type whose implementation is up to the user: it
+contains the code of the computation to be performed by a vertex. As
+already mentioned, many processors for the same vertex run in parallel
+on each member of the cluster, receiving a part of the input dataset
+and emitting a part of the output dataset.
 
-A processor, when combined with the topology of the vertex it is part
-of, can act as a data source, data sink or an intermediate, or any
-combination of these. It can join multiple data streams into one or
-split a single input into multiple outputs.
+The same `Processor` abstraction is used for all kinds of vertices,
+including the terminal ones which act as data sources and sinks. In
+general, a processor receives data from zero or more input streams and
+emits data into zero or more output streams.
 
-Processors are always called from a single thread and do not need to
-have thread safe semantics. They can have local state and do not need to
-be serializable.
+### isCooperative()
 
-###  Instantiation
+To maintain good overall throughput, a cooperative processor must take
+care not to hog the thread for too long (a rule of thumb is up to a
+millisecond at a time). The processor can opt out of [cooperative
+multithreading](#cooperative-multithreading) by overriding
+`isCooperative()` to return `false`. Jet will then start a dedicated
+thread for it.
 
-Some processors are either stateless or are not dependent on some
-initial value, but in some cases it is necessary to have fine  possible
-to control exactly how these `Processor` instances are generated. Each
-`Vertex` definition needs to know how the `Processor` instances will be
-created.
+### Outbox
 
-#### SimpleProcessorSupplier
+The processor deposits the items it wants to emit to an instance of
+`Outbox`, which has a separate bucket for each outbound edge. The
+buckets are unbounded, but each has a defined "high water mark" that
+says when the bucket should be considered full. When the processor
+realizes it has hit the high water mark, it should return from the
+current processing callback and let the execution engine drain the
+outbox.
 
-The simplest way of creating `Processor` instances is supplying a
-`SimpleProcessorSupplier` to the vertex. The SimpleProcessorSupplier is
-a simple lambda that will initialize the processor same way for all
-instances in all members. This is typically the case for intermediate
-vertices in the graph where the behavior of the processor is well
-defined and is only varied by the input and output elements. An example
-would be a simple mapping vertex, which takes the input and transforms
-it into something else.
 
-#### ProcessorSupplier
+### Data-processing callbacks
 
-The `ProcessorSupplier` abstraction allows greater control over the individual
-instances created on each node. The `ProcessorSupplier` is called once
-on each member. It is given a number of `Processor` instances and is
-expected to create and return these instances.
+Three callback methods are involved in data processing: `process()`,
+`completeEdge()`, and `complete()`.
+
+#### process()
+
+Jet passes the items received over a given edge by calling
+`process(ordinal, inbox)`. All items received since the last `process()`
+call are in the inbox, but also all the items the processor hasn't
+removed in a previous `process()` call. There is a separate instance of
+`Inbox` for each  inbound edge, so any given `process()` call involves
+items from only one edge.
+
+The processor should not remove an item from the inbox until it has
+fully processed it. This is important with respect to the cooperative
+behavior: the processor may not be allowed to emit all items
+corresponding to a given input item and may need to return from the
+`process()` call early, saving its state. In such a case the item should
+stay in the inbox so Jet knows the processor has more work to do even if
+no new items are received.
+
+#### completeEdge()
+
+Eventually each edge will signal its data stream is exhausted. When this
+happens, Jet calls the processor's `completeEdge()` with the ordinal of
+the completed edge.
+
+The processor may want to emit any number of items upon this event, and
+it may be prevented from emitting all due to a full outbox. In this case
+it may return `false` and will be called again later.
+
+#### complete()
+
+Jet calls `complete()` after all the edges are exhausted and all the
+`completeEdge()` methods called. It is the last method to be invoked on
+the processor before disposing of it. The semantics of the boolean
+return value are the same as in `completeEdge()`.
+
+
+### Creation and initialization of Processor instances
+
+As described in the [Architecture](create-and-execute-a-job) section,
+job submission is a multistage process which gives rise to the concept
+of the _processor meta-supplier_.
 
 #### ProcessorMetaSupplier
 
-`ProcessorMetaSupplier` is executed only on a single node and the
-`get(Address address)` method is called once per member. It returns a
-`ProcessorSupplier` for each member, which will be called locally on the
-corresponding member.
+This type is designed to be implemented by the user, but the
+`Processors` utility class provides implementations covering most cases.
+Custom meta-suppliers are expected to be needed primarily to implement a
+custom data source or sink. Instances of this type are serialized and
+transfered as a part of each `Vertex` instance in a `DAG`. The
+_coordinator_ member deserialies it to retrieve `ProcessorSupplier`s.
+Before being asked for `ProcessorSupplier`s, the meta-supplier is given
+access to the Hazelcast instance so it can find out the parameters of
+the cluster the job will run on. Most typically, the meta-supplier in
+the source vertex will use the cluster size to control the assignment of
+data partitions to each member.
 
-To summarize:
+#### ProcessorSupplier
 
-1. The `ProcessorMetaSupplier` for the `Vertex` is serialized and sent to
-the coordinating member.
-2. Coordinator calls `ProcessorMetaSupplier.get()` once for each member
-in the cluster and a `ProcessorSupplier` for each member is created.
-3. The `ProcessorSupplier` for each member is serialized and sent to that
-member.
-4. Each member will call their own `ProcessorSupplier` with the correct
-count parameter, which corresponds to the `localParallelism` setting of
-that vertex.
+Usually this type will be custom-implemented in the same cases where its
+meta-supplier is custom-implemented and complete the logic of a
+distributed data source's partition assignment. It supplies instances of
+`Processor` ready to start executing the vertex's logic.
 
-### Processing Data
+#### SimpleProcessorSupplier
 
-There main methods for data processing within the `Processor` interface
-are `process`, `completeEdge` and `complete`
+This is a simple functional interface, a serializable specialization of
+`Supplier<Processor>`. It allows the user a means of implementing the
+processor meta-supplier in the simplest, but also the most common case
+where processor instances can be created without reference to any
+context parameters. Tipically, only the sources and sinks will require
+context-sensitive configuration and the user will most likely not have
+to implement them.
 
-#### process
-
-`process` is called whenever there is data available to read on the
-`Processor`. It will always contain data from one ordinal, which is
-specified by the parameter - inputs from different edges are not mixed.
-
-The `Inbox` passed in to the method will contain items from the given
-ordinal, and once an item is removed from the `Inbox`, it will not be
-given to the `Processor` again. It is up to the `Processor`
-implementation to decide how many items from the `Inbox` it will
-consume. The specific instance of the `Processor` is the owner and
-consumer of this inbox.
-
-#### complete
-
-`complete` is called after all the inputs of the processors have been
-exhausted. When returned `true`, it means the `Processor` is finished
-processing and will not be called again. If `false` is returned, the
-`complete` method will be called again at a later point. No other
-methods are called after `complete`.
-
-#### completeEdge
-
-`completeEdge` is similar to `complete`, but is called after a single
-edge is exhausted. The return value semantics are the same as `complete`.
-
-#### isCooperative
-
-This method defines if the processor supports [cooperative-multithreading](#cooperative-multithreading)
-or not. If the returned value here is `false`, the processor will be run
-on its own and can perform blocking operations. The default value is `true`.
-
-#### Outbox
-
-Each processor has an `Outbox` instance where all the emitted data
-is written to. Items in the `Outbox` will be forwarded to the next node,
-based on the properties of the edge. `Outbox` is unbounded in size, but
-has a high water mark which should be respected by the `Processor`.
-
-### Producers
-
-A _producer_ is a specific kind of Processor, which takes no input and
-produces some output. These typically act as data sources, and they
-only implemented the `complete` method of the `Processor`.
-
-Refer to the section about [custom readers and writers](#writing-custom-readers-and-writers)
-on more details about how to write custom producers.
+The user can pass in a `SimpleProcessorSupplier` instance as a lambda
+expression and Jet does all the boilerplate of building a full
+meta-supplier from it.
 
 ### AbstractProcessor
 
-`AbstractProcessor` is a convenience class designed to take away some of
-the complexity of writing cooperative processors, and provides some
-utility methods for this purpose. For more details, see (TODO).
+`AbstractProcessor` is a convenience class designed to deal with most of
+the boilerplate in implementing the full `Processor` API. The main
+complication arises from the requirement to observe the output buffer
+limits during a single processing step. If the processor emits many
+items per step, the loop doing this must support being suspended at any
+point and resumed later. This need arises in two typical cases:
+
+- when a single input item maps to a multitude of output items;
+- when items are emitted in the final step, after having received all
+the input.
+
+`AbstractProcessor` provides the method `emitCooperatively` to support
+the latter and there is additional support for the former with the
+nested class `TryProcessor`. These work with the `Traverser` abstraction
+to cooperatively emit a user-provided sequence of items.
+
+### Traverser
+
+`Traverser` is a very simple functional interface whose shape matches
+that of a `Supplier`, but with a contract specialized for the traversal
+over a sequence of non-null items: each call to its `next()` method
+returns another item of the sequence until exhausted, then keeps
+returning `null`. `Traverser` also sports some `default` methods that
+facilitate building a simple transformation layer over the underlying
+sequence: `map`, `filter`, and `flatMap`.
 
 ## Edge
 
-An edge represents a link between two vertices in the DAG. Data flows
-from between two vertices along an edge, and this flow can be controlled
-by various methods on the Edge API.
+An edge represents a link between two vertices in the DAG. Conceptually,
+data flows between two vertices along an edge; practically, each
+processor of the upstream vertex contributes to the overall data stream
+over the edge and each processor of the downstream vertex receives a
+part of that stream. Several properties of the `Edge` control the
+routing from upstream to downstream processors.
 
 ### Ordinals
 
-Each edge has an ordinal at the source and one at the destination. If a
-vertex will only have a single input or output, the ordinal will
-always be 0. For vertices with multiple inputs or outputs, then the
-ordinals for the additional vertices  will need to be set explicitly.
+An edge is connected to a vertex with a given _ordinal_, which
+identifies it to the vertex and its processors. When a processor
+receives an item, it knows the ordinal of the edge on which the item
+came in. Things are similar on the outbound side: the processor emits an
+item to a given ordinal, but also has the option to emit the same item
+to all ordinals. This is the most typical case and allows easy
+replication of a data stream across several edges.
 
 ### Priority
 
-Incoming edges will be processed by a vertex in the order of priority:
-edges with a lower priority number will be processed first. Lower
-priority edges will not be processed until all higher priority edges
-have been exhausted.
+In most cases the processor receives items from all inbound edges as
+they arrive; however, there are important cases where the reception of
+one edge must be delayed until all other edges are consumed in full. A
+major example is a highly asymmetric join operation, where one of the
+edges stands out with its high data volume. Normally, collating items
+from several edges by a common key implies buffering all the data before
+emitting the result, but there is also the option to receive and buffer
+data from all edges except the large one, then start receiving from it
+and immediately emitting data.
 
-This is useful for example when implementing a hash join - where you
-have multiple inputs: one or more smaller inputs and one very large
-input. The edge with the large input would be lower priority than the
-others, so that all of the small inputs can be buffered in memory before
-starting to stream the larger input.
+Edge consumption order is controlled by the _priority_ property. Edges
+are sorted by their priority number (ascending) and consumed in that
+order. Edges with the same priority are consumed without particular
+ordering (as the data arrives).
 
 ### Local and Distributed Edges
 
-All edges are local by default: the items are only forwarded to
-`Processor`s on the same on the same node. If an edge is specified as
-`distributed`, then it might be forwarded to `Processor` instances
-running on other nodes. This option can be combined with [Forwarding
-Patterns](forwarding-patterns) for various forwarding patterns.
+A major choice to make in terms of data routing is whether the candidate
+set of target processors is unconstrained, encompassing all processors
+across the cluster, or constrained to just those running on the same
+cluster member. This is controlled by the `distributed` property of the
+edge. By default the edge is local and calling the `distributed()`
+method removes this restriction.
 
 ### Forwarding Patterns
 
-Forwarding patterns control how data is forwarded along an edge. Since
-there can be multiple processor instances on the destination vertex, a
-choice needs to be made about which processor(s) will receive the items.
+The forwarding pattern decides which of the processors in the candidate
+set to route each particular item to.
 
 #### Variable Unicast
 
-This is the default forwarding pattern. For each item, a single
-destination processor is chosen, with no specific restrictions on the
+This is the default forwarding pattern. For each item a single
+destination processor is chosen with no further restrictions on the
 choice. The only guarantee given by this method is that the item will be
-received by exactly one processor.
+received by exactly one processor, but typically care will be taken to
+"spray" the items equally over all the reception candidates.
+
+This choice makes sense when the data doesn't have to be partitioned,
+usually implying a downstream vertex which can compute the result based
+on each item in isolation.
 
 #### Broadcast
 
-The item is sent to all candidate processors. In a local edge, this
-will only be local processors. In a distributed edge, all processors on
-all nodes will receive the item.
-
-Broadcast edges are typically used with _hash join_ operations, where
-each `Processor` instance will hold the whole of the "small" side of the
-join in memory, and will join it against a "large" side, which is
-typically retrieved in a streaming fashion.
+The item is sent to all candidate receivers. This is useful when some
+small amount of data must be broadcast to all downstream vertices.
+Usually such vertices will have other inbound edges in addition to  the
+broadcasting one, and will use the broadcast data as context while
+processing the other edges. In such cases the broadcasting edge will
+have a raised priority. There are other useful combinations, like a
+parallelism-one vertex that produces the same result on each member.
 
 #### Partitioned
 
 Each item is sent to the one processor responsible for the item's
-partition ID. On a distributed edge, the processor is unique across the
-cluster; on a non-distributed edge the processor is unique only within
-a member.
+partition ID. On a distributed edge, this processor will be unique
+across the whole cluster. On a local edge, each member will have its
+own processor for each partition ID.
 
 #### All to One
 
-Activates a special-cased [Partitioned](#partitioned)  forwarding
-pattern where all items will be assigned the same, randomly chosen
-partition ID. Therefore all items will be directed to the same
-processor.
+Activates a special-cased _partitioned_ forwarding pattern where all
+items are assigned the same partition ID, randomly chosen at job
+initialization time. This will direct all items to the same processor.
 
 ### Buffered Edges
 
-A buffered edge is to enable some special-case edges to be able to
-buffer unlimited amount of data. Imagine the following scenario:
+In some special cases, unbounded data buffering must be allowed on an
+edge. Consider the following scenario:
 
 A vertex sends output to two edges, creating a fork in the DAG. The
 branches later rejoin at a downstream vertex which assigns different
-priorities to its two inbound edges. The one with the lower priority
-won't be consumed until the higher-priority one is consumed in full.
-However, since the data for both edges is generated simultaneously, and
-since the lower-priority input will apply backpressure while waiting for
-the higher-priority input to be consumed, this will result in a
-deadlock. The deadlock is resolved by activating unbounded buffering on
-the lower-priority edge.
+priorities to its two inbound edges. Since the data for both edges is
+generated simultaneously, and since the lower-priority edge will apply
+backpressure while waiting for the higher-priority edge to be consumed
+in full, the upstream vertex will not be allowed to emit its data and a
+deadlock will occur. The deadlock is resolved by  activating unbounded
+buffering on the lower-priority edge.
 
 ### Tuning Edges
 
@@ -259,26 +298,23 @@ are available:
         <td>
             A Processor deposits its output items to its Outbox. It is an
             unbounded buffer, but has a "high water mark" which
-            should be respected by a well-behaving processor. When its
-            outbox reaches the high water mark, the processor should yield
-            control back to its caller.
-        </td>
+            should be respected by a well-behaving processor. When its outbox reaches
+            the high water mark, the processor should yield control back to its caller.
         <td>2048</td>
     </tr>
     <tr>
         <td>Queue Size</td>
         <td>
-            When data needs to travel between two processors on the  
+            When data needs to travel between two processors on the
             same cluster member, it is sent over a concurrent
             single-producer, single-consumer (SPSC) queue of fixed
             size. This options controls the size of the queue.
-            <p/>
+            <br/>
             Since there are several processors executing the logic of each vertex,
-            and since the queues are SPSC, there will be
-            senderParallelism * receiverParallelism queues
+            and since the queues are SPSC, there will be a total of
+            `senderParallelism` * `receiverParallelism` queues
             representing the edge on each member. Care should be taken
             to strike a balance between performance and memory usage.
-        </td>
         <td>1024</td>
     </tr>
     <tr>
@@ -291,7 +327,7 @@ are available:
             the size of the packet in bytes. Packets should be large
             enough to drown out any fixed overheads,
             but small enough to allow good interleaving with other packets.
-            <p/>
+            <br/>
             Note that a single item cannot straddle packets,
             therefore  the maximum packet size can exceed the value
             configured here by the size of a single data item.
@@ -300,29 +336,29 @@ are available:
         <td>16384</td>
     </tr>
     <tr>
-        <td>Receive Window Multiplier</td>
-        <td>
-            For each distributed edge the receiving member regularly sends
-            flow-control ("ack") packets to its sender which
-            prevent it from sending too much data and overflowing the buffers.
-            The sender is allowed to send the data one receive
-            window further than the last acknowledged byte and the
-            receive window is sized in proportion to the rate of
-            processing at the receiver.
-            <p/>
-            Ack packets are sent in regular intervals and the
-            receive window multiplier sets the factor of the linear
-            relationship between the amount of data processed
-            within one such interval and the size of the receive window.
-            <p/>
-            To put it another way, let us define an ackworth to
-            be  the amount of data processed between two consecutive
-            ack packets. The receive window multiplier determines
-            the number of ackworths the sender can be ahead of
-            the last acked byte.
-            <p/>
-            This setting has no effect on a non-distributed edge.
-         </td>
-        <td>3</td>
-    </tr>
+            <td>Receive Window Multiplier</td>
+            <td>
+                For each distributed edge the receiving member regularly sends
+                flow-control ("ack") packets to its sender which
+                prevent it from sending too much data and overflowing the buffers.
+                The sender is allowed to send the data one receive
+                window further than the last acknowledged byte and the
+                receive window is sized in proportion to the rate of
+                processing at the receiver.
+                <br/>
+                Ack packets are sent in regular intervals and the
+                receive window multiplier sets the factor of the linear
+                relationship between the amount of data processed
+                within one such interval and the size of the receive window.
+                <br/>
+                To put it another way, let us define an ackworth to
+                be  the amount of data processed between two consecutive
+                ack packets. The receive window multiplier determines
+                the number of ackworths the sender can be ahead of
+                the last acked byte.
+                <br/>
+                This setting has no effect on a non-distributed edge.
+             </td>
+            <td>3</td>
+        </tr>
 </table>

@@ -1,5 +1,17 @@
 # Architecture Overview
 
+## Jet Instance
+
+A Jet _instance_ is a unit where the processing takes place. There can
+be multiple instances per JVM, however this only makes sense for
+testing. An instance becomes a _member_ of a cluster: it can join
+and leave clusters multiple times during its lifetime. Any instance
+can be used to access a cluster, giving an apperance that the entire
+cluster is available locally.
+
+On the other hand, a _client instance_ is just an accessor to a cluster
+and no processing takes place in it.
+
 ## Create and execute a job
 
 These are the steps taken to create and execute a Jet job:
@@ -8,8 +20,8 @@ These are the steps taken to create and execute a Jet job:
 instance.
 1. The client instance serializes the DAG and sends it to a member of
 the Jet cluster. This member becomes the _coordinator_ for this Jet job.
-1. Coordinator deserializes the DAG and builds an execution
-plan for each member.
+1. Coordinator deserializes the DAG and builds an execution plan for
+each member.
 1. Coordinator serializes the execution plans and distributes each to
 its target member.
 1. Each member acts upon its execution plan by creating all the needed
@@ -18,11 +30,13 @@ tasklets, concurrent queues, network senders/receivers, etc.
 
 The most visible consequence of the above process is the
 `ProcessorMetaSupplier` type: the user must provide one for each
-`Vertex`. In step 3 the coordinator deserializes the meta-supplier and
-asks it to create `ProcessorSupplier` instances, one per cluster member.
-In step 4 it serializes these and sends each to its member. In step 5
-each member deserializes its `ProcessorSupplier` and asks it to create
-as many `Processor` instances as configured by the vertex's
+`Vertex`. In step 3 the coordinator deserializes the meta-supplier as a
+constituent of the `DAG` and asks it to create `ProcessorSupplier`
+instances which go into the execution plans. A separate instance of
+`ProcessorSupplier` is created specifically for each member's plan. In
+step 4 the coordinator serializes these and sends each to its member. In
+step 5 each member deserializes its `ProcessorSupplier` and asks it to
+create as many `Processor` instances as configured by the vertex's
 `localParallelism` property.
 
 This process is so involved because each `Processor` instance may need
