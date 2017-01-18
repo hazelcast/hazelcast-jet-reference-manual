@@ -26,6 +26,20 @@ receive each its own part of the full stream traveling over the inbound
 edges, and likewise emits its own part of the full stream going down
 the outbound edges.
 
+### Source and sink
+
+Jet uses only one kind of vertex, but in practice there is an important
+distinction between:
+
+* _internal_ vertex which accepts input and transforms it to output;
+* _source_ vertex which generates output without receiving anything;
+* _sink_ vertex which consumes input and doesn't emit anything.
+
+Sources and sinks must interact with the environment to store/load data,
+making their implementation more involved compared to the internal
+vertices, whose logic is self-contained.
+
+
 ### Local and Global Parallelism
 
 The vertex is implemented by one or more instances of `Processor` on
