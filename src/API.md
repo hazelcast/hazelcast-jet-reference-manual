@@ -26,12 +26,27 @@ receive each its own part of the full stream traveling over the inbound
 edges, and likewise emits its own part of the full stream going down
 the outbound edges.
 
+### Ordinals
+
+An edge is connected to a vertex with a given _ordinal_, which
+identifies it to the vertex and its processors. When a processor
+receives an item, it knows the ordinal of the edge on which the item
+came in. Things are similar on the outbound side: the processor emits an
+item to a given ordinal, but also has the option to emit the same item
+to all ordinals. This is the most typical case and allows easy
+replication of a data stream across several edges.
+
+Whenever not explicitly stated, edge ordinal is assumed to be 0. When
+several edges are connected, there must be no gaps in ordinal
+assignment. The vertex will have inbound edges with ordinals 0..N and
+outbound edges with ordinals 0..M.
+
 ### Source and sink
 
 Jet uses only one kind of vertex, but in practice there is an important
 distinction between:
 
-* _internal_ vertex which accepts input and transforms it to output;
+* _internal_ vertex which accepts input and transforms it into output;
 * _source_ vertex which generates output without receiving anything;
 * _sink_ vertex which consumes input and doesn't emit anything.
 
@@ -174,8 +189,18 @@ meta-supplier from it.
 ### AbstractProcessor
 
 `AbstractProcessor` is a convenience class designed to deal with most of
-the boilerplate in implementing the full `Processor` API. The main
-complication arises from the requirement to observe the output buffer
+the boilerplate in implementing the full `Processor` API.
+
+The first line of convenience are the `tryProcessN()` methods which
+receive one item at a time, thus eliminating the need to write a
+suspendable loop over the input items. There is a separate method
+specialized for each edge from 0 to 4 (`tryProcess0`..`tryProcess4`) and
+there is a catch-all method `tryProcessAny(ordinal, item)`. If the
+processor doesn't distinguish between inbound edges, the latter method
+is a good match; otherwise it is simpler to implement one or more of the
+ordinal-specific methods.
+
+A major complication arises from the requirement to observe the outbox
 limits during a single processing step. If the processor emits many
 items per step, the loop doing this must support being suspended at any
 point and resumed later. This need arises in two typical cases:
@@ -208,21 +233,8 @@ over the edge and each processor of the downstream vertex receives a
 part of that stream. Several properties of the `Edge` control the
 routing from upstream to downstream processors.
 
-There can only be a single edge between two vertices.
-
-### Ordinals
-
-An edge is connected to a vertex with a given _ordinal_, which
-identifies it to the vertex and its processors. When a processor
-receives an item, it knows the ordinal of the edge on which the item
-came in. Things are similar on the outbound side: the processor emits an
-item to a given ordinal, but also has the option to emit the same item
-to all ordinals. This is the most typical case and allows easy
-replication of a data stream across several edges.
-
-Edges by default will have ordinal 0. Two outgoing edges from or
-incoming edges to the same vertex must have different ordinals, and gaps
-in ordinal sequence are not allowed.
+For any given pair of vertices, there can be at most one edge between
+them.
 
 ### Priority
 
@@ -284,7 +296,7 @@ partition ID. On a distributed edge, this processor will be unique
 across the whole cluster. On a local edge, each member will have its
 own processor for each partition ID.
 
-Each processor can be assigned multiple partitions. The global umber of
+Each processor can be assigned multiple partitions. The global number of
 partitions is controlled by the number of partitions in the underlying
 Hazelcast configuration. For more information about Hazelcast
 partitioning, see the [Hazelcast reference guide](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#data-partitioning)
