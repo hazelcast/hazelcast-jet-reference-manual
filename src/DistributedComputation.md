@@ -8,10 +8,7 @@ directed acyclic graphs.
 `Job` is a handle to the execution of a `DAG`. The `DAG` instance
 itself is serializable and the client sends it over the network
 when submitting a job for execution. The same `Job` instance can
-be submitted for execution many times. It also holds additional
-information, such as the resources that need to be deployed along with
-the DAG. For more information about resource deployment, see:
-[Resource Deployment](#resource-deployment)
+be submitted for execution many times.
 
 Jobs are created by supplying a `DAG` to a `JetInstance` and
 can be executed from both client and member instances:
@@ -26,6 +23,23 @@ jet.newJob(dag).execute().get();
 Job execution is asynchronous, and the user is expected to wait for the
 completion of the returned `Future` before accessing the results. It is
 possible to cancel the execution by cancelling the returned `Future`.
+
+### Resource Deployment
+
+When executing jobs, it's possible to deploy code along with the DAG.
+
+```java
+JobConfig config = new JobConfig();
+config.addJar("..");
+jet.newJob(dag, config).execute().get();
+```
+
+The deployed code would typically include the various `Processor`
+implementations, as well as other specific code to the `DAG`.
+
+When persisting and reading data from the underlying IMDG instance,
+you must be aware that the deployed code is _only_ used within the
+scope of executing Jet jobs.
 
 ## Vertex
 

@@ -5,7 +5,6 @@ src/GettingStarted.md
 src/WordCount.md
 src/DistributedComputation.md
 src/Configuration.md
-src/ResourceDeployment.md
 src/CustomSources.md
 src/JavaUtilStream.md
 src/Architecture.md
