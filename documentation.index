@@ -3,8 +3,7 @@ src/Preface.md
 src/Introduction.md
 src/GettingStarted.md
 src/WordCount.md
-src/Overview.md
-src/API.md
+src/DistributedComputation.md
 src/Configuration.md
 src/ResourceDeployment.md
 src/CustomSources.md

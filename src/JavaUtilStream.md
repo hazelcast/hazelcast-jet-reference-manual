@@ -3,6 +3,9 @@
 Jet adds distributed java.util.stream support for Hazelcast IMap and
 IList data structures.
 
+For extensive information about `java.util.stream` API please refer to
+the the official [javadocs](https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html).
+
 ## Simple Example
 
 ```java
@@ -37,28 +40,28 @@ can be reached via `com.hazelcast.jet.stream.DistributedCollectors`.
 This class also contains a few of additional collectors worth a special
 mention:
 
-### toIMap
+### toIMap()
 
 A collector which will write the data directly to a new Hazelcast
-`IMap`. Unlike with the standard `toMap` collector, the whole map does
+`IMap`. Unlike with the standard `toMap()` collector, the whole map does
 not need to be transferred to the client.
 
-### groupingByToIMap
+### groupingByToIMap()
 
 A collector which will perform a grouping operation and write the
 results to a Hazelcast `IMap`. This uses a more efficient implementation
-than the standard `groupingBy` collector.
+than the standard `groupingBy()` collector.
 
-### toIList
+### toIList()
 
 A collector which will write the output to a new Hazelcast `IList`.
-Unlike with the standard `toList` collector, the list does not need to
+Unlike with the standard `toList()` collector, the list does not need to
 be transferred as a whole to the client.
 
 ## Word Count
 
-The word count example that was described in the Quickstart can be also
-be written using the java.util.stream API:
+The word count example that was described in the Quickstart can be
+be rewritten using the java.util.stream API as follows:
 
 ```java
 IMap<String, Long> counts = lines
@@ -66,3 +69,11 @@ IMap<String, Long> counts = lines
                 .flatMap(m -> Stream.of(PATTERN.split(m.getValue().toLowerCase())))
                 .collect(DistributedCollectors.toIMap(w -> w, w -> 1L, (left, right) -> left + right));
 ```                
+
+## Implementation Notes
+
+Jet's `java.util.stream` implementation will automatically convert a
+stream into a `DAG` when one of the terminal methods are called. The DAG
+creation is done lazily, and only if a terminal method is called.
+
+TODO: Insert an image about a stream mapped to a DAG

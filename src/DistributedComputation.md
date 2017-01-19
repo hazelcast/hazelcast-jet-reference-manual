@@ -1,21 +1,31 @@
-# API Reference
+# Distributed Computation using Jet
 
-## DAG
-
-`DAG` stands for the _directed acyclic graph_ which models the
-computation to be performed by a Jet job. Vertices are units of data
-processing and edges are units of data routing and transfer. A `DAG`
-instance is serializable and the client sends it over the network
-when submitting a job for execution.
+At the core of Jet is the distributed computation engine based on
+directed acyclic graphs.
 
 ## Job
 
-`Job` is a handle to the execution of a DAG. The same `Job` instance can
+`Job` is a handle to the execution of a `DAG`. The `DAG` instance
+itself is serializable and the client sends it over the network
+when submitting a job for execution. The same `Job` instance can
 be submitted for execution many times. It also holds additional
 information, such as the resources that need to be deployed along with
-the DAG.
+the DAG. For more information about resource deployment, see:
+[Resource Deployment](#resource-deployment)
 
-See also: [Resource Deployment](#resource-deployment)
+Jobs are created by supplying a `DAG` to a `JetInstance` and
+can be executed from both client and member instances:
+
+```java
+JetInstance jet = Jet.newJetInstance();
+DAG dag = new DAG();
+dag.newVertex(..);
+jet.newJob(dag).execute().get();
+```
+
+Job execution is asynchronous, and the user is expected to wait for the
+completion of the returned `Future` before accessing the results. It is
+possible to cancel the execution by cancelling the returned `Future`.
 
 ## Vertex
 
@@ -54,20 +64,19 @@ Sources and sinks must interact with the environment to store/load data,
 making their implementation more involved compared to the internal
 vertices, whose logic is self-contained.
 
-
 ### Local and Global Parallelism
 
 The vertex is implemented by one or more instances of `Processor` on
-each member. This number is configurable for each vertex individually:
-it is its `localParallelism` property. A new `Vertex` instance has this
-property set to `-1`, which requests to use the default value equal to
-the configured size of the cooperative thread pool. The latter defaults
-to `Runtime.availableProcessors()`.
+each member. Each vertex can specify how many of its processors will run
+per cluster member using the `localParallelism` property; every member
+will have the same number of processors. A new `Vertex` instance has
+this property set to `-1`, which requests to use the default value equal
+to the configured size of the cooperative thread pool. The latter
+defaults to `Runtime.availableProcessors()`.
 
 The _global parallelism_ of the vertex is also an important value,
 especially in terms of the distribution of partitions among processors.
 It is equal to local parallelism multiplied by cluster size.
-
 
 ## Processor
 
@@ -77,19 +86,52 @@ already mentioned, many processors for the same vertex run in parallel
 on each member of the cluster, receiving a part of the input dataset
 and emitting a part of the output dataset.
 
-The same `Processor` abstraction is used for all kinds of vertices,
-including the terminal ones which act as data sources and sinks. In
-general, a processor receives data from zero or more input streams and
-emits data into zero or more output streams.
+A processor's work can be conceptually described as follows: receive
+data from zero or more input streams and emit data into zero or more
+output streams. Each stream maps to a single DAG edge (either inbound
+or outbound). There is no requirement on the correspondence between
+input and output items; a processor can emit any data it sees fit,
+including none at all. This means that it can play the role of a
+source, sink, or transformer of data. The same `Processor` abstraction
+is used for all kinds of vertices, including the terminal ones which act
+as data sources and sinks.
 
-### isCooperative()
+### Cooperative multithreading
+
+Cooperative multithreading is one of the core features of Jet and can be
+roughly compared to [green
+threads](https://en.wikipedia.org/wiki/Green_threads). It is purely a
+library-level feature and doesn't involve any low-level system or JVM
+tricks; the [`Processor`](processor) API is simply designed in such a
+way that the processor can do a small amount of work each time it is
+invoked, then yield back to the Jet engine. The engine manages a thread
+pool of fixed size and on each thread the processors take their turn in
+a round-robin fashion.
+
+The point of cooperative multithreading is much lower context-switching
+cost and precise knowledge of the status of a processor's input and
+output buffers, which determines its ability to make progress.
+
+`Processor` instances are cooperative by default. The processor can opt
+out of cooperative multithreading by overriding `isCooperative()` to
+return `false`. Jet will then start a dedicated thread for it.
+
+#### Cooperative processors
 
 To maintain good overall throughput, a cooperative processor must take
 care not to hog the thread for too long (a rule of thumb is up to a
-millisecond at a time). The processor can opt out of [cooperative
-multithreading](#cooperative-multithreading) by overriding
-`isCooperative()` to return `false`. Jet will then start a dedicated
-thread for it.
+millisecond at a time). Jet is designed in a way that besides sources or
+sinks, all intermediate processors should be cooperative.
+
+#### Non-cooperative Processor
+
+For some parts of a Jet job, blocking or otherwise long-running
+operations cannot be avoided. Typically this happens on sources and
+sinks because they interact with the environment over I/O channels which
+don't offer non-blocking APIs. A blocking operation is very likely to
+violate the requirements on cooperative processors. To accommodate these
+special cases, Jet allows a processor to declare itself
+"non-cooperative" and get its own Java thread.
 
 ### Outbox
 
@@ -101,11 +143,14 @@ realizes it has hit the high water mark, it should return from the
 current processing callback and let the execution engine drain the
 outbox.
 
-
 ### Data-processing callbacks
 
 Three callback methods are involved in data processing: `process()`,
 `completeEdge()`, and `complete()`.
+
+Processors can be stateful and don't need to be thread-safe. A single
+instance will be called by a single thread at a time, although not
+necessarily always the same thread.
 
 #### process()
 
@@ -140,7 +185,6 @@ Jet calls `complete()` after all the edges are exhausted and all the
 `completeEdge()` methods called. It is the last method to be invoked on
 the processor before disposing of it. The semantics of the boolean
 return value are the same as in `completeEdge()`.
-
 
 ### Creation and initialization of Processor instances
 
@@ -224,6 +268,25 @@ returning `null`. `Traverser` also sports some `default` methods that
 facilitate building a simple transformation layer over the underlying
 sequence: `map`, `filter`, and `flatMap`.
 
+### Simple example
+
+A simple processor implemented using `AbstractProcessor` is as follows:
+
+```java
+public class PlusOneProcessor extends AbstractProcessor {
+    @Override
+    protected boolean tryProcess(int ordinal, Object item) {
+        emit((int)item + 1);
+        return true;
+    }
+}
+```
+
+This processor receives `Integer` items and emits each item incremented
+by one. It doesn't differentiate between input streams (treats data from
+all streams the same way) and emits each item to all output streams
+assigned to it.
+
 ## Edge
 
 An edge represents a link between two vertices in the DAG. Conceptually,
@@ -261,6 +324,12 @@ across the cluster, or constrained to just those running on the same
 cluster member. This is controlled by the `distributed` property of the
 edge. By default the edge is local and calling the `distributed()`
 method removes this restriction.
+
+With appropriate DAG design, network traffic can be minimized by
+employing local edges. Local edges are implemented
+with the most efficient kind of concurrent queue: single-producer,
+single-consumer bounded queue. It employs wait-free algorithms on both
+sides and avoids `volatile` writes by using `lazySet`.
 
 ### Forwarding Patterns
 
