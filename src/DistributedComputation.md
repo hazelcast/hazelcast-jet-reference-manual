@@ -40,9 +40,9 @@ their own API after the job is done.
 
 ### Resource Deployment
 
-If the Jet cluster hasn't been started with all the computation code
-on the classpath, this code will have to be deployed together with the
-Job instance:
+If the Jet cluster hasn't been started with all the job's computation
+code already on the classpath, the code will have to be deployed
+together with the Job instance:
 
 ```java
 JobConfig config = new JobConfig();
@@ -50,9 +50,9 @@ config.addJar("..");
 jet.newJob(dag, config).execute().get();
 ```
 
-When persisting and reading data from the underlying IMDG instance,
-you must be aware that the deployed code is _only_ used within the
-scope of the executing Jet job.
+When persisting and reading data from the underlying IMDG instance, it
+is important to be aware that the deployed code is used _only_ within
+the scope of the executing Jet job.
 
 ## Vertex
 
