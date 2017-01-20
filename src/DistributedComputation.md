@@ -1,28 +1,42 @@
 # Distributed Computation using Jet
 
-At the core of Jet is the distributed computation engine based on
-directed acyclic graphs.
+## DAG
+
+At the core of Jet is the distributed computation engine based on the
+paradigm of a _directed acyclic graph_ (DAG). In this graph, vertices
+are units of data processing and edges are units of data routing and
+transfer.
 
 ## Job
 
-`Job` is a handle to the execution of a `DAG`. The `DAG` instance
-itself is serializable and the client sends it over the network
-when submitting a job for execution. The same `Job` instance can
-be submitted for execution many times.
-
-Jobs are created by supplying a `DAG` to a `JetInstance` and
-can be executed from both client and member instances:
+`Job` is a handle to the execution of a `DAG`. To create a job,
+supply the `DAG` to a previously created `JetInstance`:
 
 ```java
-JetInstance jet = Jet.newJetInstance();
+JetInstance jet = Jet.newJetInstance(); // or Jet.newJetClient();
 DAG dag = new DAG();
 dag.newVertex(..);
 jet.newJob(dag).execute().get();
 ```
 
-Job execution is asynchronous, and the user is expected to wait for the
-completion of the returned `Future` before accessing the results. It is
-possible to cancel the execution by cancelling the returned `Future`.
+As hinted in the code example, the job submission API is identical
+whether you use it from a client machine or directly on an instance of a
+Jet cluster member. This works because the `Job` instance is
+serializable and the client can send it over the network when submitting
+the job. The same `Job` instance can be submitted for execution many
+times.
+
+Job execution is asynchronous. The `execute()` call returns as soon as
+the Jet cluster has been contacted and the serialized job sent to it.
+The user gets a `Future` which can be inspected or waited on to find out
+the outcome of a computation job. The `Future` is also cancelable and
+can send a cancelation command to the Jet cluster.
+
+Note that the `Future` only signals the status of the job, it doesn't
+contain the result of the computation. The DAG explicitly models the
+storing of results via its _sink_ vertices. Typically the results will
+be in a Hazelcast map or another structure and have to be accessed by
+their own API after the job is done.
 
 ### Resource Deployment
 
@@ -50,7 +64,7 @@ receive each its own part of the full stream traveling over the inbound
 edges, and likewise emits its own part of the full stream going down
 the outbound edges.
 
-### Ordinals
+### Edge ordinal
 
 An edge is connected to a vertex with a given _ordinal_, which
 identifies it to the vertex and its processors. When a processor
@@ -60,10 +74,9 @@ item to a given ordinal, but also has the option to emit the same item
 to all ordinals. This is the most typical case and allows easy
 replication of a data stream across several edges.
 
-Whenever not explicitly stated, edge ordinal is assumed to be 0. When
-several edges are connected, there must be no gaps in ordinal
-assignment. The vertex will have inbound edges with ordinals 0..N and
-outbound edges with ordinals 0..M.
+Whenever not explicitly stated, edge ordinal is assumed to be 0. There
+must be no gaps in ordinal assignment, which means the vertex will have
+inbound edges with ordinals 0..N and outbound edges with ordinals 0..M.
 
 ### Source and sink
 
@@ -95,20 +108,19 @@ It is equal to local parallelism multiplied by cluster size.
 ## Processor
 
 `Processor` is the main type whose implementation is up to the user: it
-contains the code of the computation to be performed by a vertex. As
-already mentioned, many processors for the same vertex run in parallel
-on each member of the cluster, receiving a part of the input dataset
-and emitting a part of the output dataset.
+contains the code of the computation to be performed by a vertex. There
+are a number of Processor building blocks in the Jet API which allow the
+user to just specify the computation logic, while the provided code
+handles the processor's cooperative behavior. Refer to the section on
+[AbstractProcessor](abstractprocessor) below.
 
-A processor's work can be conceptually described as follows: receive
+A processor's work can be conceptually described as follows: "receive
 data from zero or more input streams and emit data into zero or more
-output streams. Each stream maps to a single DAG edge (either inbound
+output streams." Each stream maps to a single DAG edge (either inbound
 or outbound). There is no requirement on the correspondence between
 input and output items; a processor can emit any data it sees fit,
-including none at all. This means that it can play the role of a
-source, sink, or transformer of data. The same `Processor` abstraction
-is used for all kinds of vertices, including the terminal ones which act
-as data sources and sinks.
+including none at all. The same `Processor` abstraction is used for all
+kinds of vertices, including sources and sinks.
 
 ### Cooperative multithreading
 
@@ -130,22 +142,14 @@ output buffers, which determines its ability to make progress.
 out of cooperative multithreading by overriding `isCooperative()` to
 return `false`. Jet will then start a dedicated thread for it.
 
-#### Cooperative processors
+#### Requirements on a cooperative Processor
 
 To maintain good overall throughput, a cooperative processor must take
 care not to hog the thread for too long (a rule of thumb is up to a
-millisecond at a time). Jet is designed in a way that besides sources or
-sinks, all intermediate processors should be cooperative.
-
-#### Non-cooperative Processor
-
-For some parts of a Jet job, blocking or otherwise long-running
-operations cannot be avoided. Typically this happens on sources and
-sinks because they interact with the environment over I/O channels which
-don't offer non-blocking APIs. A blocking operation is very likely to
-violate the requirements on cooperative processors. To accommodate these
-special cases, Jet allows a processor to declare itself
-"non-cooperative" and get its own Java thread.
+millisecond at a time). Jet's design strongly favors cooperative
+processors and most processors can and should be implemented to fit
+these requirements. The major exception are sources and sinks because
+they often have no choice but calling into blocking I/O APIs.
 
 ### Outbox
 
@@ -254,9 +258,11 @@ receive one item at a time, thus eliminating the need to write a
 suspendable loop over the input items. There is a separate method
 specialized for each edge from 0 to 4 (`tryProcess0`..`tryProcess4`) and
 there is a catch-all method `tryProcessAny(ordinal, item)`. If the
-processor doesn't distinguish between inbound edges, the latter method
-is a good match; otherwise it is simpler to implement one or more of the
-ordinal-specific methods.
+processor doesn't need to distinguish between inbound edges, the latter
+method is a good match; otherwise it is simpler to implement one or more
+of the ordinal-specific methods. The catch-all method is also the only
+way to access inbound edges beyond ordinal 4, but such cases are very
+rare in practice.
 
 A major complication arises from the requirement to observe the outbox
 limits during a single processing step. If the processor emits many
@@ -292,7 +298,7 @@ public class PlusOneProcessor extends AbstractProcessor {
     protected boolean tryProcess(int ordinal, Object item) {
         emit((int)item + 1);
         return true;
-    }
+    }©
 }
 ```
 
@@ -300,6 +306,21 @@ This processor receives `Integer` items and emits each item incremented
 by one. It doesn't differentiate between input streams (treats data from
 all streams the same way) and emits each item to all output streams
 assigned to it.
+
+## `Processors` utility class
+
+As a further layer of convenience there are some ready-made Processor
+implementations. These are the broad categories:
+
+1. Sources and sinks for Hazelcast `IMap` and `IList`.
+2. Processors with `flatMap`-type logic, including `map`, `filter`, and
+the most general `flatMap`.
+3. Processors that perform a reduction operation after grouping items by key. These come in two flavors:
+    a. _Accumulate:_ reduce by transforming an immutable value;
+    b. _Collect:_ reduce by updating a mutable result container.
+
+Refer to the `Processors` Javadoc for further details.
+
 
 ## Edge
 
