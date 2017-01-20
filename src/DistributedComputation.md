@@ -29,8 +29,8 @@ times.
 Job execution is asynchronous. The `execute()` call returns as soon as
 the Jet cluster has been contacted and the serialized job sent to it.
 The user gets a `Future` which can be inspected or waited on to find out
-the outcome of a computation job. The `Future` is also cancelable and
-can send a cancelation command to the Jet cluster.
+the outcome of a computation job. It is also cancelable and can send a
+cancelation command to the Jet cluster.
 
 Note that the `Future` only signals the status of the job, it doesn't
 contain the result of the computation. The DAG explicitly models the
@@ -40,7 +40,9 @@ their own API after the job is done.
 
 ### Resource Deployment
 
-When executing jobs, it's possible to deploy code along with the DAG.
+If the Jet cluster hasn't been started with all the computation code
+on the classpath, this code will have to be deployed together with the
+Job instance:
 
 ```java
 JobConfig config = new JobConfig();
@@ -48,12 +50,9 @@ config.addJar("..");
 jet.newJob(dag, config).execute().get();
 ```
 
-The deployed code would typically include the various `Processor`
-implementations, as well as other specific code to the `DAG`.
-
 When persisting and reading data from the underlying IMDG instance,
 you must be aware that the deployed code is _only_ used within the
-scope of executing Jet jobs.
+scope of the executing Jet job.
 
 ## Vertex
 
