@@ -86,7 +86,7 @@ for (String line : map.values()) {
 }
 ```
 
-As soon as we try to parallelize this computation, it becemos clear that
+As soon as we try to parallelize this computation, it becomes clear that
 we have to model it differently. More complications arise on top of that
 when we want to scale out, across multiple machines.
 
@@ -117,7 +117,7 @@ have multiple generator instances, each parsing its subset of lines:
 
 TODO: include picture
 
-The accumulation step counts occurences of individual words. Counting
+The accumulation step counts occurrences of individual words. Counting
 one word is independent of counting any other, but we must ensure that
 for each given word there is a unique instance of accumulator in charge
 of it, and will receive all entries with that word. This is called
@@ -233,7 +233,7 @@ DAG dag = new DAG()
         .edge(between(combiner, sink));
 ```
 
-Let's take a closer look at some of theconnections between the vertices.
+Let's take a closer look at some of the connections between the vertices.
 First, source and generator:
 
 ```java
