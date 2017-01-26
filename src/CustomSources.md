@@ -28,7 +28,7 @@ member.
 count parameter, which corresponds to the `localParallelism` setting of
 that vertex.
 
-## Example: Distributed Integer generator
+## Example: Distributed Integer generator
 
 Let's say we want to write a simple source, which generates numbers from
 0 to 1,000,000 (exclusive). It is trivial to write a single `Processor`
@@ -202,7 +202,7 @@ Like with sources, sinks are just another kind of `Processor`. Sinks are
 typically implemented as `AbstractProcessor` and implement the
 `tryProcess` method, and write each incoming item to the sink.
 
-## Example: File Writer
+## Example: File Writer
 
 In this example, we will implement a simple DAG that dumps a Hazelcast
 IMap into a folder.
