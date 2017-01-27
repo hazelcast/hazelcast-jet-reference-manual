@@ -1,7 +1,7 @@
 # Tutorial: building an Inverted TF-IDF index in Jet
 
 TF-IDF is a basic technique in the domain of full-text search. The goal
-is to be able to quickly find the documents that contain the given set
+is to be able to quickly find the documents that contain a given set
 of search terms, and to sort them by relevance. To understand it we'll
 need to throw in some terminology...
 
@@ -24,8 +24,8 @@ request.
     the document.
     - TF-IDF score is simply the product of `TF * IDF`.
 
-Note that IDF is a property of the word itself: it allows rare words
-to make a stronger impact on the ordering of search results.
+Note that IDF is a property of the word itself: it quantifies the
+relevance of each entered word to the search request as a whole.
 Specifically, common words like "the", "it", "on" occur in all the
 documents and have an IDF of zero, making them completely
 irrelevant to the search. TF is the property of the combination of word
@@ -42,7 +42,7 @@ word;
 1. the result list is sorted by score (descending) and presented to the
 user.
 
-To reinforce the above points, let's look at a specific search phrase:
+Let's have a look at a specific search phrase:
 
     the man in the black suit murdered the king
 
@@ -52,9 +52,9 @@ those stand out that have an above-average occurrence of words that are
 generally rare across all documents. For example, "murdered" occurs in
 far fewer documents than "black"... so given two documents where one has
 the same number of "murdered" as the other one has of "black", the one
-with "murdered" wins because its word is more salient in general. On
-the other hand, if two words have a similar IDF, then the document that
-simply contains more of both put together wins.
+with "murdered" wins because its word is more salient in general. On the
+other hand, "suit" and "king" might have a similar IDF, so the document
+that simply contains more of both put together wins.
 
 Also note the limitation of this technique: a phrase is treated as just
 the sum of its parts; a document may contain the exact phrase and this
@@ -84,7 +84,7 @@ final Map<Entry<Long, String>, Long> tfMap = docWords
         .collect(groupingBy(identity(), counting()));
 ```
 
-We'll use the `tf` map as the starting point for all further
+We'll use the `tfMap` as the starting point for all further
 computations. To build the IDF map we'll go through all unique `(docId,
 word)` pairs, group them by word, and count the size of each group. We
 retrieve IDF as our already prepared `logDocCount` minus the logarithm
@@ -96,7 +96,7 @@ unique `(docId, word)` pairs, so:
 final Map<String, Double> idfMap = tfMap
         .keySet()
         .parallelStream()
-        .collect(groupingBy(Entry::getValue,
+        .collect(groupingBy(Entry::getValue, // entry is (docId, word)
                 collectingAndThen(counting(), count -> logDocCount - Math.log(count))));
 ```
 
@@ -119,11 +119,11 @@ stopwords = idfMap.entrySet()
                   .collect(toSet());
 ```
 
-And now we're already at the last step: building the inverted index.
-Again we start from `tf` and filter out all the stopwords since the
-inverted index doesn't have to contain them. Then we group by word, and
-the list under each word already matches our final product: the list of
-all the documents containing the word. We finish off by applying a
+And now we're already at the last step: building the inverted index. We
+start from `tf` and filter out all the stopwords since the inverted
+index doesn't have to contain them. Then we group by word, and the list
+under each word already matches our final product: the list of all the
+documents containing the word. We finish off by applying a
 transformation to the list: currently it's just the raw entries from the
 `tf` map, but we need pairs `(docId, tfIDfScore)`.
 
