@@ -288,7 +288,7 @@ the input.
 
 `AbstractProcessor` provides the method `emitCooperatively` to support
 the latter and there is additional support for the former with the
-nested class `TryProcessor`. These work with the `Traverser` abstraction
+nested class `FlatMapper`. These work with the `Traverser` abstraction
 to cooperatively emit a user-provided sequence of items.
 
 ### Traverser
@@ -297,28 +297,36 @@ to cooperatively emit a user-provided sequence of items.
 that of a `Supplier`, but with a contract specialized for the traversal
 over a sequence of non-null items: each call to its `next()` method
 returns another item of the sequence until exhausted, then keeps
-returning `null`. `Traverser` also sports some `default` methods that
-facilitate building a simple transformation layer over the underlying
-sequence: `map`, `filter`, and `flatMap`.
+returning `null`. The point of this type is the ability to implement
+traversal over any kind of dataset or lazy sequence with minimum hassle:
+often just by providing a one-liner lambda expression. This makes it
+very easy to integrate into Jet's convenience APIs for cooperative
+processors.
+
+`Traverser` also sports some `default` methods that facilitate building
+a simple transformation layer over the underlying sequence: `map`,
+`filter`, and `flatMap`.
 
 ### Simple example
 
-A simple processor implemented using `AbstractProcessor` is as follows:
+This is how a simple flatmapping processor would be implemented:
 
 ```java
-public class PlusOneProcessor extends AbstractProcessor {
+public class ItemAndSuccessorP extends AbstractProcessor {
+    private final FlatMapper<Integer, Integer> flatMapper =
+        flatMapper(i -> traverseIterable(asList(i, i + 1)));
+
     @Override
     protected boolean tryProcess(int ordinal, Object item) {
-        emit((int)item + 1);
-        return true;
-    }©
+        return flatMapper.tryProcess((int) item);
+    }
 }
 ```
 
-This processor receives `Integer` items and emits each item incremented
-by one. It doesn't differentiate between input streams (treats data from
-all streams the same way) and emits each item to all output streams
-assigned to it.
+For each received `Integer` item this processor emits the item and its
+successor. It doesn't differentiate between inbound edges (treats data
+from all edges the same way) and emits each item to all outbound edges
+connected to its vertex.
 
 ### `Processors` utility class
 
@@ -328,12 +336,12 @@ implementations. These are the broad categories:
 1. Sources and sinks for Hazelcast `IMap` and `IList`.
 2. Processors with `flatMap`-type logic, including `map`, `filter`, and
 the most general `flatMap`.
-3. Processors that perform a reduction operation after grouping items by key. These come in two flavors:
+3. Processors that perform a reduction operation after grouping items by
+key. These come in two flavors:
     a. _Accumulate:_ reduce by transforming an immutable value;
     b. _Collect:_ reduce by updating a mutable result container.
 
 Refer to the `Processors` Javadoc for further details.
-
 
 ## Edge
 
