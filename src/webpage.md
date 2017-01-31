@@ -1,4 +1,4 @@
-# Overview of Architecture and API
+# Overview of Jet's Architecture and API
 
 ## DAG
 
@@ -73,8 +73,8 @@ item to a given ordinal, but also has the option to emit the same item
 to all ordinals. This is the most typical case and allows easy
 replication of a data stream across several edges.
 
-In the DAG-building API the default value of the ordinal is 0. There
-must be no gaps in ordinal assignment, which means a vertex will have
+Whenever not explicitly stated, edge ordinal is assumed to be 0. There
+must be no gaps in ordinal assignment, which means the vertex will have
 inbound edges with ordinals 0..N and outbound edges with ordinals 0..M.
 
 ### Source and sink
@@ -111,7 +111,7 @@ contains the code of the computation to be performed by a vertex. There
 are a number of Processor building blocks in the Jet API which allow the
 user to just specify the computation logic, while the provided code
 handles the processor's cooperative behavior. Refer to the section on
-[AbstractProcessor](abstractprocessor) below.
+[AbstractProcessor](#abstractprocessor) below.
 
 A processor's work can be conceptually described as follows: "receive
 data from zero or more input streams and emit data into zero or more
@@ -160,49 +160,6 @@ realizes it has hit the high water mark, it should return from the
 current processing callback and let the execution engine drain the
 outbox.
 
-### Data-processing callbacks
-
-Three callback methods are involved in data processing: `process()`,
-`completeEdge()`, and `complete()`.
-
-Processors can be stateful and don't need to be thread-safe. A single
-instance will be called by a single thread at a time, although not
-necessarily always the same thread.
-
-#### process()
-
-Jet passes the items received over a given edge by calling
-`process(ordinal, inbox)`. All items received since the last `process()`
-call are in the inbox, but also all the items the processor hasn't
-removed in a previous `process()` call. There is a separate instance of
-`Inbox` for each  inbound edge, so any given `process()` call involves
-items from only one edge.
-
-The processor should not remove an item from the inbox until it has
-fully processed it. This is important with respect to the cooperative
-behavior: the processor may not be allowed to emit all items
-corresponding to a given input item and may need to return from the
-`process()` call early, saving its state. In such a case the item should
-stay in the inbox so Jet knows the processor has more work to do even if
-no new items are received.
-
-#### completeEdge()
-
-Eventually each edge will signal its data stream is exhausted. When this
-happens, Jet calls the processor's `completeEdge()` with the ordinal of
-the completed edge.
-
-The processor may want to emit any number of items upon this event, and
-it may be prevented from emitting all due to a full outbox. In this case
-it may return `false` and will be called again later.
-
-#### complete()
-
-Jet calls `complete()` after all the edges are exhausted and all the
-`completeEdge()` methods called. It is the last method to be invoked on
-the processor before disposing of it. The semantics of the boolean
-return value are the same as in `completeEdge()`.
-
 ## Steps taken to create and initialize a job
 
 These are the steps taken to create and initialize a Jet job:
@@ -234,30 +191,6 @@ to be differently configured. This is especially relevant for processors
 driving a source vertex: typically each one will emit only a slice of
 the total data stream, as appropriate to the partitions it is in charge
 of.
-
-### ProcessorMetaSupplier
-
-This type is designed to be implemented by the user, but the
-`Processors` utility class provides implementations covering most cases.
-Custom meta-suppliers are expected to be needed primarily to implement a
-custom data source or sink. Instances of this type are serialized and
-transferred as a part of each `Vertex` instance in a `DAG`. The
-_coordinator_ member deserializes it to retrieve `ProcessorSupplier`s.
-Before being asked for `ProcessorSupplier`s, the meta-supplier is given
-access to the Hazelcast instance so it can find out the parameters of
-the cluster the job will run on. Most typically, the meta-supplier in
-the source vertex will use the cluster size to control the assignment of
-data partitions to each member.
-
-### ProcessorSupplier
-
-Usually this type will be custom-implemented in the same cases where its
-meta-supplier is custom-implemented and complete the logic of a
-distributed data source's partition assignment. It supplies instances of
-`Processor` ready to start executing the vertex's logic.
-
-For more guidance on how these interfaces can be implemented, see
-the section [Implementing Custom Sources and Sinks](#implementing-custom-sources-and-sinks).
 
 ## Convenience API to implement a Processor
 
@@ -340,8 +273,6 @@ the most general `flatMap`.
 key. These come in two flavors:
     a. _Accumulate:_ reduce by transforming an immutable value;
     b. _Collect:_ reduce by updating a mutable result container.
-
-Refer to the `Processors` Javadoc for further details.
 
 ## Edge
 
@@ -543,3 +474,84 @@ how the items are transmitted. The following options are available:
      <td>3</td>
   </tr>
 </table>
+# Internals of Jet
+
+## ExecutionService
+
+At the core of the Jet engine is the `ExecutionService`. This is the
+component that drives the cooperatively-multithreaded execution of
+Processors as well as other vital components, like network senders and
+receivers.
+
+### Tasklet
+
+The execution service maintains a pool of worker threads, each of which
+juggles several "green threads" captured by an abstraction called the
+`Tasklet`. Each tasklet is given its turn and after it tries to do some
+work, it returns two bits of information: whether it made any progress
+and whether it is now done. As the worker cycles through its tasklets,
+before each new new cycle it checks whether any tasklet made progress;
+if not, it bumps its counter of idle cycles and acts according to the
+current count: either try again or sleep for a while.
+
+#### Work stealing
+
+When a tasklet is done, the worker removes it from its tasklet pool.
+Workers start out with tasklets evenly distributed among them, but as
+the tasklets complete, the load on each worker may become imbalanced. To
+counter this, a simple _work stealing_ mechanism is put into place: each
+time it removes a tasklet from its pool, the worker (let's call it
+"thief") will inspect all the other workers, locating the one with the
+largest pool (call it "target"). If the target has at least two tasklets
+more than the thief, it will pick one of the target's tasklets and mark
+it with the instruction "give this one to me". When the target is about
+to run the marked tasklet, it will observe the instruction and move the
+tasklet to the thief's pool.
+
+### ProcessorTasklet
+
+`ProcessorTasklet` wraps a single processor instance and does the
+following:
+
+- drain the incoming concurrent queues into the processor's `Inbox`;
+- let it process the inbox and fill its `Outbox`;
+- drain the outbox into the outgoing concurrent queues;
+- make sure that all of the above conforms to the requirements of
+cooperative multithreading, e.g., yielding to other tasklets whenever an
+outgoing queue is full.
+
+### SenderTasklet and ReceiverTasklet
+
+A distributed DAG edge is implemented with one `ReceiverTasklet` and as
+many `SenderTasklet`s as there are target members (cluster size minus
+one). Jet reuses Hazelcast's networking layer and adds its own type of
+`Packet`, which can contain several data items traveling over a single
+edge. The packet size limit is configurable; to minimize fixed overheads
+from packet handling, Jet will try to stuff as many items as can fit
+into a single packet. It will keep adding items until it notices the
+limit is reached, which means that the actual packet size can exceed
+the limit by the size of one item.
+
+#### Network backpressure
+
+A key concern in edge data transfer is _backpressure_: the downstream
+vertex may not be able to process the items at the same rate as the
+upstream vertex is emitting them. Within a member the concurrent queues
+are bounded and naturally provide backpressure by refusing to accept an
+item when full. However, over the network no such natural mechanism
+exists, especially because the same TCP/IP connectionn is used for all
+edges so TCP's own flow control mechanism is not sufficient to guard
+an individual edge's limits. For that reason Jet introduces its own
+flow-control mechanism based on the _adaptive receive window_.
+
+Each member sends out flow-control packets (_ack packets_ for short) to
+all other members at regular intervals, detailing to each individual
+`SenderTasklet` how much more data it is allowed to send. A
+`ReceiverTasklet` keeps track of how much data received from each member
+it processed since the last sending of the ack packet. It uses this to
+calculate the current rate of data processing, which then guides the
+adaptive sizing of the receive window. The target size for the window is
+determined before sending an ack packet: it is three times the data
+processed since the last sending of the ack packet, and the receive
+window is adjusted from the current size halfway towards the target
+size.
