@@ -1,4 +1,4 @@
-# Distributed Computation using Jet
+# Overview of Architecture and API
 
 ## DAG
 
@@ -203,13 +203,39 @@ Jet calls `complete()` after all the edges are exhausted and all the
 the processor before disposing of it. The semantics of the boolean
 return value are the same as in `completeEdge()`.
 
-### Creation and initialization of Processor instances
+## Steps taken to create and initialize a job
 
-As described in the [Architecture](create-and-execute-a-job) section,
-job submission is a multistage process which gives rise to the concept
-of the _processor meta-supplier_.
+These are the steps taken to create and initialize a Jet job:
 
-#### ProcessorMetaSupplier
+1. User builds the DAG and submits it to the local Jet client instance.
+1. The client instance serializes the DAG and sends it to a member of
+the Jet cluster. This member becomes the _coordinator_ for this Jet job.
+1. Coordinator deserializes the DAG and builds an execution plan for
+each member.
+1. Coordinator serializes the execution plans and distributes each to
+its target member.
+1. Each member acts upon its execution plan by creating all the needed
+tasklets, concurrent queues, network senders/receivers, etc.
+1. Coordinator sends the signal to all members to start job execution.
+
+The most visible consequence of the above process is the
+`ProcessorMetaSupplier` type: the user must provide one for each
+`Vertex`. In step 3 the coordinator deserializes the meta-supplier as a
+constituent of the `DAG` and asks it to create `ProcessorSupplier`
+instances which go into the execution plans. A separate instance of
+`ProcessorSupplier` is created specifically for each member's plan. In
+step 4 the coordinator serializes these and sends each to its member. In
+step 5 each member deserializes its `ProcessorSupplier` and asks it to
+create as many `Processor` instances as configured by the vertex's
+`localParallelism` property.
+
+This process is so involved because each `Processor` instance may need
+to be differently configured. This is especially relevant for processors
+driving a source vertex: typically each one will emit only a slice of
+the total data stream, as appropriate to the partitions it is in charge
+of.
+
+### ProcessorMetaSupplier
 
 This type is designed to be implemented by the user, but the
 `Processors` utility class provides implementations covering most cases.
@@ -223,7 +249,7 @@ the cluster the job will run on. Most typically, the meta-supplier in
 the source vertex will use the cluster size to control the assignment of
 data partitions to each member.
 
-#### ProcessorSupplier
+### ProcessorSupplier
 
 Usually this type will be custom-implemented in the same cases where its
 meta-supplier is custom-implemented and complete the logic of a
@@ -233,19 +259,7 @@ distributed data source's partition assignment. It supplies instances of
 For more guidance on how these interfaces can be implemented, see
 the section [Implementing Custom Sources and Sinks](#implementing-custom-sources-and-sinks).
 
-#### SimpleProcessorSupplier
-
-This is a simple functional interface, a serializable specialization of
-`Supplier<Processor>`. It allows the user a means of implementing the
-processor meta-supplier in the simplest, but also the most common case
-where processor instances can be created without reference to any
-context parameters. Typically, only the sources and sinks will require
-context-sensitive configuration and the user will most likely not have
-to implement them.
-
-The user can pass in a `SimpleProcessorSupplier` instance as a lambda
-expression and Jet does all the boilerplate of building a full
-meta-supplier from it.
+## Convenience API to implement a Processor
 
 ### AbstractProcessor
 
@@ -306,7 +320,7 @@ by one. It doesn't differentiate between input streams (treats data from
 all streams the same way) and emits each item to all output streams
 assigned to it.
 
-## `Processors` utility class
+### `Processors` utility class
 
 As a further layer of convenience there are some ready-made Processor
 implementations. These are the broad categories:
@@ -437,7 +451,7 @@ priorities to its two inbound edges. Since the data for both edges is
 generated simultaneously, and since the lower-priority edge will apply
 backpressure while waiting for the higher-priority edge to be consumed
 in full, the upstream vertex will not be allowed to emit its data and a
-deadlock will occur. The deadlock is resolved by  activating unbounded
+deadlock will occur. The deadlock is resolved by activating unbounded
 buffering on the lower-priority edge.
 
 ### Tuning Edges

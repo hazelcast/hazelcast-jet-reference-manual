@@ -1,34 +1,81 @@
-# Architecture Overview
+# Internals of Jet
 
-## Create and execute a job
+## ExecutionService
 
-These are the steps taken to create and execute a Jet job:
+At the core of the Jet engine is the `ExecutionService`. This is the
+component that drives the cooperatively-multithreaded execution of
+Processors as well as other vital components, like network senders and
+receivers.
 
-1. User builds the DAG and submits it to the local Jet client
-instance.
-1. The client instance serializes the DAG and sends it to a member of
-the Jet cluster. This member becomes the _coordinator_ for this Jet job.
-1. Coordinator deserializes the DAG and builds an execution plan for
-each member.
-1. Coordinator serializes the execution plans and distributes each to
-its target member.
-1. Each member acts upon its execution plan by creating all the needed
-tasklets, concurrent queues, network senders/receivers, etc.
-1. Coordinator sends the signal to all members to start job execution.
+### Tasklet
 
-The most visible consequence of the above process is the
-`ProcessorMetaSupplier` type: the user must provide one for each
-`Vertex`. In step 3 the coordinator deserializes the meta-supplier as a
-constituent of the `DAG` and asks it to create `ProcessorSupplier`
-instances which go into the execution plans. A separate instance of
-`ProcessorSupplier` is created specifically for each member's plan. In
-step 4 the coordinator serializes these and sends each to its member. In
-step 5 each member deserializes its `ProcessorSupplier` and asks it to
-create as many `Processor` instances as configured by the vertex's
-`localParallelism` property.
+The execution service maintains a pool of worker threads, each of which
+juggles several "green threads" captured by an abstraction called the
+`Tasklet`. Each tasklet is given its turn and after it tries to do some
+work, it returns two bits of information: whether it made any progress
+and whether it is now done. As the worker cycles through its tasklets,
+before each new new cycle it checks whether any tasklet made progress;
+if not, it bumps its counter of idle cycles and acts according to the
+current count: either try again or sleep for a while.
 
-This process is so involved because each `Processor` instance may need
-to be differently configured. This is especially relevant for processors
-driving a source vertex: typically each one will emit only a slice of
-the total data stream, as appropriate to the partitions it is in charge
-of.
+#### Work stealing
+
+When a tasklet is done, the worker removes it from its tasklet pool.
+Workers start out with tasklets evenly distributed among them, but as
+the tasklets complete, the load on each worker may become imbalanced. To
+counter this, a simple _work stealing_ mechanism is put into place: each
+time it removes a tasklet from its pool, the worker (let's call it
+"thief") will inspect all the other workers, locating the one with the
+largest pool (call it "target"). If the target has at least two tasklets
+more than the thief, it will pick one of the target's tasklets and mark
+it with the instruction "give this one to me". When the target is about
+to run the marked tasklet, it will observe the instruction and move the
+tasklet to the thief's pool.
+
+### ProcessorTasklet
+
+`ProcessorTasklet` wraps a single processor instance and does the
+following:
+
+- drain the incoming concurrent queues into the processor's `Inbox`;
+- let it process the inbox and fill its `Outbox`;
+- drain the outbox into the outgoing concurrent queues;
+- make sure that all of the above conforms to the requirements of
+cooperative multithreading, e.g., yielding to other tasklets whenever an
+outgoing queue is full.
+
+### SenderTasklet and ReceiverTasklet
+
+A distributed DAG edge is implemented with one `ReceiverTasklet` and as
+many `SenderTasklet`s as there are target members (cluster size minus
+one). Jet reuses Hazelcast's networking layer and adds its own type of
+`Packet`, which can contain several data items traveling over a single
+edge. The packet size limit is configurable; to minimize fixed overheads
+from packet handling, Jet will try to stuff as many items as can fit
+into a single packet. It will keep adding items until it notices the
+limit is reached, which means that the actual packet size can exceed
+the limit by the size of one item.
+
+#### Network backpressure
+
+A key concern in edge data transfer is _backpressure_: the downstream
+vertex may not be able to process the items at the same rate as the
+upstream vertex is emitting them. Within a member the concurrent queues
+are bounded and naturally provide backpressure by refusing to accept an
+item when full. However, over the network no such natural mechanism
+exists, especially because the same TCP/IP connectionn is used for all
+edges so TCP's own flow control mechanism is not sufficient to guard
+an individual edge's limits. For that reason Jet introduces its own
+flow-control mechanism based on the _adaptive receive window_.
+
+Each member sends out flow-control packets (_ack packets_ for short) to
+all other members at regular intervals, detailing to each individual
+`SenderTasklet` how much more data it is allowed to send. A
+`ReceiverTasklet` keeps track of how much data received from each member
+it processed since the last sending of the ack packet. It uses this to
+calculate the current rate of data processing, which then guides the
+adaptive sizing of the receive window. The target size for the window is
+determined before sending an ack packet: it is three times the data
+processed since the last sending of the ack packet, and the receive
+window is adjusted from the current size halfway towards the target
+size.
