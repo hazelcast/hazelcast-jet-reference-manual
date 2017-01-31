@@ -95,7 +95,7 @@ when we want to scale out, across multiple machines.
 The word count computation can be roughly divided into three steps:
 
 1. Read a line from the map ("source" step)
-2. Split the line into words ("generator" step)
+2. Split the line into words ("tokenizer" step)
 3. Update the running totals for each word ("accumulator" step)
 
 We can represent these steps as a DAG:
@@ -113,7 +113,7 @@ processing at its own pace.
 TODO: include picture
 
 Now let us exploit the parallelizability of line parsing. We can
-have multiple generator instances, each parsing its subset of lines:
+have multiple tokenizer instances, each parsing its subset of lines:
 
 TODO: include picture
 
@@ -139,10 +139,11 @@ TODO: include picture
 ## Jet Implementation
 
 Now we will implement this DAG in Jet. The first step is to create a
-source vertex:
+DAG and source vertex:
 
  ```java
-Vertex source = new Vertex("source", Processors.mapReader("lines"));
+DAG dag = new DAG();
+Vertex source = dag.newVertex("source", Processors.mapReader("lines"));
 ```
 
 This is a simple vertex which will read the lines from the `IMap` and
@@ -151,43 +152,42 @@ key of the entry is the line number, and the value is the line itself.
 We can use the built-in map-reading processor here, which can read a
 distributed IMap.
 
-The next vertex is the _Generator_. Its responsibility is to take
+The next vertex is the _tokenizer_. Its responsibility is to take
 incoming lines and split them into words. This operation can be
 represented using a _flat map_ processor, which comes built in with Jet:
 
 ```java
-final Pattern PATTERN = Pattern.compile("\\w+");
-Vertex generator = new Vertex("generator",
-        Processors.<Map.Entry<Integer, String>, Map.Entry<String, Long>>flatMap(line ->
-                traverseArray(PATTERN.split(line.getValue()))
-        )
+// line -> words
+final Pattern delimiter = Pattern.compile("\\W+");
+Vertex tokenizer = dag.newVertex("tokenizer",
+      flatMap((String line) -> traverseArray(delimiter.split(line.toLowerCase()))
+                                  .filter(word -> !word.isEmpty()))
 );
 ```
 
 This vertex will take an item of type `Map.Entry<Integer, String>` and
 split its value part into words. The key is ignored, as the line number
-is not useful for the purposes of word count. We will set a count of 1
-for each word here, and the counts will be combined in the later stages
-of the computation. The vertex should emit entries like `(word, 1)`,
-which will have the type `Map.Entry<String, Long>`. The `Traverser`
-interface is designed to be used by the built in Jet processors.
+is not useful for the purposes of word count. There will be one item
+emitted for each word, which will be the word itself. The `Traverser`
+interface is a convenience designed to be used by the built
+in Jet processors.
 
 The next vertex will do the grouping of the words and emit the count
 for each word. We can use the built-in `groupAndAccumulate` processor.
 
 ```java
-Vertex accumulator = new Vertex("accumulator",
-        Processors.<Map.Entry<String, Long>, Long>groupAndAccumulate(Entry::getKey, (currentCount, entry) ->
-                entry.getValue() + (currentCount == null ? 0L : currentCount)
-        )
+// word -> (word, count)
+Vertex accumulator = dag.newVertex("accumulator",
+        groupAndAccumulate(() -> 0L, (count, x) -> count + 1)
 );
 ```
 
-This processor will take items of type `Map.Entry<String, Long>`, where
-the key is the word and the value is the count. The expected output is
-of the same type, with the counts for each word combined together. The
-processor can only emit the final values after it has exhausted all the
-data.
+This processor will take items of type `String`, where the item is the
+word. The initial value of the count for a word is zero, and the value
+is incremented by one for each time the word is encountered. The
+expected output is of the type `Entry<String, Long>` where the key is
+the word, and the value is the accumulated count.. The processor can
+only emit the final values after it has exhausted all the data.
 
 The accumulation lambda given to the `groupAndAccumulate` processor
 combines the current running count with the count from the new entry.
@@ -197,61 +197,57 @@ The next step is to do a _global_ accumulation of counts. This is the
 combining step:
 
 ```java
-Vertex combiner = new Vertex("combiner",
-        Processors.<Map.Entry<String, Long>, Long>groupAndAccumulate(Entry::getKey, (currentCount, entry) ->
-                entry.getValue() + (currentCount == null ? 0L : currentCount)
-        )
+// (word, count) -> (word, count)
+Vertex combiner = dag.newVertex("combiner",
+        groupAndAccumulate(Entry<String, Long>::getKey, initialZero,
+                (Long count, Entry<String, Long> wordAndCount) -> count + wordAndCount.getValue())
 );
+
 ```
 
-This vertex is identical to the previous one &mdash; since accumulation
-and combining in this case are identical.
+This vertex is very similar to the previous accumulator vertex, except
+we are combining two accumulated values, instead of accumulated  one for
+each word.
 
 The final vertex is the output &mdash; we want to store the output in
 another IMap:
 
 ```java
-Vertex sink = new Vertex("sink", Processors.mapWriter("counts"));
+Vertex sink = dag.newVertex("sink", Processors.mapWriter("counts"));
 ```
 
 Next, we add the vertices we created to our DAG, and connect the
 vertices together with edges:
 
 ```java
-DAG dag = new DAG()
-        .vertex(source)
-        .vertex(generator)
-        .vertex(accumulator)
-        .vertex(combiner)
-        .vertex(sink)
-        .edge(between(source, generator))
-        .edge(between(generator, accumulator)
-                .<Map.Entry<String, Long>, String>partitionedByKey(Entry::getKey))
-        .edge(between(accumulator, combiner)
-                .distributed()
-                .<Map.Entry<String, Long>, String>partitionedByKey(Entry::getKey))
-        .edge(between(combiner, sink));
+dag.edge(between(source, tokenizer))
+   .edge(between(tokenizer, accumulator)
+            .partitioned(wholeItem(), HASH_CODE))
+   .edge(between(accumulator, combiner)
+            .distributed()
+            .partitioned(entryKey()))
+   .edge(between(combiner, sink));
 ```
 
 Let's take a closer look at some of the connections between the vertices.
-First, source and generator:
+First, source and tokenizer:
 
 ```java
-.edge(between(generator, accumulator)
-        .<Map.Entry<String, Long>, String>partitionedByKey(Entry::getKey))
-
+.edge(between(tokenizer, accumulator)
+         .partitioned(wholeItem(), HASH_CODE))
 ```
 
-The edge between the generator and accumulator is _partitioned_, because
-all entries with the same word as key needs to be processed by the
-same instance of the vertex. Otherwise the same word would be duplicated
-across many instances.
-
+The edge between the tokenizer and accumulator is _partitioned_, because
+all entries with the same word as key needs to be processed by the same
+instance of the vertex. Otherwise the same word would be duplicated
+across many instances. The partitioning key is the built-in
+`wholeItem()`  partitioner, and we are using the built in `HASH_CODE` as
+the partitioning function, which uses `Object.hashCode()`.
 
 ```java
 .edge(between(accumulator, combiner)
-        .distributed()
-        .<Map.Entry<String, Long>, String>partitionedByKey(Entry::getKey))
+         .distributed()
+         .partitioned(entryKey()))
 ```
 
 The edge between the `accumulator` and `combiner` is also _partitioned_,
@@ -262,6 +258,13 @@ edge is both partitioned and distributed, the partitioning will be across
 all the nodes: all entries with the same word as key will be sent to
 a single processor instance in the whole cluster. This ensures that we
 get the correct total count for a word.
+
+The partitioning key here is the key part of the `Map.Entry<String,
+Long>`, which is the word. We are using the default partitioning
+function here which uses default Hazelcast partitioning. This
+partitioning function can be slightly slower than `HASH_CODE`
+partitioning, but is guaranteed to return consistent results across all
+JVM processes, so is a better choice for  distributed edges.
 
 To run the DAG and print out the results, we simply do:
 ```java
