@@ -382,10 +382,10 @@ edge. By default the edge is local and calling the `distributed()`
 method removes this restriction.
 
 With appropriate DAG design, network traffic can be minimized by
-employing local edges. Local edges are implemented
-with the most efficient kind of concurrent queue: single-producer,
-single-consumer bounded queue. It employs wait-free algorithms on both
-sides and avoids `volatile` writes by using `lazySet`.
+employing local edges. Local edges are implemented with the most
+efficient kind of concurrent queue: single-producer, single-consumer
+bounded queue. It employs wait-free algorithms on both sides and avoids
+`volatile` writes by using `lazySet`.
 
 ### Forwarding Patterns
 
@@ -406,47 +406,56 @@ on each item in isolation.
 
 #### Broadcast
 
-The item is sent to all candidate receivers. This is useful when some
-small amount of data must be broadcast to all downstream vertices.
-Usually such vertices will have other inbound edges in addition to the
-broadcasting one, and will use the broadcast data as context while
-processing the other edges. In such cases the broadcasting edge will
-have a raised priority. There are other useful combinations, like a
-parallelism-one vertex that produces the same result on each member.
+A broadcasting edge sends each item to all candidate receivers. This is
+useful when some small amount of data must be broadcast to all
+downstream vertices. Usually such vertices will have other inbound edges
+in addition to the broadcasting one, and will use the broadcast data as
+context while processing the other edges. In such cases the broadcasting
+edge will have a raised priority. There are other useful combinations,
+like a parallelism-one vertex that produces the same result on each
+member.
 
 #### Partitioned
 
-Each item is sent to the one processor responsible for the item's
-partition ID. On a distributed edge, this processor will be unique
-across the whole cluster. On a local edge, each member will have its
-own processor for each partition ID.
+A partitiond edge sends each item to the one processor responsible for
+the item's partition ID. On a distributed edge, this processor will be
+unique across the whole cluster. On a local edge, each member will have
+its own processor for each partition ID.
 
 Each processor can be assigned multiple partitions. The global number of
 partitions is controlled by the number of partitions in the underlying
 Hazelcast configuration. For more information about Hazelcast
 partitioning, see the [Hazelcast reference guide](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#data-partitioning)
 
-To calculate the partition ID for an item, by default Hazelcast
-partitioning is used:
+This is the default algorithm to determine the partition ID of an item:
 
-1. The partition key is serialized and converted into a byte array.
-2. The byte array is hashed using Murmur3.
-3. The result of the hash is mod by the number of partitions.
+1. Apply the `keyExtractor` function defined on the edge to retrieve the
+partitioning key.
+1. Serialize the partitioning key to a byte array using Hazelcast
+serialization.
+1. Apply Hazelcast's standard `MurmurHash3`-based algorithm to get the
+key's hash value.
+1. Partition ID is the hash value modulo the number of partitions.
 
-Partitioned edges can take an optional `keyExtractor` function which
- maps an item to its partition key. If no `keyExtractor` is specified,
-the whole object as a whole is used as the partition key.
+The above procedure is quite CPU-intensive, but has the essential
+property of giving repeatable results across all cluster members, which
+may be running on disparate JVM implementations.
 
-For even more control over how the partition ID is calculated, you can
-implement a custom `Partitioner`. Special care must be taken to make
-sure that this function returns the same result for same items on all
-members in the cluster.
+Another common choice is to use Java's standard `Object.hashCode()`,
+which is often significantly faster, but it is not a safe strategy in
+general because `hashCode()`'s contract doesn't require repeatable
+results across JVMs, or even different instances of the same JVM
+version.
+
+You can provide your own implementation of `Partitioner` to gain full
+control over the partitioning strategy.
 
 #### All to One
 
-Activates a special-cased _partitioned_ forwarding pattern where all
-items are assigned the same partition ID, randomly chosen at job
-initialization time. This will direct all items to the same processor.
+The all-to-one forwarding pattern is a special-case of the _partitioned_
+pattern where all items are assigned the same partition ID, randomly
+chosen at job initialization time. This will direct all items to the
+same processor.
 
 ### Buffered Edges
 
