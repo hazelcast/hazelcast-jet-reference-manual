@@ -1,4 +1,14 @@
-# Overview of Jet's Architecture and API
+# Overview of Jet's Architecture
+
+## Overview
+
+Hazelcast Jet is a distributed computing platform for fast processing of big data sets. With Hazelcast’s IMDG providing storage functionality, Hazelcast Jet performs parallel execution to enable data-intensive applications to operate in near real-time. Using directed acyclic graphs (DAG) to model relationships between individual steps in the data processing pipeline, Hazelcast Jet can execute both batch and stream-based data processing applications. Jet handles the parallel execution using the green thread approach to optimize the utilisation of the computing resources. The uses adaptive recieve windows to control the data flow and to handle a back pressure.  
+
+The breakthrough application speed is achieved by keeping both the computation and data storage in the memory. The embedded Hazelcast IMDG provides elastic in-memory storage and it is a great tool for publishing the results of the computation or as a cache for datasets to be used during the computation. Extremely low end-to-end latencies can be achieved this way.
+
+It is extremely simple to use - in particular Jet can be fully embedded for OEMs and for Microservices – making it is easier for manufacturers to build and maintain next generation systems. Also, Jet uses Hazelcast discovery for finding the members in the cluster, which can be used in both on-premise and cloud environments.
+
+![Architecture of Jet](http://jet.hazelcast.org/wp-content/uploads/2016/07/0.3-Jet-architecture-V7.png)
 
 ## DAG
 
@@ -7,7 +17,12 @@ paradigm of a _directed acyclic graph_ (DAG). In this graph, vertices
 are units of data processing and edges are units of data routing and
 transfer.
 
+![DAG](http://jet.hazelcast.org/wp-content/uploads/2016/07/Jet-DAG_w1000px_v0.1.png)
+
+
 ## Job
+
+A Job is the unit of work which is executed. A Job is described by a DAG, which describes the computation to be performed, and the inputs and outputs of the computation.
 
 `Job` is a handle to the execution of a `DAG`. To create a job,
 supply the `DAG` to a previously created `JetInstance`:
@@ -79,6 +94,10 @@ will have the same number of processors.
 
 ## Processor
 
+`Processors` are the basic unit of computation in the data processing pipeline. The data processing pipeline is built by linking various processors. 
+
+TODO code sample to get a feeling of processor
+
 `Processor` is the main type whose implementation is up to the user: it
 contains the code of the computation to be performed by a vertex. There
 are a number of Processor building blocks in the Jet API which allow the
@@ -94,12 +113,30 @@ input and output items; a processor can emit any data it sees fit,
 including none at all. The same `Processor` abstraction is used for all
 kinds of vertices, including sources and sinks.
 
-## Cooperative multithreading
+## Job Execution
 
-At the core of the Jet engine is the `ExecutionService`. This is the
-component that drives the cooperatively-multithreaded execution of
-Processors as well as other vital components, like network senders and
-receivers.
+After a Job is created, the DAG is replicated to the whole Jet 
+cluster and executed on each node individually. At the core of the 
+Jet engine is the `ExecutionService`. This is the component that drives
+the cooperatively-multithreaded execution of Processors as well as
+other vital components, like network senders and receivers.
+
+![DAG Distribution](http://jet.hazelcast.org/wp-content/uploads/2016/07/Jet-Distribution_w1000px_v0.1.png)
+
+### Job Initialization
+
+These are the steps taken to create and initialize a Jet job:
+
+1. User builds the DAG and submits it to the local Jet client instance.
+1. The client instance serializes the DAG and sends it to a member of the Jet cluster. This member becomes the coordinator for this Jet job.
+1. Coordinator deserializes the DAG and builds an execution plan for each member.
+1. Coordinator serializes the execution plans and distributes each to its target member.
+1. Each member acts upon its execution plan by creating all the needed tasklets, concurrent queues, network senders/receivers, etc.
+1. Coordinator sends the signal to all members to start job execution.
+
+The most visible consequence of the above process is the ProcessorMetaSupplier type: the user must provide one for each Vertex. In step 3 the coordinator deserializes the meta-supplier as a constituent of the DAG and asks it to create ProcessorSupplier instances which go into the execution plans. A separate instance of ProcessorSupplier is created specifically for each member's plan. In step 4 the coordinator serializes these and sends each to its member. In step 5 each member deserializes its ProcessorSupplier and asks it to create as many Processor instances as configured by the vertex's localParallelism property.
+
+This process is so involved because each Processor instance may need to be differently configured. This is especially relevant for processors driving a source vertex: typically each one will emit only a slice of the total data stream, as appropriate to the partitions it is in charge of.
 
 ### Tasklet
 
@@ -151,7 +188,7 @@ try to stuff as many items as can fit into a single packet. It will keep
 adding items until it notices the limit is reached, which means that the
 actual packet size can exceed the limit by the size of one item.
 
-#### Network backpressure
+### Network backpressure
 
 A key concern in edge data transfer is _backpressure_: the downstream
 vertex may not be able to process the items at the same rate as the
@@ -174,93 +211,6 @@ determined before sending an ack packet: it is three times the data
 processed since the last sending of the ack packet, and the receive
 window is adjusted from the current size halfway towards the target
 size.
-
-## Convenience API to implement a Processor
-
-### AbstractProcessor
-
-`AbstractProcessor` is a convenience class designed to deal with most of
-the boilerplate in implementing the full `Processor` API.
-
-The first line of convenience are the `tryProcessN()` methods which
-receive one item at a time, thus eliminating the need to write a
-suspendable loop over the input items. There is a separate method
-specialized for each edge from 0 to 4 (`tryProcess0`..`tryProcess4`) and
-there is a catch-all method `tryProcessAny(ordinal, item)`. If the
-processor doesn't need to distinguish between inbound edges, the latter
-method is a good match; otherwise it is simpler to implement one or more
-of the ordinal-specific methods. The catch-all method is also the only
-way to access inbound edges beyond ordinal 4, but such cases are very
-rare in practice.
-
-A major complication arises from the requirement to observe the outbox
-limits during a single processing step. If the processor emits many
-items per step, the loop doing this must support being suspended at any
-point and resumed later. This need arises in two typical cases:
-
-- when a single input item maps to a multitude of output items;
-- when items are emitted in the final step, after having received all
-the input.
-
-`AbstractProcessor` provides the method `emitCooperatively` to support
-the latter and there is additional support for the former with the
-nested class `FlatMapper`. These work with the `Traverser` abstraction
-to cooperatively emit a user-provided sequence of items.
-
-### Traverser
-
-`Traverser` is a very simple functional interface whose shape matches
-that of a `Supplier`, but with a contract specialized for the traversal
-over a sequence of non-null items: each call to its `next()` method
-returns another item of the sequence until exhausted, then keeps
-returning `null`. The point of this type is the ability to implement
-traversal over any kind of dataset or lazy sequence with minimum hassle:
-often just by providing a one-liner lambda expression. This makes it
-very easy to integrate into Jet's convenience APIs for cooperative
-processors.
-
-`Traverser` also sports some `default` methods that facilitate building
-a simple transformation layer over the underlying sequence: `map`,
-`filter`, and `flatMap`.
-
-### Simple example
-
-This is how a simple flatmapping processor would be implemented:
-
-```java
-public class ItemAndSuccessorP extends AbstractProcessor {
-    private final FlatMapper<Integer, Integer> flatMapper =
-        flatMapper(i -> traverseIterable(asList(i, i + 1)));
-
-    @Override
-    protected boolean tryProcess(int ordinal, Object item) {
-        return flatMapper.tryProcess((int) item);
-    }
-}
-```
-For each received `Integer` item this processor emits the item and its
-successor. It doesn't differentiate between inbound edges (treats data
-from all edges the same way) and emits each item to all outbound edges
-connected to its vertex.
-
-This deceptively simple example takes care of suspending and resuming
-iteration both between two items in the inbox and within a single inbox
-item, between the two items to be emitted. This is why `flatMapper` is
-an instance variable and not a local one: the iteration state stays
-inside it when the tasklet returns control to the execution service.
-
-### `Processors` utility class
-
-As a further layer of convenience there are some ready-made Processor
-implementations. These are the broad categories:
-
-1. Sources and sinks for Hazelcast `IMap` and `IList`.
-2. Processors with `flatMap`-type logic, including `map`, `filter`, and
-the most general `flatMap`.
-3. Processors that perform a reduction operation after grouping items by
-key. These come in two flavors:
-    a. _Accumulate:_ reduce by transforming an immutable value;
-    b. _Collect:_ reduce by updating a mutable result container.
 
 ## Edge
 
@@ -318,3 +268,166 @@ running on disparate JVM implementations. By default, Hazelcast's
 standard partitioning scheme is used. It is safe but CPU-intensive.
 Java's standard `Object.hashCode()` is also an option, but its contract
 doesn't require repeatability outside a single running JVM instance.
+
+## Using Hazelcast Jet
+
+There are two ways to use Jet: build the DAG using the Core API use the java.util.stream as a high-level API. The java.util.stream operations are mapped to a DAG and then executed, and the result returned to the user.
+
+java.util.stream provides more convenience, the Core API exposese all the potential of Jet.
+
+There are plans for developing higher level batching and streaming APIs.
+
+### Core API 
+
+In order to run the Jet Job user has to build the DAG and submit it to the local Jet instance. That means implementing the Processors and connecting them together using Edges.
+
+There is a convenience API to implement a Processor.
+
+#### AbstractProcessor
+
+`AbstractProcessor` is a convenience class designed to deal with most of
+the boilerplate in implementing the full `Processor` API.
+
+The first line of convenience are the `tryProcessN()` methods which
+receive one item at a time, thus eliminating the need to write a
+suspendable loop over the input items. There is a separate method
+specialized for each edge from 0 to 4 (`tryProcess0`..`tryProcess4`) and
+there is a catch-all method `tryProcessAny(ordinal, item)`. If the
+processor doesn't need to distinguish between inbound edges, the latter
+method is a good match; otherwise it is simpler to implement one or more
+of the ordinal-specific methods. The catch-all method is also the only
+way to access inbound edges beyond ordinal 4, but such cases are very
+rare in practice.
+
+A major complication arises from the requirement to observe the outbox
+limits during a single processing step. If the processor emits many
+items per step, the loop doing this must support being suspended at any
+point and resumed later. This need arises in two typical cases:
+
+- when a single input item maps to a multitude of output items;
+- when items are emitted in the final step, after having received all
+the input.
+
+`AbstractProcessor` provides the method `emitCooperatively` to support
+the latter and there is additional support for the former with the
+nested class `FlatMapper`. These work with the `Traverser` abstraction
+to cooperatively emit a user-provided sequence of items.
+
+#### Traverser
+
+`Traverser` is a very simple functional interface whose shape matches
+that of a `Supplier`, but with a contract specialized for the traversal
+over a sequence of non-null items: each call to its `next()` method
+returns another item of the sequence until exhausted, then keeps
+returning `null`. The point of this type is the ability to implement
+traversal over any kind of dataset or lazy sequence with minimum hassle:
+often just by providing a one-liner lambda expression. This makes it
+very easy to integrate into Jet's convenience APIs for cooperative
+processors.
+
+`Traverser` also sports some `default` methods that facilitate building
+a simple transformation layer over the underlying sequence: `map`,
+`filter`, and `flatMap`.
+
+#### Simple example
+
+This is how a simple flatmapping processor would be implemented:
+
+```java
+public class ItemAndSuccessorP extends AbstractProcessor {
+    private final FlatMapper<Integer, Integer> flatMapper =
+        flatMapper(i -> traverseIterable(asList(i, i + 1)));
+
+    @Override
+    protected boolean tryProcess(int ordinal, Object item) {
+        return flatMapper.tryProcess((int) item);
+    }
+}
+```
+For each received `Integer` item this processor emits the item and its
+successor. It doesn't differentiate between inbound edges (treats data
+from all edges the same way) and emits each item to all outbound edges
+connected to its vertex.
+
+This deceptively simple example takes care of suspending and resuming
+iteration both between two items in the inbox and within a single inbox
+item, between the two items to be emitted. This is why `flatMapper` is
+an instance variable and not a local one: the iteration state stays
+inside it when the tasklet returns control to the execution service.
+
+#### `Processors` utility class
+
+As a further layer of convenience there are some ready-made Processor
+implementations. These are the broad categories:
+
+1. Sources and sinks for Hazelcast `IMap` and `IList`.
+2. Processors with `flatMap`-type logic, including `map`, `filter`, and
+the most general `flatMap`.
+3. Processors that perform a reduction operation after grouping items by
+key. These come in two flavors:
+    a. _Accumulate:_ reduce by transforming an immutable value;
+    b. _Collect:_ reduce by updating a mutable result container.
+    
+#### Building the DAG
+
+TODO: How to do the wiring from processors and edges, code snippet
+
+```java
+JetConfig cfg = new JetConfig();
+    cfg.setInstanceConfig(new InstanceConfig().setCooperativeThreadCount(
+        Math.max(1, getRuntime().availableProcessors() / 2)));
+                    
+Jet.newJetInstance(cfg);
+JetInstance jet = Jet.newJetInstance(cfg);
+            
+DAG dag = new DAG();
+
+final int limit = 15_485_864;
+Vertex generator = dag.newVertex("number-generator", new NumberGeneratorMetaSupplier(limit));
+Vertex primeChecker = dag.newVertex("filter-primes", Processors.filter(PrimeFinder::isPrime));
+Vertex writer = dag.newVertex("writer", Processors.listWriter("primes"));
+
+dag.edge(between(generator, primeChecker));
+dag.edge(between(primeChecker, writer));
+
+jet.newJob(dag).execute().get();
+
+```
+
+### java.util.stream
+
+Besides the Core API, Jet also has an implementation of java.util.stream for Hazelcast IMap and IList. java.util.stream operations are mapped to a DAG and then executed, and the result returned to the user.
+
+```java
+IMap<String, Integer> ints = instance1.getMap("ints");
+IStreamMap<String, Integer> map = IStreamMap.streamMap(ints);
+int result = map.stream().map(m -> m.getValue()).reduce(0, (l, r) -> l + r);
+```
+
+## Integration with Hazelcast IMDG
+
+As Jet is built on top of Hazelcast platform, there is a tight integration between Jet and IMDG. A Jet job is implemented as a Hazelcast IMDG proxy, similar to the other services and data structures in Hazelcast. The Hazelcast Operations are used for different actions that can be performed on a job. Jet can also be used with the Hazelcast Client, which uses the Hazelcast Open Binary Protocol to communicate different actions to the server instance.
+
+### Reading from and Writing to Hazelcast Distributed Data Structures
+
+Jet embedds Hazelcast IMDG. Therefore, Jet can use Hazelcast IMDG maps and lists on the embedded cluster as sources and sinks of data and make use of data locality. A Hazelcast IMap is distributed by partitions across a cluster and Jet nodes are able to efficiently read from the Map by having every node only read from their respective local partitions. ILists are always stored on a single partition, so when using an IList as a data source, all the data will be read on the node which contains the list.
+
+When using maps and lists as a Sink, it is not possible to directly make use of data locality. If the emitted key value pair belongs to a non-local partition. In this case, the key value pair will be transmitted over the network to the node which owns that particular partition.
+
+Apart from that, Jet can use any remote Hazelcast IMDG instance via Hazelcast IMDG connector.
+
+## Deployment
+
+### Discovery and Networking
+
+Jet uses Hazelcast IMDG discovery for finding the members in the cluster. 
+
+On the wire Jet uses custom lightweight serialization for small and frequently used types (primitive types and strings) and delegates to Hazelcast serialization for the rest.
+
+### Clouds
+
+
+### Embeddability
+
+TODO: emphasise that Jet is a library and can be embedded
+
