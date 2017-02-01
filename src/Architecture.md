@@ -357,15 +357,14 @@ them.
 
 ### Priority
 
-In most cases the processor receives items from all inbound edges as
-they arrive; however, there are important cases where the reception of
-one edge must be delayed until all other edges are consumed in full. A
-major example is a highly asymmetric join operation, where one of the
-edges stands out with its high data volume. Normally, collating items
-from several edges by a common key implies buffering all the data before
-emitting the result, but there is also the option to receive and buffer
-data from all edges except the large one, then start receiving from it
-and immediately emitting data.
+By default the processor receives items from all inbound edges as they
+arrive; however, there are important cases where the reception of one
+edge must be delayed until all other edges are consumed in full. A major
+example is a join operation. Collating items from several edges by a
+common key implies buffering the data from all edges except one before
+emitting any results. Often there is one edge with much more data than
+the others and this one doesn't need to be buffered if all the other
+data is ready.
 
 Edge consumption order is controlled by the _priority_ property. Edges
 are sorted by their priority number (ascending) and consumed in that

@@ -26,11 +26,12 @@ the tasklets complete, the load on each worker may become imbalanced. To
 counter this, a simple _work stealing_ mechanism is put into place: each
 time it removes a tasklet from its pool, the worker (let's call it
 "thief") will inspect all the other workers, locating the one with the
-largest pool (call it "target"). If the target has at least two tasklets
-more than the thief, it will pick one of the target's tasklets and mark
-it with the instruction "give this one to me". When the target is about
-to run the marked tasklet, it will observe the instruction and move the
-tasklet to the thief's pool.
+largest pool (call it "target"). If the thief finds a target with at
+least two tasklets more, it will pick one of the target's tasklets and
+mark it with the instruction "give this one to me". When the target is
+about to run the marked tasklet, it will observe the instruction and
+move the tasklet to the thief's pool. The whole interaction takes place
+in a lock-free manner.
 
 ### ProcessorTasklet
 
@@ -46,15 +47,15 @@ outgoing queue is full.
 
 ### SenderTasklet and ReceiverTasklet
 
-A distributed DAG edge is implemented with one `ReceiverTasklet` and as
-many `SenderTasklet`s as there are target members (cluster size minus
-one). Jet reuses Hazelcast's networking layer and adds its own type of
-`Packet`, which can contain several data items traveling over a single
-edge. The packet size limit is configurable; to minimize fixed overheads
-from packet handling, Jet will try to stuff as many items as can fit
-into a single packet. It will keep adding items until it notices the
-limit is reached, which means that the actual packet size can exceed
-the limit by the size of one item.
+On each member a distributed DAG edge is implemented with one
+`ReceiverTasklet` and as many `SenderTasklet`s as there are target
+members (cluster size minus one). Jet reuses Hazelcast's networking
+layer and adds its own type of `Packet`, which can contain several data
+items traveling over a single edge. The packet size limit is
+configurable; to minimize fixed overheads from packet handling, Jet will
+try to stuff as many items as can fit into a single packet. It will keep
+adding items until it notices the limit is reached, which means that the
+actual packet size can exceed the limit by the size of one item.
 
 #### Network backpressure
 
