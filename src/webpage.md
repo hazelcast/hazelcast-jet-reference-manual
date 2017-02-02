@@ -1,24 +1,50 @@
 # Overview of Jet's Architecture
 
-## Overview
+## What is Hazelcast Jet
 
-Hazelcast Jet is a distributed computing platform for fast processing of big data sets. With Hazelcast’s IMDG providing storage functionality, Hazelcast Jet performs parallel execution to enable data-intensive applications to operate in near real-time. Using directed acyclic graphs (DAG) to model relationships between individual steps in the data processing pipeline, Hazelcast Jet can execute both batch and stream-based data processing applications. Jet handles the parallel execution using the green thread approach to optimize the utilisation of the computing resources. The uses adaptive recieve windows to control the data flow and to handle a back pressure.  
+Hazelcast Jet is a distributed computing platform for fast processing of big data sets. With Hazelcast’s IMDG providing storage functionality, Hazelcast Jet performs parallel execution to enable data-intensive applications to operate in near real-time. Using directed acyclic graphs (DAG) to model relationships between individual steps in the data processing pipeline, Hazelcast Jet can execute both batch and stream-based data processing applications. Jet handles the parallel execution using the green thread approach to optimize the utilisation of the computing resources.
 
 The breakthrough application speed is achieved by keeping both the computation and data storage in the memory. The embedded Hazelcast IMDG provides elastic in-memory storage and it is a great tool for publishing the results of the computation or as a cache for datasets to be used during the computation. Extremely low end-to-end latencies can be achieved this way.
 
 It is extremely simple to use - in particular Jet can be fully embedded for OEMs and for Microservices – making it is easier for manufacturers to build and maintain next generation systems. Also, Jet uses Hazelcast discovery for finding the members in the cluster, which can be used in both on-premise and cloud environments.
 
-![Architecture of Jet](http://jet.hazelcast.org/wp-content/uploads/2016/07/0.3-Jet-architecture-V7.png)
+## Architecture Overview
 
-## DAG
+![Architecture of Jet](img/0.3-Jet-architecture-V7.png)
+
 
 At the core of Jet is the distributed computation engine based on the
 paradigm of a _directed acyclic graph_ (DAG). In this graph, vertices
 are units of data processing and edges are units of data routing and
 transfer.
 
-![DAG](http://jet.hazelcast.org/wp-content/uploads/2016/07/Jet-DAG_w1000px_v0.1.png)
+![DAG](img/dag.png)
 
+`Vertex` is the smallest unit of execution where data processing happens. Each Vertex has a Processor which does the data processing for that node. Processor code is user implemented, and several vertices might use the same Processor type. There might be several instances of the Processor running in parallel for a single Vertex, which is configured by the parallelism attribute of the vertex. Each vertex may also have one or more Sources and Sinks.
+
+`Sources` supply data to a vertex. Some sources can be partitioned, meaning that the supplied data is partitioned across the cluster, with each instance of a vertex receiving a partition of the data. Examples sources are HDFS files, Hazelcast IMap or IList.
+
+`Sinks` consume the output of a Vertex. Example sinks could be HDFS files and Hazelcast IMap or Lists.
+
+`Edges` transfer data between one vertex to another and have properties which determine how data is transferred between the input and output vertices. An edge can be local which means the output will not be sent to consumers on other nodes in the cluster, but to only to the local node. A distributed edge will distribute the output to other nodes, based on a MemberDistributionStrategy.
+
+After a Job is created, the DAG is replicated to the whole Hazelcast cluster and executed on each node individually.
+
+![DAG Distribution](img/dag-distribution.png)
+
+Execution is done on a user-configurable number of threads which use work stealing to balance the amount of work being done on each thread. Each worker thread has a queue of tasks, and enqueued tasks are moved between queues as the workers drain their queues at different rates.
+
+Each instance of a vertex is mapped to one task per thread which is repeatedly executed until it exhausts its input. A vertex with a parallelism of 8 running on 4 nodes would have a total of 32 instances of the vertex running at the same time. Each node will have the same number of instances of the vertex running.
+
+![Parallelism](img/parallelism-model.png)
+
+When a request to execute a Job is made, the corresponding DAG and additional resources are deployed to the whole of the Hazelcast cluster. An execution plan for the DAG is built on each node, which creates the associated tasks for each Vertex and connects these tasks with their inputs and outputs. 
+
+Data between vertices are transferred over local ringbuffers. Jet is data-type agnostic, so any data type could be used for transferring data between vertices, but an out-of-the-box key-value Pair type can be commonly used.
+
+Ringbuffers, being bounded queues, introduce natural backpressure into the system; if a consumer’s ringbuffer is full, the producer will have to block until it can enqueue the next item. The adaptive recieve windows are used to control the data flow and to handle a back pressure over the wire.  
+
+A JobManager per Job is used for managing the lifecycle of the job. There is a single instance of the JobManager for each Job on every node.
 
 ## Job
 
@@ -96,8 +122,6 @@ will have the same number of processors.
 
 `Processors` are the basic unit of computation in the data processing pipeline. The data processing pipeline is built by linking various processors. 
 
-TODO code sample to get a feeling of processor
-
 `Processor` is the main type whose implementation is up to the user: it
 contains the code of the computation to be performed by a vertex. There
 are a number of Processor building blocks in the Jet API which allow the
@@ -120,8 +144,6 @@ cluster and executed on each node individually. At the core of the
 Jet engine is the `ExecutionService`. This is the component that drives
 the cooperatively-multithreaded execution of Processors as well as
 other vital components, like network senders and receivers.
-
-![DAG Distribution](http://jet.hazelcast.org/wp-content/uploads/2016/07/Jet-Distribution_w1000px_v0.1.png)
 
 ### Job Initialization
 
@@ -424,10 +446,7 @@ Jet uses Hazelcast IMDG discovery for finding the members in the cluster.
 
 On the wire Jet uses custom lightweight serialization for small and frequently used types (primitive types and strings) and delegates to Hazelcast serialization for the rest.
 
-### Clouds
+### Cloud deployment
 
-
-### Embeddability
-
-TODO: emphasise that Jet is a library and can be embedded
+Hazelcast Jet takes a benefit of the [Hazelcast Discovery SPI](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#discovery-spi) and [Cloud discovery plugins](https://hazelcast.org/plugins/?type=cloud-discovery) implementing this SPI to be deployed in various cloud environments.
 
