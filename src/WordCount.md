@@ -100,7 +100,7 @@ The word count computation can be roughly divided into three steps:
 
 We can represent these steps as a DAG:
 
-TODO: include DAG picture
+![image](images/wordcount-dag.jpg)
 
 It the simplest case, the computation inside each vertex might be
 executed in turn in a single-threaded environment. To execute these
@@ -110,12 +110,12 @@ efficiently without interference between threads, we need to introduce
 _concurrent queues_ between the vertices so each thread can do its
 processing at its own pace.
 
-TODO: include picture
+![image](images/wordcount-dag-queue.jpg)
 
 Now let us exploit the parallelizability of line parsing. We can
 have multiple tokenizer instances, each parsing its subset of lines:
 
-TODO: include picture
+![image](images/wordcount-tokenizer.jpg)
 
 The accumulation step counts occurrences of individual words. Counting
 one word is independent of counting any other, but we must ensure that
@@ -125,7 +125,7 @@ _partitioning_ in Jet, and is achieved by creating a _partitioned edge_
 in the DAG, which ensures the words with same partitioning key are
 transmitted to the same instance of the vertex's processor.
 
-TODO: include picture
+![image](images/wordcount-partitioned.jpg)
 
 So far our DAG will produce correct results only when executed on a
 single Jet instance (cluster of size 1). With more members, each will
@@ -134,7 +134,7 @@ result to the output map. Fixing this requires the addition of another
 vertex in the DAG, which will combine results from each local
 accumulator into a global result:
 
-TODO: include picture
+![image](images/wordcount-distributed.jpg)
 
 ## Jet Implementation
 

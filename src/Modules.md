@@ -19,4 +19,6 @@ reading from HDFS.
 ## hazelcast-jet-kafka
 
 `KafkaReader` and `KafkaWriter` can be used to read a stream of data from
-[Apache Kafka](https://kafka.apache.org/). 
+[Apache Kafka](https://kafka.apache.org/). Kafka partitions will be
+distributed across Jet processors, with each Jet processors being assigned
+one or more partitions.

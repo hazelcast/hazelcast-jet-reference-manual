@@ -32,7 +32,39 @@ resource, otherwise it will be treated as a file reference.
 4. If none of these options are specified, then the default XML
 configuration will be loaded.
 
-TODO: link to sample XML configuration
+An example configuration will look like the following:
+
+```xml
+<hazelcast-jet xsi:schemaLocation="http://www.hazelcast.com/schema/jet-config hazelcast-jet-config-0.3.xsd"
+               xmlns="http://www.hazelcast.com/schema/jet-config"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <instance>
+        <!-- number of threads to use for DAG execution -->
+       <cooperative-thread-count>8</cooperative-thread-count>
+        <!-- frequency of flow control packets, in milliseconds -->
+       <flow-control-period>100</flow-control-period>
+        <!-- working directory to use for placing temporary files -->
+       <temp-dir>/var/tmp/jet</temp-dir>
+    </instance>
+    <properties>
+       <property name="custom.property">custom property</property>
+    </properties>
+    <edge-defaults>
+        <!-- number of available slots for each concurrent queue between two vertices -->
+       <queue-size>1024</queue-size>
+
+        <!-- number of slots before high water is triggered for the outbox -->
+       <high-water-mark>2048</high-water-mark>
+
+        <!-- maximum packet size in bytes, only applies to distributed edges -->
+       <packet-size-limit>16384</packet-size-limit>
+
+        <!-- target receive window size multiplier, only applies to distributed edges -->
+       <receive-window-multiplier>3</receive-window-multiplier>
+    </edge-defaults>
+    <!-- custom properties which can be read within a ProcessorSupplier -->
+</hazelcast-jet>
+```
 
 ## Configuring underlying Hazelcast instance
 
