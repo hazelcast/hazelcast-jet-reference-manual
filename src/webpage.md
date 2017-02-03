@@ -12,7 +12,7 @@ stream-based data processing applications. Jet handles the parallel
 execution using the green thread approach to optimize the utilization of
 the computing resources.
 
-The breakthrough application speed is achieved by keeping both the
+Breakthrough application speed is achieved by keeping both the
 computation and data storage in memory. The embedded Hazelcast IMDG
 provides elastic in-memory storage and is a great tool for storing
 the results of a computation or as a cache for datasets to be used
@@ -126,7 +126,7 @@ API after the job is done.
 
 ## Vertex
 
-Vertex is the main unit of work in a Jet computation. Conceptually, it
+A Vertex is the main unit of work in a Jet computation. Conceptually, it
 receives input from its inbound edges and emits data to its outbound
 edges. Practically, it is a number of `Processor` instances which
 receive each its own part of the full stream traveling over the inbound
@@ -169,7 +169,7 @@ will have the same number of processors.
 pipeline. The data processing pipeline is built by linking various
 processors.
 
-`Processor` is the main type whose implementation is up to the user: it
+The `Processor` is the main type whose implementation is up to the user: it
 contains the code of the computation to be performed by a vertex. There
 are a number of Processor building blocks in the Jet API which allow the
 user to just specify the computation logic, while the provided code
