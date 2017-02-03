@@ -13,9 +13,9 @@ execution using the green thread approach to optimize the utilization of
 the computing resources.
 
 The breakthrough application speed is achieved by keeping both the
-computation and data storage in the memory. The embedded Hazelcast IMDG
-provides elastic in-memory storage and it is a great tool for publishing
-the results of the computation or as a cache for datasets to be used
+computation and data storage in memory. The embedded Hazelcast IMDG
+provides elastic in-memory storage and is a great tool for storing
+the results of a computation or as a cache for datasets to be used
 during the computation. Extremely low end-to-end latencies can be
 achieved this way.
 
