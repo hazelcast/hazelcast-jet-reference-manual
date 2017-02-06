@@ -1,13 +1,14 @@
 # Quickstart: Word Count
 
 In this example, we will go through building a word count application
-using Jet.
+using Hazelcast Jet.
 
-## Starting a Jet cluster
+## Starting a Jet Cluster
 
 To start a new Jet cluster, we need to start Jet instances. Typically
 these would be started on separate machines, but for the purposes of
 this tutorial we will be using the same JVM for both of the instances.
+You can start the instances as shown below:
 
 ```java
 public class WordCount {
@@ -18,9 +19,9 @@ public class WordCount {
 }
 ```
 
-The two nodes should automatically form a cluster, as they will by
-default use multicast to discover each other.
-You should see output like the following:
+These two members should automatically form a cluster, as they will use 
+multicast, by default, to discover each other.
+You should see an output similar to the following:
 
 ```
 Members [2] {
@@ -29,16 +30,16 @@ Members [2] {
 }
 ```
 
-This means the nodes successfully formed a cluster. Don't forget to
-shut down the nodes afterwards, by adding
+This means the members successfully formed a cluster. Do not forget to
+shut down the members afterwards, by adding the following as the last line
+of your application:
 
 ```
 Jet.shutdownAll();
 ```
 
-as the last line of your application.
 
-## Populating some data
+## Populating Data
 
 To be able to do a word count, we need some source data. Jet has built-in
 readers for maps and lists from Hazelcast, so we will go ahead and
@@ -70,11 +71,11 @@ reason is that the complete list is stored on a single cluster member,
 whereas the map is sharded according to each entry's key and distributed
 across the cluster.
 
-## Single-threaded computation
+## Single-threaded Computation
 
 We want to count how many times each word occurs in the text. If we want
 to do a word count without using a DAG and in a single-threaded
-computation, we could do it like this:
+computation, we could do it as shown below:
 
 ```java
 Pattern pattern = Pattern.compile("\\s+");
@@ -88,7 +89,7 @@ for (String line : map.values()) {
 
 As soon as we try to parallelize this computation, it becomes clear that
 we have to model it differently. More complications arise on top of that
-when we want to scale out, across multiple machines.
+when we want to scale out across multiple machines.
 
 ## Modeling Word Count in terms of a DAG
 
@@ -102,7 +103,7 @@ We can represent these steps as a DAG:
 
 ![image](images/wordcount-dag.jpg)
 
-It the simplest case, the computation inside each vertex might be
+In the simplest case, the computation inside each vertex might be
 executed in turn in a single-threaded environment. To execute these
 steps in parallel, a producer vertex must publish its output items to
 a consumer vertex running on another thread. For this to work
@@ -136,7 +137,7 @@ accumulator into a global result:
 
 ![image](images/wordcount-distributed.jpg)
 
-## Jet Implementation
+## Implementing DAG in Jet
 
 Now we will implement this DAG in Jet. The first step is to create a
 DAG and source vertex:
@@ -169,8 +170,7 @@ This vertex will take an item of type `Map.Entry<Integer, String>` and
 split its value part into words. The key is ignored, as the line number
 is not useful for the purposes of word count. There will be one item
 emitted for each word, which will be the word itself. The `Traverser`
-interface is a convenience designed to be used by the built
-in Jet processors.
+interface is a convenience designed to be used by the built-in Jet processors.
 
 The next vertex will do the grouping of the words and emit the count
 for each word. We can use the built-in `groupAndAccumulate` processor.
@@ -186,13 +186,13 @@ This processor will take items of type `String`, where the item is the
 word. The initial value of the count for a word is zero, and the value
 is incremented by one for each time the word is encountered. The
 expected output is of the type `Entry<String, Long>` where the key is
-the word, and the value is the accumulated count.. The processor can
+the word, and the value is the accumulated count. The processor can
 only emit the final values after it has exhausted all the data.
 
 The accumulation lambda given to the `groupAndAccumulate` processor
 combines the current running count with the count from the new entry.
 
-This vertex will do a _local_ accumulation of word counts on each node.
+This vertex will do a _local_ accumulation of word counts on each member.
 The next step is to do a _global_ accumulation of counts. This is the
 combining step:
 
@@ -202,11 +202,10 @@ Vertex combiner = dag.newVertex("combiner",
         groupAndAccumulate(Entry<String, Long>::getKey, initialZero,
                 (Long count, Entry<String, Long> wordAndCount) -> count + wordAndCount.getValue())
 );
-
 ```
 
 This vertex is very similar to the previous accumulator vertex, except
-we are combining two accumulated values, instead of accumulated  one for
+we are combining two accumulated values instead of accumulated one for
 each word.
 
 The final vertex is the output &mdash; we want to store the output in
@@ -238,10 +237,10 @@ First, source and tokenizer:
 ```
 
 The edge between the tokenizer and accumulator is _partitioned_, because
-all entries with the same word as key needs to be processed by the same
+all entries with the same word as key need to be processed by the same
 instance of the vertex. Otherwise the same word would be duplicated
 across many instances. The partitioning key is the built-in
-`wholeItem()`  partitioner, and we are using the built in `HASH_CODE` as
+`wholeItem()`  partitioner, and we are using the built-in `HASH_CODE` as
 the partitioning function, which uses `Object.hashCode()`.
 
 ```java
@@ -252,10 +251,10 @@ the partitioning function, which uses `Object.hashCode()`.
 
 The edge between the `accumulator` and `combiner` is also _partitioned_,
 similar to the edge between the `generator` and `accumulator`. However,
-there is also a key difference: the edge is also _distributed_. A
-_distributed_ edge allows items to be sent to other nodes. Since this
+there is a key difference: the edge is also _distributed_. A
+_distributed_ edge allows items to be sent to other members. Since this
 edge is both partitioned and distributed, the partitioning will be across
-all the nodes: all entries with the same word as key will be sent to
+all the members: all entries with the same word as key will be sent to
 a single processor instance in the whole cluster. This ensures that we
 get the correct total count for a word.
 
@@ -264,15 +263,16 @@ Long>`, which is the word. We are using the default partitioning
 function here which uses default Hazelcast partitioning. This
 partitioning function can be slightly slower than `HASH_CODE`
 partitioning, but is guaranteed to return consistent results across all
-JVM processes, so is a better choice for  distributed edges.
+JVM processes, so is a better choice for distributed edges.
 
-To run the DAG and print out the results, we simply do:
+To run the DAG and print out the results, we simply do the following:
+
 ```java
 instance1.newJob(dag).execute().get();
 System.out.println(instance1.getMap("counts").entrySet());
 ```
 
-The final output should look like:
+The final output should look like the following:
 
 ```
 [heaven=1, times=2, of=12, its=2, far=1, light=1, noisiest=1,
@@ -285,5 +285,5 @@ insisted=1, despair=1, belief=1, comparison=1, some=1, foolishness=1,
 or=1, everything=1, spring=1, authorities=1, way=1, for=2]
 ```
 
-An executable version of this sample can be found at the
- [Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples)
+An executable version of this sample can be found at the 
+[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples).
