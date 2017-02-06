@@ -36,13 +36,7 @@ transfer.
 
 ![DAG](images/dag.png)
 
-A `Vertex` represents a step of data processing. Each Vertex has one
-more or `Processor` instances which do the data processing for that
-vertex. The `Processor` is the smallest unit of computation. Processor
-code is user implemented, and several vertices might use the same
-Processor type. There might be several instances of the Processor
-running in parallel for a single vertex, which is configured by the
-parallelism attribute.
+The `Vertex`'s computation is implemented by a `Processor`. On each member there are one or more instances of the `Processor` running in parallel for a single `Vertex`; their number is configured using its localParallelism attribute. Generally the `Processor` is implemented by the user, but there are some ready-made implementations in Jet's library for common operations like flatMap and groupBy.
 
 Both data sources and sinks are implemented as `Processor`s and are
 typically  found in the terminal ends of the DAG. Data sources and sinks
