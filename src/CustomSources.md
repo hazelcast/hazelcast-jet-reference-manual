@@ -1,38 +1,38 @@
 # Implementing Custom Sources and Sinks
 
-Jet provides a flexible API that makes it easy to implement your own
+Hazelcast Jet provides a flexible API that makes it easy to implement your own
 custom sources and sinks. Both sources and sinks are implemented using
 the same API as the rest of the `Processor`s.
-In this section we will work through some examples as a guide to how you
+In this chapter we will work through some examples as a guide to how you
 can connect Jet with your own data sources.
 
 ## Sources
 
 One of the main concerns when writing custom sources is that the source
 is typically distributed across multiple machines and partitions, and
-the work needs to be distributed across multiple nodes and processors.
+the work needs to be distributed across multiple members and processors.
 
 Jet provides a flexible `ProcessorMetaSupplier` and `ProcessorSupplier`
 API which can be used to control how a source is distributed across the
 network.
 
-The procedure for generating `Processor` instances are as follows:
+The procedure for generating `Processor` instances is as follows:
 
 1. The `ProcessorMetaSupplier` for the `Vertex` is serialized and sent to
 the coordinating member.
-2. Coordinator calls `ProcessorMetaSupplier.get()` once for each member
-in the cluster and a `ProcessorSupplier` for each member is created.
+2. The coordinator calls `ProcessorMetaSupplier.get()` once for each member
+in the cluster and a `ProcessorSupplier` is created for each member.
 3. The `ProcessorSupplier` for each member is serialized and sent to that
 member.
 4. Each member will call their own `ProcessorSupplier` with the correct
 count parameter, which corresponds to the `localParallelism` setting of
 that vertex.
 
-## Example: Distributed Integer generator
+## Example: Distributed Integer Generator
 
 Let's say we want to write a simple source, which generates numbers from
 0 to 1,000,000 (exclusive). It is trivial to write a single `Processor`
-which can do this using java.util.stream and [`Traverser`](#traverser).
+which can do this using `java.util.stream` and [`Traverser`](#traverser).
 
 ```java
 public static class NumberGenerator extends AbstractProcessor {
@@ -75,7 +75,7 @@ dag.edge(Edge.between(generator, logger));
 jet.newJob(dag).execute().get();
 ```
 
-When you run this code, you'll see output like:
+When you run this code, you will see the output as below:
 
 ```
 Received number: 4
@@ -87,14 +87,14 @@ Received number: 2
 ```
 
 Since we are using the default parallelism setting on this vertex,
-several instances of this processor is created, all of which will be
+several instances of this processor are created, all of which will be
 generating the same sequence of values.
 
-What we actually want is for each processor to generate a subset of the
-values. We will start by partitioning the data according to its
+What we actually want is to generate a subset of the
+values for each processor. We will start by partitioning the data according to its
 remainder,  when divided by the total number of processors. For example,
-if we have  8 processors, numbers which have a remainder of 1 when
-divided by 8, will go to  processor with index 1.
+if we have 8 processors, numbers which have a remainder of 1 when
+divided by 8, will go to processor with index 1.
 
 To do this, we need to implement the `ProcessorSupplier` API:
 
@@ -140,16 +140,16 @@ subset of the numbers, with each instance generating the numbers where
 the remainder of the number divided `count` matches the index of the
 processor.
 
-If we add another node to the cluster, we will quickly see that both
-nodes are generating the same sequence of numbers. We need to distribute
-the work across the cluster, by making sure that each node will generate
+If we add another member to the cluster, we will quickly see that both
+members are generating the same sequence of numbers. We need to distribute
+the work across the cluster, by making sure that each member will generate
 a subset of the numbers. We will again follow a similar approach as
 above, but now we need to be aware of the global index for each
 `Processor` instance.
 
 To achieve this, we need to implement a custom `ProcessorMetaSupplier`.
-A `ProcessorMetaSupplier` is called from a single _coordinator_ node,
-and creates one `ProcessorSupplier` for each node. The main partition
+A `ProcessorMetaSupplier` is called from a single _coordinator_ member,
+and creates one `ProcessorSupplier` for each member. The main partition
 allocation thus can be done by the `ProcessorMetaSupplier`. Our
 distributed number generator source could then look as follows:
 
@@ -190,7 +190,7 @@ static class NumberGeneratorMetaSupplier implements ProcessorMetaSupplier {
 }
 ```
 
-The Vertex creation can then be updated as follows:
+The vertex creation can then be updated as follows:
 
 ```java
 Vertex generator = dag.newVertex("number-generator", new NumberGeneratorMetaSupplier(limit));
@@ -198,7 +198,7 @@ Vertex generator = dag.newVertex("number-generator", new NumberGeneratorMetaSupp
 
 ## Sinks
 
-Like with sources, sinks are just another kind of `Processor`. Sinks are
+Like the sources, sinks are just another kind of `Processor`s. Sinks are
 typically implemented as `AbstractProcessor` and implement the
 `tryProcess` method, and write each incoming item to the sink.
 
@@ -207,7 +207,7 @@ typically implemented as `AbstractProcessor` and implement the
 In this example, we will implement a simple DAG that dumps a Hazelcast
 IMap into a folder.
 
-As file writing will be distributed, we want each Processor to write to
+As file writing will be distributed, we want each Processor writing to
 a separate file, but within the same folder.
 
 We can achieve this by implementing a `ProcessorSupplier` and
@@ -301,11 +301,11 @@ static class Writer extends AbstractProcessor implements Closeable {
 }
 ```
 
-The init method appends the current node name as well as the processor
+The `init` method appends the current member name as well as the processor
 index to the file name. This ensures that each `Processor` instance is
-writing to a  unique file.
+writing to a unique file.
 
-The close method is called by the `Supplier`, after job execution is
+The `close` method is called by the `Supplier`, after the job execution is
 completed.
 
 This processor is also marked as [_non-cooperative_](#cooperative-multithreading)
