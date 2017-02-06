@@ -76,4 +76,4 @@ int result = ints.stream().map(Entry::getValue)
                  .reduce(0, (l, r) -> l + r);
 ```
 
-![image](images/j.u.s-dag.jpg)
+![image](images/jus-dag.jpg)
