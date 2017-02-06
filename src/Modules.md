@@ -1,6 +1,6 @@
 # Additional Modules
 
-Jet comes with some additional modules that can be used to connect to
+Hazelcast Jet comes with some additional modules that can be used to connect to
 additional data sources and sinks.
 
 These modules are currently under active development and are only meant
@@ -12,8 +12,8 @@ for testing.
 [Apache Hadoop](http://hadoop.apache.org/). Currently only the
 `TextInputFormat` and `TextOutputFormat` formats are  supported.
 
-The Hadoop module will perform best when the Jet cluster is run on the
-same nodes as the datanodes and will take data locality into account when
+The Hadoop module will perform best when the Jet cluster runs on the
+same members as the data members and will take data locality into account when
 reading from HDFS.
 
 ## hazelcast-jet-kafka
