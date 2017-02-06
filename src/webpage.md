@@ -1,6 +1,6 @@
 # Overview of Jet's Architecture
 
-## What is Hazelcast Jet
+## Overview
 
 Hazelcast Jet is a distributed computing platform for fast processing of
 data. With Hazelcast’s IMDG providing storage functionality, Hazelcast
@@ -16,7 +16,7 @@ computation and data storage in memory. The embedded Hazelcast IMDG
 provides elastic in-memory storage and is a great tool for storing the
 results of a computation or as a cache for datasets to be used during
 the computation. Extremely low end-to-end latencies can be achieved this
-way.
+way. See [Jet Performance](/performance/) for the architecture aspects that drive high performance.
 
 It is extremely simple to use - in particular Jet can be fully embedded
 for OEMs and for Microservices – making it is easier for manufacturers
