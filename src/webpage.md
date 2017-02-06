@@ -3,21 +3,20 @@
 ## What is Hazelcast Jet
 
 Hazelcast Jet is a distributed computing platform for fast processing of
-data. With Hazelcast’s IMDG providing storage functionality,
-Hazelcast Jet performs parallel execution to enable data-intensive
-applications to operate in near real-time. Using directed acyclic graphs
-(DAG) to model relationships between individual steps in the data
-processing pipeline, Hazelcast Jet can execute both batch and
-stream-based data processing applications. Jet handles the parallel
-execution using the green thread approach to optimize the utilization of
-the computing resources.
+data. With Hazelcast’s IMDG providing storage functionality, Hazelcast
+Jet performs parallel execution to enable data-intensive applications to
+operate in near real-time. Using directed acyclic graphs (DAG) to model
+relationships between individual steps in the data processing pipeline,
+Hazelcast Jet can execute both batch and stream-based data processing
+applications. Jet handles the parallel execution using the _green
+thread_ approach to optimize the utilization of the computing resources.
 
 Breakthrough application speed is achieved by keeping both the
 computation and data storage in memory. The embedded Hazelcast IMDG
-provides elastic in-memory storage and is a great tool for storing
-the results of a computation or as a cache for datasets to be used
-during the computation. Extremely low end-to-end latencies can be
-achieved this way.
+provides elastic in-memory storage and is a great tool for storing the
+results of a computation or as a cache for datasets to be used during
+the computation. Extremely low end-to-end latencies can be achieved this
+way.
 
 It is extremely simple to use - in particular Jet can be fully embedded
 for OEMs and for Microservices – making it is easier for manufacturers
@@ -36,31 +35,40 @@ transfer.
 
 ![DAG](images/dag.png)
 
-The `Vertex`'s computation is implemented by a `Processor`. On each member there are one or more instances of the `Processor` running in parallel for a single `Vertex`; their number is configured using its localParallelism attribute. Generally the `Processor` is implemented by the user, but there are some ready-made implementations in Jet's library for common operations like flatMap and groupBy.
+Each vertex's computation is implemented by a subtype of the `Processor`
+interface. On each member there are one or more instances of the
+processor running in parallel for a single vertex; their number is
+configured using its `localParallelism` attribute. Generally the
+processor is implemented by the user, but there are some ready-made
+implementations in Jet's library for common operations like `flatMap`
+and `groupBy`.
 
-Both data sources and sinks are implemented as `Processor`s and are
-typically  found in the terminal ends of the DAG. Data sources and sinks
-can be partitioned, meaning that the supplied data is partitioned across
-the cluster, with each instance of a vertex receiving a partition of the
-data. Examples sources are HDFS files, Hazelcast `IMap` or `IList`.
+Data sources and sinks are implemented as `Processor`s as well and are
+used for the terminal vertices of the DAG. A source can be distributed,
+which means that on each member of the Jet cluster a different slice of
+the full data set will be read. Similarly, a sink can also be
+distributed so each member can write a slice of the result data to its
+local storage. _Data partitioning_ is used to route each slice to its
+target member. Examples of distributed sources supported by Jet are HDFS
+files and Hazelcast's `IMap`/`IList`.
 
-`Edges` transfer data between one vertex to another and have properties
-which determine how data is transferred between the input and output
-vertices.
+_Edges_ transfer data from one vertex to the next and contain the
+partitioning logic which ensures that each item is sent to its target
+processor.
 
-After a `Job` is created, the DAG is replicated to the whole Hazelcast
-cluster and executed on each node individually.
+After a `Job` is created, the DAG is replicated to the whole Jet cluster
+and executed in parallel on each member.
 
 ![DAG Distribution](images/dag-distribution.png)
 
 Execution is done on a user-configurable number of threads which use
 work stealing to balance the amount of work being done on each thread.
-Each worker thread has a queue of tasklets, and enqueued tasklets are
-moved between queues as the workers drain their queues at different
-rates.
+Each worker thread has a list of tasklets it is in charge of and as
+tasklets complete at different rates, the remaining ones are moved
+between workers to keep the load balanced.
 
-Each instance of a `Processor` is mapped to one tasklet which is
-repeatedly executed until it exhausts its input. A vertex with a
+Each instance of a `Processor` is wrapped in one tasklet which is
+repeatedly executed until it reports it is done. A vertex with a
 parallelism of 8 running on 4 nodes would have a total of 32 tasklets
 running at the same time. Each node will have the same number of
 tasklets running.
@@ -68,20 +76,19 @@ tasklets running.
 ![Parallelism](images/parallelism-model.png)
 
 When a request to execute a Job is made, the corresponding DAG and
-additional resources are deployed to the whole of the Jet cluster.
-An execution plan for the DAG is built on each node, which creates the
-associated tasks for each Vertex and connects these tasks with their
-inputs and outputs.
+additional resources are deployed to the Jet cluster. An execution plan
+for the DAG is built on each node, which creates the associated tasklets
+for each Vertex and connects them to their inputs and outputs.
 
-Data between vertices are transferred over local ringbuffers. Jet is
-data-type agnostic, so any data type could be used for transferring data
-between vertices.
+Jet uses Single Producer/Single Consumer ringbuffers to transfer the
+data between processors on the same member. They are data-type agnostic,
+so any data type can be used to transfer the data between vertices.
 
 Ringbuffers, being bounded queues, introduce natural backpressure into
 the system; if a consumer’s ringbuffer is full, the producer will have
-to block until it can enqueue the next item. The adaptive recieve
-windows are used to control the data flow and to handle a back pressure
-over the wire.  
+to back off until it can enqueue the next item. When data is sent to
+another member over the network, there is no natural backpressure, so
+Jet uses explicit signaling in the form of adaptive recieve windows.
 
 ## Job
 
