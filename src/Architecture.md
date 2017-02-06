@@ -1,16 +1,18 @@
-# Overview of Architecture and API
+# Understanding the Jet Architecture and API
+
+This chapter provides an overview to the Hazelcast Jet's architecture and API units and elements.
 
 ## DAG
 
 At the core of Jet is the distributed computation engine based on the
-paradigm of a _directed acyclic graph_ (DAG). In this graph, vertices
+paradigm of a **directed acyclic graph** (DAG). In this graph, vertices
 are units of data processing and edges are units of data routing and
 transfer.
 
 ## Job
 
 `Job` is a handle to the execution of a `DAG`. To create a job,
-supply the `DAG` to a previously created `JetInstance`:
+supply the `DAG` to a previously created `JetInstance` as shown below:
 
 ```java
 JetInstance jet = Jet.newJetInstance(); // or Jet.newJetClient();
@@ -27,21 +29,21 @@ the job. The same `Job` instance can be submitted for execution many
 times.
 
 Job execution is asynchronous. The `execute()` call returns as soon as
-the Jet cluster has been contacted and the serialized job sent to it.
+the Jet cluster has been contacted and the serialized job is sent to it.
 The user gets a `Future` which can be inspected or waited on to find out
 the outcome of a computation job. It is also cancelable and can send a
 cancelation command to the Jet cluster.
 
-Note that the `Future` only signals the status of the job, it doesn't
+Note that the `Future` only signals the status of the job, it does not
 contain the result of the computation. The DAG explicitly models the
-storing of results via its _sink_ vertices. Typically the results will
+storing of results via its **sink** vertices. Typically the results will
 be in a Hazelcast map or another structure and have to be accessed by
 their own API after the job is done.
 
-### Resource Deployment
+### Deploying the Resource
 
-If the Jet cluster hasn't been started with all the job's computation
-code already on the classpath, the code will have to be deployed
+If the Jet cluster has not been started with all the job's computation
+code already on the classpath, you have to deploy the code 
 together with the Job instance:
 
 ```java
@@ -50,8 +52,8 @@ config.addJar("..");
 jet.newJob(dag, config).execute().get();
 ```
 
-When persisting and reading data from the underlying IMDG instance, it
-is important to be aware that the deployed code is used _only_ within
+When persisting and reading data from the underlying Hazelcast IMDG instance, it
+is important to be aware that the deployed code is used **only** within
 the scope of the executing Jet job.
 
 ## Vertex
@@ -59,13 +61,13 @@ the scope of the executing Jet job.
 Vertex is the main unit of work in a Jet computation. Conceptually, it
 receives input from its inbound edges and emits data to its outbound
 edges. Practically, it is a number of `Processor` instances which
-receive each its own part of the full stream traveling over the inbound
+receive each of its own part of the full stream traveling over the inbound
 edges, and likewise emits its own part of the full stream going down
 the outbound edges.
 
-### Edge ordinal
+### Edge Ordinal
 
-An edge is connected to a vertex with a given _ordinal_, which
+An edge is connected to a vertex with a given **ordinal**, which
 identifies it to the vertex and its processors. When a processor
 receives an item, it knows the ordinal of the edge on which the item
 came in. Things are similar on the outbound side: the processor emits an
@@ -77,14 +79,14 @@ In the DAG-building API the default value of the ordinal is 0. There
 must be no gaps in ordinal assignment, which means a vertex will have
 inbound edges with ordinals 0..N and outbound edges with ordinals 0..M.
 
-### Source and sink
+### Source and Sink
 
 Jet uses only one kind of vertex, but in practice there is an important
-distinction between:
+distinction between the following:
 
-* _internal_ vertex which accepts input and transforms it into output;
-* _source_ vertex which generates output without receiving anything;
-* _sink_ vertex which consumes input and doesn't emit anything.
+* **internal** vertex which accepts input and transforms it into output,
+* **source** vertex which generates output without receiving anything,
+* **sink** vertex which consumes input and does not emit anything.
 
 Sources and sinks must interact with the environment to store/load data,
 making their implementation more involved compared to the internal
@@ -100,18 +102,18 @@ this property set to `-1`, which requests to use the default value equal
 to the configured size of the cooperative thread pool. The latter
 defaults to `Runtime.availableProcessors()`.
 
-The _global parallelism_ of the vertex is also an important value,
+The **global parallelism** of the vertex is also an important value,
 especially in terms of the distribution of partitions among processors.
-It is equal to local parallelism multiplied by cluster size.
+It is equal to local parallelism multiplied by the cluster size.
 
 ## Processor
 
 `Processor` is the main type whose implementation is up to the user: it
 contains the code of the computation to be performed by a vertex. There
-are a number of Processor building blocks in the Jet API which allow the
-user to just specify the computation logic, while the provided code
-handles the processor's cooperative behavior. Refer to the section on
-[AbstractProcessor](abstractprocessor) below.
+are a number of Processor building blocks in the Jet API which allow you
+to just specify the computation logic, while the provided code
+handles the processor's cooperative behavior. Please refer to the 
+[AbstractProcessor section](#abstractprocessor).
 
 A processor's work can be conceptually described as follows: "receive
 data from zero or more input streams and emit data into zero or more
@@ -121,16 +123,16 @@ input and output items; a processor can emit any data it sees fit,
 including none at all. The same `Processor` abstraction is used for all
 kinds of vertices, including sources and sinks.
 
-### Cooperative multithreading
+### Cooperative Multithreading
 
 Cooperative multithreading is one of the core features of Jet and can be
 roughly compared to [green
 threads](https://en.wikipedia.org/wiki/Green_threads). It is purely a
-library-level feature and doesn't involve any low-level system or JVM
-tricks; the [`Processor`](processor) API is simply designed in such a
+library-level feature and does not involve any low-level system or JVM
+tricks; the [`Processor`](#processor) API is simply designed in such a
 way that the processor can do a small amount of work each time it is
 invoked, then yield back to the Jet engine. The engine manages a thread
-pool of fixed size and on each thread the processors take their turn in
+pool of fixed size and on each thread, the processors take their turn in
 a round-robin fashion.
 
 The point of cooperative multithreading is much lower context-switching
@@ -141,9 +143,9 @@ output buffers, which determines its ability to make progress.
 out of cooperative multithreading by overriding `isCooperative()` to
 return `false`. Jet will then start a dedicated thread for it.
 
-#### Requirements on a cooperative Processor
+#### Requirements for a Cooperative Processor
 
-To maintain good overall throughput, a cooperative processor must take
+To maintain an overall good throughput, a cooperative processor must take
 care not to hog the thread for too long (a rule of thumb is up to a
 millisecond at a time). Jet's design strongly favors cooperative
 processors and most processors can and should be implemented to fit
@@ -160,12 +162,12 @@ realizes it has hit the high water mark, it should return from the
 current processing callback and let the execution engine drain the
 outbox.
 
-### Data-processing callbacks
+### Data-processing Callbacks
 
 Three callback methods are involved in data processing: `process()`,
 `completeEdge()`, and `complete()`.
 
-Processors can be stateful and don't need to be thread-safe. A single
+Processors can be stateful and do not need to be thread-safe. A single
 instance will be called by a single thread at a time, although not
 necessarily always the same thread.
 
@@ -173,7 +175,7 @@ necessarily always the same thread.
 
 Jet passes the items received over a given edge by calling
 `process(ordinal, inbox)`. All items received since the last `process()`
-call are in the inbox, but also all the items the processor hasn't
+call are in the inbox, but also all the items the processor has not
 removed in a previous `process()` call. There is a separate instance of
 `Inbox` for each  inbound edge, so any given `process()` call involves
 items from only one edge.
@@ -188,7 +190,7 @@ no new items are received.
 
 #### completeEdge()
 
-Eventually each edge will signal its data stream is exhausted. When this
+Eventually each edge will signal that its data stream is exhausted. When this
 happens, Jet calls the processor's `completeEdge()` with the ordinal of
 the completed edge.
 
@@ -199,33 +201,33 @@ it may return `false` and will be called again later.
 #### complete()
 
 Jet calls `complete()` after all the edges are exhausted and all the
-`completeEdge()` methods called. It is the last method to be invoked on
+`completeEdge()` methods are called. It is the last method to be invoked on
 the processor before disposing of it. The semantics of the boolean
 return value are the same as in `completeEdge()`.
 
-## Steps taken to create and initialize a job
+## Creating and Initializing Jobs
 
 These are the steps taken to create and initialize a Jet job:
 
-1. User builds the DAG and submits it to the local Jet client instance.
-1. The client instance serializes the DAG and sends it to a member of
-the Jet cluster. This member becomes the _coordinator_ for this Jet job.
-1. Coordinator deserializes the DAG and builds an execution plan for
+1. The user builds the DAG and submits it to the local Jet client instance.
+2. The client instance serializes the DAG and sends it to a member of
+the Jet cluster. This member becomes the **coordinator** for this Jet job.
+3. The coordinator deserializes the DAG and builds an execution plan for
 each member.
-1. Coordinator serializes the execution plans and distributes each to
+4. The coordinator serializes the execution plans and distributes each to
 its target member.
-1. Each member acts upon its execution plan by creating all the needed
+5. Each member acts upon its execution plan by creating all the needed
 tasklets, concurrent queues, network senders/receivers, etc.
-1. Coordinator sends the signal to all members to start job execution.
+6. The coordinator sends the signal to all members to start job execution.
 
 The most visible consequence of the above process is the
-`ProcessorMetaSupplier` type: the user must provide one for each
-`Vertex`. In step 3 the coordinator deserializes the meta-supplier as a
+`ProcessorMetaSupplier` type: you must provide one for each
+`Vertex`. In Step 3, the coordinator deserializes the meta-supplier as a
 constituent of the `DAG` and asks it to create `ProcessorSupplier`
 instances which go into the execution plans. A separate instance of
 `ProcessorSupplier` is created specifically for each member's plan. In
-step 4 the coordinator serializes these and sends each to its member. In
-step 5 each member deserializes its `ProcessorSupplier` and asks it to
+Step 4, the coordinator serializes these and sends each to its member. In
+Step 5 each member deserializes its `ProcessorSupplier` and asks it to
 create as many `Processor` instances as configured by the vertex's
 `localParallelism` property.
 
@@ -239,10 +241,10 @@ of.
 
 This type is designed to be implemented by the user, but the
 `Processors` utility class provides implementations covering most cases.
-Custom meta-suppliers are expected to be needed primarily to implement a
+You may need custom meta-suppliers primarily to implement a
 custom data source or sink. Instances of this type are serialized and
 transferred as a part of each `Vertex` instance in a `DAG`. The
-_coordinator_ member deserializes it to retrieve `ProcessorSupplier`s.
+**coordinator** member deserializes it to retrieve `ProcessorSupplier`s.
 Before being asked for `ProcessorSupplier`s, the meta-supplier is given
 access to the Hazelcast instance so it can find out the parameters of
 the cluster the job will run on. Most typically, the meta-supplier in
@@ -256,10 +258,11 @@ meta-supplier is custom-implemented and complete the logic of a
 distributed data source's partition assignment. It supplies instances of
 `Processor` ready to start executing the vertex's logic.
 
-For more guidance on how these interfaces can be implemented, see
-the section [Implementing Custom Sources and Sinks](#implementing-custom-sources-and-sinks).
+Please see
+the [Implementing Custom Sources and Sinks section](#implementing-custom-sources-and-sinks)
+for more guidance on how these interfaces can be implemented.
 
-## Convenience API to implement a Processor
+## Convenience API to Implement a Processor
 
 ### AbstractProcessor
 
@@ -271,8 +274,8 @@ receive one item at a time, thus eliminating the need to write a
 suspendable loop over the input items. There is a separate method
 specialized for each edge from 0 to 4 (`tryProcess0`..`tryProcess4`) and
 there is a catch-all method `tryProcessAny(ordinal, item)`. If the
-processor doesn't need to distinguish between inbound edges, the latter
-method is a good match; otherwise it is simpler to implement one or more
+processor does not need to distinguish between the inbound edges, the latter
+method is a good match; otherwise, it is simpler to implement one or more
 of the ordinal-specific methods. The catch-all method is also the only
 way to access inbound edges beyond ordinal 4, but such cases are very
 rare in practice.
@@ -282,7 +285,7 @@ limits during a single processing step. If the processor emits many
 items per step, the loop doing this must support being suspended at any
 point and resumed later. This need arises in two typical cases:
 
-- when a single input item maps to a multitude of output items;
+- when a single input item maps to a multitude of output items,
 - when items are emitted in the final step, after having received all
 the input.
 
@@ -303,13 +306,13 @@ often just by providing a one-liner lambda expression. This makes it
 very easy to integrate into Jet's convenience APIs for cooperative
 processors.
 
-`Traverser` also sports some `default` methods that facilitate building
+`Traverser` also supports some `default` methods that facilitate building
 a simple transformation layer over the underlying sequence: `map`,
 `filter`, and `flatMap`.
 
-### Simple example
+### Simple Example
 
-This is how a simple flatmapping processor would be implemented:
+The following example shows how you can implement a simple flatmapping processor:
 
 ```java
 public class ItemAndSuccessorP extends AbstractProcessor {
@@ -324,13 +327,13 @@ public class ItemAndSuccessorP extends AbstractProcessor {
 ```
 
 For each received `Integer` item this processor emits the item and its
-successor. It doesn't differentiate between inbound edges (treats data
+successor. It does not differentiate between inbound edges (treats data
 from all edges the same way) and emits each item to all outbound edges
 connected to its vertex.
 
-### `Processors` utility class
+### `Processors` Utility Class
 
-As a further layer of convenience there are some ready-made Processor
+As a further layer of convenience, there are some ready-made Processor
 implementations. These are the broad categories:
 
 1. Sources and sinks for Hazelcast `IMap` and `IList`.
@@ -338,10 +341,10 @@ implementations. These are the broad categories:
 the most general `flatMap`.
 3. Processors that perform a reduction operation after grouping items by
 key. These come in two flavors:
-    a. _Accumulate:_ reduce by transforming an immutable value;
-    b. _Collect:_ reduce by updating a mutable result container.
+    a. **Accumulate**: reduce by transforming an immutable value.
+    b. **Collect**: reduce by updating a mutable result container.
 
-Refer to the `Processors` Javadoc for further details.
+Please refer to the [`Processors` Javadoc](https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/Processor.java) for further details.
 
 ## Edge
 
@@ -358,15 +361,15 @@ them.
 ### Priority
 
 By default the processor receives items from all inbound edges as they
-arrive; however, there are important cases where the reception of one
+arrive. However, there are important cases where the reception of one
 edge must be delayed until all other edges are consumed in full. A major
 example is a join operation. Collating items from several edges by a
 common key implies buffering the data from all edges except one before
 emitting any results. Often there is one edge with much more data than
-the others and this one doesn't need to be buffered if all the other
+the others and this one does not need to be buffered if all the other
 data is ready.
 
-Edge consumption order is controlled by the _priority_ property. Edges
+Edge consumption order is controlled by the **priority** property. Edges
 are sorted by their priority number (ascending) and consumed in that
 order. Edges with the same priority are consumed without particular
 ordering (as the data arrives).
@@ -399,7 +402,7 @@ choice. The only guarantee given by this pattern is that the item will
 be received by exactly one processor, but typically care will be taken
 to "spray" the items equally over all the reception candidates.
 
-This choice makes sense when the data doesn't have to be partitioned,
+This choice makes sense when the data does not have to be partitioned,
 usually implying a downstream vertex which can compute the result based
 on each item in isolation.
 
@@ -416,33 +419,33 @@ member.
 
 #### Partitioned
 
-A partitiond edge sends each item to the one processor responsible for
+A partitioned edge sends each item to the one processor responsible for
 the item's partition ID. On a distributed edge, this processor will be
 unique across the whole cluster. On a local edge, each member will have
 its own processor for each partition ID.
 
-Each processor can be assigned multiple partitions. The global number of
+Each processor can be assigned to multiple partitions. The global number of
 partitions is controlled by the number of partitions in the underlying
-Hazelcast configuration. For more information about Hazelcast
-partitioning, see the [Hazelcast reference guide](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#data-partitioning)
+Hazelcast IMDG configuration. Please refer to [Hazelcast Reference Manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#data-partitioning) for more information about Hazelcast IMDG
+partitioning.
 
 This is the default algorithm to determine the partition ID of an item:
 
 1. Apply the `keyExtractor` function defined on the edge to retrieve the
 partitioning key.
-1. Serialize the partitioning key to a byte array using Hazelcast
+2. Serialize the partitioning key to a byte array using Hazelcast
 serialization.
-1. Apply Hazelcast's standard `MurmurHash3`-based algorithm to get the
+3. Apply Hazelcast's standard `MurmurHash3`-based algorithm to get the
 key's hash value.
-1. Partition ID is the hash value modulo the number of partitions.
+4. Partition ID is the hash value modulo the number of partitions.
 
 The above procedure is quite CPU-intensive, but has the essential
 property of giving repeatable results across all cluster members, which
 may be running on disparate JVM implementations.
 
-Another common choice is to use Java's standard `Object.hashCode()`,
-which is often significantly faster, but it is not a safe strategy in
-general because `hashCode()`'s contract doesn't require repeatable
+Another common choice is to use Java's standard `Object.hashCode()`. It 
+is often significantly faster. However, it is not a safe strategy in
+general because `hashCode()`'s contract does not require repeatable
 results across JVMs, or even different instances of the same JVM
 version.
 
@@ -451,9 +454,9 @@ control over the partitioning strategy.
 
 #### All to One
 
-The all-to-one forwarding pattern is a special-case of the _partitioned_
-pattern where all items are assigned the same partition ID, randomly
-chosen at job initialization time. This will direct all items to the
+The all-to-one forwarding pattern is a special-case of the **partitioned**
+pattern where all items are assigned to the same partition ID, randomly
+chosen at the job initialization time. This will direct all items to the
 same processor.
 
 ### Buffered Edges
@@ -467,7 +470,7 @@ priorities to its two inbound edges. Since the data for both edges is
 generated simultaneously, and since the lower-priority edge will apply
 backpressure while waiting for the higher-priority edge to be consumed
 in full, the upstream vertex will not be allowed to emit its data and a
-deadlock will occur. The deadlock is resolved by activating unbounded
+deadlock will occur. The deadlock is resolved by activating the unbounded
 buffering on the lower-priority edge.
 
 ### Tuning Edges
@@ -541,7 +544,7 @@ how the items are transmitted. The following options are available:
       amount of data processed within one such interval and the size of
       the receive window.
       <br/>
-      To put it another way, let us define an ackworth to be  the amount
+      To put it another way, let us define an ackworth to be the amount
       of data processed between two consecutive ack packets. The receive
       window multiplier determines the number of ackworths the sender
       can be ahead of the last acked byte.
