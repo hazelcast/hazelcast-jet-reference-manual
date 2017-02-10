@@ -3,9 +3,8 @@ src/Preface.md
 src/Introduction.md
 src/GettingStarted.md
 src/WordCount.md
-src/DistributedComputation.md
+src/Architecture.md
 src/Configuration.md
 src/CustomSources.md
 src/JavaUtilStream.md
-src/Architecture.md
 src/Modules.md

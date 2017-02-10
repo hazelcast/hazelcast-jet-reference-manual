@@ -340,7 +340,7 @@ sides and avoids `volatile` writes by using `lazySet`.
 
 ### Partitioned edge
 
-A partitiond edge sends each item to the one processor responsible for
+A partitioned edge sends each item to the one processor responsible for
 the item's partition ID. On a distributed edge, this processor will be
 unique across the whole cluster. On a local edge, each member will have
 its own processor for each partition ID.
@@ -354,7 +354,10 @@ doesn't require repeatability outside a single running JVM instance.
 
 ## Using Hazelcast Jet
 
-There are two ways to use Jet: build the DAG using the Core API use the java.util.stream as a high-level API. The java.util.stream operations are mapped to a DAG and then executed, and the result returned to the user.
+There are two ways to use Jet: build the DAG using the Core API use the
+`java.util.stream` as a high-level API. The `java.util.stream` operations
+are mapped to a DAG and then executed, and the result returned to the
+user.
 
 java.util.stream provides more convenience, the Core API exposese all the potential of Jet.
 
@@ -362,7 +365,9 @@ There are plans for developing higher level batching and streaming APIs.
 
 ### Core API
 
-In order to run the Jet Job user has to build the DAG and submit it to the local Jet instance. That means implementing the Processors and connecting them together using Edges.
+In order to run the Jet Job user has to build the DAG and submit it to
+the local Jet instance. That means implementing the Processors and
+connecting them together using Edges.
 
 There is a convenience API to implement a Processor.
 
@@ -477,7 +482,9 @@ jet.newJob(dag).execute().get();
 
 ### java.util.stream
 
-Besides the Core API, Jet also has an implementation of java.util.stream for Hazelcast IMap and IList. java.util.stream operations are mapped to a DAG and then executed, and the result returned to the user.
+Besides the Core API, Jet also has an implementation of java.util.stream
+for Hazelcast `IMap` and `IList`. java.util.stream operations are mapped to
+a DAG and then executed, and the result returned to the user.
 
 ```java
 IMap<String, Integer> ints = instance1.getMap("ints");
@@ -487,23 +494,40 @@ int result = map.stream().map(m -> m.getValue()).reduce(0, (l, r) -> l + r);
 
 ## Integration with Hazelcast IMDG
 
-As Jet is built on top of Hazelcast platform, there is a tight integration between Jet and IMDG. A Jet job is implemented as a Hazelcast IMDG proxy, similar to the other services and data structures in Hazelcast. The Hazelcast Operations are used for different actions that can be performed on a job. Jet can also be used with the Hazelcast Client, which uses the Hazelcast Open Binary Protocol to communicate different actions to the server instance.
+As Jet is built on top of Hazelcast platform, there is a tight
+integration between Jet and IMDG. A Jet job is implemented as a
+Hazelcast IMDG proxy, similar to the other services and data structures
+in Hazelcast. The Hazelcast Operations are used for different actions
+that can be performed on a job. Jet can also be used with the Hazelcast
+Client, which uses the Hazelcast Open Binary Protocol to communicate
+different actions to the server instance.
 
 ### Reading from and Writing to Hazelcast Distributed Data Structures
 
-Jet embedds Hazelcast IMDG. Therefore, Jet can use Hazelcast IMDG maps and lists on the embedded cluster as sources and sinks of data and make use of data locality. A Hazelcast IMap is distributed by partitions across a cluster and Jet nodes are able to efficiently read from the Map by having every node only read from their respective local partitions. ILists are always stored on a single partition, so when using an IList as a data source, all the data will be read on the node which contains the list.
+Jet embeds Hazelcast IMDG. Therefore, Jet can use Hazelcast IMDG maps
+and lists on the embedded cluster as sources and sinks of data and make
+use of data locality. A Hazelcast IMap is distributed by partitions
+across a cluster and Jet nodes are able to efficiently read from the Map
+by having every node only read from their respective local partitions.
+`IList`s are always stored on a single partition, so when using an `IList`
+as a data source, all the data will be read on the node which contains
+the list.
 
-When using maps and lists as a Sink, it is not possible to directly make use of data locality. If the emitted key value pair belongs to a non-local partition. In this case, the key value pair will be transmitted over the network to the node which owns that particular partition.
+When using maps and lists as a Sink, it is not possible to directly make
+use of data locality. If the emitted key value pair belongs to a
+non-local partition. In this case, the key value pair will be
+transmitted over the network to the node which owns that particular
+partition.
 
-Apart from that, Jet can use any remote Hazelcast IMDG instance via Hazelcast IMDG connector.
+Apart from that, Jet can use any remote Hazelcast IMDG instance as a
+source via the Hazelcast IMDG connector.
 
 ## Deployment
 
 ### Discovery and Networking
 
 Jet uses Hazelcast IMDG discovery for finding the members in the cluster.
-
-On the wire Jet uses custom lightweight serialization for small and frequently used types (primitive types and strings) and delegates to Hazelcast serialization for the rest.
+On the wire Jet delegates to Hazelcast for serialization.
 
 ### Cloud deployment
 
