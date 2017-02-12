@@ -64,7 +64,7 @@ vertex may not be able to process the items at the same rate as the
 upstream vertex is emitting them. Within a member the concurrent queues
 are bounded and naturally provide backpressure by refusing to accept an
 item when full. However, over the network no such natural mechanism
-exists, especially because the same TCP/IP connectionn is used for all
+exists, especially because the same TCP/IP connection is used for all
 edges so TCP's own flow control mechanism is not sufficient to guard
 an individual edge's limits. For that reason Jet introduces its own
 flow-control mechanism based on the _adaptive receive window_.
