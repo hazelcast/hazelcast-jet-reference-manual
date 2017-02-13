@@ -170,12 +170,12 @@ will have the same number of processors.
 pipeline. The data processing pipeline is built by linking various
 processors.
 
-The `Processor` is the main type whose implementation is up to the user: it
-contains the code of the computation to be performed by a vertex. There
-are a number of Processor building blocks in the Jet API which allow the
-user to just specify the computation logic, while the provided code
-handles the processor's cooperative behavior. Refer to the section on
-[AbstractProcessor](#abstractprocessor) below.
+The `Processor` is the main type whose implementation is up to the user:
+it contains the code of the computation to be performed by a vertex.
+There are a number of Processor building blocks in the Jet API which
+allow the user to just specify the computation logic, while the provided
+code handles the processor's cooperative behavior. Refer to the section
+on [AbstractProcessor](#abstractprocessor) below.
 
 A processor's work can be conceptually described as follows: "receive
 data from zero or more input streams and emit data into zero or more
@@ -198,10 +198,14 @@ other vital components, like network senders and receivers.
 These are the steps taken to create and initialize a Jet job:
 
 1. User builds the DAG and submits it to the local Jet client instance.
-1. The client instance serializes the DAG and sends it to a member of the Jet cluster. This member becomes the coordinator for this Jet job.
-1. Coordinator deserializes the DAG and builds an execution plan for each member.
-1. Coordinator serializes the execution plans and distributes each to its target member.
-1. Each member acts upon its execution plan by creating all the needed tasklets, concurrent queues, network senders/receivers, etc.
+1. The client instance serializes the DAG and sends it to a member of
+the Jet cluster. This member becomes the coordinator for this Jet job.
+1. Coordinator deserializes the DAG and builds an execution plan for
+each member.
+1. Coordinator serializes the execution plans and distributes each to
+its target member.
+1. Each member acts upon its execution plan by creating all the needed
+tasklets, concurrent queues, network senders/receivers, etc.
 1. Coordinator sends the signal to all members to start job execution.
 
 The most visible consequence of the above process is the
@@ -372,13 +376,16 @@ convenient than the Core API.
 
 ### Core API
 
-In order to run the Jet Job, the user must build a DAG and submit it to
+In order to run a Jet Job, the user must build a DAG and submit it to
 the local Jet instance. This implies implementing a Processor for each
 vertex and connecting them together using Edges.
 
-A lot of the Core API is devoted to the convenience of implementing the
-business-logic functionality of processors with other concerns
-abstracted away. Most of this sections explains these abstractions.
+Since the Jet DAG is a quite low-level abstraction, mapping almost
+directly to the setup that will run the computation, the Core API as a
+whole can be considered low-level. On the other hand, a great deal of it
+is devoted to the convenience of implementing the business-logic
+functionality of processors with other concerns abstracted away. The
+following subsections introduce this support.
 
 #### AbstractProcessor
 
@@ -490,9 +497,10 @@ jet.newJob(dag).execute().get();
 
 ### java.util.stream
 
-Beside the Core API Jet also has an implementation of `java.util.stream`
-for Hazelcast `IMap` and `IList`. `java.util.stream` operations are mapped
-to a DAG and then executed, and the result returned to the user.
+Jet has an implementation of `java.util.stream` built in terms of the
+Core API which turns Hazelcast `IMap` and `IList` into stream sources.
+`java.util.stream` operations are mapped to a DAG and then executed, and
+the result returned to the user.
 
 ```java
 IMap<String, Integer> ints = instance1.getMap("ints");
