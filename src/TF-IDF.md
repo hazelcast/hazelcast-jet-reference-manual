@@ -6,6 +6,13 @@ on processor parallelism, partitioning and forwarding patterns on edges,
 and how to optimally leverage the Core API to build the vertex logic
 with minimum boilerplate.
 
+The full code is available at the `hazelcast-jet-code-samples`
+repository:
+
+[TfIdfJdkStreams.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core/tf-idf/src/main/java/TfIdfJdkStreams.java)
+
+[TfIdf.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core/tf-idf/src/main/java/TfIdf.java)
+
 Our example, the inverted index, is a basic data structure in the domain
 of full-text search. The goal is to be able to quickly find the
 documents that contain a given set of search terms, and to sort them by
@@ -227,18 +234,18 @@ of each tuple's occurrences (its TF score).
 the TF-IDF scores. It emits the results to the sink, which saves them
 to a distributed `IMap`.
 
-To this cascade we add a `stopwords` vertex which reads the stopwords
+To this cascade we add a `stopword-source` which reads the stopwords
 file, parses it into a `HashSet`, and sends the whole set as a single
 item to the `tokenize` vertex. We also add a vertex that takes the data
-from the source and simply counts its tokens; this is the total document
-count used in the TF-IDF formula. It feeds this result into `tf-idf`. We
-end up with this DAG:
+from `doc-source` and simply counts its items; this is the total
+document count used in the TF-IDF formula. It feeds this result into
+`tf-idf`. We end up with this DAG:
 
 ```
             ------------              -----------------
            | doc-source |            | stopword-source |
             ------------              -----------------
-            /           \                     |
+         0  /           \ 1                   |
            /       (docId, docName)           |
           /                \                  |
          /                  V         (set-of-stopwords)
@@ -248,8 +255,8 @@ end up with this DAG:
         |                     |               |
         |                (docId, line)        |
    -----------                |               |
-  | doc-count |               V               |
-   -----------            ----------          |
+  | doc-count |               V  1            |
+   -----------            ----------    0     |
         |                | tokenize | <------/
         |                 ----------
         |                     |
@@ -262,7 +269,7 @@ end up with this DAG:
         |                     |
         |           ((docId, word), count)
         |                     |
-        |      --------       |
+        | 0    --------    1  |
          \--> | tf-idf | <---/
                --------
                   |
@@ -283,9 +290,9 @@ need partitioning. Also, since the vertex does file I/O, we usually
 won't profit from parallelization. We set its `localParallelism` to 1,
 so all the items (filenames) emitted from the source go to the same
 file I/O processor.
-```java
-dag.edge(from(docSource, 1).to(docLines.localParallelism(1)));
-```
+    ```java
+    dag.edge(from(docSource, 1).to(docLines.localParallelism(1)));
+    ```
 1. `tokenize` is another flatmapping vertex so it doesn't need
 partitioning, either. However, since this is a purely computational
 vertex, there's exploitable parallelism. The combination of a "plain"
@@ -293,27 +300,27 @@ edge and a vertex with a higher `localParallelism` results in a
 round-robin dissemination of items from `doc-lines` to all `tokenize`
 processors: each item is sent to one processor, but a different one each
 time.
-```java
-dag.edge(from(docLines).to(tokenize, 1));
-```
+    ```java
+    dag.edge(from(docLines).to(tokenize, 1));
+    ```
 1. `tf` groups the items; therefore the edge towards it must be
 partitioned and the partitioning key must match the grouping key. In
 this case it's the item as a whole. The edge can be local because the
 data is already naturally partitioned by document such that for any
 given `docId`, all tuples involving it will occur on the same cluster
 member.
-```java
-dag.edge(between(tokenize, tf).partitioned(wholeItem(), HASH_CODE));
-```
+    ```java
+    dag.edge(between(tokenize, tf).partitioned(wholeItem(), HASH_CODE));
+    ```
 1. `tf-idf` groups the items by _word_ alone. Since the same word can
 occur on any member, we need a distributed partitioned edge from `tf` to
 `tf-idf`. This will ensure that for any given word, there is a total of
 one processor in the whole cluster that receives tuples involving it.
-```java
-Distributed.Function<Entry<Entry<?, String>, ?>, String> byWord =
-    item -> item.getKey().getValue();
-dag.edge(from(tf).to(tfidf, 1).distributed().partitioned(byWord, HASH_CODE));
-```
+    ```java
+    Distributed.Function<Entry<Entry<?, String>, ?>, String> byWord =
+        item -> item.getKey().getValue();
+    dag.edge(from(tf).to(tfidf, 1).distributed().partitioned(byWord, HASH_CODE));
+    ```
 1. The edge from `stopword-source` to `tokenize` transfers a single
 item, but it must deliver it to all `tokenize` processors. In our
 example, the same stopwords file is accessible on all members and the
@@ -322,10 +329,10 @@ Therefore a _local broadcast_ edge is the correct choice: its effect
 will be to publish the reference to the local `HashSet` to all
 `tokenize` processors. This edge must have a raised priority because
 `tokenize` cannot do its job until it has received the stopwords.
-```java
-dag.edge(between(stopwordSource.localParallelism(1), tokenize)
-   .broadcast().priority(-1))
-```
+    ```java
+    dag.edge(between(stopwordSource.localParallelism(1), tokenize)
+       .broadcast().priority(-1))
+    ```
 1. `doc-count` receives data from a distributed, partitioned data source
 but needs to see all the items to come up with the total count. The
 choice here is to set its `localParallelism` to one and configure its
@@ -333,13 +340,12 @@ inbound edge as _distributed broadcast_: each processor will observe all
 the items, emitted on any member. It can then deliver its count over a
 local broadcast, high-priority edge to all the local `tf-idf`
 processors.
-```java
-dag.edge(between(docSource.localParallelism(1),
-                 docCount.localParallelism(1))
-          .distributed().broadcast());
-   .edge(between(docCount, tfidf).broadcast().priority(-1))
-```
-
+    ```java
+    dag.edge(between(docSource.localParallelism(1),
+                     docCount.localParallelism(1))
+              .distributed().broadcast());
+       .edge(between(docCount, tfidf).broadcast().priority(-1))
+    ```
 
 ### Partitioning strategy
 
@@ -350,8 +356,8 @@ aspects:
 2. calculate the partition ID from the key.
 
 The first point is covered by the _key extractor_ function and the
-second one is captured by the `Partitioner` type. In most cases the
-choice of partitioner boils down to two types provided out of the box:
+second by the `Partitioner` type. In most cases the choice of
+partitioner boils down to two types provided out of the box:
 
 1. Default Hazelcast partitioner: safe but slower;
 1. `Object.hashCode()`-based partitioner: typically faster, but not safe
@@ -452,7 +458,11 @@ Files.lines(Paths.get(TfIdf.class.getResource(name).toURI()))
 ```
 
 and then the mapping stage is applied, which creates a pair `(docId,
-line)`. `tokenizer` is another custom vertex:
+line)`. Finally, the whole processor expression is wrapped into a call
+of `nonCooperative()` which will declare the processor non-cooperative,
+as required by the fact that it does blocking file I/O.
+
+`tokenizer` is another custom vertex:
 
 ```java
 dag.newVertex("tokenize", TokenizeP::new);
@@ -482,26 +492,25 @@ This is a processor that must deal with two different inbound edges. It
 receives the stopword set over edge 0 and then it does a flatmapping
 operation on edge 1. The logic presented here uses the same approach as
 the implementation of the provided `Processors.flatMap()` processor:
-there is a single instance of the `FlatMapper` that holds the business
-logic of the transformation, and the `tryProcess1` callback method
-directly delegates into it. If the `FlatMapper` is done emitting the
-previous items, it will accept the new item, apply the user-provided
-transformation, and start emitting the output items. If the buffer state
-prevents it from emitting all the pending items, it will return `false`,
-which will make the framework call the same `tryProcess1` method later,
-with the same input item.
+there is a single instance of `FlatMapper` that holds the business logic
+of the transformation, and the `tryProcess1()` callback method directly
+delegates into it. If `FlatMapper` is done emitting the previous items,
+it will accept the new item, apply the user-provided transformation, and
+start emitting the output items. If the buffer state prevents it from
+emitting all the pending items, it will return `false`, which will make
+the framework call the same `tryProcess1` method later, with the same
+input item.
 
 Let's show the code that creates the `tokenize`'s two inbound edges:
 
 ```java
-dag.edge(between(stopwordSource, tokenize).broadcast())
-   .edge(from(docLines).to(tokenize, 1).priority(1))
+dag.edge(between(stopwordSource, tokenize).broadcast().priority(-1))
+   .edge(from(docLines).to(tokenize, 1));
 ```
 
-Especially note the `.priority(1)` part: this ensures that there will be
-no attempt to deliver any data coming at edge with ordinal 1 before all
-the data from ordinal 0 is already delivered. (The `between` factory
-method creates an edge with ordinal 0 at both ends.) The processor would
+Especially note the `.priority(-1)` part: this ensures that there will
+be no attempt to deliver any data coming from `docLines` before all the
+data from `stopwordSource` is already delivered. The processor would
 fail if it had to tokenize a line before it has its stopword set in
 place.
 
@@ -555,22 +564,23 @@ private static class TfIdfP extends AbstractProcessor {
     }
 
     private List<Entry<Long, Double>> docScores(List<Entry<Long, Double>> docidTfs) {
-        final int df = docidTfs.size();
+        final double logDf = Math.log(docidTfs.size());
         return docidTfs.stream()
-                       .map(tfe -> tfidfEntry(df, tfe))
+                       .map(tfe -> tfidfEntry(logDf, tfe))
                        .collect(toList());
     }
 
-    private Entry<Long, Double> tfidfEntry(int df, Entry<Long, Double> docidTf) {
+    private Entry<Long, Double> tfidfEntry(double logDf, Entry<Long, Double> docidTf) {
         final Long docId = docidTf.getKey();
-        final Double tf = docidTf.getValue();
-        final double idf = logDocCount - Math.log(df);
+        final double tf = docidTf.getValue();
+        final double idf = logDocCount - logDf;
         return entry(docId, tf * idf);
     }
 }
 ```
 
-This is quite a lot of code, but each piece is quite easy to grasp:
+This is quite a lot of code, but each of the three pieces is not too
+difficult to follow:
 
 1. `tryProcess0()` accepts a single item, the total document count.
 1. `tryProcess1()` performs a boilerplate `groupBy` operation,
@@ -580,7 +590,7 @@ final transformation on each one: replacing the TF score with the final
 TF-IDF score. It relies on a _lazy_ traverser, which holds a
 `Supplier<Traverser>` and will obtain the inner traverser from it the
 first time `next()` is called. This makes it very simple to write code
-that obtains a traverser for a map after it has been populated.
+that obtains a traverser from a map after it has been populated.
 
 Finally, our DAG is terminated by a sink vertex:
 
