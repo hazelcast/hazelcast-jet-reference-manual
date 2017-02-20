@@ -161,7 +161,7 @@ represented using a _flat map_ processor, which comes built in with Jet:
 // line -> words
 final Pattern delimiter = Pattern.compile("\\W+");
 Vertex tokenizer = dag.newVertex("tokenizer",
-      flatMap((String line) -> traverseArray(delimiter.split(line.toLowerCase()))
+      flatMap((Entry<Integer, String> line) -> traverseArray(delimiter.split(line.getValue().toLowerCase()))
                                   .filter(word -> !word.isEmpty()))
 );
 ```
