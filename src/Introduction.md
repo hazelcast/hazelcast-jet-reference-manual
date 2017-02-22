@@ -1,36 +1,38 @@
 # Introduction
 
 Hazelcast Jet is a distributed data processing engine, built for
-high-performance batch and stream processing. It is built on top of
-[Hazelcast In-Memory Data Grid](http://www.hazelcast.org) (IMDG) at
-its foundation, but is a separate product with features not available
-in Hazelcast.
+high-performance batch and stream processing. It reuses some features
+and services of [Hazelcast In-Memory Data
+Grid](http://www.hazelcast.org) (IMDG), but is otherwise a separate
+product with features not available in the IMDG.
 
-Hazelcast Jet also introduces the distributed implementation of [`java.util.stream`](https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html) for Hazelcast IMDG data structures, such as `IMap` and `IList`.
+Jet also enriches the IMDG data structures such as `IMap` and `IList`
+with a distributed implementation of
+[`java.util.stream`](https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html).
 
 ## Data Processing Model
 
-Hazelcast Jet provides high performance in-memory data processing by modeling
-a computation as a _Directed Acyclic Graph (DAG)_ of processing vertices.
-Each _vertex_ performs a step in the computation and emits data items
-for the vertices it is connected to. A single vertex's
-computation work is performed in parallel by many instances of
-the `Processor` type around the cluster. The different vertices are
-linked together through _edges_.
+Hazelcast Jet provides high performance in-memory data processing by
+modeling a computation as a _Directed Acyclic Graph (DAG)_ of processing
+vertices. Each _vertex_ performs a step in the computation and emits
+data items for the vertices it is connected to. A single vertex's
+computation work is performed in parallel by many instances of the
+`Processor` type around the cluster. The different vertices are linked
+together through _edges_.
 
 One of the major reasons to divide the full computation task into
 several vertices is _data partitioning_: the ability to split the data
 stream traveling over an edge into slices which can be processed
-independently of each other. It works by defining a function which
-computes the _partitioning key_ for each item and makes all related
-items map to the same key. The computation engine can then route all
-such items to the same processor instance. This makes it easy to
-parallelize the computation: each processor will have the full picture
-for its slice of the entire stream.
+independently of each other. To make this work, a function must be
+defined which computes the _partitioning key_ for each item and makes
+all related items map to the same key. The computation engine can then
+route all such items to the same processor instance. This makes it easy
+to parallelize the computation: each processor will have the full
+picture for its slice of the entire stream.
 
-Edges determine how the data is routed from individual source
-processors to individual destination processors. Different edge properties
-offer precise control over the flow of data.
+Edges determine how the data is routed from individual source processors
+to individual destination processors. Different edge properties offer
+precise control over the flow of data.
 
 ## Clustering and Discovery
 
@@ -42,11 +44,11 @@ Manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#sett
 
 ## Members and Clients
 
-A Hazelcast Jet _instance_ is a unit where the processing takes place. There can
-be multiple instances per JVM, however this only makes sense for
-testing. An instance becomes a _member_ of a cluster: it can join
-and leave clusters multiple times during its lifetime. Any instance
-can be used to access a cluster, giving an appearance that the entire
+A Hazelcast Jet _instance_ is a unit where the processing takes place.
+There can be multiple instances per JVM, however this only makes sense
+for testing. An instance becomes a _member_ of a cluster: it can join
+and leave clusters multiple times during its lifetime. Any instance can
+be used to access a cluster, giving an appearance that the entire
 cluster is available locally.
 
 On the other hand, a _client instance_ is just an accessor to a cluster

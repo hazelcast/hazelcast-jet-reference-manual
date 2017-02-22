@@ -1,6 +1,7 @@
-# Understanding the Jet Architecture and API
+# Understanding Jet Architecture and API
 
-This chapter provides an overview to the Hazelcast Jet's architecture and API units and elements.
+This chapter provides an overview of Jet's architecture and API
+concepts.
 
 ## DAG
 
@@ -40,11 +41,11 @@ storing of results via its **sink** vertices. Typically the results will
 be in a Hazelcast map or another structure and have to be accessed by
 their own API after the job is done.
 
-### Deploying the Resource
+### Deploying the resources
 
 If the Jet cluster has not been started with all the job's computation
-code already on the classpath, you have to deploy the code 
-together with the Job instance:
+code already on the classpath, you have to deploy the code together
+with the Job instance:
 
 ```java
 JobConfig config = new JobConfig();
@@ -52,9 +53,9 @@ config.addJar("..");
 jet.newJob(dag, config).execute().get();
 ```
 
-When persisting and reading data from the underlying Hazelcast IMDG instance, it
-is important to be aware that the deployed code is used **only** within
-the scope of the executing Jet job.
+When reading and writing data to the underlying Hazelcast IMDG instance,
+keep in mind that the deployed code is available **only** within the
+scope of the executing Jet job.
 
 ## Vertex
 
@@ -112,7 +113,7 @@ It is equal to local parallelism multiplied by the cluster size.
 contains the code of the computation to be performed by a vertex. There
 are a number of Processor building blocks in the Jet API which allow you
 to just specify the computation logic, while the provided code
-handles the processor's cooperative behavior. Please refer to the 
+handles the processor's cooperative behavior. Please refer to the
 [AbstractProcessor section](#abstractprocessor).
 
 A processor's work can be conceptually described as follows: "receive
@@ -444,7 +445,7 @@ The above procedure is quite CPU-intensive, but has the essential
 property of giving repeatable results across all cluster members, which
 may be running on disparate JVM implementations.
 
-Another common choice is to use Java's standard `Object.hashCode()`. It 
+Another common choice is to use Java's standard `Object.hashCode()`. It
 is often significantly faster. However, it is not a safe strategy in
 general because `hashCode()`'s contract does not require repeatable
 results across JVMs, or even different instances of the same JVM
