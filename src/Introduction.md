@@ -54,7 +54,28 @@ and no processing takes place in it.
 
 ## Relationship with Hazelcast IMDG
 
-Hazelcast Jet leans on [Hazelcast IMDG](http://www.hazelcast.org) with regards to cluster
-forming and maintenance, data partitioning, and networking.
-For more information on Hazelcast IMDG, see the [latest Hazelcast Reference
-Manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html).
+Hazelcast Jet leans on [Hazelcast IMDG](http://www.hazelcast.org) for
+cluster formation and maintenance, data partitioning, and networking.
+For more information on Hazelcast IMDG, see the [latest Hazelcast
+Reference Manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html).
+
+## Fault detection
+
+In its current version, Hazelcast Jet can only detect a failure in one
+of the cluster members that was running the computation, and abort the
+job. A feature planned for the future is _fault tolerance_: the ability
+to go back to a saved snapshot of the computation state and resume the
+computation without the failed member.
+
+## Elasticity
+
+Hazelcast Jet supports the scenario where a new member joins the cluster
+while a job is running. Currently the ongoing job will not be re-planned
+to start using the member, though; this is on the roadmap for a future
+version. The new member can also leave the cluster while the job is
+running and this won't affect its progress.
+
+One caveat is the special kind of member allowed by the Hazelcast IMDG:
+a _lite member_. These members don't get any partitions assigned to them
+and will malfunction when attempting to run a DAG with partitioned
+edges. Lite members should not be allowed to join a Jet cluster.
