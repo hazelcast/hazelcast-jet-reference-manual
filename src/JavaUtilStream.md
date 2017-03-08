@@ -20,7 +20,7 @@ map.put("Jakarta", -6);
 ```
 
 ```java
-map.stream().filter(e -> e.getValue() < 0).forEach(x -> System.out.println(x));
+map.stream().filter(e -> e.getValue() < 0).forEach(System.out::println);
 ```
 
 ## Serializable Lambda Functions
