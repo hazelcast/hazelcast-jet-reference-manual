@@ -3,8 +3,6 @@
 Hazelcast Jet comes with some additional modules that can be used to connect to
 additional data sources and sinks.
 
-These modules are currently under active development and are only meant
-for testing.
 
 ## hazelcast-jet-hadoop
 
@@ -106,7 +104,46 @@ the hook with Hazelcast.
 
 ## hazelcast-jet-kafka
 
-`KafkaReader` and `KafkaWriter` can be used to read a stream of data from
-[Apache Kafka](https://kafka.apache.org/). Kafka partitions will be
-distributed across Jet processors, with each Jet processors being assigned
-one or more partitions.
+
+`hazelcast-jet-kafka` module provides read and write capabilities to 
+[Apache Kafka](https://kafka.apache.org/).
+
+`ReadKafkaP` and `WriteKafkaP` classes provide source and sink processors
+which can be used reading and writing, respectively. The processors take
+a `Properties` as parameters which can be used to specify the `group.id`,
+`bootstrap.servers`, key/value serializer/deserializer and any other
+configuration parameter for Kafka.
+ 
+Example:
+
+```java
+    Properties properties = new Properties();
+    properties.setProperty("group.id", "group0");
+    properties.setProperty("bootstrap.servers", "localhost:9092");
+    properties.setProperty("key.deserializer", StringDeserializer.class.getCanonicalName());
+    properties.setProperty("value.deserializer", IntegerDeserializer.class.getCanonicalName());
+    properties.setProperty("auto.offset.reset", "earliest");
+    Vertex source = dag.newVertex("source", readKafka(properties, "topic1", "topic2"));
+
+    Properties properties = new Properties();
+    properties.setProperty("bootstrap.servers", "localhost:9092");
+    properties.setProperty("key.serializer", StringSerializer.class.getCanonicalName());
+    properties.setProperty("value.serializer", IntegerSerializer.class.getCanonicalName());
+    Vertex sink = dag.newVertex("sink", writeKafka("topic1", properties));
+
+```
+
+### ReadKafkaP
+
+`ReadKafkaP` is used to consume items from one or more Kafka topics. New consumer API is used to 
+ subscribe the topics which assigns the partitions to the processor instances. Each partition can 
+ be consumed by a single processor at any given time. It is a good practice to have more partitions 
+ than processor count (local_processor_count*clusterSize), otherwise some processors will be idle.
+
+`ReadKafkaP` overrides the `enable.auto.commit` property to `false`, for committing manually 
+after each `poll` cycle. 
+
+### WriteKafkaP
+
+`WriteKafkaP` expects items of type `Map.Entry<K,V>` and sends a `ProducerRecord` to the topic
+with key/value parts.
