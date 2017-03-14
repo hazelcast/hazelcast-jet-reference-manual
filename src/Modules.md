@@ -57,7 +57,7 @@ try to read as much local data as possible. A heuristic algorithm is used
 to assign replicated blocks across the cluster to ensure a
 well-balanced work distribution between processor instances.
 
-### WriteHdfsP
+### WriteHdfsP
 
 `WriteHdfsP` expects items of type `Map.Entry<K,V>` and writes the key
 and value parts to HDFS. Each processor instance creates a single file
