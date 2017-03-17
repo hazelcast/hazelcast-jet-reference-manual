@@ -1,7 +1,6 @@
 # Additional Modules
 
-Hazelcast Jet comes with some additional modules that can be used to connect to
-additional data sources and sinks.
+Hazelcast Jet comes with modules that can be used to connect to additional data sources and sinks. You can also create your own custom connectors.
 
 
 ## hazelcast-jet-hadoop
@@ -9,7 +8,7 @@ additional data sources and sinks.
 `hazelcast-jet-hadoop` module provides read and write capabilities to
 [Apache Hadoop](http://hadoop.apache.org/).
 
- `ReadHdfsP` and `WriteHdfsP` classes provide source and sink processors
+ The `ReadHdfsP` and `WriteHdfsP` classes provide source and sink processors
  which can be used for reading and writing, respectively. The processors
  take a `JobConf` as parameters which can be used to specify the
  `InputFormat`, `OutputFormat` and their respective paths.
