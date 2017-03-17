@@ -1,7 +1,7 @@
 # Additional Modules
 
-Hazelcast Jet comes with modules that can be used to connect to additional data sources and sinks. You can also create your own custom connectors.
-
+Hazelcast Jet comes with modules that can be used to connect to
+additional data sources and sinks.
 
 ## hazelcast-jet-hadoop
 
@@ -26,7 +26,8 @@ Vertex source = dag.newVertex("source", ReadHdfsP.readHdfs(jobConf));
 Vertex sink = dag.newVertex("sink", WriteHdfsP.writeHdfs(jobConf));
 ...
 ```
-See the [HDFS Code Sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/hadoop) for a fully worked example.
+See the [HDFS code sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/hadoop)
+for a fully worked example.
 
 ### ReadHdfsP
 
@@ -51,11 +52,12 @@ With this change, `ReadHdfsP` will emit items of type `String` instead.
 
 #### Cluster Co-location
 
-The Jet cluster should be run on the same nodes as the HDFS nodes for best
-read performance. If this the case, each processor instance will
-try to read as much local data as possible. A heuristic algorithm is used
-to assign replicated blocks across the cluster to ensure a
-well-balanced work distribution between processor instances for maximum performance.
+The Jet cluster should be run on the same nodes as the HDFS nodes for
+best read performance. If this the case, each processor instance will
+try to read as much local data as possible. A heuristic algorithm is
+used to assign replicated blocks across the cluster to ensure a
+well-balanced work distribution between processor instances for maximum
+performance.
 
 ### WriteHdfsP
 
@@ -91,10 +93,10 @@ for some of the primitive types including the following:
 * `LongWritable`
 * `Text`
 
-Anything outside of these types falls back to a default implementation for
-all `Writable` types which writes the full class name and the
-fields per item. When deserializing, the class name is read first
-and the deserialized instance is created using the classloader and reflection.
+Anything outside of these types falls back to a default implementation
+for all `Writable` types which writes the full class name and the fields
+per item. When deserializing, the class name is read first and the
+deserialized instance is created using the classloader and reflection.
 The explicitly registered types only write a single integer as a type id
 and do not use reflection for deserialization.
 
@@ -163,12 +165,14 @@ emitted.
 ### WriteKafkaP
 
 `WriteKafkaP` is a processor which acts as a Kafka sink.  It receives
-items of type `Map.Entry<K,V>` and sends a `ProducerRecord` to the
+items of type `Map.Entry` and sends a `ProducerRecord` to the
 specified topic with key/value parts which will be serialized according
-to the Kafka producer configuration.
+to the Kafka producer configuration. The key and value serializers set
+in the properties should be able to handle the keys and values received
+by the processor.
 
 Internally, a single `KafkaProducer` is created per node, which is
 shared among all `Processor` instances on that node.
 
-
-See the [Kafka Code Sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/kafka) for a fully worked example.
+See the [Kafka code sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/kafka)
+for a fully worked example.
