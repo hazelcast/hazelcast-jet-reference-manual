@@ -5,7 +5,7 @@ Hazelcast Jet comes with modules that can be used to connect to additional data 
 
 ## hazelcast-jet-hadoop
 
-`hazelcast-jet-hadoop` module provides read and write capabilities to
+The `hazelcast-jet-hadoop` module provides read and write capabilities to
 [Apache Hadoop](http://hadoop.apache.org/).
 
  The `ReadHdfsP` and `WriteHdfsP` classes provide source and sink processors
@@ -50,11 +50,11 @@ With this change, `ReadHdfsP` will emit items of type `String` instead.
 
 #### Cluster Co-location
 
-Jet cluster should be run on the same nodes as the HDFS nodes for best
-read performance. If the hosts are aligned, each processor instance will
+The Jet cluster should be run on the same nodes as the HDFS nodes for best
+read performance. If this the case, each processor instance will
 try to read as much local data as possible. A heuristic algorithm is used
 to assign replicated blocks across the cluster to ensure a
-well-balanced work distribution between processor instances.
+well-balanced work distribution between processor instances for maximum performance.
 
 ### WriteHdfsP
 
@@ -79,7 +79,7 @@ which can be required for certain `OutputFormat` implementations.
 ### Serialization of Writables
 
 Special care must be taken when serializing `Writable` items. The
-`hazelcast-jet-hadoop` module implements out of the box serialization support
+`hazelcast-jet-hadoop` module implements out-of-the-box serialization support
 for some of the primitive types including the following:
 
 * `BooleanWritable`
