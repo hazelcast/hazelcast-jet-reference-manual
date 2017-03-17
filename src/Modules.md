@@ -104,14 +104,14 @@ the hook with Hazelcast.
 
 ## hazelcast-jet-kafka
 
-`hazelcast-jet-kafka` module provides streaming read and write
+The `hazelcast-jet-kafka` module provides streaming read and write
 capabilities to [Apache Kafka](https://kafka.apache.org/).
 
-`ReadKafkaP` and `WriteKafkaP` classes provide source and sink
-processors which can be used respectively for reading and writing. The
-processors take a list of properties given by `Properties` as parameters
+The `ReadKafkaP` and `WriteKafkaP` classes provide source and sink
+processors which can be used for reading and writing respectively. The
+processors take a list of properties given by `Properties` as a parameter
 which can be used to specify the `group.id`, `bootstrap.servers`,
-key/value serializer/deserializer and any other configuration parameter
+key/value serializer/deserializer and any other configuration parameters
 for Kafka.
 
 Example:
