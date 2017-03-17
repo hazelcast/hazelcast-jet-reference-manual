@@ -26,6 +26,7 @@ Vertex source = dag.newVertex("source", ReadHdfsP.readHdfs(jobConf));
 Vertex sink = dag.newVertex("sink", WriteHdfsP.writeHdfs(jobConf));
 ...
 ```
+See the [HDFS Code Sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/hadoop) for a fully worked example.
 
 ### ReadHdfsP
 
@@ -168,3 +169,6 @@ to the Kafka producer configuration.
 
 Internally, a single `KafkaProducer` is created per node, which is
 shared among all `Processor` instances on that node.
+
+
+See the [Kafka Code Sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/kafka) for a fully worked example.
