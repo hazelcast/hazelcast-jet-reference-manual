@@ -53,7 +53,7 @@ With this change, `ReadHdfsP` will emit items of type `String` instead.
 #### Cluster Co-location
 
 The Jet cluster should be run on the same nodes as the HDFS nodes for
-best read performance. If this the case, each processor instance will
+best read performance. If this is the case, each processor instance will
 try to read as much local data as possible. A heuristic algorithm is
 used to assign replicated blocks across the cluster to ensure a
 well-balanced work distribution between processor instances for maximum
@@ -110,7 +110,7 @@ The `hazelcast-jet-kafka` module provides streaming read and write
 capabilities to [Apache Kafka](https://kafka.apache.org/).
 
 The `ReadKafkaP` and `WriteKafkaP` classes provide source and sink
-processors which can be used for reading and writing respectively. The
+processors which can be used for reading and writing, respectively. The
 processors take a list of properties given by `Properties` as a parameter
 which can be used to specify the `group.id`, `bootstrap.servers`,
 key/value serializer/deserializer and any other configuration parameters
