@@ -1,0 +1,44 @@
+`Job` is a handle to the execution of a `DAG`. To create a job,
+supply the `DAG` to a previously created `JetInstance` as shown below:
+
+```java
+JetInstance jet = Jet.newJetInstance(); // or Jet.newJetClient();
+DAG dag = new DAG();
+dag.newVertex(..);
+jet.newJob(dag).execute().get();
+```
+
+As hinted in the code example, the job submission API is identical
+whether you use it from a client machine or directly on an instance of a
+Jet cluster member. This works because the `Job` instance is
+serializable and the client can send it over the network when submitting
+the job. The same `Job` instance can be submitted for execution many
+times.
+
+Job execution is asynchronous. The `execute()` call returns as soon as
+the Jet cluster has been contacted and the serialized job is sent to it.
+The user gets a `Future` which can be inspected or waited on to find out
+the outcome of a computation job. It is also cancelable and can send a
+cancelation command to the Jet cluster.
+
+Note that the `Future` only signals the status of the job, it does not
+contain the result of the computation. The DAG explicitly models the
+storing of results via its **sink** vertices. Typically the results will
+be in a Hazelcast map or another structure and have to be accessed by
+their own API after the job is done.
+
+### Deploying the Resources
+
+If the Jet cluster has not been started with all the job's computation
+code already on the classpath, you have to deploy the code together
+with the Job instance:
+
+```java
+JobConfig config = new JobConfig();
+config.addJar("..");
+jet.newJob(dag, config).execute().get();
+```
+
+When reading and writing data to the underlying Hazelcast IMDG instance,
+keep in mind that the deployed code is available **only** within the
+scope of the executing Jet job.

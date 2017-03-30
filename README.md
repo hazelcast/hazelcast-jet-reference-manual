@@ -1,13 +1,37 @@
 
-Required packages:
+## Reference Manual Using Daux
 
-- Node.js: http://nodejs.org
-- Bfdocs: http://beautifuldocs.com
-- Pandoc: http://johnmacfarlane.net/pandoc/installing.html
-- BasicTeX: http://www.tug.org/mactex/morepackages.html
+Daux.io is a documentation generator that uses a simple folder structure and Markdown files to create custom documentation on the fly. It helps you create great looking documentation in a developer friendly way.
 
-Installation with Ubuntu:
+Please refer to [Daux.io](http://daux.io/) for more information.
 
-`sudo apt-get install nodejs nodejs-legacy npm pandoc texlive`
 
-NOTE: [Beautiful Docs](https://github.com/beautiful-docs/beautiful-docs) repo should be cloned and compiled from source since the latest release does not include recent fixes which is vital for us!
+## Prerequisites
+
+Before installing Daux, you already need to have the following:
+
+- PHP 5.5 or higher = http://php.net/
+- Composer: https://getcomposer.org/ (Install and then add "~/.composer/vendor/bin” to your $PATH)
+
+## Installing Daux
+
+Run the following command to install Daux:
+
+`composer global require justinwalsh/daux.io`
+
+## Where Are the Source MarkDown Files
+
+They reside in the **docs** folder of this repo structured with folders and MarkDown files.
+
+
+## Writing Content
+
+Now you can clone this repo and start writing with MarkDown.
+
+## Building the HTML
+
+Simply run the command `daux` in the root folder.
+
+## Where Is the Generated HTML
+
+Each time you build the Jet Reference Manual, its HTML output will be put into the **static** folder of this repo. Build process creates this folder automatically if it does not exist.

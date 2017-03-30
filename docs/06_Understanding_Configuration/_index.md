@@ -1,0 +1,1 @@
+You can configure Hazelcast Jet either programmatically or declaratively (XML).
