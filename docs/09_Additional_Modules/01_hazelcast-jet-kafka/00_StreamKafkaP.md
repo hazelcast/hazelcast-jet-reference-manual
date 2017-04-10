@@ -1,4 +1,4 @@
-`ReadKafkaP` is used to consume items from one or more Kafka topics. It
+`StreamKafkaP` is used to consume items from one or more Kafka topics. It
 uses the Kafka consumer API and consumer groups to distribute partitions
 among processors where each partition is consumed by a single processor
 at any given time. The reader emits items of type `Map.Entry<K,V>` where
@@ -18,6 +18,6 @@ supplied properties will be passed on to each `KafkaConsumer` instance.
 These processors are only terminated in case of an error or if the
 underlying job is cancelled.
 
-`ReadKafkaP` forces the `enable.auto.commit` property to be set to
+`StreamKafkaP` forces the `enable.auto.commit` property to be set to
 `false`, and commits the current offsets after they have been fully
 emitted.
