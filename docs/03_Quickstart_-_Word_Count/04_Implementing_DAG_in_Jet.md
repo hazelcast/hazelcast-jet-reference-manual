@@ -3,7 +3,7 @@ DAG and source vertex:
 
  ```java
 DAG dag = new DAG();
-Vertex source = dag.newVertex("source", Processors.mapReader("lines"));
+Vertex source = dag.newVertex("source", Processors.readMap("lines"));
 ```
 
 This is a simple vertex which will read the lines from the `IMap` and
@@ -20,8 +20,9 @@ represented using a _flat map_ processor, which comes built in with Jet:
 // line -> words
 final Pattern delimiter = Pattern.compile("\\W+");
 Vertex tokenizer = dag.newVertex("tokenizer",
-      flatMap((Entry<Integer, String> line) -> traverseArray(delimiter.split(line.getValue().toLowerCase()))
-                                  .filter(word -> !word.isEmpty()))
+      Processors.flatMap((Entry<Integer, String> line) -> Traversers.traverseArray(delimiter.split(line.getValue()
+      .toLowerCase()))
+      .filter(word -> !word.isEmpty()))
 );
 ```
 
@@ -37,7 +38,7 @@ for each word. We can use the built-in `groupAndAccumulate` processor.
 ```java
 // word -> (word, count)
 Vertex accumulator = dag.newVertex("accumulator",
-        groupAndAccumulate(() -> 0L, (count, x) -> count + 1)
+        Processors.groupAndAccumulate(() -> 0L, (count, x) -> count + 1)
 );
 ```
 
@@ -58,7 +59,7 @@ combining step:
 ```java
 // (word, count) -> (word, count)
 Vertex combiner = dag.newVertex("combiner",
-        groupAndAccumulate(Entry<String, Long>::getKey, initialZero,
+        Processors.groupAndAccumulate(Entry<String, Long>::getKey, () -> 0L,
                 (Long count, Entry<String, Long> wordAndCount) -> count + wordAndCount.getValue())
 );
 ```
@@ -71,7 +72,7 @@ The final vertex is the output &mdash; we want to store the output in
 another IMap:
 
 ```java
-Vertex sink = dag.newVertex("sink", Processors.mapWriter("counts"));
+Vertex sink = dag.newVertex("sink", Processors.writeMap("counts"));
 ```
 
 Next, we add the vertices we created to our DAG, and connect the
@@ -80,10 +81,10 @@ vertices together with edges:
 ```java
 dag.edge(between(source, tokenizer))
    .edge(between(tokenizer, accumulator)
-            .partitioned(wholeItem(), HASH_CODE))
+            .partitioned(KeyExtractors.wholeItem(), Partitioner.HASH_CODE))
    .edge(between(accumulator, combiner)
             .distributed()
-            .partitioned(entryKey()))
+            .partitioned(KeyExtractors.entryKey()))
    .edge(between(combiner, sink));
 ```
 
@@ -92,7 +93,7 @@ First, source and tokenizer:
 
 ```java
 .edge(between(tokenizer, accumulator)
-         .partitioned(wholeItem(), HASH_CODE))
+         .partitioned(KeyExtractors.wholeItem(), Partitioner.HASH_CODE)))
 ```
 
 The edge between the tokenizer and accumulator is _partitioned_, because
@@ -105,7 +106,7 @@ the partitioning function, which uses `Object.hashCode()`.
 ```java
 .edge(between(accumulator, combiner)
          .distributed()
-         .partitioned(entryKey()))
+         .partitioned(KeyExtractors.entryKey()))
 ```
 
 The edge between the `accumulator` and `combiner` is also _partitioned_,
@@ -145,4 +146,4 @@ or=1, everything=1, spring=1, authorities=1, way=1, for=2]
 ```
 
 An executable version of this sample can be found at the 
-[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples).
+[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/core/wordcount/src/main/java).
