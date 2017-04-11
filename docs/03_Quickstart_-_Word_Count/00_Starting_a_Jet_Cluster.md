@@ -12,7 +12,7 @@ public class WordCount {
 }
 ```
 
-These two members should automatically form a cluster, as they will use 
+These two members should automatically form a cluster, as they will use
 multicast, by default, to discover each other.
 You should see an output similar to the following:
 
@@ -29,4 +29,29 @@ of your application:
 
 ```
 Jet.shutdownAll();
+```
+
+This must be executed unconditionally, even in the case of an exception;
+otherwise your Java process will stay alive because Jet has started its
+internal threads.
+
+In production code you'd put everything inside a `try-finally` block,
+but for simplicity's sake, while playing around with samples, we can
+add a shutdown hook:
+
+```java
+public class WordCount {
+    public static void main(String[] args) {
+        // Will clean up in case of an exception:
+        Runtime.getRuntime().addShutdownHook(new Thread(Jet::shutdownAll));
+
+        JetInstance instance1 = Jet.newJetInstance();
+        JetInstance instance2 = Jet.newJetInstance();
+
+        ... your code here...
+
+        // Will clean up when there's no exception:
+        Jet.shutdownAll();
+    }
+}
 ```
