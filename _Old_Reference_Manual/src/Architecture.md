@@ -337,7 +337,7 @@ connected to its vertex.
 As a further layer of convenience, there are some ready-made Processor
 implementations. These are the broad categories:
 
-1. Sources and sinks for Hazelcast `IMap` and `IList`.
+1. Sources and sinks for Hazelcast `IMap`, `ICache` and `IList`.
 2. Processors with `flatMap`-type logic, including `map`, `filter`, and
 the most general `flatMap`.
 3. Processors that perform a reduction operation after grouping items by

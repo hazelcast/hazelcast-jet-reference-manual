@@ -50,7 +50,7 @@ the full data set will be read. Similarly, a sink can also be
 distributed so each member can write a slice of the result data to its
 local storage. _Data partitioning_ is used to route each slice to its
 target member. Examples of distributed sources supported by Jet are HDFS
-files and Hazelcast's `IMap`/`IList`.
+files and Hazelcast's `IMap`, `ICache` and `IList`.
 
 _Edges_ transfer data from one vertex to the next and contain the
 partitioning logic which ensures that each item is sent to its target
@@ -464,7 +464,7 @@ inside it when the tasklet returns control to the execution service.
 As a further layer of convenience there are some ready-made Processor
 implementations. These are the broad categories:
 
-1. Sources and sinks for Hazelcast `IMap` and `IList`.
+1. Sources and sinks for Hazelcast `IMap`, `ICache` and `IList`.
 2. Processors with `flatMap`-type logic, including `map`, `filter`, and
 the most general `flatMap`.
 3. Processors that perform a reduction operation after grouping items by
@@ -520,18 +520,18 @@ different actions to the server instance.
 
 ### Reading from and Writing to Hazelcast Distributed Data Structures
 
-Jet embedds Hazelcast IMDG. Therefore, Jet can use Hazelcast IMDG maps
-and lists on the embedded cluster as sources and sinks of data and make
-use of data locality. A Hazelcast `IMap` is distributed by partitions
-across the cluster and Jet members are able to efficiently read from the
-Map by having each member read just its local partitions. Since the
-whole `IList` is stored on a single partition, all the data will be read
-on the single member that owns that partition.
-
-When using a map or list as a Sink, it is not possible to directly make
-use of data locality because the emitted key-value pair may belong to a
-non-local partition. In this case the pair must be transmitted over the
-network to the member which owns that particular partition.
+Jet embedds Hazelcast IMDG. Therefore, Jet can use Hazelcast IMDG maps,
+caches and lists on the embedded cluster as sources and sinks of data
+and make use of data locality. A Hazelcast `IMap` or `ICache` is
+distributed by partitions across the cluster and Jet members are able to
+efficiently read from the Map or Cache by having each member read just
+its local partitions. Since the whole `IList` is stored on a single
+partition, all the data will be read on the single member that owns that
+partition. When using a map, cache or list as a Sink, it is not possible
+to directly make use of data locality because the emitted key-value pair
+may belong to a non-local partition. In this case the pair must be
+transmitted over the network to the member which owns that particular
+partition.
 
 Jet can also use any remote Hazelcast IMDG instance via Hazelcast IMDG
 connector.
