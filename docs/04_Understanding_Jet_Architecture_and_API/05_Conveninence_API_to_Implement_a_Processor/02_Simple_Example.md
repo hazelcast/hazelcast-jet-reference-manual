@@ -1,4 +1,5 @@
-The following example shows how you can implement a simple flatmapping processor:
+The following example shows how you can implement a simple flatmapping
+processor:
 
 ```java
 public class ItemAndSuccessorP extends AbstractProcessor {

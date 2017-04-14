@@ -1,7 +1,11 @@
-The processor deposits the items it wants to emit to an instance of
-`Outbox`, which has a separate bucket for each outbound edge. The
-buckets are unbounded, but each has a defined "high water mark" that
-says when the bucket should be considered full. When the processor
-realizes it has hit the high water mark, it should return from the
-current processing callback and let the execution engine drain the
-outbox.
+The processor sends its output items to its `Outbox`, which has a
+separate bucket for each outbound edge. The buckets have limited
+capacity and will refuse an item when full. A cooperative processor
+should be implemented such that when its item is rejected by the outbox,
+it saves its processing state and returns from the processing method.
+The execution engine will then drain the outbox buckets.
+
+By contrast, a non-cooperative processor gets an auto-flushing, blocking
+outbox that never rejects an item. This can be leveraged to simplify the
+processor's implementation; however the simplification alone should
+never be the reason to declare a processor non-cooperative.
