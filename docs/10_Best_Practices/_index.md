@@ -1,0 +1,1 @@
+This chapter describes the best practices to get the most out of Hazelcast Jet.
