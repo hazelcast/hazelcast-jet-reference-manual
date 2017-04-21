@@ -86,7 +86,10 @@
 
 
     <div class="s-content">
-        <p><code>Job</code> is a handle to the execution of a <code>DAG</code>. To create a job,
+        <p>A Job is the unit of work which is executed. A Job is described by a
+DAG, which describes the computation to be performed, and the inputs and
+outputs of the computation.</p>
+<p><code>Job</code> is a handle to the execution of a <code>DAG</code>. To create a job,
 supply the <code>DAG</code> to a previously created <code>JetInstance</code> as shown below:</p>
 <pre><code class="language-java">JetInstance jet = Jet.newJetInstance(); // or Jet.newJetClient();
 DAG dag = new DAG();

@@ -104,6 +104,13 @@ corresponding to a given input item and may need to return from the
 <code>process()</code> call early, saving its state. In such a case the item should
 stay in the inbox so Jet knows the processor has more work to do even if
 no new items are received.</p>
+<h4 id="page_completeEdge%28%29">completeEdge()</h4>
+<p>Eventually each edge will signal that its data stream is exhausted. When this
+happens, Jet calls the processor's <code>completeEdge()</code> with the ordinal of
+the completed edge.</p>
+<p>The processor may want to emit any number of items upon this event, and
+it may be prevented from emitting all due to a full outbox. In this case
+it may return <code>false</code> and will be called again later.</p>
 <h4 id="page_complete%28%29">complete()</h4>
 <p>Jet calls <code>complete()</code> after all the input edges are exhausted. It is
 the last method to be invoked on the processor before disposing of it.

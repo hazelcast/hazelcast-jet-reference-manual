@@ -4,7 +4,13 @@
 - **Hazelcast Jet** or **Jet** both refer to the same distributed data processing engine provided by Hazelcast, Inc.
 - **Hazelcast** or **Hazelcast IMDG** both refer to Hazelcast in-memory data grid middleware. **Hazelcast** is also the name of the company (Hazelcast, Inc.) providing Hazelcast IMDG and Hazelcast Jet.
 
-## License
+## Hazelcast Jet Architecture
+
+You can see the features for Hazelcast Jet in the following architecture diagram.
+
+![Jet Architecture](images/Jet_Architecture_.png)
+
+## Licensing
 
 Hazelcast Jet and Hazelcast Jet Reference Manual are free and provided under the Apache
 License, Version 2.0.
