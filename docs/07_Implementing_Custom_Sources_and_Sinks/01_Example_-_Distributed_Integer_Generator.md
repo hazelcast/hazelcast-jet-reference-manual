@@ -1,6 +1,6 @@
 Let's say we want to write a simple source, which generates numbers from
 0 to 1,000,000 (exclusive). It is trivial to write a single `Processor`
-which can do this using `java.util.stream` and [`Traverser`](../04_Understanding_Jet_Architecture_and_API/05_Conveninence_API_to_Implement_a_Processor/01_Traverser.md).
+which can do this using `java.util.stream` and [`Traverser`](../04_Understanding_Jet_Architecture_and_API/05_Convenience_API_to_Implement_a_Processor/01_Traverser.md).
 
 ```java
 public static class NumberGenerator extends AbstractProcessor {

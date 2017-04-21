@@ -3,7 +3,7 @@ contains the code of the computation to be performed by a vertex. There
 are a number of Processor building blocks in the Jet API which allow you
 to just specify the computation logic, while the provided code
 handles the processor's cooperative behavior. Please refer to the
-[AbstractProcessor section](/04_Understanding_Jet_Architecture_and_API/05_Conveninence_API_to_Implement_a_Processor/00_AbstractProcessor.md).
+[AbstractProcessor section](/04_Understanding_Jet_Architecture_and_API/05_Convenience_API_to_Implement_a_Processor/00_AbstractProcessor.md).
 
 A processor's work can be conceptually described as follows: "receive
 data from zero or more input streams and emit data into zero or more

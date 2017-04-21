@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>       <html class="no-js ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>          <html class="no-js ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>          <html class="no-js ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->  <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+    <title>Preface - Hazelcast Jet Reference Manual</title>
+    <meta name="description" content="Hazelcast Jet Reference Manual" />
+    <meta name="author" content="Hazelcast">
+    <meta charset="UTF-8">
+    <link rel="icon" href="themes/daux/img/favicon.png" type="image/x-icon">
+    <!-- Mobile -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Font -->
+    <link href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700&subset=latin,cyrillic-ext,cyrillic' rel='stylesheet' type='text/css'>
+    <!-- CSS -->
+    <link href='themes/daux/css/theme-blue.min.css' rel='stylesheet' type='text/css'>
+            <!-- Tipue Search -->
+        <link href="tipuesearch/tipuesearch.css" rel="stylesheet">
+    
+    <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body class="">
+    
+<header class="Navbar hidden-print">
+    <div>
+      <div class="sitebar"></div>
+        <div>  
+          <div style="float:left">
+            <a href="http://jet.hazelcast.org/"><img src="logo.png" style="padding-bottom:8px;"/></a>
+          </div>
+          <div>
+            <a class="Navbar__branda" href="index.html">Reference Manual <span style="font-size:14px">for release 0.3.1</span></a>
+          </div>
+        </div>
+    <div class="Search">
+        <svg class="Search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 451 451"><path d="M447.05 428l-109.6-109.6c29.4-33.8 47.2-77.9 47.2-126.1C384.65 86.2 298.35 0 192.35 0 86.25 0 .05 86.3.05 192.3s86.3 192.3 192.3 192.3c48.2 0 92.3-17.8 126.1-47.2L428.05 447c2.6 2.6 6.1 4 9.5 4s6.9-1.3 9.5-4c5.2-5.2 5.2-13.8 0-19zM26.95 192.3c0-91.2 74.2-165.3 165.3-165.3 91.2 0 165.3 74.2 165.3 165.3s-74.1 165.4-165.3 165.4c-91.1 0-165.3-74.2-165.3-165.4z"/></svg>
+        <input type="search" id="tipue_search_input" class="Search__field" placeholder="Search..." autocomplete="on" results=25 autosave=text_search>
+    </div>
+
+
+</div></header>
+<div class="Columns content">
+    <aside class="Columns__left Collapsible">
+        <div class="Collapsible__container">
+            <button type="button" class="Button Collapsible__trigger">
+                <span class="Collapsible__trigger--bar"></span>
+                <span class="Collapsible__trigger--bar"></span>
+                <span class="Collapsible__trigger--bar"></span>
+            </button>
+        </div>
+
+        <div class="Collapsible__content">
+            <!-- Navigation -->
+            <ul class='Nav'><li class='Nav__item Nav__item--active'><a href="Preface.html">Preface</a></li><li class='Nav__item  has-children'><a href="Introduction/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>Introduction</a><ul class='Nav'><li class='Nav__item '><a href="Introduction/Data_Processing_Model.html">Data Processing Model</a></li><li class='Nav__item '><a href="Introduction/Clustering_and_Discovery.html">Clustering and Discovery</a></li><li class='Nav__item '><a href="Introduction/Members_and_Clients.html">Members and Clients</a></li><li class='Nav__item '><a href="Introduction/Relationship_with_Hazelcast_IMDG.html">Relationship with Hazelcast IMDG</a></li><li class='Nav__item '><a href="Introduction/Fault_Detection.html">Fault Detection</a></li><li class='Nav__item '><a href="Introduction/Elasticity.html">Elasticity</a></li></ul></li><li class='Nav__item '><a href="Getting_Started.html">Getting Started</a></li><li class='Nav__item  has-children'><a href="Quickstart_-_Word_Count/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>Quickstart - Word Count</a><ul class='Nav'><li class='Nav__item '><a href="Quickstart_-_Word_Count/Starting_a_Jet_Cluster.html">Starting a Jet Cluster</a></li><li class='Nav__item '><a href="Quickstart_-_Word_Count/Populating_Data.html">Populating Data</a></li><li class='Nav__item '><a href="Quickstart_-_Word_Count/Single-Threaded_Computation.html">Single-Threaded Computation</a></li><li class='Nav__item '><a href="Quickstart_-_Word_Count/Modeling_Word_Count_in_terms_of_a_DAG.html">Modeling Word Count in terms of a DAG</a></li><li class='Nav__item '><a href="Quickstart_-_Word_Count/Implementing_DAG_in_Jet.html">Implementing DAG in Jet</a></li></ul></li><li class='Nav__item  has-children'><a href="Understanding_Jet_Architecture_and_API/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>Understanding Jet Architecture and API</a><ul class='Nav'><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/DAG.html">DAG</a></li><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Job.html">Job</a></li><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Vertex.html">Vertex</a></li><li class='Nav__item  has-children'><a href="Understanding_Jet_Architecture_and_API/Processor/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>Processor</a><ul class='Nav'><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Processor/Cooperative_Multithreading.html">Cooperative Multithreading</a></li><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Processor/Outbox.html">Outbox</a></li><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Processor/Data-Processing_Callbacks.html">Data-Processing Callbacks</a></li></ul></li><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Creating_and_Initializing_Jobs.html">Creating and Initializing Jobs</a></li><li class='Nav__item  has-children'><a href="Understanding_Jet_Architecture_and_API/Convenience_API_to_Implement_a_Processor/AbstractProcessor.html" class="folder"><i class="Nav__arrow">&nbsp;</i>Convenience API to Implement a Processor</a><ul class='Nav'><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Convenience_API_to_Implement_a_Processor/AbstractProcessor.html">AbstractProcessor</a></li><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Convenience_API_to_Implement_a_Processor/Traverser.html">Traverser</a></li><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Convenience_API_to_Implement_a_Processor/Simple_Example.html">Simple Example</a></li><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Convenience_API_to_Implement_a_Processor/Processor_Utility_Class.html">Processor Utility Class</a></li></ul></li><li class='Nav__item  has-children'><a href="Understanding_Jet_Architecture_and_API/Edge/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>Edge</a><ul class='Nav'><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Edge/Priority.html">Priority</a></li><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Edge/Local_and_Distributed_Edges.html">Local and Distributed Edges</a></li><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Edge/Forwarding_Patterns.html">Forwarding Patterns</a></li><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Edge/Buffered_Edges.html">Buffered Edges</a></li><li class='Nav__item '><a href="Understanding_Jet_Architecture_and_API/Edge/Tuning_Edges.html">Tuning Edges</a></li></ul></li></ul></li><li class='Nav__item  has-children'><a href="Tutorial_-_Building_an_Inverted_TF-IDF_Index_with_Core_API/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>Tutorial - Building an Inverted TF-IDF Index with Core API</a><ul class='Nav'><li class='Nav__item '><a href="Tutorial_-_Building_an_Inverted_TF-IDF_Index_with_Core_API/Building_Inverted_Index_with_Java_Streams.html">Building Inverted Index with Java Streams</a></li><li class='Nav__item  has-children'><a href="Tutorial_-_Building_an_Inverted_TF-IDF_Index_with_Core_API/Translating_to_Jet_DAG/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>Translating to Jet DAG</a><ul class='Nav'><li class='Nav__item '><a href="Tutorial_-_Building_an_Inverted_TF-IDF_Index_with_Core_API/Translating_to_Jet_DAG/Partitioning_and_Merging_Partial_Results.html">Partitioning and Merging Partial Results</a></li><li class='Nav__item '><a href="Tutorial_-_Building_an_Inverted_TF-IDF_Index_with_Core_API/Translating_to_Jet_DAG/DAG_Vertices_-_Computation_Steps.html">DAG Vertices - Computation Steps</a></li><li class='Nav__item '><a href="Tutorial_-_Building_an_Inverted_TF-IDF_Index_with_Core_API/Translating_to_Jet_DAG/DAG_Edges_-_Data_Routing_Concerns.html">DAG Edges - Data Routing Concerns</a></li><li class='Nav__item '><a href="Tutorial_-_Building_an_Inverted_TF-IDF_Index_with_Core_API/Translating_to_Jet_DAG/Partitioning_Strategy.html">Partitioning Strategy</a></li><li class='Nav__item '><a href="Tutorial_-_Building_an_Inverted_TF-IDF_Index_with_Core_API/Translating_to_Jet_DAG/Implementing_the_Vertex_Computation.html">Implementing the Vertex Computation</a></li></ul></li></ul></li><li class='Nav__item  has-children'><a href="Understanding_Configuration/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>Understanding Configuration</a><ul class='Nav'><li class='Nav__item '><a href="Understanding_Configuration/Configuring_Programatically.html">Configuring Programatically</a></li><li class='Nav__item '><a href="Understanding_Configuration/Configuring_Declaratively.html">Configuring Declaratively</a></li><li class='Nav__item '><a href="Understanding_Configuration/Configuring_Underlying_Hazelcast_Instance.html">Configuring Underlying Hazelcast Instance</a></li></ul></li><li class='Nav__item  has-children'><a href="Implementing_Custom_Sources_and_Sinks/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>Implementing Custom Sources and Sinks</a><ul class='Nav'><li class='Nav__item '><a href="Implementing_Custom_Sources_and_Sinks/Sources.html">Sources</a></li><li class='Nav__item '><a href="Implementing_Custom_Sources_and_Sinks/Example_-_Distributed_Integer_Generator.html">Example - Distributed Integer Generator</a></li><li class='Nav__item '><a href="Implementing_Custom_Sources_and_Sinks/Sinks.html">Sinks</a></li><li class='Nav__item '><a href="Implementing_Custom_Sources_and_Sinks/Example_-_File_Writer.html">Example - File Writer</a></li></ul></li><li class='Nav__item  has-children'><a href="java-util-stream_Support_for_Hazelcast_IMDG/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>java-util-stream Support for Hazelcast IMDG</a><ul class='Nav'><li class='Nav__item '><a href="java-util-stream_Support_for_Hazelcast_IMDG/Simple_Example.html">Simple Example</a></li><li class='Nav__item '><a href="java-util-stream_Support_for_Hazelcast_IMDG/Serializable_Lambda_Functions.html">Serializable Lambda Functions</a></li><li class='Nav__item '><a href="java-util-stream_Support_for_Hazelcast_IMDG/Distributed_Collectors.html">Distributed Collectors</a></li><li class='Nav__item '><a href="java-util-stream_Support_for_Hazelcast_IMDG/Word_Count.html">Word Count</a></li><li class='Nav__item '><a href="java-util-stream_Support_for_Hazelcast_IMDG/Implementation_Notes.html">Implementation Notes</a></li></ul></li><li class='Nav__item  has-children'><a href="Additional_Modules/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>Additional Modules</a><ul class='Nav'><li class='Nav__item  has-children'><a href="Additional_Modules/hazelcast-jet-hadoop/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>hazelcast-jet-hadoop</a><ul class='Nav'><li class='Nav__item '><a href="Additional_Modules/hazelcast-jet-hadoop/ReadHdfsP.html">ReadHdfsP</a></li><li class='Nav__item '><a href="Additional_Modules/hazelcast-jet-hadoop/WriteHdfsP.html">WriteHdfsP</a></li><li class='Nav__item '><a href="Additional_Modules/hazelcast-jet-hadoop/Serialization_of_Writables.html">Serialization of Writables</a></li></ul></li><li class='Nav__item  has-children'><a href="Additional_Modules/hazelcast-jet-kafka/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>hazelcast-jet-kafka</a><ul class='Nav'><li class='Nav__item '><a href="Additional_Modules/hazelcast-jet-kafka/StreamKafkaP.html">StreamKafkaP</a></li><li class='Nav__item '><a href="Additional_Modules/hazelcast-jet-kafka/WriteKafkaP.html">WriteKafkaP</a></li></ul></li></ul></li><li class='Nav__item  has-children'><a href="Best_Practices/index.html" class="folder"><i class="Nav__arrow">&nbsp;</i>Best Practices</a><ul class='Nav'><li class='Nav__item '><a href="Best_Practices/Jobs.html">Jobs</a></li></ul></li></ul>
+
+            <div class="Links">
+                                    <hr/>
+                                            <a href="https://github.com/hazelcast/hazelcast-jet" target="_blank">GitHub Repo</a>
+                        <br />
+                                            <a href="https://github.com/hazelcast/hazelcast-jet/issues/new" target="_blank">Send Us a Fix</a>
+                        <br />
+                                            <a href="http://jet.hazelcast.org/documentation/" target="_blank">Go to Jet documentation</a>
+                        <br />
+                                    
+                                    <div class="CodeToggler">
+                        <hr/>
+                                                    <a class="CodeToggler__button CodeToggler__button--main" href="#">Show Code Blocks Inline</a><br>
+                                            </div>
+                
+                            </div>
+        </div>
+    </aside>
+    <div class="Columns__right ">
+        <div class="Columns__right__content">
+            <div class="doc_content">
+                <article class="Page">
+
+    <div class="Page__header">
+        <h1><a href="Preface.html">Preface</a></h1>
+                    </div>
+
+
+    <div class="s-content">
+        <h2 id="page_Naming">Naming</h2>
+<ul>
+<li>
+<strong>Hazelcast Jet</strong> or <strong>Jet</strong> both refer to the same distributed data processing engine provided by Hazelcast, Inc.</li>
+<li>
+<strong>Hazelcast</strong> or <strong>Hazelcast IMDG</strong> both refer to Hazelcast in-memory data grid middleware. <strong>Hazelcast</strong> is also the name of the company (Hazelcast, Inc.) providing Hazelcast IMDG and Hazelcast Jet.</li>
+</ul>
+<h2 id="page_License">License</h2>
+<p>Hazelcast Jet and Hazelcast Jet Reference Manual are free and provided under the Apache
+License, Version 2.0.</p>
+<h2 id="page_Trademarks">Trademarks</h2>
+<p>Hazelcast is a registered trademark of Hazelcast, Inc. All other
+trademarks in this manual are held by their respective owners.</p>
+<h2 id="page_Getting+Help">Getting Help</h2>
+<p>Support for Hazelcast Jet is provided via <a href="https://github.com/hazelcast/hazelcast-jet" class="external">GitHub</a>, <a href="https://groups.google.com/forum/#!forum/hazelcast-jet" class="external">Hazelcast Jet mailing list </a> and
+<a href="http://www.stackoverflow.com" class="external">Stack Overflow</a>.</p>
+<p>For information on the commercial support for Hazelcast Jet, please see
+<a href="https://hazelcast.com/pricing/" class="external">hazelcast.com</a>.</p>
+<h2 id="page_Typographical+Conventions">Typographical Conventions</h2>
+<p>Below table shows the conventions used in this manual.</p>
+<table>
+<thead>
+<tr>
+<th align="left">Convention</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>bold font</strong></td>
+<td align="left">- Indicates part of a sentence that requires the reader's specific attention. <br> - Also indicates property/parameter values.</td>
+</tr>
+<tr>
+<td align="left"><em>italic font</em></td>
+<td align="left">- When italicized words are enclosed with &quot;&lt;&quot; and &quot;&gt;&quot;, it indicates a variable in the command or code syntax that you must replace (for example, <code>hazelcast-&lt;</code><em>version</em><code>&gt;.jar</code>). <br> - Note and Related Information texts are in italics.</td>
+</tr>
+<tr>
+<td align="left"><code>monospace</code></td>
+<td align="left">Indicates files, folders, class and library names, code snippets, and inline code words in a sentence.</td>
+</tr>
+<tr>
+<td align="left"><strong><em>RELATED INFORMATION</em></strong></td>
+<td align="left">Indicates a resource that is relevant to the topic, usually with a link or cross-reference.</td>
+</tr>
+<tr>
+<td align="left"><img src="images/NoteSmall.jpg" alt="image" /> <strong><em>NOTE</em></strong></td>
+<td align="left">Indicates information that is of special interest or importance, for example an additional action required only in certain circumstances.</td>
+</tr>
+<tr>
+<td align="left">element &amp; attribute</td>
+<td align="left">Mostly used in the context of declarative configuration that you perform using an XML file. Element refers to an XML tag used to configure a feature. Attribute is a parameter owned by an element, contributing into the declaration of that element's configuration. Please see the following example.<br></br><code>&lt;property name=&quot;property1&quot;&gt;value1&lt;/property&gt;</code><br></br> In this example, <code>name</code> is an <strong>attribute</strong> of the <code>property</code> <strong>element</strong>.</td>
+</tr>
+</tbody>
+</table>
+    </div>
+
+        <nav>
+        <ul class="Pager">
+            <li class=Pager--prev><a href="index.html">Previous</a></li>            <li class=Pager--next><a href="Introduction/index.html">Next</a></li>        </ul>
+    </nav>
+    </article>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-12653604-10', '');
+    ga('send', 'pageview');
+</script>
+
+    <!-- jQuery -->
+    <script src="themes/daux/js/jquery-1.11.3.min.js"></script>
+
+    <!-- hightlight.js -->
+    <script src="themes/daux/js/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <!-- JS -->
+    
+    <script src="themes/daux/js/daux.js"></script>
+
+            <!-- Tipue Search -->
+        <script type="text/javascript" src="tipuesearch/tipuesearch.js"></script>
+
+        <script>
+            window.onunload = function(){}; // force $(document).ready to be called on back/forward navigation in firefox
+            $(function() {
+                tipuesearch({
+                    'base_url': ''
+                });
+            });
+        </script>
+    
+</body>
+</html>

@@ -1,3 +1,8 @@
+A Job is the unit of work which is executed. A Job is described by a
+DAG, which describes the computation to be performed, and the inputs and
+outputs of the computation.
+
+
 `Job` is a handle to the execution of a `DAG`. To create a job,
 supply the `DAG` to a previously created `JetInstance` as shown below:
 
