@@ -49,7 +49,7 @@ private static Entry<Long, Double> tfidfEntry(
         Entry<Entry<Long, String>, Long> tfEntry, Double idf
 ) {
     final Long tf = tfEntry.getValue();
-    return entry(tfEntry.getKey().getKey(), tf idf);
+    return entry(tfEntry.getKey().getKey(), tf * idf);
 }
 ```
 

@@ -1,28 +1,33 @@
-Let's say we want to write a simple source, which generates numbers from
+Let's say we want to write a simple source that will generate numbers from
 0 to 1,000,000 (exclusive). It is trivial to write a single `Processor`
 which can do this using `java.util.stream` and [`Traverser`](../04_Understanding_Jet_Architecture_and_API/05_Convenience_API_to_Implement_a_Processor/01_Traverser.md).
 
 ```java
-public static class NumberGenerator extends AbstractProcessor {
+class GenerateNumbersP extends AbstractProcessor {
 
     private final Traverser<Integer> traverser;
 
-    public NumberGenerator(int limit) {
-        traverser = traverseStream(IntStream.range(0, limit).boxed());
+    GenerateNumbersP(int upperBound) {
+        traverser = Traversers.traverseStream(IntStream.range(0, upperBound).boxed());
     }
 
     @Override
     public boolean complete() {
-        return emitCooperatively(traverser);
+        return emitFromTraverser(traverser);
     }
 }
 ```
 
-We will also add a simple logging processor, so we can see what values
-are generated and received:
+We will also add a simple logging processor so we can see what values
+are generated:
 
 ```java
-public static class PeekProcessor extends AbstractProcessor {
+class LogInputP extends AbstractProcessor {
+
+    LogInputP() {
+        setCooperative(false);
+    }
+
     @Override
     protected boolean tryProcess(int ordinal, @Nonnull Object item) {
         System.out.println("Received number: " + item);
@@ -32,15 +37,23 @@ public static class PeekProcessor extends AbstractProcessor {
 }
 ```
 
-You can then build your DAG as follows and execute it:
+Now we can build our DAG and execute it:
 
 ```java
-final int limit = 10;
-dag.newVertex("number-generator", () -> new NumberGenerator(limit));
-// Vertex logger = dag.newVertex("logger-vertex", PeekProcessor::new);
-dag.edge(Edge.between(generator, logger));
+JetInstance jet = Jet.newJetInstance();
 
-jet.newJob(dag).execute().get();
+int upperBound = 10;
+DAG dag = new DAG();
+Vertex generateNumbers = dag.newVertex("generate-numbers",
+        () -> new GenerateNumbersP(upperBound));
+Vertex logInput = dag.newVertex("log-input", LogInputP::new);
+dag.edge(Edge.between(generateNumbers, logInput));
+
+try {
+    jet.newJob(dag).execute().get();
+} finally {
+    Jet.shutdownAll();
+}
 ```
 
 When you run this code, you will see the output as below:
@@ -55,82 +68,108 @@ Received number: 2
 ```
 
 Since we are using the default parallelism setting on this vertex,
-several instances of this processor are created, all of which will be
-generating the same sequence of values.
+several instances of the source processor were created, all of which
+generated the same sequence of values. Generally we'll want the ability
+to parallelize the source vertex, so we have to make each processor emit
+only a slice of the total data set.
 
-What we actually want is to generate a subset of the
-values for each processor. We will start by partitioning the data according to its
-remainder,  when divided by the total number of processors. For example,
-if we have 8 processors, numbers which have a remainder of 1 when
-divided by 8, will go to processor with index 1.
+So far we've used the simplest approach to creating processors: a
+`Supplier<Processor>` function that keeps returning equal instances of
+processors. Now we'll step up to Jet's custom interface that gives us
+the ability to provide a list of separately configured processors:
+`ProcessorSupplier` and its method `get(int processorCount)`. 
 
-To do this, we need to implement the `ProcessorSupplier` API:
+First we must decide on a partitioning policy: what subset will each
+processor emit. In our simple example we can use a simple policy: we'll
+label each processor with its index in the list and have it emit only
+those numbers `n` that satisfy `n % processorCount == processorIndex`.
+Let's write a new constructor for our processor which implements this
+partitioning logic:
 
 ```java
-static class NumberGeneratorSupplier implements ProcessorSupplier {
-
-    private final int limit;
-
-    public NumberGeneratorSupplier(int limit) {
-        this.limit = limit;
-    }
-
-    @Nonnull
-    @Override
-    public List<? extends Processor> get(int count) {
-        // each processor is responsible for a subset of the numbers.
-        return IntStream.range(0, count)
-                        .mapToObj(index ->
-                            new NumberGenerator(IntStream.range(0, limit)
-                                                         .filter(n -> n % count == index))
-                        )
-                        .collect(Collectors.toList());
-    }
+GenerateNumbersP(int upperBound, int processorCount, int processorIndex) {
+    traverser = Traversers.traverseStream(
+            IntStream.range(0, upperBound)
+                     .filter(n -> n % processorCount == processorIndex)
+                     .boxed());
 }
+```
 
-static class NumberGenerator extends AbstractProcessor {
+Given this preparation, implementing `ProcessorSupplier` is trivial:
 
-    private final Traverser<Integer> traverser;
+```java
+class GenerateNumbersPSupplier implements ProcessorSupplier {
 
-    public NumberGenerator(IntStream stream) {
-        traverser = traverseStream(stream.boxed());
+    private final int upperBound;
+
+    GenerateNumbersPSupplier(int upperBound) {
+        this.upperBound = upperBound;
     }
 
-    @Override
-    public boolean complete() {
-        return emitCooperatively(traverser);
+    @Override @Nonnull
+    public List<? extends Processor> get(int processorCount) {
+        return IntStream.range(0, processorCount)
+                .mapToObj(index -> new GenerateNumbersP(upperBound, processorCount, index))
+                .collect(Collectors.toList());
     }
 }
 ```
 
-With this approach, each instance of processor will only generate a
-subset of the numbers, with each instance generating the numbers where
-the remainder of the number divided `count` matches the index of the
-processor.
-
-If we add another member to the cluster, we will quickly see that both
-members are generating the same sequence of numbers. We need to distribute
-the work across the cluster, by making sure that each member will generate
-a subset of the numbers. We will again follow a similar approach as
-above, but now we need to be aware of the global index for each
-`Processor` instance.
-
-To achieve this, we need to implement a custom `ProcessorMetaSupplier`.
-A `ProcessorMetaSupplier` is called from a single _coordinator_ member,
-and creates one `ProcessorSupplier` for each member. The main partition
-allocation thus can be done by the `ProcessorMetaSupplier`. Our
-distributed number generator source could then look as follows:
+Let's use the custom processor supplier in our DAG-building code:
 
 ```java
-static class NumberGeneratorMetaSupplier implements ProcessorMetaSupplier {
+DAG dag = new DAG();
+Vertex generateNumbers = dag.newVertex("generate-numbers",
+        new GenerateNumbersPSupplier(10));
+Vertex logInput = dag.newVertex("log-input", LogInputP::new);
+dag.edge(Edge.between(generateNumbers, logInput));
+```
 
-    private final int limit;
+Now we can re-run our example and see that indeed each number occurs
+only once. However, note that we are still working with a single-member
+Jet cluster; let's see what happens when we add another member:
+
+```java
+JetInstance jet = Jet.newJetInstance();
+Jet.newJetInstance();
+
+DAG dag = new DAG();
+...
+```
+
+------------------------------------------------------------------------
+
+Running after this change we'll see that both members are generating the
+same set of numbers. This is because `ProcessorSupplier` is instantiated
+independently for each member and asked for the same number of
+processors, resulting in identical processors on all members. We have to
+solve the same problem as we just did, but at the higher level of
+cluster-wide parallelism. For that we'll need the
+`ProcessorMetaSupplier`: an interface which acts as a factory of
+`ProcessorSupplier`s, one for each cluster member. Under the hood it is
+actually always the meta-supplier that's created by the DAG-building
+code; the above examples are just implicit about it for the sake of
+convenience. They result in a simple meta-supplier that reuses the
+provided suppliers everywhere.
+
+The meta-supplier is a bit trickier to implement because its method
+takes a list of Jet member addresses instead of a simple count, and the
+return value is a function from address to `ProcessorSupplier`. In our
+case we'll treat the address as just an opaque ID and we'll build a map
+from address to a properly configured `ProcessorSupplier`. Then we can
+simply return `map::get` as our function.
+
+
+```java
+class GenerateNumbersPMetaSupplier implements ProcessorMetaSupplier {
+
+    private final int upperBound;
 
     private transient int totalParallelism;
     private transient int localParallelism;
 
-    NumberGeneratorMetaSupplier(int limit) {
-        this.limit = limit;
+    GenerateNumbersPMetaSupplier(int upperBound) {
+        this.upperBound = upperBound;
     }
 
     @Override
@@ -139,27 +178,37 @@ static class NumberGeneratorMetaSupplier implements ProcessorMetaSupplier {
         localParallelism = context.localParallelism();
     }
 
-
     @Override @Nonnull
     public Function<Address, ProcessorSupplier> get(@Nonnull List<Address> addresses) {
         Map<Address, ProcessorSupplier> map = new HashMap<>();
         for (int i = 0; i < addresses.size(); i++) {
-            Address address = addresses.get(i);
-            int start = i * localParallelism;
-            int end = (i + 1) * localParallelism;
-            int mod = totalParallelism;
-            map.put(address, count -> range(start, end)
-                    .mapToObj(index -> new NumberGenerator(range(0, limit).filter(f -> f % mod == index)))
-                    .collect(toList())
-            );
+            // We'll calculate the global index of each processor in the cluster:
+            int globalIndexBase = localParallelism * i;
+            // Capture the value of the transient field for the lambdas below:
+            int divisor = totalParallelism;
+            // processorCount will be equal to localParallelism:
+            ProcessorSupplier supplier = processorCount ->
+                    range(globalIndexBase, globalIndexBase + processorCount)
+                            .mapToObj(globalIndex ->
+                                new GenerateNumbersP(upperBound, divisor, globalIndex)
+                            ).collect(toList());
+            map.put(addresses.get(i), supplier);
         }
         return map::get;
     }
+
 }
 ```
 
-The vertex creation can then be updated as follows:
+We change our DAG-building code to use the meta-supplier:
 
 ```java
-Vertex generator = dag.newVertex("number-generator", new NumberGeneratorMetaSupplier(limit));
+DAG dag = new DAG();
+Vertex generateNumbers = dag.newVertex("generate-numbers",
+        new GenerateNumbersPMetaSupplier(upperBound));
+Vertex logInput = dag.newVertex("log-input", LogInputP::new);
+dag.edge(Edge.between(generateNumbers, logInput));
 ```
+
+After re-running with two Jet members, we should once again see each
+number generated just once.

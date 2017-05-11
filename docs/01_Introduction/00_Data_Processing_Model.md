@@ -1,10 +1,10 @@
 Hazelcast Jet provides high performance in-memory data processing by
-modeling a computation as a _Directed Acyclic Graph (DAG)_ of processing
-vertices. Each _vertex_ performs a step in the computation and emits
-data items for the vertices it is connected to. A single vertex's
+modeling the computation as a _Directed Acyclic Graph (DAG)_ where
+vertices represent computation and edges represent data connections. A
+vertex receives data from its inbound edges, performs a step in the
+computation, and emits data to its outbound edges. A single vertex's
 computation work is performed in parallel by many instances of the
-`Processor` type around the cluster. The different vertices are linked
-together through _edges_.
+`Processor` type around the cluster.
 
 One of the major reasons to divide the full computation task into
 several vertices is _data partitioning_: the ability to split the data

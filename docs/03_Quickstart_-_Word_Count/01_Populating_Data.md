@@ -23,7 +23,9 @@ map.put(14, "in short, the period was so far like the present period, that some 
    + "evil, in the superlative degree of comparison only.");
 ```
 
-You might wonder why we are using a map for a sequence of lines. The
-reason is that the complete list is stored on a single cluster member,
-whereas the map is sharded according to each entry's key and distributed
-across the cluster.
+You might wonder why we are using a map instead of a list for a sequence
+of lines. Hazelcast stores the complete list on a single cluster member,
+whereas the map is sharded by the entry's key and distributed across the
+cluster. When a Jet job uses a Hazelcast map as its data source, it
+automatically leverages data locality by reading on each node only the
+data stored on that node.

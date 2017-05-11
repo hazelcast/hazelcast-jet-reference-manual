@@ -1,89 +1,33 @@
-In this example, we will implement a simple DAG that dumps a Hazelcast
-IMap into a folder.
-
-As file writing will be distributed, we want each Processor writing to
-a separate file, but within the same folder.
-
-We can achieve this by implementing a `ProcessorSupplier` and
-a corresponding `Processor`:
+In this example we'll implement a vertex that writes the received items
+to files. To avoid contention and conflicts, each processor must write
+to its own file. Since we'll be using a `BufferedWriter` which takes
+care of the buffering/batching concern, we can use the simpler approach
+of extending `AbstractProcessor`:
 
 ```java
-static class Supplier implements ProcessorSupplier {
+class WriteFileP extends AbstractProcessor implements Closeable {
 
-    private final String path;
-
-    private transient List<Writer> writers;
-
-    Supplier(String path) {
-        this.path = path;
-    }
-
-    @Override
-    public void init(@Nonnull Context context) {
-        new File(path).mkdirs();
-    }
-
-    @Nonnull @Override
-    public List<Writer> get(int count) {
-        return writers = range(0, count)
-                .mapToObj(e -> new Writer(path))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public void complete(Throwable error) {
-        writers.forEach(p -> {
-            try {
-                p.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-}
-```
-
-It can be seen in the implementation that `ProcessorSupplier` holds a
-reference to all the Processors. This is not normally necessary, but in
-this case we want to be able to close all the file writers gracefully
-when the job execution is completed. `complete()` in `ProcessorSupplier`
-is always called, even if the job fails with an exception or is
-cancelled.
-
-The `Processor` implementation itself is fairly straightforward:
-
-```java
-static class Writer extends AbstractProcessor implements Closeable {
-
-    static final Charset UTF8 = Charset.forName("UTF-8");
     private final String path;
 
     private transient BufferedWriter writer;
 
-    Writer(String path) {
+    WriteFileP(String path) {
+        setCooperative(false);
         this.path = path;
     }
 
     @Override
     protected void init(@Nonnull Context context) throws Exception {
-        Path path = Paths.get(this.path, context.jetInstance().getName() + "-" + context.index());
-        try {
-            writer = Files.newBufferedWriter(path, UTF8);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Path path = Paths.get(this.path, context.jetInstance().getName()
+                + '-' + context.globalProcessorIndex());
+        writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
     }
 
     @Override
-    protected boolean tryProcess(int ordinal, @Nonnull Object item) throws Exception {
+    protected boolean tryProcess(int ordinal, Object item) throws Exception {
         writer.append(item.toString());
         writer.newLine();
         return true;
-    }
-
-    @Override
-    public boolean isCooperative() {
-        return false;
     }
 
     @Override
@@ -95,12 +39,61 @@ static class Writer extends AbstractProcessor implements Closeable {
 }
 ```
 
-The `init` method appends the current member name as well as the processor
-index to the file name. This ensures that each `Processor` instance is
-writing to a unique file.
+Some comments:
 
-The `close` method is called by the `Supplier`, after the job execution is
-completed.
+* The constructor declares the processor [non-cooperative](/04_Understanding_Jet_Architecture_and_API/03_Processor/00_Cooperative_Multithreading.md) 
+because it will perform blocking IO operations.
+* `init()` method finds a unique filename for each processor by relying
+on the information reachable from the `Context` object.
+* Note the careful implementation of `close()`: it first checks if
+writer is null, which can happen if `newBufferedWriter()` fails in
+`init()`. This would make `init()` fail as well, which would make the
+whole job fail and then our `ProcessorSupplier` would call `close()`
+to clean up.
 
-This processor is also marked as [_non-cooperative_](/04_Understanding_Jet_Architecture_and_API/03_Processor/00_Cooperative_Multithreading.md)
-since it makes blocking calls to the file system.
+Cleaning up on completion/failure is actually the only concern that we
+need `ProcessorSupplier` for: the other typical concern, specializing
+processors to achieve data partitioning, was achieved directly from the
+processor's code. This is the supplier's code:
+
+```java
+class WriteFilePSupplier implements ProcessorSupplier {
+
+    private final String path;
+
+    private transient List<WriteFileP> processors;
+
+    WriteFilePSupplier(String path) {
+        this.path = path;
+    }
+
+    @Override
+    public void init(@Nonnull Context context) {
+        File homeDir = new File(path);
+        boolean success = homeDir.isDirectory() || homeDir.mkdirs();
+        if (!success) {
+            throw new JetException("Failed to create " + homeDir);
+        }
+    }
+
+    @Override @Nonnull
+    public List<WriteFileP> get(int count) {
+        processors = Stream.generate(() -> new WriteFileP(path))
+                           .limit(count)
+                           .collect(Collectors.toList());
+        return processors;
+    }
+
+    @Override
+    public void complete(Throwable error) {
+        for (WriteFileP p : processors) {
+            try {
+                p.close();
+            } catch (IOException e) {
+                throw new JetException(e);
+            }
+        }
+    }
+}
+```
+
