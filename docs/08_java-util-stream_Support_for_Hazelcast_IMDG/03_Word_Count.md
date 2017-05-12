@@ -1,5 +1,5 @@
 The word count example that was described in the
-[Quickstart - Word Count chapter](/03_Quickstart_-_Word_Count) can be rewritten
+[Hazelcast Jet 101](/03_Hazelcast_Jet_101_-Word_Counting_Batch_Job) chapter can be rewritten
 using the `java.util.stream` API as follows:
 
 ```java
