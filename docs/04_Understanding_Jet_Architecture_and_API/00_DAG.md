@@ -5,13 +5,13 @@ transfer.
 
 ![DAG](../images/dag.png)
 
-Each vertex's computation is implemented by a subtype of the `Processor`
+Each vertex's computation is implemented as a subtype of the `Processor`
 interface. On each member there are one or more instances of the
 processor running in parallel for a single vertex; their number is
-configured using its `localParallelism` attribute. Generally the
-processor is implemented by the user, but there are some ready-made
-implementations in Jet's library for common operations like `flatMap`
-and `groupBy`.
+configured using its `localParallelism` attribute. Jet's API tries to
+make it as painless as possible to implement a processor and there are
+some ready-made implementations in the library for common operations
+like `flatMap` and `groupBy`.
 
 Data sources and sinks are implemented as `Processor`s as well and are
 used for the terminal vertices of the DAG. A source can be distributed,
@@ -22,9 +22,10 @@ local storage. _Data partitioning_ is used to route each slice to its
 target member. Examples of distributed sources supported by Jet are HDFS
 files and Hazelcast's `IMap`, `ICache` and `IList`.
 
-_Edges_ transfer data from one vertex to the next and contain the
-partitioning logic which ensures that each item is sent to its target
-processor.
+_Edges_ transfer data from one vertex to the next and contain the logic
+that decides which target processor an item should be routed to. This
+could be guided by the partitioning logic, or could be one of the other
+choices like broadcast or pooling. An edge may be configured to keep the data within a member, routing only to local processors. This allows us to design DAGs which optimally balance network and memory usage.
 
 After a `Job` is created, the DAG is replicated to the whole Jet cluster
 and executed in parallel on each member.
@@ -57,5 +58,5 @@ so any data type can be used to transfer the data between vertices.
 Ringbuffers, being bounded queues, introduce natural back pressure into
 the system; if a consumer’s ringbuffer is full, the producer will have
 to back off until it can enqueue the next item. When data is sent to
-another member over the network, there is no natural back pressure, so
+another member over the network, there is no natural backpressure, so
 Jet uses explicit signaling in the form of adaptive receive windows.

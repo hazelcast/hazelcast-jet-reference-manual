@@ -12,14 +12,14 @@ tasklets, concurrent queues, network senders/receivers, etc.
 6. The coordinator sends the signal to all members to start job execution.
 
 The most visible consequence of the above process is the
-`ProcessorMetaSupplier` type: you must provide one for each
+`ProcessorMetaSupplier` type: one must be provided for each
 `Vertex`. In Step 3, the coordinator deserializes the meta-supplier as a
 constituent of the `DAG` and asks it to create `ProcessorSupplier`
 instances which go into the execution plans. A separate instance of
 `ProcessorSupplier` is created specifically for each member's plan. In
-Step 4, the coordinator serializes these and sends each to its member. In
-Step 5 each member deserializes its `ProcessorSupplier` and asks it to
-create as many `Processor` instances as configured by the vertex's
+Step 4, the coordinator serializes these and sends each to its member.
+In Step 5 each member deserializes its `ProcessorSupplier` and asks it
+to create as many `Processor` instances as configured by the vertex's
 `localParallelism` property.
 
 This process is so involved because each `Processor` instance may need

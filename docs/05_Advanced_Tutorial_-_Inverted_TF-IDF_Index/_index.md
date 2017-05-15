@@ -1,20 +1,19 @@
-In this tutorial we'll cover most of the topics involved in building a
-batch processing job with Jet's Core API. We'll show you how to decide
-on processor parallelism, partitioning and forwarding patterns on edges,
-and how to optimally leverage the Core API to build the vertex logic
-with minimum boilerplate.
+In this tutorial we'll explore what the DAG model offers beyond the
+simple cascade of computing steps. Our DAG will feature splits, joins,
+broadcast, and prioritized edges. We'll access data from the file system
+and show a simple technique to distribute file reading across Jet
+members. Several vertices we use can't be implemented in terms of
+out-of-the-box processors, so we'll also show you how to implement your
+own with minimum boilerplate.
 
 The full code is available at the `hazelcast-jet-code-samples`
 repository:
 
-[TfIdfJdkStreams.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core/tf-idf/src/main/java/TfIdfJdkStreams.java)
+[TfIdfJdkStreams.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
 
-[TfIdf.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core/tf-idf/src/main/java/TfIdf.java)
+[TfIdf.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdf.java)
 
-Our example, the inverted index, is a basic data structure in the domain
-of full-text search. The goal is to be able to quickly find the
-documents that contain a given set of search terms, and to sort them by
-relevance. To understand it we'll need to throw in some terminology...
+Let us first introduce the problem. The inverted index is a basic data structure in the domain of full-text search. First used in the 1950s, it is still at the core of modern information retrieval systems such as Lucene. The goal is to be able to quickly find the documents that contain a given set of search terms, and to sort them by relevance. To understand it we'll need to throw in some terminology...
 
 - A _document_ is treated as a list of words that has a unique ID. It is
 useful to define the notion of a _document index_ which maps each
@@ -60,7 +59,9 @@ user.
 
 Let's have a look at a specific search phrase:
 
-    the man in the black suit murdered the king
+```text
+the man in the black suit murdered the king
+```
 
 The list of documents that contain all the above words is quite long...
 how do we decide which are the most relevant? The TF-IDF logic will make

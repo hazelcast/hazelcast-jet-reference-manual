@@ -1,9 +1,9 @@
 Vertex is the main unit of work in a Jet computation. Conceptually, it
 receives input from its inbound edges and emits data to its outbound
 edges. Practically, it is a number of `Processor` instances which
-receive each of its own part of the full stream traveling over the inbound
-edges, and likewise emits its own part of the full stream going down
-the outbound edges.
+receive each of its own part of the full stream traveling over the
+inbound edges, and likewise emits its own part of the full stream going
+down the outbound edges.
 
 ### Edge Ordinal
 

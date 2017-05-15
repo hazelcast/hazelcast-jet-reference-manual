@@ -1,14 +1,24 @@
 To warm us up, let's see what it takes to build the inverted index with
 just thread parallelism and without the ability to scale out across
 many machines. It is expressible in Java Streams API without too much
-work.
+work. The full code is [here](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java).
 
-We'll start from the point where we already prepared a
-`Stream<Entry<Long, String>> docWords`: a stream of all the words found
-in all the documents. We use `Map.Entry` as a holder of a pair of values
-(a 2-tuple) and here we have a pair of `Long docId` and `String word`.
-We also already know the number of all documents and have a `double
-logDocCount`, the logarithm of the document count, ready.
+We'll start by preparing a `Stream<Entry<Long, String>> docWords`: a stream of all the words found in all the documents. We use `Map.Entry` as a holder of a pair of values (a 2-tuple) and here we have a pair of `Long docId` and `String word`:
+
+
+```java
+Stream<Entry<Long, String>> docWords = docId2Name
+        .entrySet()
+        .parallelStream()
+        .flatMap(TfIdfJdkStreams::docLines)
+        .flatMap(this::tokenize);
+```
+
+We know the number of all documents so we can compute `double logDocCount`, the logarithm of the document count:
+
+```java
+double logDocCount = Math.log(docId2Name.size());
+```
 
 Calculating TF is very easy, just count the number of occurrences of
 each distinct pair and save the result in a `Map<Entry<Long, String>,

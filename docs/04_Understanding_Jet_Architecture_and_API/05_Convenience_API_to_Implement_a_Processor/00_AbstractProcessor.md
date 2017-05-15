@@ -12,10 +12,11 @@ of the ordinal-specific methods. The catch-all method is also the only
 way to access inbound edges beyond ordinal 4, but such cases are very
 rare in practice.
 
-A major complication arises from the requirement to observe the outbox
-limits during a single processing step. If the processor emits many
-items per step, the loop doing this must support being suspended at any
-point and resumed later. This need arises in two typical cases:
+A major complication arises from the fact that the outbox has limited
+capacity and can refuse an item at any time. The processor must be
+implemented to expect this, and when it happens it must save its state
+and return from the current invocation. Things get especially tricky
+when there are several items to emit, such as:
 
 - when a single input item maps to many output items,
 - when the processor performs an accumulating operation and emits its

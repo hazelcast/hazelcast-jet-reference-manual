@@ -20,20 +20,10 @@ corresponding to a given input item and may need to return from the
 stay in the inbox so Jet knows the processor has more work to do even if
 no new items are received.
 
-#### completeEdge()
-
-Eventually each edge will signal that its data stream is exhausted. When this
-happens, Jet calls the processor's `completeEdge()` with the ordinal of
-the completed edge.
-
-The processor may want to emit any number of items upon this event, and
-it may be prevented from emitting all due to a full outbox. In this case
-it may return `false` and will be called again later.
-
 #### complete()
 
 Jet calls `complete()` after all the input edges are exhausted. It is
 the last method to be invoked on the processor before disposing of it.
-Typically this is where the processor emits the results of an
+Typically this is where a batch processor emits the results of an
 accumulating operation. If it can't emit everything in a given call, it
 should return `false` and will be called again later.

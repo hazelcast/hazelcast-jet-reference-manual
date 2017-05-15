@@ -2,11 +2,13 @@ The word count computation can be roughly divided into three steps:
 
 1. Read a line from the map ("source" step)
 2. Split the line into words ("tokenizer" step)
-3. Update the running totals for each word ("accumulator" step)
+3. Update the running totals for each word ("accumulator" s     tep)
 
 We can represent these steps as a DAG:
 
-![image](../images/wordcount-dag.jpg)
+<img alt="Word-counting DAG" 
+     src="../images/wordcount-dag.jpg"
+     height="200"/>
 
 In the simplest case the computation inside each vertex can be
 executed in turn in a single-threaded environment; however just by
@@ -15,7 +17,9 @@ steps with clear data interfaces between them. This means each vertex
 can have its own thread and they can communicate over concurrent
 queues:
 
-![image](../images/wordcount-dag-queue.jpg)
+<img alt="Word-counting DAG with concurrent queues shown" 
+     src="../images/wordcount-dag-queue.jpg"
+     height="200"/>
 
 This achieves a _pipelined_ architecture: while the tokenizer is busy
 with the regex work, the accumulator is updating the map using the data
@@ -25,7 +29,9 @@ than one CPU core and will complete that much sooner; however we're still limite
 
 Given that our input is an in-memory list of lines, the bottleneck occurs in the processing stages (tokenizing and accumulating). Let's first attack the tokenizing stage: it is a so-called "embarassingly parallelizable" task because the processing of each line is completely self-contained. At this point we have to make a clear distinction between the notions of _vertex_ and _processor_: there can be several processors doing the work of a single vertex. Let's add another tokenizing processor:
 
-![image](../images/wordcount-tokenizer.jpg)
+<img alt="Word-counting DAG with tokenizer vertex parallelized" 
+     src="../images/wordcount-tokenizer.jpg"
+     height="200"/>
 
 The input processor can now use all the available tokenizers as a pool
 and submit to any one whose queue has some room.
@@ -37,7 +43,9 @@ so that each processor is responsible for a non-overlapping subset of the
 words. In Jet we'll use a _partitioned edge_ between the tokenizer and
 the accumulator:
 
-![image](../images/wordcount-partitioned.jpg)
+<img alt="Word-counting DAG with tokenizer and accumulator parallelized"
+     src="../images/wordcount-partitioned.jpg"
+     height="200"/>
 
 As a word is emitted from the tokenizer, it goes through a
 "switchboard" stage where it's routed to the correct downstream
@@ -81,4 +89,6 @@ text we process, the larger our savings in network traffic.
 
 Jet distinguishes between _local_ and _distributed_ edges, so we'll use a _local partitioned_ edge for tokenizer->accumulator and a _distributed partitioned_ edge for accumulator->combiner. With this move we've finalized our DAG design, which can be illustrated by the following diagram:
 
-![image](../images/wordcount-distributed.jpg)
+<img alt="Word-counting DAG parallelized and distributed" 
+     src="../images/wordcount-distributed.jpg"
+     height="420"/>
