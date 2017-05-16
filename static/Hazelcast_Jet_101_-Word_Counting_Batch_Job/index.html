@@ -86,10 +86,7 @@
 
 
     <div class="s-content">
-        <p>For the first introductory example we'll go through the steps of
-creating a distributed word counting job in Hazelcast Jet. We have a
-dataset consisting of lines of text; we want to find the number of
-occurrences of each word in it. In essence, our computation is this:</p>
+        <p>In this chapter we'll introduce the basic concept of DAG-based distributed computing. We'll use a simple example that may already be familiar: there is a dataset consisting of lines of natural language text and we want to find the number of occurrences of each word in it. A single-threaded computation that does it can be expressed in just a few lines of Java:</p>
 <pre><code class="language-java">List&lt;String&gt; lines = ... // a pre-existing list
 Map&lt;String, Long&gt; counts = new HashMap&lt;&gt;();
 for (String line : lines) {
@@ -98,7 +95,8 @@ for (String line : lines) {
     }
 }
 </code></pre>
-<p>We'll show you how to model this computation as a directed graph of computation steps; we'll point out the concerns that arise when trying to make it work on a huge amount of data distributed across several machines, and we'll show you how to meet those concerns with Jet.</p>
+<p>We'll move in small increments from this towards a formulation that is ready to be executed simultaneously on all machines in a cluster, utilizing all the CPU cores on each of them.</p>
+<p>The first step will be modeling the computation as a DAG. We'll start from a single-threaded model and gradually expand it into a parallelized, distributed one, discussing at each step the concerns that arise and how to meet them. Then, in the second part, we'll show you the code to implement and run it on a Hazelcast Jet cluster.</p>
 <p>Note that here we are describing a <em>batch</em> job: the input is finite
 and present in full before the job starts. Later on we'll present a
 <em>streaming</em> job that keeps processing an infinite stream forever,

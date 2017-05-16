@@ -137,7 +137,6 @@ the items. The processor emits nothing until it has received all the
 input, and at that point it emits the hashtable as a stream of
 `Entry<String, Long>`.
 
--------------------------------------------------------------------------
 Next is the combining step which computes the grand totals from
 individual members' contributions. This is the code:
 

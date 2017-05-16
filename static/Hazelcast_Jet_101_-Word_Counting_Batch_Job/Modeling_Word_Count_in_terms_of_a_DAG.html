@@ -90,7 +90,7 @@
 <ol>
 <li>Read a line from the map (&quot;source&quot; step)</li>
 <li>Split the line into words (&quot;tokenizer&quot; step)</li>
-<li>Update the running totals for each word (&quot;accumulator&quot; s     tep)</li>
+<li>Update the running totals for each word (&quot;accumulator&quot; step)</li>
 </ol>
 <p>We can represent these steps as a DAG:</p>
 <p><img alt="Word-counting DAG" 
@@ -118,7 +118,7 @@ height="200"/></p>
 and submit to any one whose queue has some room.</p>
 <p>The next step is parallelizing the accumulator vertex, but this is
 trickier: all occurences of the same word must go to the same
-accumulator. The input to the accumulator must be <em>partitioned by word</em>
+processor. The input to the accumulator must be <em>partitioned by word</em>
 so that each processor is responsible for a non-overlapping subset of the
 words. In Jet we'll use a <em>partitioned edge</em> between the tokenizer and
 the accumulator:</p>
@@ -144,7 +144,7 @@ will be automatically partitioned and distributed between the nodes. Now
 each Jet node can just read the slice of data that was stored locally on
 it.</p>
 <p>When run in a cluster, Jet will instantiate a replica of the whole DAG on
-each node, so in total there will be two source processors, four
+each node. On a two-member cluster there will be two source processors, four
 tokenizers, and so on. The trickiest part is the partitioned edge between
 tokenizer and accumulator: each accumulator is supposed to receive its
 own subset of words. That means that, for example, a word emitted from

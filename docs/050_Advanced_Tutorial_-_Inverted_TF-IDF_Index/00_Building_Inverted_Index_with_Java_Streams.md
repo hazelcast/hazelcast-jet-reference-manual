@@ -64,9 +64,11 @@ private static Entry<Long, Double> tfidfEntry(
 ```
 
 The search function can be implemented with another Streams expression,
-which you can review in the `SearchGui` class. You can also run the
-`TfIdfJdkStreams` class and take the inverted index for a spin, making
-actual searches.
+which you can review in the [SearchGui](
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/SearchGui.java)
+class. You can also run the [TfIdfJdkStreams](
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
+class and take the inverted index for a spin, making actual searches.
 
 There is one last concept in this model that we haven't mentioned yet:
 the _stopword set_. It contains those words that are known in advance to
@@ -77,4 +79,5 @@ is zero due to zero IDF. They raise the index's memory footprint without
 providing any value. The cure is to prepare a file, `stopwords.txt`,
 which is read in advance into a `Set<String>` and used to filter out the
 words in the tokenization phase. The same set is used to cross out words
-from the user's search phrase, as if they weren't entered.
+from the user's search phrase, as if they weren't entered. We'll add this
+feature to our DAG based model in the following section.

@@ -197,7 +197,6 @@ The above function definitions can be seen to have the effect of counting
 the items. The processor emits nothing until it has received all the
 input, and at that point it emits the hashtable as a stream of
 <code>Entry&lt;String, Long&gt;</code>.</p>
-<hr />
 <p>Next is the combining step which computes the grand totals from
 individual members' contributions. This is the code:</p>
 <pre><code class="language-java">// (word, count) -&gt; (word, count)

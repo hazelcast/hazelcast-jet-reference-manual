@@ -89,7 +89,7 @@
         <p>To warm us up, let's see what it takes to build the inverted index with
 just thread parallelism and without the ability to scale out across
 many machines. It is expressible in Java Streams API without too much
-work.</p>
+work. The full code is <a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java" class="external">here</a>.</p>
 <p>We'll start by preparing a <code>Stream&lt;Entry&lt;Long, String&gt;&gt; docWords</code>: a stream of all the words found in all the documents. We use <code>Map.Entry</code> as a holder of a pair of values (a 2-tuple) and here we have a pair of <code>Long docId</code> and <code>String word</code>:</p>
 <pre><code class="language-java">Stream&lt;Entry&lt;Long, String&gt;&gt; docWords = docId2Name
         .entrySet()
@@ -137,9 +137,9 @@ private static Entry&lt;Long, Double&gt; tfidfEntry(
 }
 </code></pre>
 <p>The search function can be implemented with another Streams expression,
-which you can review in the <code>SearchGui</code> class. You can also run the
-<code>TfIdfJdkStreams</code> class and take the inverted index for a spin, making
-actual searches.</p>
+which you can review in the <a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/SearchGui.java" class="external">SearchGui</a>
+class. You can also run the <a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java" class="external">TfIdfJdkStreams</a>
+class and take the inverted index for a spin, making actual searches.</p>
 <p>There is one last concept in this model that we haven't mentioned yet:
 the <em>stopword set</em>. It contains those words that are known in advance to
 be common enough to occur in every document. Without treatment, these

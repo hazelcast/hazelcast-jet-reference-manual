@@ -2,7 +2,7 @@ The word count computation can be roughly divided into three steps:
 
 1. Read a line from the map ("source" step)
 2. Split the line into words ("tokenizer" step)
-3. Update the running totals for each word ("accumulator" s     tep)
+3. Update the running totals for each word ("accumulator" step)
 
 We can represent these steps as a DAG:
 
@@ -38,7 +38,7 @@ and submit to any one whose queue has some room.
 
 The next step is parallelizing the accumulator vertex, but this is
 trickier: all occurences of the same word must go to the same
-accumulator. The input to the accumulator must be _partitioned by word_
+processor. The input to the accumulator must be _partitioned by word_
 so that each processor is responsible for a non-overlapping subset of the
 words. In Jet we'll use a _partitioned edge_ between the tokenizer and
 the accumulator:
@@ -69,7 +69,7 @@ each Jet node can just read the slice of data that was stored locally on
 it.
 
 When run in a cluster, Jet will instantiate a replica of the whole DAG on
-each node, so in total there will be two source processors, four
+each node. On a two-member cluster there will be two source processors, four
 tokenizers, and so on. The trickiest part is the partitioned edge between
 tokenizer and accumulator: each accumulator is supposed to receive its
 own subset of words. That means that, for example, a word emitted from

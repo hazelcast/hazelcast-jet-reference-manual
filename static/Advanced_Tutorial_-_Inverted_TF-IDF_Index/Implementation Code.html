@@ -143,9 +143,9 @@ receives the stopword set over edge 0 and then it does a flatmapping
 operation on edge 1. The logic presented here uses the same approach as
 the implementation of the provided <code>Processors.flatMap()</code> processor:
 there is a single instance of <code>FlatMapper</code> that holds the business logic
-of the transformation, and <code>tryProcess1()</code> directly delegates into it. If
-<code>FlatMapper</code> is done emitting the previous items, it will accept the new
-item, apply the user-provided transformation, and start emitting the
+of the transformation, and <code>tryProcess1()</code> directly delegates into it.
+If <code>FlatMapper</code> is done emitting the previous items, it will accept the
+new item, apply the user-provided transformation, and start emitting the
 output items. If the outbox refuses a pending item, it will return
 <code>false</code>, which will make the framework call the same <code>tryProcess1()</code> method later, with the same input item.</p>
 <p>Let's show the code that creates the <code>tokenize</code>'s two inbound edges:</p>
