@@ -25,9 +25,19 @@ This achieves a _pipelined_ architecture: while the tokenizer is busy
 with the regex work, the accumulator is updating the map using the data
 the tokenizer is done with; and the source and sink stages are pumping
 the data from/to the environment. Our design is now able to engage more
-than one CPU core and will complete that much sooner; however we're still limited by the number of vertices. We'll be able utilize two or three cores regardless of how many are available. To move forward we must try to parallelize the work of each individual vertex.
+than one CPU core and will complete that much sooner; however we're
+still limited by the number of vertices. We'll be able utilize two or
+three cores regardless of how many are available. To move forward we
+must try to parallelize the work of each individual vertex.
 
-Given that our input is an in-memory list of lines, the bottleneck occurs in the processing stages (tokenizing and accumulating). Let's first attack the tokenizing stage: it is a so-called "embarassingly parallelizable" task because the processing of each line is completely self-contained. At this point we have to make a clear distinction between the notions of _vertex_ and _processor_: there can be several processors doing the work of a single vertex. Let's add another tokenizing processor:
+Given that our input is an in-memory list of lines, the bottleneck
+occurs in the processing stages (tokenizing and accumulating). Let's
+first attack the tokenizing stage: it is a so-called "embarassingly
+parallelizable" task because the processing of each line is completely
+self-contained. At this point we have to make a clear distinction
+between the notions of _vertex_ and _processor_: there can be several
+processors doing the work of a single vertex. Let's add another
+tokenizing processor:
 
 <img alt="Word-counting DAG with tokenizer vertex parallelized" 
      src="../images/wordcount-tokenizer.jpg"
@@ -87,7 +97,11 @@ O(distinctWords). Given that there are only so many words in a language,
 this is in fact a reduction from O(n) in input size to O(1). The more
 text we process, the larger our savings in network traffic.
 
-Jet distinguishes between _local_ and _distributed_ edges, so we'll use a _local partitioned_ edge for tokenizer->accumulator and a _distributed partitioned_ edge for accumulator->combiner. With this move we've finalized our DAG design, which can be illustrated by the following diagram:
+Jet distinguishes between _local_ and _distributed_ edges, so we'll use
+a _local partitioned_ edge for tokenizer->accumulator and a _distributed
+partitioned_ edge for accumulator->combiner. With this move we've
+finalized our DAG design, which can be illustrated by the following
+diagram:
 
 <img alt="Word-counting DAG parallelized and distributed" 
      src="../images/wordcount-distributed.jpg"
