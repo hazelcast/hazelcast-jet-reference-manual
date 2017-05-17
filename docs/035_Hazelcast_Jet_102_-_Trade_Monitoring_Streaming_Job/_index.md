@@ -14,7 +14,7 @@ We saw how the grouping processor keeps accumulating the data until the input is
 
 ## Time ordering
 
-Usually the time of observing the event is a data field in the stream item. There is no guarantee that items will occur in the stream ordered by the value of that field; in fact in many cases it is certain that they won't. Consider events gathered from users of a mobile app: for all kinds of reasons the items will arrive to our datacenter out of order, even with significant delays due to connectivity issues. 
+Usually the time of observing the event is written as a data field in the stream item. There is no guarantee that items will occur in the stream ordered by the value of that field; in fact in many cases it is certain that they won't. Consider events gathered from users of a mobile app: for all kinds of reasons the items will arrive to our datacenter out of order, even with significant delays due to connectivity issues. 
 
 This complicates the definition of the sliding window: if we had an ordered stream, we could simply keep a queue of recent items, evicting those whose timestamp is a defined amount behind the newest item's timestamp. To achieve the same with a disordered stream, we have to sort the items by timestamp, which is computationally expensive. Furthermore, the latest received item no longer coincides with the notion of the "most recent event". A previously received item may have a higher timestamp value. We can't just keep a sliding window's worth of items and evict everything older; we have to wait some more time for the data to "settle down" before acting upon it. 
 
