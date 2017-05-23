@@ -7,6 +7,7 @@ static/
 *.iml
 .DS_Store
 node_modules
+vendor
 
 # temporary build files
 src/images
