@@ -13,7 +13,12 @@ repository:
 
 [TfIdf.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdf.java)
 
-Let us first introduce the problem. The inverted index is a basic data structure in the domain of full-text search. First used in the 1950s, it is still at the core of modern information retrieval systems such as Lucene. The goal is to be able to quickly find the documents that contain a given set of search terms, and to sort them by relevance. To understand it we'll need to throw in some terminology...
+Let us first introduce the problem. The inverted index is a basic data 
+structure in the domain of full-text search. First used in the 1950s, it
+is still at the core of modern information retrieval systems such as
+Lucene. The goal is to be able to quickly find the documents that
+contain a given set of search terms, and to sort them by relevance. To
+understand it we'll need to throw in some terminology...
 
 - A _document_ is treated as a list of words that has a unique ID. It is
 useful to define the notion of a _document index_ which maps each

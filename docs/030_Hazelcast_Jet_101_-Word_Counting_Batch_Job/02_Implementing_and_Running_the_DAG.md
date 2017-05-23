@@ -32,7 +32,8 @@ Members [2] {
 ```
 
 This means the members successfully formed a cluster. Don't forget to
-shut down the members afterwards, by adding the following as the last line of your application:
+shut down the members afterwards, by adding the following as the last
+line of your application:
 
 ```
 Jet.shutdownAll();
@@ -58,7 +59,8 @@ public class WordCount {
 }
 ```
 
-As explained earlier, we'll use an `IMap` as our data source. Let's give it some sample data:
+As explained earlier, we'll use an `IMap` as our data source. Let's give it
+some sample data:
 
 ```java
 IMap<Integer, String> map = jet.getMap("lines");
@@ -81,7 +83,8 @@ map.put(14, "in short, the period was so far like the present period, that some 
    + "evil, in the superlative degree of comparison only.");
 ```
 
-Now we move on to the code that builds and runs the DAG. We start by instantiating the DAG class and adding the source vertex:
+Now we move on to the code that builds and runs the DAG. We start by
+instantiating the DAG class and adding the source vertex:
 
 ```java
 DAG dag = new DAG();
@@ -116,7 +119,8 @@ equivalent to the standard Java `Iterator`, but avoids the cumbersome
 two-method API. `Traverser` is a simple functional interface with just
 one method to implement: `next()`.
 
-Specifically, our processor accepts items of type `Entry<Integer, String>`, splits the entry value into lowercase words, and emits all non-empty words.
+Specifically, our processor accepts items of type `Entry<Integer, String>`, 
+splits the entry value into lowercase words, and emits all non-empty words.
 
 The next vertex will do the actual word count. We can use the built-in
 `groupAndAccumulate` processor for this:

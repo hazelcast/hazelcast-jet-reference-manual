@@ -1,10 +1,13 @@
-As we announced, some of the processors in our DAG will need custom implementation code. Let's start from the source vertex. It is easy, just the standard `IMap` reader:
+As we announced, some of the processors in our DAG will need custom
+implementation code. Let's start from the source vertex. It is easy,
+just the standard `IMap` reader:
 
 ```java
 dag.newVertex("doc-source", Processors.readMap(DOCID_NAME));
 ```
 
-The stopwords-producing processor has custom code, but it's quite simple:
+The stopwords-producing processor has custom code, but it's quite
+simple:
 
 ```java
 dag.newVertex("stopword-source", StopwordsP::new);
@@ -20,9 +23,12 @@ private static class StopwordsP extends AbstractProcessor {
 }
 ```
 
-Since this is a source processor, all its action happens in `complete()`. It emits a single item: the `HashSet` built directly from the text file's lines.
+Since this is a source processor, all its action happens in
+`complete()`. It emits a single item: the `HashSet` built directly from
+the text file's lines.
 
-The `doc-count` processor can be built from the primitives provided in Jet's library:
+The `doc-count` processor can be built from the primitives provided in
+Jet's library:
 
 ```java
 dag.newVertex("doc-count", Processors.accumulate(() -> 0L, (count, x) -> count + 1));
@@ -41,7 +47,12 @@ dag.newVertex("doc-lines",
 
 Let's break down this expression... `Processors.flatMap` returns a
 standard processor that emits an arbitrary number of items for each
-received item. We already saw one in the introductory Word Count example. There we created a traverser from an array, here we create it from a Java stream. We additionally apply the `nonCooperative()` wrapper which will declare all the created processors non-cooperative. We already explained why we do this: this processor will make blocking IO calls.
+received item. We already saw one in the introductory Word Count
+example. There we created a traverser from an array, here we create it
+from a Java stream. We additionally apply the `nonCooperative()` wrapper
+which will declare all the created processors non-cooperative. We
+already explained why we do this: this processor will make blocking IO
+calls.
 
 `tokenizer` is another custom vertex:
 

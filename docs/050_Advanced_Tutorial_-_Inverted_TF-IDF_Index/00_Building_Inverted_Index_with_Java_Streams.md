@@ -3,7 +3,10 @@ just thread parallelism and without the ability to scale out across
 many machines. It is expressible in Java Streams API without too much
 work. The full code is [here](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java).
 
-We'll start by preparing a `Stream<Entry<Long, String>> docWords`: a stream of all the words found in all the documents. We use `Map.Entry` as a holder of a pair of values (a 2-tuple) and here we have a pair of `Long docId` and `String word`:
+We'll start by preparing a `Stream<Entry<Long, String>> docWords`: a
+stream of all the words found in all the documents. We use `Map.Entry` as
+a holder of a pair of values (a 2-tuple) and here we have a pair of
+`Long docId` and `String word`:
 
 
 ```java
@@ -14,7 +17,8 @@ Stream<Entry<Long, String>> docWords = docId2Name
         .flatMap(this::tokenize);
 ```
 
-We know the number of all documents so we can compute `double logDocCount`, the logarithm of the document count:
+We know the number of all documents so we can compute `double 
+logDocCount`, the logarithm of the document count:
 
 ```java
 double logDocCount = Math.log(docId2Name.size());
