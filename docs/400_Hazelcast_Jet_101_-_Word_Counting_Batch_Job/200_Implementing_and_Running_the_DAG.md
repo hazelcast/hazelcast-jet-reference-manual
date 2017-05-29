@@ -155,7 +155,7 @@ Vertex combine = dag.newVertex("combine",
 );
 ```
 
-`combineByKey` is designed to be used as a downstream of `accumulateByKey`, 
+`combineByKey` is designed to be used downstream of `accumulateByKey`, 
 which is why it doesn't need an explicit key extractor. The aggregate 
 operation must be the same as on `accumulateByKey`.
 

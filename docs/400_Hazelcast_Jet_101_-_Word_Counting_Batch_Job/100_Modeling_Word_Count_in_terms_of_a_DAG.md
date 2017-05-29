@@ -70,8 +70,6 @@ computation job which can max out all the CPU cores given enough
 instances of tokenizing and accumulating processors. The next challenge
 is making this work across machines.
 
-1234567890123456789012345678901234567890123456789012345678901234567890123
-
 For starters, our input can no longer be a simple in-memory list because
 that would mean each machine processes the same data. To exploit a
 cluster as a unified computation device, each cluster member must observe only a
