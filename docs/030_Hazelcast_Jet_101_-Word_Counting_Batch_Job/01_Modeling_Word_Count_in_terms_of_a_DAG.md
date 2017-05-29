@@ -47,11 +47,13 @@ The input processor can now use all the available tokenizers as a pool
 and submit to any one whose queue has some room.
 
 The next step is parallelizing the accumulator vertex, but this is
-trickier: all occurences of the same word must go to the same
-processor. The input to the accumulator must be _partitioned by word_
-so that each processor is responsible for a non-overlapping subset of the
-words. In Jet we'll use a _partitioned edge_ between the tokenizer and
-the accumulator:
+trickier: accumulators count word occurrences so using them as a pool
+will result in each processor observing almost all distinct words
+(entries taking space in its hashtable), but the counts will be partial
+and will need combining. The common strategy to reduce memory usage is
+to ensure that all occurences of the same word go to the same processor.
+This is called "data partitioning" and in Jet we'll use a _partitioned
+edge_ between the tokenizer and the accumulator:
 
 <img alt="Word-counting DAG with tokenizer and accumulator parallelized"
      src="../images/wordcount-partitioned.jpg"
@@ -59,9 +61,9 @@ the accumulator:
 
 As a word is emitted from the tokenizer, it goes through a
 "switchboard" stage where it's routed to the correct downstream
-processor. To determine where a word should be routed we can for
-example calculate its hashcode and use the lowest bit to address either
-accumulator 0 or accumulator 1.
+processor. To determine where a word should be routed we can calculate
+its hashcode and use the lowest bit to address either accumulator 0 or
+accumulator 1.
 
 At this point we have a blueprint for a fully functional parallelized
 computation job which can max out all the CPU cores given enough
@@ -73,29 +75,33 @@ that would mean each machine processes the same data. To exploit a
 cluster as a unified computation device, each node must observe only a
 slice of the dataset. Given that a Jet instance is also a fully
 functional Hazelcast instance and a Jet cluster is also a Hazelcast
-cluster, the natural choice is to pre-load our data into an `IMap`, which
-will be automatically partitioned and distributed between the nodes. Now
-each Jet node can just read the slice of data that was stored locally on
-it.
+cluster, the natural choice is to pre-load our data into an `IMap`,
+which will be automatically partitioned and distributed between the
+nodes. Now each Jet node can just read the slice of data that was stored
+locally on it.
 
-When run in a cluster, Jet will instantiate a replica of the whole DAG on
-each node. On a two-member cluster there will be two source processors, four
-tokenizers, and so on. The trickiest part is the partitioned edge between
-tokenizer and accumulator: each accumulator is supposed to receive its
-own subset of words. That means that, for example, a word emitted from
-tokenizer 0 will have to travel across the network to reach accumulator
-3, if that's the one that happens to own it. On average we can expect
-every other word to need network transport, causing both serious network
-traffic and serialization/deserialization CPU load.
+When run in a cluster, Jet will instantiate a replica of the whole DAG
+on each node. On a two-member cluster there will be two source
+processors, four tokenizers, and so on. The trickiest part is the
+partitioned edge between tokenizer and accumulator: each accumulator is
+supposed to receive its own subset of words. That means that, for
+example, a word emitted from tokenizer 0 will have to travel across the
+network to reach accumulator 3, if that's the one that happens to own
+it. On average we can expect every other word to need network transport,
+causing both serious network traffic and serialization/deserialization
+CPU load.
 
-There is a simple trick we can employ to avoid most of this traffic:
-we'll make our accumulators process only local data, coming up with local
-word counts, and we'll introduce another vertex downstream of
-accumulator, called the _combiner_, which will just total up the local
-counts. This way we reduce traffic from O(totalWords) to
-O(distinctWords). Given that there are only so many words in a language,
-this is in fact a reduction from O(n) in input size to O(1). The more
-text we process, the larger our savings in network traffic.
+There is a simple trick we can employ to avoid most of this traffic,
+closely related to what we pointed above as a source of problems when
+parallelizing locally: members of the cluster can be used as a pool,
+each doing its own partial word counts, and then a downstream vertex
+will combine those results. As noted above, this takes more memory due
+to more hashtable entries on each member, but it saves network traffic
+(an issue we didn't have within a member). Also keep in mind that memory
+costs scale with the number of distinct keys (in this case, words of a
+natural language), but network traffic scales with the total data size.
+The more book material we process, the more we save on network traffic,
+whereas the memory cost remains the same.
 
 Jet distinguishes between _local_ and _distributed_ edges, so we'll use
 a _local partitioned_ edge for tokenizer->accumulator and a _distributed

@@ -17,8 +17,7 @@ dag.newVertex("stopword-source", StopwordsP::new);
 private static class StopwordsP extends AbstractProcessor {
     @Override
     public boolean complete() {
-        emit(docLines("stopwords.txt").collect(toSet()));
-        return true;
+        return tryEmit(docLines("stopwords.txt").collect(toSet()));
     }
 }
 ```
@@ -31,7 +30,7 @@ The `doc-count` processor can be built from the primitives provided in
 Jet's library:
 
 ```java
-dag.newVertex("doc-count", Processors.accumulate(() -> 0L, (count, x) -> count + 1));
+dag.newVertex("doc-count", Processors.aggregate(counting()));
 ```
 
 The `doc-lines` processor is more of a mouthful, but still built from
@@ -51,7 +50,7 @@ received item. We already saw one in the introductory Word Count
 example. There we created a traverser from an array, here we create it
 from a Java stream. We additionally apply the `nonCooperative()` wrapper
 which will declare all the created processors non-cooperative. We
-already explained why we do this: this processor will make blocking IO
+already explained why we do this: this processor will make blocking I/O
 calls.
 
 `tokenizer` is another custom vertex:

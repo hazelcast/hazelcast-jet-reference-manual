@@ -41,8 +41,8 @@ Note that these techniques are non-restrictive: you can always provide a trivial
 
 ### Some more twists
 
-If you review the [WindowOperation](
-https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/windowing/WindowOperation.java)
+If you review the [AggregateOperation](
+https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/AggregateOperation.java)
 interface in Jet's library, you'll notice that the story as we presented it doesn't fully match what you see; there are some more twists that we apply, but they are pretty standard:
 
 - `createAccumulatorF` creates a fresh instance of the running state (which we call the _accumulator_), with zero items accumulated;

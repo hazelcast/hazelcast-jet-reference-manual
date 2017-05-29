@@ -113,49 +113,51 @@ Vertex tokenizer = dag.newVertex("tokenizer",
 ```
 
 This creates a processor that applies the given function to each
-incoming item. The function must return a `Traverser`, which is an
-abstraction that traverses a sequence of non-null items. Its purpose is
-equivalent to the standard Java `Iterator`, but avoids the cumbersome
-two-method API. `Traverser` is a simple functional interface with just
-one method to implement: `next()`.
-
+incoming item, obtaining zero or more output items, and emits them. 
 Specifically, our processor accepts items of type `Entry<Integer, String>`, 
-splits the entry value into lowercase words, and emits all non-empty words.
+splits the entry value into lowercase words, and emits all non-empty 
+words. The function must return a `Traverser`, which is a functional 
+interface used to traverse a sequence of non-null items. Its purpose is
+equivalent to the standard Java `Iterator`, but avoids the cumbersome
+two-method API. Since a lot of support for cooperative multithreading in
+Hazelcast Jet deals with traversal, this abstraction brings simplification
+to many of its aspects.
 
 The next vertex will do the actual word count. We can use the built-in
 `groupAndAccumulate` processor for this:
 
 ```java
 // word -> (word, count)
-Vertex accumulator = dag.newVertex("accumulator",
-    Processors.groupAndAccumulate(() -> 0L, (count, x) -> count + 1)
+Vertex accumulate = dag.newVertex("accumulate",
+        Processors.accumulateByKey(
+            DistributedFunctions.wholeItem(),
+            AggregateOperations.counting())
 );
 ```
 
-This processor maintains a hashtable that maps each distinct item to its
-accumulated value. It takes two functions: the first one provides the
-initial value and is called when observing a new distinct item; the
-second one gets the previous value for the item and returns a new value.
-The above function definitions can be seen to have the effect of counting
-the items. The processor emits nothing until it has received all the
-input, and at that point it emits the hashtable as a stream of
-`Entry<String, Long>`.
+This processor maintains a hashtable that maps each distinct key to its
+accumulated value. We specify `wholeItem()` as the "key extractor" 
+function: our input item is just the word and it should be the grouping
+key. The second argument is the kind of aggregate operation we want to
+perform &mdash; counting. We're relying on Jet's out-of-the-box
+definitions here, but it's easy to define your own aggregate
+operations/key extractors. The processor emits nothing until it has 
+received all the input, and at that point it emits the hashtable as a 
+stream of `Entry<String, Long>`.
 
 Next is the combining step which computes the grand totals from
 individual members' contributions. This is the code:
 
 ```java
 // (word, count) -> (word, count)
-Vertex combiner = dag.newVertex("combiner",
-    Processors.groupAndAccumulate(
-            Entry<String, Long>::getKey,
-            () -> 0L,
-            (count, wordAndCount) -> count + wordAndCount.getValue())
+Vertex combine = dag.newVertex("combine",
+    Processors.combineByKey(AggregateOperations.counting())
 );
 ```
 
-It's very similar to the accumulator vertex, but instead of the simple
-increment here we have to add the entry's value to the total.
+`combineByKey` is designed to be used downstream of `accumulateByKey`, 
+which is why it doesn't need an explicit key extractor. The aggregate 
+operation must be the same as on `accumulateByKey`.
 
 The final vertex is the sink &mdash; we want to store the output in
 another `IMap`:
