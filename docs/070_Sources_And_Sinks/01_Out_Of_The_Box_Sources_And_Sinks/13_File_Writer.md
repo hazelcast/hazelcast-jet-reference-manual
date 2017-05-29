@@ -9,17 +9,15 @@ on that member.
 
 ```java
     DAG dag = new DAG();
-
-    ...
-    Vertex sink = dag.newVertex("sink", Processors.writeFile(DIRECTORY));
+    // ... other vertices
+    Vertex sink = dag.newVertex("sink", Sinks.writeFile(DIRECTORY));
 ```
 ```java
     DAG dag = new DAG();
-
-    ...
-    Vertex sink = dag.newVertex("sink", Processors.writeFile(DIRECTORY, Object::toString, Charsets.UTF_8, true));
+    // ... other vertices
+    Vertex sink = dag.newVertex("sink", Sinks.writeFile(DIRECTORY, Object::toString, 
+        StandardCharsets.UTF_8, true));
 ```
-
 
 Since this processor is file IO-intensive, local parallelism 
 of the vertex should be set according to the performance 

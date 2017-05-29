@@ -13,7 +13,7 @@ different actions to the server instance.
 
 ### Reading from and Writing to Hazelcast Distributed Data Structures
 
-Jet embedds Hazelcast IMDG. Therefore, Jet can use Hazelcast IMDG maps,
+Jet embeds Hazelcast IMDG. Therefore, Jet can use Hazelcast IMDG maps,
 caches and lists on the embedded cluster as sources and sinks of data
 and make use of data locality. A Hazelcast `IMap` or `ICache` is
 distributed by partitions across the cluster and Jet members are able to

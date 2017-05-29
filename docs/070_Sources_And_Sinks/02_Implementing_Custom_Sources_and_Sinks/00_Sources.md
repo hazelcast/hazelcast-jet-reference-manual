@@ -14,6 +14,6 @@ the coordinating member.
 in the cluster and a `ProcessorSupplier` is created for each member.
 3. The `ProcessorSupplier` for each member is serialized and sent to that
 member.
-4. Each member will call their own `ProcessorSupplier` with the correct
-count parameter, which corresponds to the `localParallelism` setting of
+4. Each member will call its own `ProcessorSupplier` with the correct
+`count` parameter, which corresponds to the `localParallelism` setting of
 that vertex.

@@ -9,7 +9,6 @@ to the underlying output stream.
  
 ```java
     DAG dag = new DAG();
-
-    ...
-    Vertex source = dag.newVertex("sink", Processors.writeSocket(HOST, PORT));
+    // ... other vertices
+    Vertex sink = dag.newVertex("sink", Sinks.writeSocket(HOST, PORT));
 ```

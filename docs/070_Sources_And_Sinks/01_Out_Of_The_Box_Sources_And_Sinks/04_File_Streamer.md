@@ -3,7 +3,7 @@ files in the watched directory matching the supplied pattern
 (but not its subdirectories). You can pass `*` as the pattern 
 to read all files in the directory. It will pick up both newly created 
 files and content appended to pre-existing files. It expects the 
-file content not to change once appended. There is no indication 
+file contents not to change once appended. There is no indication 
 which file a particular line comes from.
     
 The processor will scan pre-existing files for file sizes on 
@@ -14,15 +14,14 @@ concurrently appending to the file).
 
 ```java
     DAG dag = new DAG();
-
-    Vertex source = dag.newVertex("source", Processors.streamFiles(DIRECTORY));
-    ...
+    Vertex source = dag.newVertex("source", Sources.streamFiles(DIRECTORY));
+    // ... other vertices
 ```
 ```java
     DAG dag = new DAG();
-
-    Vertex source = dag.newVertex("source", Processors.streamFiles(DIRECTORY, Charsets.UTF_8, PATTERN));
-    ...
+    Vertex source = dag.newVertex("source", Sources.streamFiles(DIRECTORY, 
+        StandardCharsets.UTF_8, PATTERN));
+    // ... other vertices
 ```
     
 The same pathname should be available on all members, but it 

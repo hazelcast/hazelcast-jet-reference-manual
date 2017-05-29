@@ -4,15 +4,15 @@ You can pass `*` as the pattern to read all files in the directory.
 
 ```java
     DAG dag = new DAG();
-        
-    Vertex source = dag.newVertex("source", Processors.readFiles(DIRECTORY));
-    ...
+    Vertex source = dag.newVertex("source", Sources.readFiles(DIRECTORY));
+    // ... other vertices
 ```
+
 ```java
     DAG dag = new DAG();
-        
-    Vertex source = dag.newVertex("source", Processors.readFiles(DIRECTORY, Charsets.UTF_8, PATTERN));
-    ...
+    Vertex source = dag.newVertex("source", Sources.readFiles(DIRECTORY, 
+        StandardCharsets.UTF_8, PATTERN));
+    // ... other vertices
 ```
 
 The files must not change while being read; if they do, 

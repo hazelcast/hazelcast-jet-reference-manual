@@ -18,25 +18,6 @@ class GenerateNumbersP extends AbstractProcessor {
 }
 ```
 
-We will also add a simple logging processor so we can see what values
-are generated:
-
-```java
-class LogInputP extends AbstractProcessor {
-
-    LogInputP() {
-        setCooperative(false);
-    }
-
-    @Override
-    protected boolean tryProcess(int ordinal, @Nonnull Object item) {
-        System.out.println("Received number: " + item);
-        emit(item);
-        return true;
-    }
-}
-```
-
 Now we can build our DAG and execute it:
 
 ```java
@@ -46,7 +27,8 @@ int upperBound = 10;
 DAG dag = new DAG();
 Vertex generateNumbers = dag.newVertex("generate-numbers",
         () -> new GenerateNumbersP(upperBound));
-Vertex logInput = dag.newVertex("log-input", LogInputP::new);
+Vertex logInput = dag.newVertex("log-input",
+        DiagnosticProcessors.writeLogger(i -> "Received number: " + i));
 dag.edge(Edge.between(generateNumbers, logInput));
 
 try {
@@ -69,15 +51,15 @@ Received number: 2
 
 Since we are using the default parallelism setting on this vertex,
 several instances of the source processor were created, all of which
-generated the same sequence of values. Generally we'll want the ability
+generated the same sequence of values. Generally we want the ability
 to parallelize the source vertex, so we have to make each processor emit
 only a slice of the total data set.
 
 So far we've used the simplest approach to creating processors: a
-`Supplier<Processor>` function that keeps returning equal instances of
-processors. Now we'll step up to Jet's custom interface that gives us
-the ability to provide a list of separately configured processors:
-`ProcessorSupplier` and its method `get(int processorCount)`. 
+`DistributeSupplier<Processor>` function that keeps returning equal 
+instances of processors. Now we'll step up to Jet's custom interface that 
+gives us the ability to provide a list of separately configured 
+processors: `ProcessorSupplier` and its method `get(int processorCount)`. 
 
 First we must decide on a partitioning policy: what subset will each
 processor emit. In our simple example we can use a simple policy: we'll
@@ -121,11 +103,12 @@ Let's use the custom processor supplier in our DAG-building code:
 DAG dag = new DAG();
 Vertex generateNumbers = dag.newVertex("generate-numbers",
         new GenerateNumbersPSupplier(10));
-Vertex logInput = dag.newVertex("log-input", LogInputP::new);
+Vertex logInput = dag.newVertex("log-input",
+        DiagnosticProcessors.writeLogger(i -> "Received number: " + i));
 dag.edge(Edge.between(generateNumbers, logInput));
 ```
 
-Now we can re-run our example and see that indeed each number occurs
+Now we can re-run our example and see that each number indeed occurs
 only once. However, note that we are still working with a single-member
 Jet cluster; let's see what happens when we add another member:
 
@@ -206,7 +189,8 @@ We change our DAG-building code to use the meta-supplier:
 DAG dag = new DAG();
 Vertex generateNumbers = dag.newVertex("generate-numbers",
         new GenerateNumbersPMetaSupplier(upperBound));
-Vertex logInput = dag.newVertex("log-input", LogInputP::new);
+Vertex logInput = dag.newVertex("log-input",
+        DiagnosticProcessors.writeLogger(i -> "Received number: " + i));
 dag.edge(Edge.between(generateNumbers, logInput));
 ```
 

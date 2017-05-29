@@ -10,7 +10,6 @@ No reconnection is attempted.
 
 ```java
     DAG dag = new DAG();
-
-    Vertex source = dag.newVertex("source", Processors.streamTextSocket(HOST, PORT));
-    ...
+    Vertex source = dag.newVertex("source", Sources.streamTextSocket(HOST, PORT));
+    // ... other vertices
 ```

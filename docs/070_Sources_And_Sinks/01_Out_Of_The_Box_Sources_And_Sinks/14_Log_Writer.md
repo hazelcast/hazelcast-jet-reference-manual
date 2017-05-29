@@ -3,15 +3,13 @@ Log Writer is a sink which logs all items at the INFO level.
 
 ```java
     DAG dag = new DAG();
-
-    ...
-    Vertex sink = dag.newVertex("sink", Processors.writeLogger());
+    // ... other vertices
+    Vertex sink = dag.newVertex("sink", DiagnosticProcessors.writeLogger());
 ```
 ```java
     DAG dag = new DAG();
-
-    ...
-    Vertex sink = dag.newVertex("sink", Processors.writeLogger(Object::toString));
+    // ... other vertices
+    Vertex sink = dag.newVertex("sink", DiagnosticProcessors.writeLogger(Object::toString));
 ```
 
 Note that the event will be logged on the cluster members, 
