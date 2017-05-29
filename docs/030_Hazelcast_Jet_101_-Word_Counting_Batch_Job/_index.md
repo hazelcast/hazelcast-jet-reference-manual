@@ -10,7 +10,7 @@ List<String> lines = ... // a pre-existing list
 Map<String, Long> counts = new HashMap<>();
 for (String line : lines) {
     for (String word : line.split("\\W+")) {
-        counts.compute(word.toLowerCase(), (w, c) -> c == null ? 1L : c + 1);
+        counts.merge(word.toLowerCase(), 1L, (o, n) -> o + n);
     }
 }
 ```
