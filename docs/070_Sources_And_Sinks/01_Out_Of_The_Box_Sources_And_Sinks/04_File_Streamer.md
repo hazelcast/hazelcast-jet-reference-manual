@@ -59,3 +59,6 @@ The underlying JDK API `java.nio.file.WatchService` has a history of
 unreliability and this processor may experience infinite blocking, 
 missed, or duplicate events as a result. Such problems may be resolved 
 by upgrading the JRE to the latest version.
+
+See the [Access stream analyzer sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/streaming/access-stream-analyzer)
+for a fully working example.

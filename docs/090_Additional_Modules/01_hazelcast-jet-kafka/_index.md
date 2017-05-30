@@ -1,12 +1,12 @@
 The `hazelcast-jet-kafka` module provides streaming read and write
 capabilities to [Apache Kafka](https://kafka.apache.org/).
 
-The `StreamKafkaP` and `WriteKafkaP` classes provide source and sink
-processors which can be used for reading and writing, respectively. The
-processors take a list of properties given by `Properties` as a parameter
-which can be used to specify the `group.id`, `bootstrap.servers`,
-key/value serializer/deserializer and any other configuration parameters
-for Kafka.
+The `streamKafka()` and `writeKafka()` processor factories provide 
+source and sink processors which can be used for reading and writing, 
+respectively. The processors take a list of properties given by 
+`Properties` as a parameter which can be used to specify the `group.id`, 
+`bootstrap.servers`, key/value serializer/deserializer and any other 
+configuration parameters for Kafka.
 
 Example:
 
@@ -18,14 +18,17 @@ properties.setProperty("key.deserializer", StringDeserializer.class.getCanonical
 properties.setProperty("value.deserializer", IntegerDeserializer.class.getCanonicalName());
 properties.setProperty("auto.offset.reset", "earliest");
 Vertex source = dag.newVertex("source", 
-    StreamKafkaP.streamKafka(properties, "topic1", "topic2"));
+    KafkaProcessors.streamKafka(properties, "topic1", "topic2"));
 
 Properties properties = new Properties();
 properties.setProperty("bootstrap.servers", "localhost:9092");
 properties.setProperty("key.serializer", StringSerializer.class.getCanonicalName());
 properties.setProperty("value.serializer", IntegerSerializer.class.getCanonicalName());
-Vertex sink = dag.newVertex("sink", WriteKafkaP.writeKafka("topic1", properties));
+Vertex sink = dag.newVertex("sink", KafkaProcessors.writeKafka("topic1", properties));
 ```
 
 For more details about configuring Kafka, see
 [Apache Kafka Documentation](https://kafka.apache.org/documentation/).
+
+See [Apache Kafka sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/streaming/kafka)
+for a fully working example.

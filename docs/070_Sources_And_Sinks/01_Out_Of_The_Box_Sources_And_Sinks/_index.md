@@ -6,8 +6,8 @@ Sources:
   - File Reader
   - File Streamer (Directory Watcher)
   - Socket Text Streamer
-  - Kafka Streamer
-  - Hdsf Reader
+  - Apache Kafka Streamer
+  - Apache Hadoop HDFS Reader
   
 Sinks:
  
@@ -17,10 +17,10 @@ Sinks:
   - File Writer
   - Log Writer
   - Socket Text Writer
-  - Kafka Writer
-  - Hdfs Writer
+  - Apache Kafka Writer
+  - Apache Hadoop HDFS Writer
 
 Factories for sources and sinks are in `Sources` and `Sinks` class.
 
 Please refer to [Additional Modules](/090_Additional_Modules) 
-section for Kafka and Hdfs sources and sinks. 
+section for Apache Kafka and Apache Hadoop HDFS sources and sinks. 
