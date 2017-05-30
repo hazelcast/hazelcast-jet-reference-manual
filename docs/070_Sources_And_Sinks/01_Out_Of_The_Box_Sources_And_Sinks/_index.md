@@ -22,5 +22,5 @@ Sinks:
 
 Factories for sources and sinks are in `Sources` and `Sinks` class.
 
-Please refer to [Additional Modules](/090_Additional_Modules) 
+Please refer to [Additional Modules](/090_Additional_Modules/_index.md) 
 section for Apache Kafka and Apache Hadoop HDFS sources and sinks. 
