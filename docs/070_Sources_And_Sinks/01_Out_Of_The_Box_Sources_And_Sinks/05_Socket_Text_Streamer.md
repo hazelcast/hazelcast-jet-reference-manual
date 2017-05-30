@@ -13,3 +13,6 @@ No reconnection is attempted.
     Vertex source = dag.newVertex("source", Sources.streamTextSocket(HOST, PORT));
     // ... other vertices
 ```
+
+See the [Socket code sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/streaming/socket)
+for a fully working example.

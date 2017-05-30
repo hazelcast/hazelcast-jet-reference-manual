@@ -23,8 +23,11 @@ The same pathname should be available on all members,
 but it should not contain the same files. For example 
 it should not resolve to a directory shared over the network.
 
-Since this processor is file IO-intensive, local parallelism 
-of the vertex should be set according to the performance 
-characteristics of the underlying storage system. Typical 
-values are in the range of 1 to 4. If just a single file is read, 
-it is always read by single thread.
+Since this processor is file IO-intensive, local parallelism of the 
+vertex should be set according to the performance characteristics of the 
+underlying storage system. Typical values are in the range of 1 to 4. 
+Multiple files are read in parallel, if just a single file is read, it 
+is always read by single thread.
+
+See the [Access log analyzer sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/batch/access-log-analyzer)
+for a fully working example.
