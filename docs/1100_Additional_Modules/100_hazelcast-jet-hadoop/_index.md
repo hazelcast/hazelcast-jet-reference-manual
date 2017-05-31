@@ -19,5 +19,6 @@ Vertex source = dag.newVertex("source", HdfsProcessors.readHdfs(jobConf));
 Vertex sink = dag.newVertex("sink", HdfsProcessors.writeHdfs(jobConf));
 // ...
 ```
+
 See the [Hadoop Wordcount code sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/batch/wordcount-hadoop)
 for a fully working example.
