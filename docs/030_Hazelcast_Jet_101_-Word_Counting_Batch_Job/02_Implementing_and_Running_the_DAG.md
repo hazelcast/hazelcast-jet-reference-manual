@@ -1,7 +1,7 @@
 Now that we've come up with a good DAG design, it's time to implement it
 using the Jet DAG API. We'll present this in several steps:
 
-1. Start a Jet cluster;
+1. start a Jet cluster;
 2. populate an `IMap` with sample data;
 3. build the Jet DAG;
 4. submit it for execution.
@@ -120,8 +120,8 @@ words. The function must return a `Traverser`, which is a functional
 interface used to traverse a sequence of non-null items. Its purpose is
 equivalent to the standard Java `Iterator`, but avoids the cumbersome
 two-method API. Since a lot of support for cooperative multithreading in
-Hazelcast Jet deals with traversal, this abstraction brings simplification
-to many of its aspects.
+Hazelcast Jet deals with sequence traversal, this abstraction simplifies
+many of its aspects.
 
 The next vertex will do the actual word count. We can use the built-in
 `groupAndAccumulate` processor for this:
@@ -136,14 +136,14 @@ Vertex accumulate = dag.newVertex("accumulate",
 ```
 
 This processor maintains a hashtable that maps each distinct key to its
-accumulated value. We specify `wholeItem()` as the "key extractor" 
-function: our input item is just the word and it should be the grouping
+accumulated value. We specify `wholeItem()` as the _key extractor_
+function: our input item is just the word, which is also the grouping
 key. The second argument is the kind of aggregate operation we want to
 perform &mdash; counting. We're relying on Jet's out-of-the-box
-definitions here, but it's easy to define your own aggregate
-operations/key extractors. The processor emits nothing until it has 
-received all the input, and at that point it emits the hashtable as a 
-stream of `Entry<String, Long>`.
+definitions here, but it's easy to define your own aggregate operations
+and key extractors. The processor emits nothing until it has received all
+the input, and at that point it emits the hashtable as a stream of
+`Entry<String, Long>`.
 
 Next is the combining step which computes the grand totals from
 individual members' contributions. This is the code:
@@ -191,12 +191,13 @@ tokenizer:
 We chose a _local partitioned_ edge. For each word, on each member there
 will be a processor responsible for it so that no items must travel
 across the network. In the `partitioned()` call we specify two things:
-the function that extracts the partitioning key (in this case the
-built-in `wholeItem()` function which is simply the identity function
-with a descriptive name), and the policy object that decides how to
-compute the partition ID from the key. Here we use the built-in
-`HASH_CODE`, which will derive the ID from `Object.hashCode()`. This is
-always safe to use on a local edge.
+the function that extracts the partitioning key (`wholeItem()` &mdash;
+same as the grouping key extractor), and the policy object that decides
+how to compute the partition ID from the key. Here we use the built-in
+`HASH_CODE`, which will derive the ID from `Object.hashCode()`. As long
+as the the definitions of `equals()/hashCode()` on the key object match
+our expected notion of key equality, this policy is always safe to use
+on a local edge.
 
 Next, the edge from the accumulator to the combiner:
 
@@ -210,11 +211,12 @@ It is _distributed partitioned_: for each word there is a single
 `combiner` processor in the whole cluster responsible for it and items
 will be sent over the network if needed. The partitioning key is again
 the word, but here it is the key part of the `Map.Entry<String, Long>`.
-For demonstration purposese we are using the default partitioning policy
-here (default Hazelcast partitioning). It is the slower-but-safe choice
-on a distributed edge. Detailed inspection shows that hashcode-based
-partitioning would be safe as well because all of `String`, `Long`, and
-`Map.Entry` have the hash function specified in their Javadoc.
+For demonstration purposes we are using the default partitioning policy
+here (Hazelcast's own partitioning scheme). It is the slower-but-safe
+choice on a distributed edge. Detailed inspection shows that
+hashcode-based partitioning would be safe as well because all of
+`String`, `Long`, and `Map.Entry` have the hash function specified in
+their Javadoc.
 
 To run the DAG and print out the results, we simply do the following:
 
@@ -237,7 +239,7 @@ or=1, everything=1, spring=1, authorities=1, way=1, for=2]
 ```
 
 The full version of this sample can be found at the
-[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-core-api/src/main/java/WordCountRefMan.java). You'll have to excuse the lack of
+[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java). You'll have to excuse the lack of
 indentation; we use that file to copy-paste from it into this tutorial.
 In the same directory there is also a more elaborated code sample that
 processes 100 MB of disk-based text data

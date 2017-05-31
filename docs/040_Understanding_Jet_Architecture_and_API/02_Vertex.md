@@ -5,7 +5,7 @@ receive each of its own part of the full stream traveling over the
 inbound edges, and likewise emits its own part of the full stream going
 down the outbound edges.
 
-### Edge Ordinal
+## Edge Ordinal
 
 An edge is connected to a vertex with a given **ordinal**, which
 identifies it to the vertex and its processors. When a processor
@@ -19,20 +19,7 @@ In the DAG-building API the default value of the ordinal is 0. There
 must be no gaps in ordinal assignment, which means a vertex will have
 inbound edges with ordinals 0..N and outbound edges with ordinals 0..M.
 
-### Source and Sink
-
-Jet uses only one kind of vertex, but in practice there is an important
-distinction between the following:
-
-* **internal** vertex which accepts input and transforms it into output,
-* **source** vertex which generates output without receiving anything,
-* **sink** vertex which consumes input and does not emit anything.
-
-Sources and sinks must interact with the environment to store/load data,
-making their implementation more involved compared to the internal
-vertices, whose logic is self-contained.
-
-### Local and Global Parallelism
+## Local and Global Parallelism
 
 The vertex is implemented by one or more instances of `Processor` on
 each member. Each vertex can specify how many of its processors will run
@@ -45,3 +32,18 @@ defaults to `Runtime.availableProcessors()`.
 The **global parallelism** of the vertex is also an important value,
 especially in terms of the distribution of partitions among processors.
 It is equal to local parallelism multiplied by the cluster size.
+
+## Vertices provided in Jet's library
+
+Jet's library contains factory methods for many predefined vertices. 
+The `com.hazelcast.jet.processor` package contains static utility classes with factory methods that return suppliers of processors, as required by the `dag.newVertex(name, procSupplier)` calls.
+
+While formally there's only one kind of vertex in Jet, in practice there is an important distinction between the following:
+
+* A **source** is a vertex with no inbound edges. It injects data from the environment into the Jet job.
+* A **sink** is a vertex with no outbound edges. It drains the output of the Jet job into the environment.
+* An **internal** vertex has both kinds of edges. It accepts some data from upstream vertices, transforms it, and emits the results to downstream vertices. Typically it doesn't interact with the environment.
+
+### Sources
+
+The main factory class for source vertices is `com.hazelcast.jet.processor.Source`. It contains sources that ingest data from Hazelcast IMDG structures like `IMap`, `ICache`, `IList`, etc., as well as some simple sources that get data from files and TCP sockets (`readFiles`, `streamTextSocket` and some more).

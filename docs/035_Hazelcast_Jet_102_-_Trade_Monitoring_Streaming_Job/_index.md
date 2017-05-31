@@ -39,6 +39,20 @@ A slightly narrower class of aggregate operations also supports the inverse of _
 
 Note that these techniques are non-restrictive: you can always provide a trivial combining function that just merges sets of individual items, and provide an arbitrary finishing function that acts upon them.
 
+### Example: 30-second window sliding by 10 seconds
+
+The diagram below summarizes the process of constructing a 30-second window which slides by 10 seconds, and computing the number of events that occurred within it. For brevity we label the events as _minutes:seconds_.
+
+1. Throw each event into its "bucket" (the frame whose time interval it belongs to);
+2. instead of keeping the items in the frame, just keep the item count;
+3. combine the frames into three different positions of the sliding window, yielding the final result: the number of events that occurred within the window's timespan.
+
+<img alt="Grouping disordered events by frame and then to sliding window" 
+    src="../images/windowing-frames.png"
+    width="800"/>
+
+This would be a useful interpretation of the results: "At the time 1:30, the 30-second running average was 8/30 = 0.27 events per second. Over the next 20 seconds it increased to 10/30 = 0.33 events per second."
+
 ### Some more twists
 
 If you review the [AggregateOperation](

@@ -55,7 +55,7 @@ Jet uses Single Producer/Single Consumer ringbuffers to transfer the
 data between processors on the same member. They are data-type agnostic,
 so any data type can be used to transfer the data between vertices.
 
-Ringbuffers, being bounded queues, introduce natural back pressure into
+Ringbuffers, being bounded queues, introduce natural backpressure into
 the system; if a consumer’s ringbuffer is full, the producer will have
 to back off until it can enqueue the next item. When data is sent to
 another member over the network, there is no natural backpressure, so
