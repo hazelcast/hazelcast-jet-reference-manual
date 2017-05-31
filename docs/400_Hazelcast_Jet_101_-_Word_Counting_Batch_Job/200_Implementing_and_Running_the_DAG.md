@@ -1,10 +1,10 @@
 Now that we've come up with a good DAG design, it's time to implement it
 using the Jet DAG API. We'll present this in several steps:
 
-1. start a Jet cluster;
-2. populate an `IMap` with sample data;
-3. build the Jet DAG;
-4. submit it for execution.
+1. Start a Jet cluster.
+2. Populate an `IMap` with sample data.
+3. Build the Jet DAG.
+4. Submit it for execution.
 
 To start a new Jet cluster, we must start some Jet instances.
 Typically these would be started on separate machines, but for the
@@ -21,7 +21,7 @@ public class WordCount {
 ```
 
 These two instances should automatically discover each other using IP
-multicast and form a cluster. You should see log output similar to the
+multicast and form a cluster. You should see a log output similar to the
 following:
 
 ```
@@ -155,7 +155,7 @@ Vertex combine = dag.newVertex("combine",
 );
 ```
 
-`combineByKey` is designed to be used downstream of `accumulateByKey`, 
+`combineByKey` is designed to be used as a downstream of `accumulateByKey`, 
 which is why it doesn't need an explicit key extractor. The aggregate 
 operation must be the same as on `accumulateByKey`.
 
@@ -188,8 +188,8 @@ tokenizer:
            .partitioned(DistributedFunctions.wholeItem(), Partitioner.HASH_CODE))
 ```
 
-We chose a _local partitioned_ edge. For each word, on each member there
-will be a processor responsible for it so that no items must travel
+We chose a _local partitioned_ edge. For each word, there
+will be a processor responsible for it on each member so that no items must travel
 across the network. In the `partitioned()` call we specify two things:
 the function that extracts the partitioning key (`wholeItem()` &mdash;
 same as the grouping key extractor), and the policy object that decides
