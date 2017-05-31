@@ -74,16 +74,16 @@ is making this work across machines.
 
 For starters, our input can no longer be a simple in-memory list because
 that would mean each machine processes the same data. To exploit a
-cluster as a unified computation device, each node must observe only a
+cluster as a unified computation device, each cluster member must observe only a
 slice of the dataset. Given that a Jet instance is also a fully
 functional Hazelcast IMDG instance and a Jet cluster is also a Hazelcast
 IMDG cluster, the natural choice is to pre-load our data into an `IMap`,
 which will be automatically partitioned and distributed between the
-nodes. Now each Jet node can just read the slice of data that was stored
+members. Now each Jet member can just read the slice of data that was stored
 locally on it.
 
 When run in a cluster, Jet will instantiate a replica of the whole DAG
-on each node. On a two-member cluster there will be two source
+on each member. On a two-member cluster there will be two source
 processors, four tokenizers, and so on. The trickiest part is the
 partitioned edge between tokenizer and accumulator: each accumulator is
 supposed to receive its own subset of words. That means that, for

@@ -12,7 +12,7 @@ out-of-memory errors because the whole distributed map will need to be
 held in memory at a single place:
 
 ```java
-// get a distributed map with 5GB per node on a 10 node cluster
+// get a distributed map with 5GB per member on a 10-member cluster
 IStreamMap<String, String> map = jet.getMap("large_map");
 // now try to build a HashMap of 50GB
 Map<String, String> result = map.stream()

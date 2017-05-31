@@ -41,7 +41,7 @@ The processor completes when the directory is deleted. However,
 in order to delete the directory, all files in it must be deleted 
 and if you delete a file that is currently being read from, 
 the job may encounter an `IOException`. The directory must be 
-deleted on all nodes. Any `IOException` will cause the job to fail.
+deleted on all members. Any `IOException` will cause the job to fail.
     
 **Limitation on Windows**
 

@@ -3,8 +3,8 @@ member. Result of `toStringF` function will be written to the file
 followed by a platform-specific line separator. Files are named with an 
 integer number starting from 0, which is unique cluster-wide.
 
-The same pathname must be available for writing on all nodes. 
-The file on each node will contain part of the data processed 
+The same pathname must be available for writing on all members. 
+The file on each member will contain the part of the data processed 
 on that member.
 
 ```java

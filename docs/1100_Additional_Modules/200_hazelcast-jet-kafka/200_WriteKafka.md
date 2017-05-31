@@ -5,8 +5,8 @@ be serialized according to the Kafka producer configuration. The key and
 value serializers set in the properties should be able to handle the 
 keys and values received by the processor.
 
-Internally, a single `KafkaProducer` is created per node, which is
-shared among all `Processor` instances on that node.
+Internally, a single `KafkaProducer` is created per member, which is
+shared among all `Processor` instances on that member.
 
 See the [Kafka code sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/kafka)
 for a fully worked example.
