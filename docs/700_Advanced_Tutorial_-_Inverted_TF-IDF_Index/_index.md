@@ -55,11 +55,11 @@ When the user enters a search phrase:
 
 1. each individual term from the phrase is looked up in the inverted
 index;
-1. an intersection is found of all the lists, resulting in the list of
+2. an intersection is found of all the lists, resulting in the list of
 documents that contain all the words;
-1. each document is scored by summing the TF-IDF contributions of each
+3. each document is scored by summing the TF-IDF contributions of each
 word;
-1. the result list is sorted by score (descending) and presented to the
+4. the result list is sorted by score (descending) and presented to the
 user.
 
 Let's have a look at a specific search phrase:

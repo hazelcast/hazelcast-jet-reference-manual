@@ -1,9 +1,9 @@
-A source that generates a stream of lines of text coming from 
+File Streamer is a source that generates a stream of lines of text coming from 
 files in the watched directory matching the supplied pattern 
 (but not its subdirectories). You can pass `*` as the pattern 
-to read all files in the directory. It will pick up both newly created 
+to read all the files in the directory. It will pick up both newly created 
 files and content appended to pre-existing files. It expects the 
-file contents not to change once appended. There is no indication 
+file contents not to change once appended. There is no indication of  
 which file a particular line comes from.
     
 The processor will scan pre-existing files for file sizes on 
@@ -24,7 +24,7 @@ concurrently appending to the file).
     // ... other vertices
 ```
     
-The same pathname should be available on all members, but it 
+The same pathname should be available on all the members, but it 
 should not contain the same files. For example it should not 
 resolve to a directory shared over the network.
     
@@ -34,7 +34,7 @@ characteristics of the underlying storage system. Typical
 values are in the range of 1 to 4. If just a single file is read, 
 it is always read by single thread.
 
-When a change is detected the file is opened, appended lines are 
+When a change is detected, the file is opened, appended lines are 
 read and file is closed. This process is repeated as necessary.
 
 The processor completes when the directory is deleted. However, 
@@ -45,7 +45,7 @@ deleted on all nodes. Any `IOException` will cause the job to fail.
     
 **Limitation on Windows**
 
-On Windows the `WatchService` is not notified of appended lines
+On Windows OS, the `WatchService` is not notified of the appended lines
 until the file is closed. If the writer keeps the file open while
 appending (which is typical), the processor may fail to observe the
 changes. It will be notified if any process tries to open that file,

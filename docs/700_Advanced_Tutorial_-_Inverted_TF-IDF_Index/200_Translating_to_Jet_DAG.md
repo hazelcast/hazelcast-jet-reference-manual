@@ -41,7 +41,7 @@ document count used in the TF-IDF formula. We end up with this DAG:
      width="520"/>
 
 
-The choice of edge types into and out of `doc-count` may look suprising,
+The choice of edge types into and out of `doc-count` may look surprising,
 so let's examine it. We start with the `doc-source` vertex, which emits
 one item per document, but its output is distributed across the cluster.
 To get the full document count on each member, each `doc-count`

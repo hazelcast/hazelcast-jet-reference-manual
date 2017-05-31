@@ -1,4 +1,4 @@
-IMap and ICache Readers distributes the partitions to 
+IMap and ICache Readers distribute the partitions to 
 processors according to ownership of the partitions. 
 Thus each processor will access data locally. Processors 
 will iterate over entries and emit them as `Map.Entry`. 
