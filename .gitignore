@@ -1,4 +1,3 @@
-static/
 .project
 .classpath
 .settings/
@@ -6,8 +5,12 @@ static/
 .patch
 *.iml
 .DS_Store
-node_modules
+
+# PHP installation
 vendor
+
+# generated content
+static/
 
 # temporary build files
 src/images
