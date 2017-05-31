@@ -85,7 +85,7 @@ The edge from `insertPunctuation` to `slidingStage1` is partitioned; you
 may wonder how that works with punctuation items, since 
 
 1. their type is different from the "main" stream item type and they
-don't have a partitioning key
+don't have a partitioning key,
 2. each of them must reach all downstream processors.
 
 It turns out that Jet must treat them as a special case: regardless of
@@ -99,6 +99,6 @@ along with any aggregation results whose emission it triggers, to stage
 The full code of this sample is in 
 [StockExchange.java](
 https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/stock-exchange/src/main/java/StockExchange.java)
-and running it we'll get an endless stream of data accumulating on the
+and by running it we'll get an endless stream of data accumulating on the
 disk. To spare your filesystem we've limited the execution time to 10
 seconds.
