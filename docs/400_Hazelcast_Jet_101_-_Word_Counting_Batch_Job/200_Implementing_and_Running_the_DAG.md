@@ -188,8 +188,8 @@ tokenizer:
            .partitioned(DistributedFunctions.wholeItem(), Partitioner.HASH_CODE))
 ```
 
-We chose a _local partitioned_ edge. For each word, there
-will be a processor responsible for it on each member so that no items must travel
+We chose a _local partitioned_ edge. For each word, there will be a
+processor responsible for it on each member so that no items must travel
 across the network. In the `partitioned()` call we specify two things:
 the function that extracts the partitioning key (`wholeItem()` &mdash;
 same as the grouping key extractor), and the policy object that decides
@@ -239,8 +239,10 @@ or=1, everything=1, spring=1, authorities=1, way=1, for=2]
 ```
 
 The full version of this sample can be found at the
-[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java). You'll have to excuse the lack of
-indentation; we use that file to copy-paste from it into this tutorial.
-In the same directory there is also a more elaborated code sample that
-processes 100 MB of disk-based text data
+[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java).
+
+You'll have to excuse the lack of indentation; we use that file to
+copy-paste from it into this tutorial. In the same directory there is
+also a more elaborated code sample that processes 100 MB of disk-based text
+data
 ([WordCount.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-core-api/src/main/java/WordCount.java)).

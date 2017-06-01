@@ -35,8 +35,6 @@ It is equal to local parallelism multiplied by the cluster size.
 
 ## Processor implementations provided in Jet's library
 
-1234567890123456789012345678901234567890123456789012345678901234567890123
-
 Jet's library contains factory methods for many predefined vertices.
 The `com.hazelcast.jet.processor` package contains static utility
 classes with factory methods that return suppliers of processors, as
@@ -79,15 +77,17 @@ sink definitions.
 ### Internal vertices
 
 The internal vertices are where the computation takes place. The focal
-point of computation is grouping items (by a time window and/or by a
-grouping key) and _aggregation_ of the items within each group. As we
-explained in the 
-[Hazelcast Jet 101](../030_Hazelcast_Jet_101_-Word_Counting_Batch_Job/01_Modeling_Word_Count_in_terms_of_a_DAG.md)
+point of distributed computation is solving the problem of _grouping_ by
+a time window and/or grouping key and _aggregating_ the data of each
+group. As we explained in the 
+[Hazelcast Jet 101](../400_Hazelcast_Jet_101_-_Word_Counting_Batch_Job/100_Modeling_Word_Count_in_terms_of_a_DAG.md)
 section, aggregation can take place in a single stage or in two stages,
-and there are separate variants for batch and stream jobs. 
+and there are separate variants for batch and stream jobs. The main class
+with factories for built-in computational vertices is `Processors`. 
 
-The main class with factories for built-in computational vertices is
-`Processors`. The complete matrix of factories for aggregating vertices
+#### Aggregation
+
+The complete matrix of factories for aggregator vertices
 is presented in the following table:
 
 <table border="1">
@@ -119,6 +119,8 @@ is presented in the following table:
 </tr>
 </table>
 
+#### Other computation
+
 The `Processors` class has factories for some other kinds of computation
 as well. There are the simple map/filter/flatMap vertices, the
 punctuation-inserting vertex for streaming jobs, and some other
@@ -135,19 +137,25 @@ While there are ways to (kind of) achieve both, there's a significant associated
 
 #### "With fixed lag"
 
-The `withFixedLag()` policy will emit punctuation that simply lags behind the highest observed event timestamp by a configured amount. It puts a limit on the spread between timestamps in the stream: whenever a timestamp `ts` is observed, all future items whose timestamp is `ts - maxLag` or less are considered late.
+The `withFixedLag()` policy will emit punctuation that lags behind the highest observed event timestamp by a configured amount. In other words, each time an event with the highest timestamp so far is encountered, this policy emits a punctuation item with `eventTimestamp - lag`. This puts a limit on the spread between timestamps in the stream: all events whose timestamp is more than the configured `lag` behind the highest timestamp are considered late.
 
 
 #### "Limiting lag and delay"
 
-The `limitingLagAndDelay()` policy applies the same fixed-lag logic as above and adds another limit: maximum delay from observing any item and emitting punctuation at least at large as its timestamp. A stream may experience a lull (no items arriving) and this added limit will ensure that the punctuation doesn't stay `maxLag` behind the highest timestamp forever. However, the skew between substreams may still cause the punctuation that reaches the downstream vertex to stay behind some timestamps. This is because the downstream will only get the lowest of all substream punctuations.
+The `limitingLagAndDelay()` policy applies the same fixed-lag logic as above and adds another limit: maximum delay from observing any item and emitting punctuation at least as large as its timestamp. A stream may experience a lull (no items arriving) and this added limit will ensure that the punctuation doesn't stay behind the highest timestamp observed before the onset of the lull. However, the skew between substreams may still cause the punctuation that reaches the downstream vertex to stay behind some timestamps. This is because the downstream will only get the lowest of all substream punctuations.
 
 The advantage of this policy is that it doesn't assume anything about the unit of measurement used for event timestamps.
 
 #### "Limiting lag and lull"
 
-The `limitingLagAndLull()` policy is similar to `limitingLagAndDelay` in adressing the stream lull problem, going a step further by addressing the issues of lull combined with skew. To achieve that it must introduce an asspmution, though: that the event timestamps are given in milliseconds. After a given period passes with punctuation not being advanced by the arriving data (i.e., a lull happens), it will start advancing it in lockstep with the passage of the local system time. Since the system time advances equally on all substream processors, the punctuation propagated to downstream is now guaranteed to advance regardless of the lull.
+The `limitingLagAndLull()` policy is similar to `limitingLagAndDelay` in adressing the stream lull problem and goes a step further by addressing the issues of lull combined with skew. To achieve this it must introduce an assumption, though: that the time unit used for event timestamps is milliseconds. After a given period passes with punctuation not being advanced by the arriving data (i.e., a lull happens), it will start advancing it in lockstep with the passage of the local system time. The punctuation isn't adjusted _towards_ the local time; the policy just ensures the difference between local time and punctuation stays the same during a lull. Since the system time advances equally on all substream processors, the punctuation propagated to downstream is now guaranteed to advance regardless of the lull.
+
+There is, however, a subtle issue with `limitingLagAndLull()`: if there is any substream that never observes an item, that substream's policy instance won't be able to initialize its "last seen timestamp" and will cause the punctuation sent to the downstream to forever lag behind all the actual data.
 
 #### "Limiting timestamp and wall-clock lag"
 
-The `limitingTimestampAndWallClockLag()` policy makes a stronger assumption than above: it assumes that the event timestamps are in milliseconds since the Unix epoch and that they are synchronized with the local time on the processing machine. It puts a limit on how much the punctuation can lag behind the local time. As long as its assumption holds, this policy gives straightforward results. It also solves a subtle issue with `limitingLagAndLull()`: if any one substream never observes an item, that policy won't be able to initialize its "last seen timestamp" and will cause the punctuation to forever lag behind all other substreams.
+The `limitingTimestampAndWallClockLag()` policy makes a stronger assumption: that the event timestamps are in milliseconds since the Unix epoch and that they are synchronized with the local time on the processing machine. It puts a limit on how much the punctuation can lag behind the local time. As long as its assumption holds, this policy gives straightforward results. It also doesn't suffer from the subtle issue with `limitingLagAndLull()`.
+
+### Punctuation throttling
+
+The policy objects presented above will return the "ideal" punctuation value according to their logic; however it would be too much overhead to insert a punctuation item each time the ideal punctuation advances. This is why a throttling layer should always be added on top of the baseline policy. For the purpose of sliding windows, there is an easy answer: suppress all punctuation items that belong to the same frame as the already emitted one. Such items would have no effect since the punctuation must advance beyond a frame's end for the aggregating vertex to consider the frame completed and act upon its results. The method `PunctuationPolicy#throttleByFrame()` will return a policy with this kind of throttling applied. For other cases there is `throttleByMinStep()` which suppresses punctuation items until the punctuation has advanced more than `minStep` ahead of the previously emitted one.
