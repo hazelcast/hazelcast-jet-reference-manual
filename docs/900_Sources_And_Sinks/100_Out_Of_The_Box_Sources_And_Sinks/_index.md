@@ -5,7 +5,7 @@ Sources:
   - Hazelcast IList Reader
   - File Reader
   - File Streamer (Directory Watcher)
-  - Socket Text Streamer
+  - Socket Streamer
   - Apache Kafka Streamer
   - Apache Hadoop HDFS Reader
   
@@ -15,8 +15,8 @@ Sinks:
   - Hazelcast ICache Writer
   - Hazelcast IList Writer
   - File Writer
+  - Socket Writer
   - Log Writer
-  - Socket Text Writer
   - Apache Kafka Writer
   - Apache Hadoop HDFS Writer
 

@@ -57,8 +57,7 @@ environment.
 The main factory class for source vertices is `Sources`. It contains
 sources that ingest data from Hazelcast IMDG structures like `IMap`,
 `ICache`, `IList`, etc., as well as some simple sources that get data
-from files and TCP sockets (`readFiles`, `streamTextSocket` and some
-more).
+from files and TCP sockets (`readFiles`, `streamSocket` and some more).
 
 Paralleling the sources there's `Sinks` for the sink vertices,
 supporting the same range of resources (IMDG, files, sockets). There's
