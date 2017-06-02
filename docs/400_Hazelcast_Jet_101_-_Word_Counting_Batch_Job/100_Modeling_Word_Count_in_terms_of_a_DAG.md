@@ -70,8 +70,6 @@ computation job which can max out all the CPU cores given enough
 instances of tokenizing and accumulating processors. The next challenge
 is making this work across machines.
 
-1234567890123456789012345678901234567890123456789012345678901234567890123
-
 For starters, our input can no longer be a simple in-memory list because
 that would mean each machine processes the same data. To exploit a
 cluster as a unified computation device, each cluster member must observe only a
@@ -101,9 +99,9 @@ will combine those results. As noted above, this takes more memory due
 to more hashtable entries on each member, but it saves network traffic
 (an issue we didn't have within a member). Given that memory costs scale
 with the number of distinct keys, and given our specific use case with
-words of a natural language, the memory cost is more or less constant
+words of a natural language, the memory cost is more-or-less constant
 regardless of how much book material we process. On the other hand,
-network traffic scales with the total data size; so the more material we
+network traffic scales with the total data size so the more material we
 process, the more we save on network traffic.
 
 Jet distinguishes between _local_ and _distributed_ edges, so we'll use
