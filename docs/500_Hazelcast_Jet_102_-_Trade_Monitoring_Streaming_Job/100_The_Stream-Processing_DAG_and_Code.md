@@ -101,6 +101,6 @@ along with any aggregation results whose emission it triggers, to stage
 The full code of this sample is in 
 [StockExchange.java](
 https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/stock-exchange/src/main/java/StockExchange.java)
-and running it we'll get an endless stream of data accumulating on the
+and running it will get an endless stream of data accumulating on the
 disk. To spare your filesystem we've limited the execution time to 10
 seconds.
