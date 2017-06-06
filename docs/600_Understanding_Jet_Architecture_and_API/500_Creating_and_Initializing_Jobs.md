@@ -50,5 +50,5 @@ distributed data source's partition assignment. It supplies instances of
 `Processor` ready to start executing the vertex's logic.
 
 Please see
-the [Implementing Custom Sources and Sinks section](/07_Sources_And_Sinks/02_Implementing_Custom_Sources_and_Sinks)
+the [Implementing Custom Sources and Sinks section](/900_Implementing_Custom_Sources_and_Sinks)
 for more guidance on how these interfaces can be implemented.
