@@ -8,13 +8,12 @@ how the items are transmitted. The following options are available:
     <th>Default Value</th>
   </tr>
   <tr>
-    <td>High Water Mark</td>
+    <td>Outbox capacity</td>
     <td>
-      A Processor deposits its output items to its Outbox. It is an
-      unbounded buffer, but has a "high water mark" which should be
-      respected by a well-behaving processor. When its outbox reaches
-      the high water mark,the processor should yield control back to its
-      caller.
+        A cooperative processor's outbox will contain a bucket dedicated
+        to this edge. When the bucket reaches the configured capacity, it will
+        refuse further items. At that time the processor must yield control back
+        to its caller.
     </td>
     <td>2048</td>
   </tr>
