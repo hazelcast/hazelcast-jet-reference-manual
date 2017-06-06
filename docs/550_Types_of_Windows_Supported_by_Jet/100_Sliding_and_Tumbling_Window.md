@@ -54,9 +54,8 @@ on simultaneously for all the keys on all the members.
 
 ### Two-stage aggregation
 
-The concept of frame combining helps us efficiently solve the
-distributed computation problem as well. In the first stage the
-individual members come up with their partial results by frame and
-send them over a distributed edge to the second stage, which groups the
-frames by timestamp and combines them to get totals. Finally, it
-combines the totals along the event time axis into the sliding window.
+The concept of frame combining helps us implement two-stage aggregation as well. In the first stage the individual members come up with their partial results by frame and send them over a distributed edge to the second stage, which combines the frames with the same timestamp. After having combined all the partial frames from members, it combines the results along the event time axis into the sliding window.
+
+<img alt="Combining partial frames in two-stage aggregation" 
+    src="../images/combining-frames.png"
+    width="800"/>
