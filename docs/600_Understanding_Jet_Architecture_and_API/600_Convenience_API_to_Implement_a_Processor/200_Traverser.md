@@ -27,7 +27,5 @@ public class ItemAndSuccessorP extends AbstractProcessor {
 }
 ```
 
-For each received `Integer` item this processor emits the item and its
-successor. It does not differentiate between inbound edges (treats data
-from all edges the same way) and emits each item to all outbound edges
-connected to its vertex.
+For each received `Integer` this processor emits the number and its
+successor. If the outbox refuses an item, `flatMapper.tryProcess()` returns `false` and stays ready to resume the next time it is invoked. The fact that it returned `false` signals Jet to invoke `ItemAndSuccessorP.tryProcess()` again with the same arguments.
