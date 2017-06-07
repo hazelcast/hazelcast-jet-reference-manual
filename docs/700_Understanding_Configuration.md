@@ -1,3 +1,22 @@
+You can configure Hazelcast Jet either programmatically or declaratively (XML).
+
+## Configuring Programmatically
+
+Programmatic configuration is the simplest way to configure Jet. For
+example, the following will configure Jet to use only two threads
+for cooperative execution:
+
+```java
+JetConfig config = new JetConfig();
+config.getInstanceConfig().setCooperativeThreadCount(2);
+JetInstance jet = Jet.newJetInstance(config);
+```
+
+Any XML configuration files that might be present will be ignored when
+programmatic configuration is used.
+
+## Configuring Declaratively
+
 It is also possible to configure Jet through XML files when a
 `JetInstance` is created without any explicit `JetConfig` file. Jet will
 look for a configuration file in the following order:
@@ -52,3 +71,33 @@ The following table lists the configuration elements for Hazelcast Jet:
 |Temp Directory| Directory where temporary files will be placed, such as JAR files submitted by clients.|Jet will create a temp directory, which will be deleted on exit.
 |Flow Control Period| While executing a Jet job there is the issue of regulating the rate at which one member of the cluster sends data to another member. The receiver will regularly report to each sender how much more data it is allowed to send over a given DAG edge. This option sets the length (in milliseconds) of the interval between flow-control packets.|100ms
 |Edge Defaults|The default values to be used for all edges.|Please see the section on [Tuning Edges](Understanding_Jet_Architecture_and_API/Edge#page_Fine-Tuning).
+
+## Configuring Underlying Hazelcast Instance
+
+Each Jet member or client, will have a respective underlying Hazelcast
+member or client. Please refer to the [Hazelcast Reference Manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#understanding-configuration) for specific configuration options for Hazelcast
+IMDG.
+
+### Programmatic
+
+The underlying Hazelcast IMDG member can be configured as follows:
+
+```java
+JetConfig jetConfig = new JetConfig();
+jetConfig.getHazelcastConfig().getGroupConfig().setName("test");
+JetInstance jet = Jet.newJetInstance(jetConfig);
+```
+
+The underlying Hazelcast IMDG client can be configured as follows:
+
+
+````java
+ClientConfig clientConfig = new ClientConfig();
+clientConfig.getGroupConfig().setName("test");
+JetInstance jet = Jet.newJetClient(clientConfig);
+````
+### Declarative
+
+The underlying Hazelcast IMDG configuration can also be updated declaratively.
+Please refer to the [Hazelcast Reference Manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#configuring-declaratively)
+ for information on how to do this.
