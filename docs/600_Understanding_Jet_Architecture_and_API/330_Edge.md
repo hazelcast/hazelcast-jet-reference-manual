@@ -99,14 +99,20 @@ be routed to the same member and the same processor instance running on
 it. Local parallelism of the target vertex should be set to 1, otherwise
 there will be idle processors that never get any items.
 
-On a local edge this policy doesn't make sense since just setting the local parallelism of the target vertex to 1 constrains the local choice to just one processor instance.
+On a local edge this policy doesn't make sense since just setting the
+local parallelism of the target vertex to 1 constrains the local choice
+to just one processor instance.
 
 ## Priority
 
 By default the processor receives items from all inbound edges as they
 arrive. However, there are important cases where an edge must be
 consumed in full to make the processor ready to accept data from other
-edges. A major example is a "hash join" which enriches the data stream with data from a lookup table. This can be modeled as a join of two data streams where the "left" one delivers the contents of the lookup table and the "right" one is the main data stream that will be enriched from the lookup table.
+edges. A major example is a "hash join" which enriches the data stream
+with data from a lookup table. This can be modeled as a join of two data
+streams where the "left" one delivers the contents of the lookup table
+and the "right" one is the main data stream that will be enriched from
+the lookup table.
 
 The `priority` property controls the order of consuming the edges. Edges
 are sorted by their priority number (ascending) and consumed in that
