@@ -1,72 +1,134 @@
-Developing a DAG for Jet usually involves writing *lambda expressions*. 
-Because the DAG is sent to members in serialized form, lambda 
-expressions need to be serializable too. For this reason we subclassed 
-all classes in `java.util.function` package with `Distributed` variants, 
-which extend them by implementing `java.io.Serializable`.
+Creating a DAG for Jet usually involves writing *lambda expressions*.
+Because the DAG is sent to the cluster members in serialized form,
+the lambda expressions must be serializable. To somewhat alleviate the
+inconvenience of this requirement, Jet declares the package
+`com.hazelcast.jet.function` with all the functional interfaces from
+`java.util.function` subtyped and made `Serializable`. Each subtype has
+the name of the original with `Distributed` prepended. For example, a
+`DistributedFunction` is just like `Function`, but implements
+`Serializable`. Java has explicit support for lambda target types that
+implement `Serializable`. There are several caveats, however.
 
 ### Lambda variable capture
 
-If the lambda references a variable in the outer scope, the variable is 
-captured and must also be serializable. If you reference an instance 
-field of the enclosing class, that class will get referenced and must be
-serializable:
+If the lambda references a variable in the outer scope, the variable is
+captured and must also be serializable. If it references an instance
+field of the enclosing class, it implicitly captures `this` so the
+entire class will be serialized. For example, this will fail because
+`JetJob` doesn't implement `Serializable`:
 
 ```java
 public class JetJob {
     private String parameter;
+    
     public DAG buildDag() {
         DAG dag = new DAG();
-        // this will fail: enclosing JetJob instance is not non-serializable
-        Vertex filter = dag.newVertex("filter", filter(item -> parameter.equals(item)));
-        // ...
+        // captures the parameter field:
+        dag.newVertex("filter", filter(item -> parameter.equals(item)));
     }
 }
 ```
 
-Another common pitfall is referencing an instance of `DateTimeFormatter`,
-which is not serializable:
+Just adding `implements Serializable` to `JetJob` would be a viable workaround here. However, consider something just a bit different:
 
 ```java
-DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
-    .withZone(ZoneId.systemDefault());
-// this will fail, formatter is not serializable
-Vertex map = dag.newVertex("map", 
-    map((Long tstamp) -> formatter.format(Instant.ofEpochMilli(tstamp))));
+public class JetJob implements Serializable {
+    private String parameter;
+    private OutputStream fileOut;
+    
+    public DAG buildDag() {
+        DAG dag = new DAG();
+        // captures `this`:
+        dag.newVertex("filter", filter(item -> parameter.equals(item)));
+    }
+}
 ```
 
-In this specific case, the simplest option is to use one of the 
-ready-made formatters:
+Even though we never refer to `fileOut`, we are still capturing the
+entire `JetJob` instance, including this field. We might mark it as
+`transient`, but the sane approach is to avoid referring to instance
+fields of the surrounding class. This can be simply achieved by
+assigning to a local variable, then referring to that variable inside
+the lambda:
 
 ```java
-Vertex map = dag.newVertex("map", map((Long tstamp) -> 
+public class JetJob {
+    private String parameter;
+    
+    public DAG buildDag() {
+        DAG dag = new DAG();
+        String p = parameter;
+        // does not capture `this`:
+        dag.newVertex("filter", filter(item -> p.equals(item)));
+    }
+}
+```
+
+Another common pitfall is capturing an instance of `DateTimeFormatter`
+or a similar non-serializable class:
+
+```java
+DateTimeFormatter formatter = 
+    DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
+                     .withZone(ZoneId.systemDefault());
+// Captures the non-serializable formatter:
+dag.newVertex("map", map((Long tstamp) -> 
+    formatter.format(Instant.ofEpochMilli(tstamp))));
+```
+
+Sometimes we can get away by using one of the preconfigured formatters
+available in the JDK:
+
+```java
+dag.newVertex("map", map((Long tstamp) -> 
     DateTimeFormatter.ISO_LOCAL_TIME.format(
         Instant.ofEpochMilli(tstamp).atZone(ZoneId.systemDefault()))));
 ```
 
-A more generic option is to use `static` field: static fields are not 
-serialized, however you have to ensure that the containing class is 
-added to the job (see `JobConfig.addClass()`).
+This refers to a `static final` field in the JDK, so the instance is available on any JVM. A similar approach is to declare our own `static final` field; however in that case we must add the declaring class as a job resource:
 
 ```java
-private static DateTimeFormatter formatter =
-    DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
-                     .withZone(ZoneId.systemDefault());
+public class JetJob {
 
-void buildDag() {
-    // ...
-    Vertex map = dag.newVertex("map",
-        map((Long tstamp) -> formatter.format(Instant.ofEpochMilli(tstamp))));
-    // ...
+    private static DateTimeFormatter formatter =
+            DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
+                             .withZone(ZoneId.systemDefault());
+
+    DAG buildDag() {
+        DAG dag = new DAG();
+        dag.newVertex("map", Processors.map((Long tstamp) ->
+                formatter.format(Instant.ofEpochMilli(tstamp))));
+        return dag;
+    }
+
+    void runJob(JetInstance jet) throws Exception {
+        JobConfig c = new JobConfig();
+        c.addClass(JetJob.class);
+        jet.newJob(buildDag(), c).execute().get();
+    }
 }
 ```
 
+An approach that is self-contained is to instantiate the
+non-serializable class just in time, inside the processor supplier:
+
+```java
+// This lambda captures nothing and creates its own formatter:
+dag.newVertex("map", () -> {
+    DateTimeFormatter formatter =
+            DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
+                             .withZone(ZoneId.systemDefault());
+    return Processors.map((Long tstamp) ->
+            formatter.format(Instant.ofEpochMilli(tstamp))).get();
+});
+```
+
+Note the `.get()` at the end: this retrieves the processor from the Jet-provided processor supplier and returns it from our custom-declared supplier.
+
 ### Serialization performance
 
-Java serialization has low performance due to it's heavy usage of 
-reflection. Hazelcast provides alternate serialization mechanism: 
-Hazelcast Custom Serialization. Jet supports both this and Java 
-serialization for the items processed by processors.
-
-To use Hazelcast serialization, consult [Hazelcast Custom 
-Serialization](http://docs.hazelcast.org/docs/3.8/manual/html/customserialization.html)
-chapter in the manual.
+Java serialization has low performance due to the heavy usage of
+reflection, overheads in the serialized form, etc. Hazelcast provides
+an alternative, more efficient serialization mechanism: Hazelcast Custom Serialization. To use Hazelcast serialization, consult the chapter on
+[custom serialization](http://docs.hazelcast.org/docs/3.8/manual/html/customserialization.html)
+in Hazelcast IMDG's reference manual.
