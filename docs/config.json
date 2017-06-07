@@ -2,7 +2,7 @@
     "title": "Hazelcast Jet Reference Manual",
     "tagline": "Hazelcast Jet Reference Manual",
     "author": "Hazelcast",
-    "image": "logo.png",
+    "image": "<base_url>/images/logo.png",
     "ignore": {
             "files": ["Work_In_Progress.md"],
             "folders": ["99_Not_Ready"]
