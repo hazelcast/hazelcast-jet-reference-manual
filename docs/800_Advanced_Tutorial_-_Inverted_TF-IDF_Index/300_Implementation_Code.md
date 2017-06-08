@@ -88,7 +88,8 @@ of the transformation, and `tryProcess1()` directly delegates into it.
 If `FlatMapper` is done emitting the previous items, it will accept the
 new item, apply the user-provided transformation, and start emitting the
 output items. If the outbox refuses a pending item, it will return
-`false`, which will make the framework call the same `tryProcess1()` method later, with the same input item.
+`false`, which will make the framework call the same `tryProcess1()`
+method later, with the same input item.
 
 Let's show the code that creates the `tokenize`'s two inbound edges:
 
@@ -107,7 +108,7 @@ place.
 primitives:
 
 ```java
-dag.newVertex("tf", groupAndAccumulate(() -> 0L, (count, x) -> count + 1));
+dag.newVertex("tf", Processors.aggregateByKey(wholeItem(), counting()));
 ```
 
 `tf-idf` is the most complex processor:
@@ -141,7 +142,7 @@ private static class TfIdfP extends AbstractProcessor {
 
     @Override
     public boolean complete() {
-        return emitCooperatively(invertedIndexTraverser);
+        return emitFromTraverser(invertedIndexTraverser);
     }
 
     private Entry<String, List<Entry<Long, Double>>> toInvertedIndexEntry(
