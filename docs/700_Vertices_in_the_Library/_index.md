@@ -1,14 +1,13 @@
-This and the following sections cover vertex implementations provided in
-Jet's library. While formally there's only one kind of vertex, in practice
+While formally there's only one kind of vertex in Jet, in practice
 there is an important distinction between the following:
 
 * A **source** is a vertex with no inbound edges. It injects data from
 the environment into the Jet job.
 * A **sink** is a vertex with no outbound edges. It drains the output of
 the Jet job into the environment.
-* An **internal** vertex has both kinds of edges. It accepts some data
-from upstream vertices, performs some computation, and emits the results
-to downstream vertices. Typically it doesn't interact with the
+* An **computational** vertex has both kinds of edges. It accepts some
+data from upstream vertices, performs some computation, and emits the
+results to downstream vertices. Typically it doesn't interact with the
 environment.
 
 The `com.hazelcast.jet.processor` package contains static utility
@@ -38,6 +37,3 @@ that connect to 3rd party resources like Kafka and Hadoop Distributed
 File System (HDFS). Each such module declares a class in the same
 package, `com.hazelcast.jet.processor`, exposing the module's source and
 sink definitions.
-
-Please refer to [Additional Modules](/090_Additional_Modules/_index.md) 
-section for Apache Kafka and Apache Hadoop HDFS sources and sinks. 

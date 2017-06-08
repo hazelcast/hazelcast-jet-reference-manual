@@ -11,7 +11,7 @@ Initially an event causes a new session window to be created, covering
 exactly the event interval. 
 
 <img alt="Session window: single event" 
-    src="../images/session-window-1.png"
+    src="/images/session-window-1.png"
     width="200"/>
 
 A following event under the same key belongs to this window iff its
@@ -19,25 +19,19 @@ interval overlaps it. The window is extended to cover the entire
 interval of the new event. 
 
 <img alt="Session window: extend with another event" 
-    src="../images/session-window-2.png"
+    src="/images/session-window-2.png"
     width="110"/>
     
 If the event interval don't overlap, a new session window is created for
 the new event.
 
 <img alt="Session window: create a new window after session timeout" 
-    src="../images/session-window-3.png"
+    src="/images/session-window-3.png"
     width="240"/>
 
 The event may happen to belong to two existing windows if its interval
 bridges the gap between them; in that case they are combined into one.
 
 <img alt="Session window: an event may merge two existing windows" 
-    src="../images/session-window-4.png"
+    src="/images/session-window-4.png"
     width="240"/>
-
-The session window is an example of a window that cannot be computed in
-a two-stage setup. A processor observing only a subset of events would
-construct entirely different windows and the local punctuation would not
-be enough to conclude when a given window is ready to be finalized and
-emitted.

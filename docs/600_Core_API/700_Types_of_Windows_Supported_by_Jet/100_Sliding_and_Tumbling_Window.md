@@ -1,6 +1,18 @@
-The sliding window (and its special case, the tumbling window) is the only kind whose computation Jet can optimize with two-stage aggregation. This is because the window boundaries are defined in a data-independent way so a processor doesn't need the whole dataset to determine them.
+The sliding window has a simple definition: it covers a fixed-size
+interval of event time which slides along as the event time advances. In
+order to provide better performance, in Jet we don't literally implement
+it this way: instead of smoothly sliding, the window advances in discrete
+steps. The user defines both the window and the step size, with the
+restriction that the window must contain an integer number of steps. With
+this kind of definition, the _tumbling_ window is just a special case of
+a sliding window with step size equal to window size.
 
-We divide the timestamp axis into _frames_ of equal length and assign each item to its frame. To compute a sliding window, we just take all the frames covered by it and combine them. This means that our sliding window doesn't smoothly slide over the axis, it "hops" in frame-sized steps. This way we provide a configurable tradeoff between the smoothness of sliding and the cost of storage/computation.
+The reason for the above definition of the sliding window lies in the way
+we implement the computation. We divide the timestamp axis into _frames_
+of length equal to the step size and assign each event to its frame. To
+compute a sliding window, we just take all the frames covered by it and
+combine them. This way we provide a configurable tradeoff between the
+smoothness of sliding and the cost of storage/computation. 
 
 Furthermore, we provide support to optimize a very important class of
 aggregate operations: those that can be expressed in terms of a pair of
@@ -41,7 +53,7 @@ window, yielding the final result: the number of events that occurred
 within the window's timespan.
 
 <img alt="Grouping disordered events by frame and then to sliding window" 
-    src="../images/windowing-frames.png"
+    src="/images/windowing-frames.png"
     width="800"/>
 
 This would be a useful interpretation of the results: "At the time 1:30,
@@ -57,5 +69,5 @@ on simultaneously for all the keys on all the members.
 The concept of frame combining helps us implement two-stage aggregation as well. In the first stage the individual members come up with their partial results by frame and send them over a distributed edge to the second stage, which combines the frames with the same timestamp. After having combined all the partial frames from members, it combines the results along the event time axis into the sliding window.
 
 <img alt="Combining partial frames in two-stage aggregation" 
-    src="../images/combining-frames.png"
+    src="/images/combining-frames.png"
     width="800"/>

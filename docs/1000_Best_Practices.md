@@ -1,3 +1,147 @@
+## Jobs
+
+- All the code and state needed for the Jet job must be declared in the 
+classes that become a part of the job's definition through 
+`JobConfig.addClass()` or `addJar()`.
+
+- If you have a client connecting to your Jet cluster, the Jet job 
+should never have to refer to `ClientConfig`. Create a separate 
+`DagBuilder` class using the `buildDag()` method; this class should not 
+have any references to the `JobHelper` class.
+
+- You should have a careful control over the object graph which is 
+submitted with the Jet job. Please be aware that inner classes/lambdas 
+may inadvertently capture their parent classes which will cause 
+serialization errors.
+
+## Packaging the Job
+
+One way to easily submit the job to a Jet cluster is by using the 
+`submit-job.sh` script (`submit-job.bat` on Windows).
+
+The main issue with achieving this is that the JAR must be attached as a 
+resource to the job being submitted, so the Jet cluster will be able to 
+load and use its classes. However, from within a running `main()` method 
+it is not trivial to find out the filename of the JAR containing it.
+
+To use the `submit-job` script, follow these steps:
+
+* Write your `main()` method and your Jet code the usual way, except 
+for calling `JetBootstrap.getInstance()` to acquire a Jet client 
+instance (instead of `Jet.newJetClient()`).
+
+* Create a runnable JAR with your entry point declared as the 
+`Main-Class` in `MANIFEST.MF`.
+
+* Run your JAR, but instead of `java -jar jetjob.jar` use `submit-jet.sh 
+jetjob.jar`. The script is found in the Jet distribution zipfile, in the 
+`bin` directory. On Windows use `submit-jet.bat`.
+
+* The Jet client will be configured from `hazelcast-client.xml` found in 
+the `config` directory in Jet's distribution directory structure. Adjust 
+that file to suit your needs.
+
+For example, write a class like this:
+
+```java
+public class CustomJetJob {
+  public static void main(String[] args) {
+    JetInstance jet = JetBootstrap.getInstance();
+    jet.newJob(buildDag()).execute().get();
+  }
+  
+  public static DAG buildDag() {
+    // ...
+  }
+}
+```
+   
+After building the JAR, submit the job:
+
+```
+$ submit-jet.sh jetjob.jar
+```
+
+## Debugging Processor Input and Output
+
+The `DiagnosticProcessors` class contains wrappers useful for debugging 
+your DAG. It has following methods:
+
+* `peekInput()`: logs input objects from all ordinals to logger
+
+* `peekOutput()`: logs objects output to any ordinal to logger. Object 
+emitted to multiple ordinals is logged just once.
+
+Both methods come in overloaded versions for each type of processor 
+supplier (the `Supplier<Processor>`, `ProcessorSupplier` and 
+`ProcessorMetaSupplier`) and with and without optional `toStringF` and 
+`shouldLogF`.
+
+### Example usage
+
+To peek on input of some vertex, we need to replace this line:
+
+```java
+Vertex combine = dag.newVertex("combine", combineByKey(counting()));
+```
+
+with the following one: just wrap the processor supplier in `peekInput()`:
+
+```java
+Vertex combine = dag.newVertex("combine", peekInput(combineByKey(counting())));
+```
+
+## How to Unit-Test a Processor
+
+A utility class to test custom processors is provided in the 
+`hazelcast-jet-test-support` module. You can unit test custom processors 
+by passing them with input objects and asserting the expected output.
+
+A `TestSupport.testProcessor()` set of methods is provided for the 
+typical case.
+
+For cooperative processors a 1-capacity outbox will be provided, which 
+will additionally be full on every other processing method call. This 
+will test edge cases in cooperative processors.
+
+This method does the following:
+
+* initializes the processor by calling 
+`Processor.init()` 
+
+* calls `Processor.process(0, inbox)`, the `inbox` contains all items 
+from `input` parameter
+
+* asserts the progress of the `process()` call: that something was taken 
+from the inbox or put to the outbox
+
+* calls `Processor.complete()` until it returns `true`
+
+* asserts the progress of the `complete()` call if it returned `false`: 
+something must have been put to the outbox.
+
+Note that this method never calls `Processor.tryProcess()`.
+
+This class does not cover these cases:
+
+* testing of processors which distinguish input or output edges by 
+ordinal.
+
+* checking that the state of a stateful processor is empty at the end 
+(you can do that yourself afterwards).
+
+Example usage. This will test one of the jet-provided processors:
+
+```java
+      TestSupport.testProcessor(
+              Processors.map((String s) -> s.toUpperCase()),
+              asList("foo", "bar"),
+              asList("FOO", "BAR")
+      );
+```
+
+## Serialization Caveats
+
 Creating a DAG for Jet usually involves writing *lambda expressions*.
 Because the DAG is sent to the cluster members in serialized form,
 the lambda expressions must be serializable. To somewhat alleviate the
@@ -166,3 +310,4 @@ JetInstance jet = Jet.newJetInstance(config);
 Consult the chapter on
 [custom serialization](http://docs.hazelcast.org/docs/3.8.1/manual/html-single/index.html#custom-serialization)
 in Hazelcast IMDG's reference manual for more details.
+

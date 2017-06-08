@@ -41,7 +41,7 @@ The word count computation can be roughly divided into three steps:
 We can represent these steps as a DAG:
 
 <img alt="Word-counting DAG"
-     src="../images/wordcount-dag.jpg"
+     src="/images/wordcount-dag.jpg"
      height="200"/>
 
 In the simplest case, the computation inside each vertex can be
@@ -52,7 +52,7 @@ can have its own thread and they can communicate over concurrent
 queues:
 
 <img alt="Word-counting DAG with concurrent queues shown"
-     src="../images/wordcount-dag-queue.jpg"
+     src="/images/wordcount-dag-queue.jpg"
      height="200"/>
 
 This achieves a _pipelined_ architecture: while the tokenizer is busy
@@ -74,7 +74,7 @@ processors doing the work of a single vertex. Let's add another
 tokenizing processor:
 
 <img alt="Word-counting DAG with tokenizer vertex parallelized"
-     src="../images/wordcount-tokenizer.jpg"
+     src="/images/wordcount-tokenizer.jpg"
      height="200"/>
 
 The input processor can now use all the available tokenizers as a pool
@@ -90,7 +90,7 @@ This is called "data partitioning" and in Jet we'll use a _partitioned
 edge_ between the tokenizer and the accumulator:
 
 <img alt="Word-counting DAG with tokenizer and accumulator parallelized"
-     src="../images/wordcount-partitioned.jpg"
+     src="/images/wordcount-partitioned.jpg"
      height="200"/>
 
 As a word is emitted from the tokenizer, it goes through a
@@ -145,7 +145,7 @@ finalized our DAG design, which can be illustrated by the following
 diagram:
 
 <img alt="Word-counting DAG parallelized and distributed"
-     src="../images/wordcount-distributed.jpg"
+     src="/images/wordcount-distributed.jpg"
      height="420"/>
 
 ## Implementing and Running the DAG
