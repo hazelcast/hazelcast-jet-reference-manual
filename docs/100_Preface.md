@@ -8,7 +8,7 @@
 
 You can see the features for Hazelcast Jet in the following architecture diagram.
 
-![Jet Architecture](images/Jet_Architecture_.png)
+<img src="images/Jet_Architecture_.png" width="100%" />
 
 ## Licensing
 
