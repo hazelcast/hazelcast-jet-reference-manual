@@ -20,7 +20,7 @@ lines to your `pom.xml`:
   <dependency>
     <groupId>com.hazelcast.jet</groupId>
     <artifactId>hazelcast-jet</artifactId>
-    <version>0.3</version>
+    <version>0.4</version>
   </dependency>
 </dependencies>
 ```
@@ -28,7 +28,7 @@ lines to your `pom.xml`:
 If you prefer to use Gradle, execute the following command:
 
 ```groovy
-compile 'com.hazelcast.jet:hazelcast-jet:0.3'
+compile 'com.hazelcast.jet:hazelcast-jet:0.4'
 ```
 
 ## Downloading
