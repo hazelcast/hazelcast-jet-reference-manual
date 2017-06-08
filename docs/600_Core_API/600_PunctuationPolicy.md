@@ -1,5 +1,5 @@
 As mentioned in the
-[Hazelcast Jet 102](../035_Hazelcast_Jet_102_-_Trade_Monitoring_Streaming_Job/01_The_Stream-Processing_DAG_and_Code.md)
+[Hazelcast Jet 102](/Hazelcast_Jet_102_-_Trade_Monitoring_Streaming_Job)
 section, determining punctuation is somewhat of a black art; it's about
 superimposing order over a disordered stream of events. We must decide
 at which point it stops making sense to wait even longer for data about

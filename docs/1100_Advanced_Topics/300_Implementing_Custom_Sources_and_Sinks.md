@@ -22,7 +22,7 @@ that vertex.
 
 Let's say we want to write a simple source that will generate numbers from
 0 to 1,000,000 (exclusive). It is trivial to write a single `Processor`
-which can do this using `java.util.stream` and [`Traverser`](/04_Understanding_Jet_Architecture_and_API/05_Convenience_API_to_Implement_a_Processor/01_Traverser.md).
+which can do this using `java.util.stream` and [`Traverser`](Convenience_API_to_Implement_a_Processor#page_Traverser).
 
 ```java
 class GenerateNumbersP extends AbstractProcessor {
@@ -78,10 +78,10 @@ to parallelize the source vertex, so we have to make each processor emit
 only a slice of the total data set.
 
 So far we've used the simplest approach to creating processors: a
-`DistributeSupplier<Processor>` function that keeps returning equal 
-instances of processors. Now we'll step up to Jet's custom interface that 
-gives us the ability to provide a list of separately configured 
-processors: `ProcessorSupplier` and its method `get(int processorCount)`. 
+`DistributeSupplier<Processor>` function that keeps returning equal
+instances of processors. Now we'll step up to Jet's custom interface that
+gives us the ability to provide a list of separately configured
+processors: `ProcessorSupplier` and its method `get(int processorCount)`.
 
 First we must decide on a partitioning policy: what subset will each
 processor emit. In our simple example we can use a simple policy: we'll
@@ -277,7 +277,7 @@ class WriteFileP extends AbstractProcessor implements Closeable {
 Some comments:
 
 * The constructor declares the processor
-[non-cooperative](/Understanding_Jet_Architecture_and_API/Processor#page_Cooperative+Multithreading) 
+[non-cooperative](/Core_API/Processor#page_Cooperative+Multithreading)
 because it will perform blocking IO operations.
 * `init()` method finds a unique filename for each processor by relying
 on the information reachable from the `Context` object.
@@ -332,4 +332,3 @@ class WriteFilePSupplier implements ProcessorSupplier {
     }
 }
 ```
-

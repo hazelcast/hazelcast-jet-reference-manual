@@ -40,7 +40,7 @@ into the recent past. This is the one we'll use in our upcoming example.
 
 Usually the time of observing the event is written as a data field in
 the stream item. There is no guarantee that items will occur in the
-stream ordered by the value of that field; in fact in many cases it is 
+stream ordered by the value of that field; in fact in many cases it is
 certain that they won't. Consider events gathered from users of a mobile
 app: for all kinds of reasons the items will arrive to our datacenter
 out of order, even with significant delays due to connectivity issues.
@@ -54,7 +54,7 @@ expensive. Furthermore, the latest received item no longer coincides
 with the notion of the "most recent event". A previously received item
 may have a higher timestamp value. We can't just keep a sliding window's
 worth of items and evict everything older; we have to wait some more
-time for the data to "settle down" before acting upon it. 
+time for the data to "settle down" before acting upon it.
 
 ## Punctuation
 
@@ -91,7 +91,7 @@ reports the number of trades per time unit (the time window). In terms
 of DAG design, not much changes going from batch to streaming. This is
 how it looks:
 
-<img alt="Trade monitoring DAG" 
+<img alt="Trade monitoring DAG"
      src="/images/stock-exchange-dag.png"
      width="300"/>
 
@@ -162,7 +162,7 @@ would take more code and coordination.
 The major novelty is the punctuation-inserting vertex. It must be added
 in front of the windowing vertex and will insert punctuation items
 according to the configured
-[policy](../040_Understanding_Jet_Architecture_and_API/02_Vertex.md#page_Punctuation+policies).
+[policy](/Core_API/PunctuationPolicy).
 In this case we use the simplest one, `withFixedLag`, which will make
 the punctuation lag behind the top observed event timestamp by a fixed
 amount. Emission of punctuation is additionally throttled, so that only
@@ -171,7 +171,7 @@ data only when the punctuation reaches the next frame, so inserting it
 more often than that would be just overhead.
 
 The edge from `insertPunctuation` to `slidingStage1` is partitioned; you
-may wonder how that works with punctuation items, since 
+may wonder how that works with punctuation items, since
 
 1. their type is different from the "main" stream item type and they
 don't have a partitioning key
@@ -185,7 +185,7 @@ The stage-1 processor will just forward the punctuation it receives,
 along with any aggregation results whose emission it triggers, to stage
 2.
 
-The full code of this sample is in 
+The full code of this sample is in
 [StockExchange.java](
 https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/stock-exchange/src/main/java/StockExchange.java)
 and running it will get an endless stream of data accumulating on the
