@@ -276,7 +276,7 @@ Hazelcast Jet deals with sequence traversal, this abstraction simplifies
 many of its aspects.
 
 The next vertex will do the actual word count. We can use the built-in
-`groupAndAccumulate` processor for this:
+`accumulateByKey` processor for this:
 
 ```java
 // word -> (word, count)
