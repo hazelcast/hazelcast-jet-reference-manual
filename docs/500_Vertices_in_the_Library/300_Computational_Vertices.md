@@ -45,10 +45,10 @@ Vertex splitWords = dag.newVertex("splitWords",
 
 # Aggregation
 
-The focal
-point of distributed computation is solving the problem of _grouping_ by
-a time window and/or grouping key and _aggregating_ the data of each
-group. As we explained in the
+Jet comes with a rich set of vertices for aggregations.
+The focal point of distributed computation is solving the problem of
+ _grouping_ by a time window and/or grouping key and _aggregating_
+ the data of each group. As we explained in the
 [Hazelcast Jet 101](Getting_Started/Hazelcast_Jet_101_-_Word_Counting_Batch_Job.md)
 section, aggregation can take place in a single stage or in two stages,
 and there are separate variants for batch and stream jobs. The main class
@@ -85,10 +85,3 @@ is presented in the following table:
     <td>N/A</td>
 </tr>
 </table>
-
-#### Other computation
-
-The `Processors` class has factories for some other kinds of computation
-as well. There are the simple map/filter/flatMap vertices, the
-punctuation-inserting vertex for streaming jobs, and some other
-low-level utilities.

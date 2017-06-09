@@ -1,44 +1,44 @@
 ## Jobs
 
-- All the code and state needed for the Jet job must be declared in the 
-classes that become a part of the job's definition through 
+- All the code and state needed for the Jet job must be declared in the
+classes that become a part of the job's definition through
 `JobConfig.addClass()` or `addJar()`.
 
-- If you have a client connecting to your Jet cluster, the Jet job 
-should never have to refer to `ClientConfig`. Create a separate 
-`DagBuilder` class using the `buildDag()` method; this class should not 
+- If you have a client connecting to your Jet cluster, the Jet job
+should never have to refer to `ClientConfig`. Create a separate
+`DagBuilder` class using the `buildDag()` method; this class should not
 have any references to the `JobHelper` class.
 
-- You should have a careful control over the object graph which is 
-submitted with the Jet job. Please be aware that inner classes/lambdas 
-may inadvertently capture their parent classes which will cause 
+- You should have a careful control over the object graph which is
+submitted with the Jet job. Please be aware that inner classes/lambdas
+may inadvertently capture their parent classes which will cause
 serialization errors.
 
 ## Packaging the Job
 
-One way to easily submit the job to a Jet cluster is by using the 
+One way to easily submit the job to a Jet cluster is by using the
 `submit-job.sh` script (`submit-job.bat` on Windows).
 
-The main issue with achieving this is that the JAR must be attached as a 
-resource to the job being submitted, so the Jet cluster will be able to 
-load and use its classes. However, from within a running `main()` method 
+The main issue with achieving this is that the JAR must be attached as a
+resource to the job being submitted, so the Jet cluster will be able to
+load and use its classes. However, from within a running `main()` method
 it is not trivial to find out the filename of the JAR containing it.
 
 To use the `submit-job` script, follow these steps:
 
-* Write your `main()` method and your Jet code the usual way, except 
-for calling `JetBootstrap.getInstance()` to acquire a Jet client 
+* Write your `main()` method and your Jet code the usual way, except
+for calling `JetBootstrap.getInstance()` to acquire a Jet client
 instance (instead of `Jet.newJetClient()`).
 
-* Create a runnable JAR with your entry point declared as the 
+* Create a runnable JAR with your entry point declared as the
 `Main-Class` in `MANIFEST.MF`.
 
-* Run your JAR, but instead of `java -jar jetjob.jar` use `submit-jet.sh 
-jetjob.jar`. The script is found in the Jet distribution zipfile, in the 
+* Run your JAR, but instead of `java -jar jetjob.jar` use `submit-jet.sh
+jetjob.jar`. The script is found in the Jet distribution zipfile, in the
 `bin` directory. On Windows use `submit-jet.bat`.
 
-* The Jet client will be configured from `hazelcast-client.xml` found in 
-the `config` directory in Jet's distribution directory structure. Adjust 
+* The Jet client will be configured from `hazelcast-client.xml` found in
+the `config` directory in Jet's distribution directory structure. Adjust
 that file to suit your needs.
 
 For example, write a class like this:
@@ -49,13 +49,13 @@ public class CustomJetJob {
     JetInstance jet = JetBootstrap.getInstance();
     jet.newJob(buildDag()).execute().get();
   }
-  
+
   public static DAG buildDag() {
     // ...
   }
 }
 ```
-   
+
 After building the JAR, submit the job:
 
 ```
@@ -64,17 +64,17 @@ $ submit-jet.sh jetjob.jar
 
 ## Debugging Processor Input and Output
 
-The `DiagnosticProcessors` class contains wrappers useful for debugging 
+The `DiagnosticProcessors` class contains wrappers useful for debugging
 your DAG. It has following methods:
 
 * `peekInput()`: logs input objects from all ordinals to logger
 
-* `peekOutput()`: logs objects output to any ordinal to logger. Object 
+* `peekOutput()`: logs objects output to any ordinal to logger. Object
 emitted to multiple ordinals is logged just once.
 
-Both methods come in overloaded versions for each type of processor 
-supplier (the `Supplier<Processor>`, `ProcessorSupplier` and 
-`ProcessorMetaSupplier`) and with and without optional `toStringF` and 
+Both methods come in overloaded versions for each type of processor
+supplier (the `Supplier<Processor>`, `ProcessorSupplier` and
+`ProcessorMetaSupplier`) and with and without optional `toStringF` and
 `shouldLogF`.
 
 ### Example usage
@@ -93,41 +93,37 @@ Vertex combine = dag.newVertex("combine", peekInput(combineByKey(counting())));
 
 ## How to Unit-Test a Processor
 
-A utility class to test custom processors is provided in the 
-`hazelcast-jet-test-support` module. You can unit test custom processors 
-by passing them with input objects and asserting the expected output.
+Utility classes for unit testing is provided as part of the core API
+inside `com.hazelcast.jet.test` package. Using these utility classes,
+you can unit test custom processors by passing them input items and
+asserting the expected output.
 
-A `TestSupport.testProcessor()` set of methods is provided for the 
+A `TestSupport.testProcessor()` set of methods is provided for the
 typical case.
 
-For cooperative processors a 1-capacity outbox will be provided, which 
-will additionally be full on every other processing method call. This 
+For cooperative processors a 1-capacity outbox will be provided, which
+will additionally be full on every other processing method call. This
 will test edge cases in cooperative processors.
 
 This method does the following:
 
-* initializes the processor by calling 
-`Processor.init()` 
-
-* calls `Processor.process(0, inbox)`, the `inbox` contains all items 
+* initializes the processor by calling `Processor.init()`
+* calls `Processor.process(0, inbox)`, the `inbox` contains all items
 from `input` parameter
-
-* asserts the progress of the `process()` call: that something was taken 
+* asserts the progress of the `process()` call: that something was taken
 from the inbox or put to the outbox
-
 * calls `Processor.complete()` until it returns `true`
-
-* asserts the progress of the `complete()` call if it returned `false`: 
+* asserts the progress of the `complete()` call if it returned `false`:
 something must have been put to the outbox.
 
 Note that this method never calls `Processor.tryProcess()`.
 
 This class does not cover these cases:
 
-* testing of processors which distinguish input or output edges by 
+* testing of processors which distinguish input or output edges by
 ordinal.
 
-* checking that the state of a stateful processor is empty at the end 
+* checking that the state of a stateful processor is empty at the end
 (you can do that yourself afterwards).
 
 Example usage. This will test one of the jet-provided processors:
@@ -164,10 +160,10 @@ entire class will be serialized. For example, this will fail because
 ```java
 public class JetJob {
     private String instanceVar;
-    
+
     public DAG buildDag() {
         DAG dag = new DAG();
-        
+
         // Refers to instanceVar, capturing "this", but JetJob is not
         // Serializable so this call will fail.
         dag.newVertex("filter", filter(item -> instanceVar.equals(item)));
@@ -181,10 +177,10 @@ Just adding `implements Serializable` to `JetJob` would be a viable workaround h
 public class JetJob implements Serializable {
     private String instanceVar;
     private OutputStream fileOut;
-    
+
     public DAG buildDag() {
         DAG dag = new DAG();
-        
+
         // Refers to instanceVar, capturing "this". JetJob is declared
         // Serializable, but has a non-serializable field and this fails.
         dag.newVertex("filter", filter(item -> parameter.equals(item)));
@@ -201,7 +197,7 @@ variable, then referring to that variable inside the lambda:
 ```java
 public class JetJob {
     private String instanceVar;
-    
+
     public DAG buildDag() {
         DAG dag = new DAG();
         String findMe = instanceVar;
@@ -216,12 +212,12 @@ Another common pitfall is capturing an instance of `DateTimeFormatter`
 or a similar non-serializable class:
 
 ```java
-DateTimeFormatter formatter = 
+DateTimeFormatter formatter =
     DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
                      .withZone(ZoneId.systemDefault());
 
 // Captures the non-serializable formatter, so this fails
-dag.newVertex("map", map((Long tstamp) -> 
+dag.newVertex("map", map((Long tstamp) ->
     formatter.format(Instant.ofEpochMilli(tstamp))));
 ```
 
@@ -232,7 +228,7 @@ available in the JDK:
 // Accesses the static final field ISO_LOCAL_TIME. Static fields are
 // not subject to lambda capture, they are dereferenced when the code
 // runs on the target machine.
-dag.newVertex("map", map((Long tstamp) -> 
+dag.newVertex("map", map((Long tstamp) ->
     DateTimeFormatter.ISO_LOCAL_TIME.format(
         Instant.ofEpochMilli(tstamp).atZone(ZoneId.systemDefault()))));
 ```
@@ -255,7 +251,7 @@ public class JetJob {
     }
 
     // The job will fail unless we attach the JetJob class as a
-    // resource, making the formatter instance available at the 
+    // resource, making the formatter instance available at the
     // target machine.
     void runJob(JetInstance jet) throws Exception {
         JobConfig c = new JobConfig();
@@ -310,4 +306,3 @@ JetInstance jet = Jet.newJetInstance(config);
 Consult the chapter on
 [custom serialization](http://docs.hazelcast.org/docs/3.8.1/manual/html-single/index.html#custom-serialization)
 in Hazelcast IMDG's reference manual for more details.
-
