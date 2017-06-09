@@ -1,11 +1,13 @@
+[TOC]
+
 ## IMap and ICache readers
 
-IMap and ICache Readers distribute the partitions to 
-processors according to ownership of the partitions. 
-Thus each processor will access data locally. Processors 
-will iterate over entries and emit them as `Map.Entry`. 
-The number of Hazelcast partitions should be configured to 
-at least `localParallelism * clusterSize`, otherwise some 
+IMap and ICache Readers distribute the partitions to
+processors according to ownership of the partitions.
+Thus each processor will access data locally. Processors
+will iterate over entries and emit them as `Map.Entry`.
+The number of Hazelcast partitions should be configured to
+at least `localParallelism * clusterSize`, otherwise some
 processors will have no partitions assigned to them.
 
 ```java
@@ -39,13 +41,13 @@ from a remote Hazelcast cluster by configuring a `ClientConfig`.
     // ... other vertices
 ```
 
-If the underlying map or cache is concurrently being modified, 
+If the underlying map or cache is concurrently being modified,
 there are no guarantees given with respect to missing or duplicate items.
 
 ## IList reader
 
-Since IList is not a partitioned data structure, 
-all elements from the list are emitted on a single 
+Since IList is not a partitioned data structure,
+all elements from the list are emitted on a single
 member &mdash; the one where the entire list is stored.
 
 ```java
@@ -54,7 +56,7 @@ member &mdash; the one where the entire list is stored.
     // ... other vertices
 ```
 
-You can use IList reader to fetch the items from 
+You can use IList reader to fetch the items from
 a remote Hazelcast cluster by configuring a `ClientConfig`.
 
 ```java
@@ -67,8 +69,8 @@ a remote Hazelcast cluster by configuring a `ClientConfig`.
 
 ## File Reader
 
-File Reader is a source that emits lines from files in a 
-directory matching the supplied pattern (but not its subdirectories). 
+File Reader is a source that emits lines from files in a
+directory matching the supplied pattern (but not its subdirectories).
 You can pass `*` as the pattern to read all the files in the directory.
 
 ```java
@@ -79,23 +81,23 @@ You can pass `*` as the pattern to read all the files in the directory.
 
 ```java
     DAG dag = new DAG();
-    Vertex source = dag.newVertex("source", Sources.readFiles(DIRECTORY, 
+    Vertex source = dag.newVertex("source", Sources.readFiles(DIRECTORY,
         StandardCharsets.UTF_8, PATTERN));
     // ... other vertices
 ```
 
-The files must not change while being read; if they do, 
-the behavior is unspecified. There will be no indication of 
+The files must not change while being read; if they do,
+the behavior is unspecified. There will be no indication of
 which file a particular line comes from.
 
-The same pathname should be available on all members, 
-but it should not contain the same files. For example 
+The same pathname should be available on all members,
+but it should not contain the same files. For example
 it should not resolve to a directory shared over the network.
 
-Since this processor is file IO-intensive, local parallelism of the 
-vertex should be set according to the performance characteristics of the 
-underlying storage system. Typical values are in the range of 1 to 4. 
-Multiple files are read in parallel; if just a single file is read, it 
+Since this processor is file IO-intensive, local parallelism of the
+vertex should be set according to the performance characteristics of the
+underlying storage system. Typical values are in the range of 1 to 4.
+Multiple files are read in parallel; if just a single file is read, it
 is always read by single thread.
 
 See the [Access log analyzer sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/batch/access-log-analyzer)
@@ -103,18 +105,18 @@ for a fully working example.
 
 ## File Streamer
 
-File Streamer is a source that generates a stream of lines of text coming from 
-files in the watched directory matching the supplied pattern 
-(but not its subdirectories). You can pass `*` as the pattern 
-to read all the files in the directory. It will pick up both newly created 
-files and content appended to pre-existing files. It expects the 
+File Streamer is a source that generates a stream of lines of text coming from
+files in the watched directory matching the supplied pattern
+(but not its subdirectories). You can pass `*` as the pattern
+to read all the files in the directory. It will pick up both newly created
+files and content appended to pre-existing files. It expects the
 file contents not to change once appended. There is no indication of  
 which file a particular line comes from.
-    
-The processor will scan pre-existing files for file sizes on 
-startup and process them from that position. It will ignore 
-the first line if the starting offset is not immediately after 
-a newline character (it is assumed that another process is 
+
+The processor will scan pre-existing files for file sizes on
+startup and process them from that position. It will ignore
+the first line if the starting offset is not immediately after
+a newline character (it is assumed that another process is
 concurrently appending to the file).
 
 ```java
@@ -124,30 +126,30 @@ concurrently appending to the file).
 ```
 ```java
     DAG dag = new DAG();
-    Vertex source = dag.newVertex("source", Sources.streamFiles(DIRECTORY, 
+    Vertex source = dag.newVertex("source", Sources.streamFiles(DIRECTORY,
         StandardCharsets.UTF_8, PATTERN));
     // ... other vertices
 ```
-    
-The same pathname should be available on all the members, but it 
-should not contain the same files. For example it should not 
+
+The same pathname should be available on all the members, but it
+should not contain the same files. For example it should not
 resolve to a directory shared over the network.
-    
-Since this processor is file IO-intensive, local parallelism 
-of the vertex should be set according to the performance 
-characteristics of the underlying storage system. Typical 
-values are in the range of 1 to 4. If just a single file is read, 
+
+Since this processor is file IO-intensive, local parallelism
+of the vertex should be set according to the performance
+characteristics of the underlying storage system. Typical
+values are in the range of 1 to 4. If just a single file is read,
 it is always read by single thread.
 
-When a change is detected, the file is opened, appended lines are 
+When a change is detected, the file is opened, appended lines are
 read and file is closed. This process is repeated as necessary.
 
-The processor completes when the directory is deleted. However, 
-in order to delete the directory, all files in it must be deleted 
-and if you delete a file that is currently being read from, 
-the job may encounter an `IOException`. The directory must be 
+The processor completes when the directory is deleted. However,
+in order to delete the directory, all files in it must be deleted
+and if you delete a file that is currently being read from,
+the job may encounter an `IOException`. The directory must be
 deleted on all members. Any `IOException` will cause the job to fail.
-    
+
 **Limitation on Windows**
 
 On Windows OS, the `WatchService` is not notified of the appended lines
@@ -160,9 +162,9 @@ your own testing on your target Windows platform.
 
 **Use the latest JRE**
 
-The underlying JDK API `java.nio.file.WatchService` has a history of 
-unreliability and this processor may experience infinite blocking, 
-missed, or duplicate events as a result. Such problems may be resolved 
+The underlying JDK API `java.nio.file.WatchService` has a history of
+unreliability and this processor may experience infinite blocking,
+missed, or duplicate events as a result. Such problems may be resolved
 by upgrading the JRE to the latest version.
 
 See the [Access stream analyzer sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/streaming/access-stream-analyzer)
@@ -170,11 +172,11 @@ for a fully working example.
 
 ## Socket Streamer
 
-Socket Streamer is a source which streams text read from 
-a socket line by line. You can configure a `Charset` otherwise 
-`UTF-8` will be used as the default. Each processor instance will 
-create a socket connection to the configured `[host:port]`, 
-so there will be `clusterSize * localParallelism` connections. 
+Socket Streamer is a source which streams text read from
+a socket line by line. You can configure a `Charset` otherwise
+`UTF-8` will be used as the default. Each processor instance will
+create a socket connection to the configured `[host:port]`,
+so there will be `clusterSize * localParallelism` connections.
 The server should do the load-balancing.
 
 The processors will complete when the socket is closed by the server.
@@ -209,6 +211,8 @@ Vertex source = dag.newVertex("source", HdfsProcessors.readHdfs(jobConf, (k, v) 
 ```
 
 With this change, `readHdfs()` will emit items of type `String` instead.
+
+This source is part of the `hazelcast-jet-hadoop` module.
 
 ### Cluster Co-location
 
@@ -249,3 +253,5 @@ Properties props = props(
 
 Vertex source = dag.newVertex("source", KafkaProcessors.streamKafka(props, "t1", "t2"));
 ```
+
+This source is part of the `hazelcast-jet-kafka` module.

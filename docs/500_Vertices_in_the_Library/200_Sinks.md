@@ -1,8 +1,10 @@
-##IMap and ICache writers
+[TOC]
 
-IMap and ICache Writers drain the entries to a buffer 
-and uses `putAll` method for flushing them into 
-IMap and ICache respectively. Processors expects 
+## IMap and ICache writers
+
+IMap and ICache Writers drain the entries to a buffer
+and uses `putAll` method for flushing them into
+IMap and ICache respectively. Processors expects
 items of type `Map.Entry`.
 
 ```java
@@ -44,7 +46,7 @@ IList writer adds the items to a Hazelcast IList.
     Vertex sink = dag.newVertex("sink", Sinks.writeList(LIST_NAME));
 ```
 
-You can use IList writer to write the items to a remote 
+You can use IList writer to write the items to a remote
 Hazelcast cluster by configuring a `ClientConfig`.
 
 ```java
@@ -57,13 +59,13 @@ Hazelcast cluster by configuring a `ClientConfig`.
 
 ## File Writer
 
-File Writer is a sink which writes all items to a local file on each 
-member. Result of `toStringF` function will be written to the file 
-followed by a platform-specific line separator. Files are named with an 
+File Writer is a sink which writes all items to a local file on each
+member. Result of `toStringF` function will be written to the file
+followed by a platform-specific line separator. Files are named with an
 integer number starting from 0, which is unique cluster-wide.
 
-The same pathname must be available for writing on all members. 
-The file on each member will contain the part of the data processed 
+The same pathname must be available for writing on all members.
+The file on each member will contain the part of the data processed
 on that member.
 
 ```java
@@ -74,14 +76,14 @@ on that member.
 ```java
     DAG dag = new DAG();
     // ... other vertices
-    Vertex sink = dag.newVertex("sink", Sinks.writeFile(DIRECTORY, Object::toString, 
+    Vertex sink = dag.newVertex("sink", Sinks.writeFile(DIRECTORY, Object::toString,
         StandardCharsets.UTF_8, true));
 ```
 
-Since this processor is file IO-intensive, local parallelism 
-of the vertex should be set according to the performance 
-characteristics of the underlying storage system. Typical 
-values are in the range of 1 to 4. 
+Since this processor is file IO-intensive, local parallelism
+of the vertex should be set according to the performance
+characteristics of the underlying storage system. Typical
+values are in the range of 1 to 4.
 
 See the [Access log analyzer sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/batch/access-log-analyzer)
 for a fully working example.
@@ -102,21 +104,21 @@ Log Writer is a sink which logs all items at the INFO level.
     Vertex sink = dag.newVertex("sink", DiagnosticProcessors.writeLogger(Object::toString));
 ```
 
-Note that the event will be logged on the cluster members, 
+Note that the event will be logged on the cluster members,
 not on the client, so it's primarily meant for testing.
 Local parallelism of 1 is recommended for this vertex.
 
 ## Socket Writer
 
-Socket Writer is a sink which writes the items to 
-a socket as text. Each processor instance will create 
-a socket connection to the configured `[host:port]`, 
-so there will be `clusterSize * localParallelism` 
+Socket Writer is a sink which writes the items to
+a socket as text. Each processor instance will create
+a socket connection to the configured `[host:port]`,
+so there will be `clusterSize * localParallelism`
 connections. The server should do the load balancing.
 
-Processors drain the items to a buffer and flush them 
+Processors drain the items to a buffer and flush them
 to the underlying output stream.
- 
+
 ```java
     DAG dag = new DAG();
     // ... other vertices
@@ -141,6 +143,8 @@ Vertex sink = dag.newVertex("sink", HdfsProcessors.writeHdfs(jobConf,
 
 This will transform the key and value to their `Writable` equivalents
 which can be required for certain `OutputFormat` implementations.
+
+This sink is part of the `hazelcast-jet-hadoop` module.
 
 ### Serialization of Writables
 
@@ -188,3 +192,5 @@ Properties props = props(
 
 Vertex sink = dag.newVertex("sink", KafkaProcessors.writeKafka("topic1", properties));
 ```
+
+This sink is part of the `hazelcast-jet-kafka` module.
