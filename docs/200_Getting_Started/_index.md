@@ -3,7 +3,7 @@ In this section we'll get you started using Hazelcast Jet. First we'll show you 
 ## Requirements
 
 In the good tradition of Hazelcast products, Jet is distributed as a JAR
-with no other dependencies except Hazelcast IMDG itself. It requires JRE version 8 or higher to run.
+with no other dependencies. It requires JRE version 8 or higher to run.
 
 ## Using Maven and Gradle
 
@@ -49,7 +49,3 @@ that was packaged in a self-contained JAR file.
 * `bin/cluster.sh` provides basic functionality for Hazelcast cluster
 manager, such as changing the cluster state, shutting down the cluster
 or forcing the cluster to clean its persisted data.
-
-![Note](images/NoteSmall.png)***NOTE***: *`start-jet.sh` / `start-jet.bat`
-scripts let you start one Jet member per folder. To start a new
-instance, please unzip the package in a new folder.*

@@ -30,7 +30,7 @@ and present in full before the job starts. Later on we'll present a
 _streaming_ job that keeps processing an infinite stream forever,
 transforming it into another infinite stream.
 
-## Modeling Word Count in terms of a DAG
+## Modeling Word Count in terms of a DAG
 
 The word count computation can be roughly divided into three steps:
 
