@@ -1,7 +1,7 @@
-In this chapter we'll introduce the basic concept of DAG-based
-distributed computing. We'll use a simple example that may already be
-familiar: there is a dataset consisting of lines of natural language
-text and we want to find the number of occurrences of each word in it. A
+Let us now introduce the basic concept of DAG-based distributed
+computing. We'll use a simple example that may already be familiar:
+there is a dataset consisting of lines of text in plain English and we
+want to find the number of occurrences of each word in it. A
 single-threaded computation that does it can be expressed in just a few
 lines of Java:
 
