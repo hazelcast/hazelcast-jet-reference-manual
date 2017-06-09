@@ -1,4 +1,8 @@
-In this section we'll get you started using Hazelcast Jet. First we'll show you how to set up a Java project with the proper dependencies. This will be followed by two tutorials through which you'll learn about Jet's distributed computation model, its Core API, and how to use it to create and execute batch and streaming computation jobs.
+In this section we'll get you started using Hazelcast Jet. First we'll
+show you how to set up a Java project with the proper dependencies. This
+will be followed by two tutorials through which you'll learn about Jet's
+distributed computation model, its Core API, and how to use it to create
+and execute batch and streaming computation jobs.
 
 ## Requirements
 
@@ -40,12 +44,12 @@ and add the `hazelcast-jet-<version>.jar` file to your classpath.
 The distribution package contains the following scripts to help you get
 started with Hazelcast Jet:
 
-* `bin/start-jet.sh` and `bin/start-jet.bat` start a new Jet member in the
-current directory.
-* `bin/stop-jet.sh` and `bin/stop-jet.bat` stop the member started in the
-current directory.
-* `bin/submit-jet.sh` and `bin/submit-jet.bat` submit a Jet computation job
-that was packaged in a self-contained JAR file.
+* `bin/start-jet.sh` and `bin/start-jet.bat` start a new Jet member in
+the current directory.
+* `bin/stop-jet.sh` and `bin/stop-jet.bat` stop the member started in 
+the current directory.
+* `bin/submit-jet.sh` and `bin/submit-jet.bat` submit a Jet computation 
+job that was packaged in a self-contained JAR file.
 * `bin/cluster.sh` provides basic functionality for Hazelcast cluster
 manager, such as changing the cluster state, shutting down the cluster
 or forcing the cluster to clean its persisted data.
