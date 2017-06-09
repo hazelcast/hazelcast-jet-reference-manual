@@ -1,4 +1,4 @@
-Continuing our story from the previous chapter we shall now move on to
+Continuing our story from the previous section we shall now move on to
 infinite stream processing. The major challenge in batch jobs was
 properly parallelizing/distributing a "group by key" operation. To solve
 it we introduced the idea of partitioning the data based on a formula

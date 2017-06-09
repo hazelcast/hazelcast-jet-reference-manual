@@ -2,7 +2,7 @@ The internal vertices are where the computation takes place. The focal
 point of distributed computation is solving the problem of _grouping_ by
 a time window and/or grouping key and _aggregating_ the data of each
 group. As we explained in the
-[Hazelcast Jet 101](Hazelcast_Jet_101_-_Word_Counting_Batch_Job.md)
+[Hazelcast Jet 101](Getting_Started/Hazelcast_Jet_101_-_Word_Counting_Batch_Job.md)
 section, aggregation can take place in a single stage or in two stages,
 and there are separate variants for batch and stream jobs. The main class
 with factories for built-in computational vertices is `Processors`.

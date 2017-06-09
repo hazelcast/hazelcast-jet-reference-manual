@@ -1,18 +1,16 @@
-
-This chapter explains how to start using Hazelcast Jet. It also
-describes the executable files in the downloaded distribution package.
+In this section we'll get you started using Hazelcast Jet. First we'll show you how to set up a Java project with the proper dependencies. This will be followed by two tutorials through which you'll learn about Jet's distributed computation model, its Core API, and how to use it to create and execute batch and streaming computation jobs.
 
 ## Requirements
 
-Hazelcast Jet requires a minimum JDK version of 8.
+In the good tradition of Hazelcast products, Jet is distributed as a JAR
+with no other dependencies except Hazelcast IMDG itself. It requires JRE version 8 or higher to run.
 
 ## Using Maven and Gradle
 
 The easiest way to start using Hazelcast Jet is to add it as a
 dependency to your project.
 
-
-You can find Hazelcast Jet in Maven repositories. Add the following
+Hazelcast Jet is published on the Maven repositories. Add the following
 lines to your `pom.xml`:
 
 ```xml
@@ -33,7 +31,7 @@ compile 'com.hazelcast.jet:hazelcast-jet:0.4'
 
 ## Downloading
 
-Alternatively, you can download the latest [distribution package for
+Alternatively you can download the latest [distribution package of
 Hazelcast Jet](http://jet.hazelcast.org/download/)
 and add the `hazelcast-jet-<version>.jar` file to your classpath.
 
@@ -53,5 +51,5 @@ manager, such as changing the cluster state, shutting down the cluster
 or forcing the cluster to clean its persisted data.
 
 ![Note](images/NoteSmall.png)***NOTE***: *`start-jet.sh` / `start-jet.bat`
-scripts lets you start one Jet member per folder. To start a new
+scripts let you start one Jet member per folder. To start a new
 instance, please unzip the package in a new folder.*
