@@ -62,34 +62,81 @@ After building the JAR, submit the job:
 $ submit-jet.sh jetjob.jar
 ```
 
-## Debugging Processor Input and Output
+## Inspecting Processor Input and Output
 
-The `DiagnosticProcessors` class contains wrappers useful for debugging
-your DAG. It has following methods:
+The structure of the DAG model is a very poor match for Java's type
+system, which results in the lack of compile-time type safety between
+connected vertices. Developing a type-correct DAG therefore usually
+requires some trial and error. To facilitate this process, but also to
+allow many more kinds of diagnostics and debugging, Jet's library offers
+ways to capture the input/output of a vertex and inspect it.
 
-* `peekInput()`: logs input objects from all ordinals to logger
+### Peeking with processor wrappers
 
-* `peekOutput()`: logs objects output to any ordinal to logger. Object
-emitted to multiple ordinals is logged just once.
+The first approach is to decorate a vertex declaration with a layer that
+will log all the data traffic going through it. This support is present
+in the `DiagnosticProcessors` factory class, which contains the
+following methods:
 
-Both methods come in overloaded versions for each type of processor
-supplier (the `Supplier<Processor>`, `ProcessorSupplier` and
-`ProcessorMetaSupplier`) and with and without optional `toStringF` and
-`shouldLogF`.
+* `peekInput()`: logs items received at any edge ordinal.
 
-### Example usage
+* `peekOutput()`: logs items emitted to any ordinal. An item emitted to 
+several ordinals is logged just once.
 
-To peek on input of some vertex, we need to replace this line:
+These methods take two optional parameters:
+
+* `toStringF` returns the string representation of an item. The default
+is to use `Object.toString()`.
+* `shouldLogF` is a filtering function so you can focus your log output
+only on some specific items. The default is to log all items.
+
+#### Example usage
+
+Suppose we have declared the second-stage vertex in a two-stage
+aggregation setup:
 
 ```java
-Vertex combine = dag.newVertex("combine", combineByKey(counting()));
+Vertex combine = dag.newVertex("combine", 
+    combineByKey(counting()));
 ```
 
-with the following one: just wrap the processor supplier in `peekInput()`:
+We'd like to see what exactly we're getting from the first stage, so
+we'll wrap the processor supplier with `peekInput()`:
 
 ```java
-Vertex combine = dag.newVertex("combine", peekInput(combineByKey(counting())));
+Vertex combine = dag.newVertex("combine", 
+    peekInput(combineByKey(counting())));
 ```
+
+Keep in mind that logging happens on the machine running hosting the
+processor, so this technique is primarily targetted to Jet jobs the
+developer runs locally in his development environment.
+
+### Attaching a sink vertex
+
+Since most vertices are implemented to emit the same data stream to all
+attached edges, it is usually possible to attach a diagnostic sink to
+any vertex. For example, Jet's standard `writeFile()` sink can be very
+useful here.
+
+#### Example usage
+
+In the example from the Word Count tutorial we can add the following
+declarations:
+
+```java
+Vertex diagnose = dag.newVertex("diagnose",
+        Sinks.writeFile("tokenize-output"))
+        .localParallelism(1);
+dag.edge(from(tokenize, 1).to(diagnose));
+```
+
+This will create the directory `tokenize-output` which will contain one
+file per processor instance running on the machine. When running in a
+cluster, you can inspect on each member the input seen on that member.
+By specifying the `allToOne()` routing policy you can also have the
+output of all the processors on all the members saved on a single member
+(although the choice of exactly which member will be arbitrary).
 
 ## How to Unit-Test a Processor
 
