@@ -35,8 +35,8 @@ transforming it into another infinite stream.
 The word count computation can be roughly divided into three steps:
 
 1. Read a line from the map ("source" step).
-2. Split the line into words ("tokenizer" step).
-3. Update the running totals for each word ("accumulator" step).
+2. Split the line into words ("tokenize" step).
+3. Update the running totals for each word ("accumulate" step).
 
 We can represent these steps as a DAG:
 
@@ -139,8 +139,8 @@ network traffic scales with the total data size so the more material we
 process, the more we save on network traffic.
 
 Jet distinguishes between _local_ and _distributed_ edges, so we'll use
-a _local partitioned_ edge for tokenizer->accumulator and a _distributed
-partitioned_ edge for accumulator->combiner. With this move we've
+a _local partitioned_ edge for `tokenize`->`accumulate` and a _distributed
+partitioned_ edge for `accumulate`->`combine`. With this move we've
 finalized our DAG design, which can be illustrated by the following
 diagram:
 
@@ -257,7 +257,7 @@ need to provide the mapping function:
 ```java
 // (lineNum, line) -> words
 Pattern delimiter = Pattern.compile("\\W+");
-Vertex tokenizer = dag.newVertex("tokenizer",
+Vertex tokenize = dag.newVertex("tokenize",
     Processors.flatMap((Entry<Integer, String> e) ->
         Traversers.traverseArray(delimiter.split(e.getValue().toLowerCase()))
               .filter(word -> !word.isEmpty()))
@@ -323,10 +323,10 @@ specify the edge type as discussed in the previous section. Here's all
 the code at once:
 
 ```java
-dag.edge(between(source, tokenizer))
-   .edge(between(tokenizer, accumulator)
+dag.edge(between(source, tokenize))
+   .edge(between(tokenize, accumulate)
            .partitioned(DistributedFunctions.wholeItem(), Partitioner.HASH_CODE))
-   .edge(between(accumulator, combiner)
+   .edge(between(accumulate, combine)
            .distributed()
            .partitioned(DistributedFunctions.entryKey()))
    .edge(between(combiner, sink));
@@ -336,7 +336,7 @@ Let's take a closer look at some of the edges. First, source to
 tokenizer:
 
 ```java
-   .edge(between(tokenizer, accumulator)
+   .edge(between(tokenize, accumulate)
            .partitioned(DistributedFunctions.wholeItem(), Partitioner.HASH_CODE))
 ```
 
@@ -354,7 +354,7 @@ on a local edge.
 Next, the edge from the accumulator to the combiner:
 
 ```java
-.edge(between(accumulator, combiner)
+.edge(between(accumulate, combine)
        .distributed()
        .partitioned(DistributedFunctions.entryKey()))
 ```
