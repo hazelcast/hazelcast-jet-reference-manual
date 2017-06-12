@@ -56,20 +56,27 @@ may have a higher timestamp value. We can't just keep a sliding window's
 worth of items and evict everything older; we have to wait some more
 time for the data to "settle down" before acting upon it.
 
-## Punctuation
+## Watermark
 
-To solve these issues we introduce the concept of _stream punctuation_.
+To solve these issues we introduce the concept of the _watermark_.
 It is a timestamped item inserted into the stream that tells us "from
 this point on there will be no more items with timestamp less than
-this". Computing the punctuation is a matter of educated guessing and
+this". Computing the watermark is a matter of educated guessing and
 there is always a chance some items will arrive that violate its claim.
 If we do observe such an offending item, we categorize it as "too late"
 and just filter it out.
 
-In analogy to batch processing, punctuation is like an end-of-stream
+In analogy to batch processing, the watermark is like an end-of-stream
 marker, only in this case it marks the end of a substream. Our reaction
 to it is analogous as well: we emit the aggregated results for items
-whose timestamp is less than punctuation.
+whose timestamp is less than the watermark.
+
+**Terminology note**: in this and other places you'll notice that we use the term "watermark" in several distinct, but closely related meanings:
+
+- As a property of a given location in the DAG pipeline: _the current value of the watermark_.
+- As a data item: _a processor received a watermark_.
+
+The processor's current value of the watermark is updated when the processor receives a watermark item.
 
 ## Stream Skew
 
@@ -78,10 +85,10 @@ sources like Kafka are partitioned and distributed so "the stream" is
 actually a set of independent substreams, moving on in parallel.
 Substantial time difference may arise between events being processed on
 each one, but our system must produce coherent output as if there was
-only one stream. We meet this challenge by coalescing punctuation: as
+only one stream. We meet this challenge by coalescing watermarks: as
 the data travels over a partitioned/distributed edge, we make sure the
-downstream processor observes the correct punctuation, which is the
-least of punctuations received from the contributing substreams.
+downstream processor observes the correct watermark value, which is the
+least of watermarks received from the contributing substreams.
 
 ## The Stream-Processing DAG and Code
 
@@ -99,7 +106,7 @@ We have the same cascade of source, two-stage aggregation, and sink. The
 source part consists of `ticker-source` that loads stock names
 (tickers) from a Hazelcast IMap and `generate-trades` that retains this
 list and randomly generates an infinite stream of trade events. A
-separate vertex is inserting punctuation items needed by the aggregation
+separate vertex is inserting watermark items needed by the aggregation
 stage and on the sink side there's another mapping vertex,
 `format-output`, that transforms the window result items into lines of
 text. The `sink` vertex writes these lines to a file.
@@ -113,8 +120,8 @@ Vertex tickerSource = dag.newVertex("ticker-source",
         Sources.readMap(TICKER_MAP_NAME));
 Vertex generateTrades = dag.newVertex("generate-trades",
         generateTrades(TRADES_PER_SEC_PER_MEMBER));
-Vertex insertPunctuation = dag.newVertex("insert-punctuation",
-        Processors.insertPunctuation(Trade::getTime,
+Vertex insertWatermarks = dag.newVertex("insert-watermarks",
+        Processors.insertWatermarks(Trade::getTime,
                 () -> limitingLagAndDelay(MAX_LAG, 100)
                         .throttleByFrame(windowDef)));
 Vertex slidingStage1 = dag.newVertex("sliding-stage-1",
@@ -136,9 +143,9 @@ generateTrades.localParallelism(1);
 return dag
         .edge(between(tickerSource, generateTrades)
                 .distributed().broadcast())
-        .edge(between(generateTrades, insertPunctuation)
+        .edge(between(generateTrades, insertWatermarks)
                 .oneToMany())
-        .edge(between(insertPunctuation, slidingStage1)
+        .edge(between(insertWatermarks, slidingStage1)
                 .partitioned(Trade::getTicker, HASH_CODE))
         .edge(between(slidingStage1, slidingStage2)
                 .partitioned(Entry<String, Long>::getKey, HASH_CODE)
@@ -159,29 +166,29 @@ sake the processor must be configured with a local parallelism of 1;
 generating a precise amount of mock traffic from parallel processors
 would take more code and coordination.
 
-The major novelty is the punctuation-inserting vertex. It must be added
-in front of the windowing vertex and will insert punctuation items
+The major novelty is the watermark-inserting vertex. It must be added
+in front of the windowing vertex and will insert watermark items
 according to the configured
-[policy](/Core_API/PunctuationPolicy).
+[policy](/Core_API/WatermarkPolicy).
 In this case we use the simplest one, `withFixedLag`, which will make
-the punctuation lag behind the top observed event timestamp by a fixed
-amount. Emission of punctuation is additionally throttled, so that only
-one punctuation item per frame is emitted. The windowing processors emit
-data only when the punctuation reaches the next frame, so inserting it
+the watermark lag behind the top observed event timestamp by a fixed
+amount. Emission of watermarks is additionally throttled, so that only
+one watermark item per frame is emitted. The windowing processors emit
+data only when the watermark reaches the next frame, so inserting it
 more often than that would be just overhead.
 
-The edge from `insertPunctuation` to `slidingStage1` is partitioned; you
-may wonder how that works with punctuation items, since
+The edge from `insertWatermarks` to `slidingStage1` is partitioned; you
+may wonder how that works with watermark items, since
 
 1. their type is different from the "main" stream item type and they
 don't have a partitioning key
 2. each of them must reach all downstream processors.
 
 It turns out that Jet must treat them as a special case: regardless of
-the configured edge type, punctuations are routed using the broadcast
+the configured edge type, watermarks are routed using the broadcast
 policy.
 
-The stage-1 processor will just forward the punctuation it receives,
+The stage-1 processor will just forward the watermark it receives,
 along with any aggregation results whose emission it triggers, to stage
 2.
 

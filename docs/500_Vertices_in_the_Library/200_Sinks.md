@@ -91,7 +91,7 @@ for a fully working example.
 ## Log Writer
 
 Log Writer is a sink which logs all items at the INFO level.
-`Punctuation` items are not logged.
+`Watermark` items are not logged.
 
 ```java
     DAG dag = new DAG();

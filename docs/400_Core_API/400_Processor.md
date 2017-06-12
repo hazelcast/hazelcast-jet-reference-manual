@@ -89,7 +89,19 @@ no new items are received.
 
 ### tryProcess()
 
-A job that processes an infinite data stream may experience occasional lulls &mdash; periods with no items arriving. On the other hand, a windowing processor is not allowed to act upon each item immediately due to event skew; it must wait for the punctuation to arrive. During a stream lull this becomes problematic because punctuation itself is primarily data-driven and advances in response to the observation of event timestamps. The punctuation-inserting processor must be able to advance punctuation even during a stream lull, based on the passage of wall-clock time. This is the primary use case for the `tryProcess()` callback, which takes no arguments. It does have a `boolean` return value, and if it returns `false`, then it will be called again before any other methods are called. This way it can retry emitting its output until the outbox accepts it.
+A job that processes an infinite data stream may experience occasional
+lulls &mdash; periods with no items arriving. On the other hand, a
+windowing processor is not allowed to act upon each item immediately due
+to event skew; it must wait for a watermark item to arrive. During a
+stream lull this becomes problematic because the watermark itself is
+primarily data-driven and advances in response to the observation of
+event timestamps. The watermark-inserting processor must be able to
+advance the watermark even during a stream lull, based on the passage of
+wall-clock time. This is the primary use case for the `tryProcess()`
+callback, which takes no arguments. It does have a `boolean` return
+value, and if it returns `false`, then it will be called again before
+any other methods are called. This way it can retry emitting its output
+until the outbox accepts it.
 
 ### complete()
 
