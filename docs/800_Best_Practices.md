@@ -353,3 +353,8 @@ JetInstance jet = Jet.newJetInstance(config);
 Consult the chapter on
 [custom serialization](http://docs.hazelcast.org/docs/3.8.1/manual/html-single/index.html#custom-serialization)
 in Hazelcast IMDG's reference manual for more details.
+
+Note the limitation implied here: the serializers must be registered
+with Jet on startup because this is how it is supported in Hazelcast
+IMDG. There is a plan to improve this and allow serializers to be
+registered on individual Jet jobs.
