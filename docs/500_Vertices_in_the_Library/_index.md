@@ -5,7 +5,7 @@ there is an important distinction between the following:
 the environment into the Jet job.
 * A **sink** is a vertex with no outbound edges. It drains the output of
 the Jet job into the environment.
-* An **computational** vertex has both kinds of edges. It accepts some
+* A **computational** vertex has both kinds of edges. It accepts some
 data from upstream vertices, performs some computation, and emits the
 results to downstream vertices. Typically it doesn't interact with the
 environment.
@@ -16,7 +16,11 @@ required by the `dag.newVertex(name, procSupplier)` calls. There is a
 convention in Jet that every module containing vertex implementations
 contributes a utility class to the same package. Inspecting the
 contents of this package in your IDE should allow you to discover all
-vertex implementations available on the projet's classpath.
+vertex implementations available on the projet's classpath. For example,
+there are modules that connect to 3rd party resources like Kafka and
+Hadoop Distributed File System (HDFS). Each such module declares a class
+in the same package, `com.hazelcast.jet.processor`, exposing the
+module's source and sink definitions.
 
 The main factory class for the source vertices provided by the Jet core
 module is `Sources`. It contains sources that ingest data from Hazelcast
@@ -27,13 +31,11 @@ simple sources that get data from files and TCP sockets (`readFiles`,
 Paralleling the sources there's `Sinks` for the sink vertices,
 supporting the same range of resources (IMDG, files, sockets). There's
 also a general `writeBuffered` method that takes some boilerplate out of
-writing custom sink. The user must implement a few primitives: create a
+writing custom sinks. The user must implement a few primitives: create a
 new buffer, add an item to it, flush the buffer. The provided code takes
 care of integrating these primitives into the `Processor` API (draining
 the inbox into the buffer and handling the general lifecycle).
 
-In addition to these two clasess in Jet's Core module, there are modules
-that connect to 3rd party resources like Kafka and Hadoop Distributed
-File System (HDFS). Each such module declares a class in the same
-package, `com.hazelcast.jet.processor`, exposing the module's source and
-sink definitions.
+Finally, the computational vertices are where the main action takes
+place. The main class with factories for built-in computational
+vertices is `Processors`.

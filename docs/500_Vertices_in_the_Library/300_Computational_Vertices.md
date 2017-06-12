@@ -1,8 +1,5 @@
 [TOC]
 
-The internal vertices are where the computation takes place. Jet comes with
-built-in processors for the most common types of operations.
-
 # Map
 
 Mapping is one of the most common operations and maps an incoming item
@@ -45,17 +42,15 @@ Vertex splitWords = dag.newVertex("splitWords",
 
 # Aggregation
 
-Jet comes with a rich set of vertices for aggregations.
 The focal point of distributed computation is solving the problem of
  _grouping_ by a time window and/or grouping key and _aggregating_
  the data of each group. As we explained in the
 [Hazelcast Jet 101](Getting_Started/Hazelcast_Jet_101_-_Word_Counting_Batch_Job.md)
-section, aggregation can take place in a single stage or in two stages,
-and there are separate variants for batch and stream jobs. The main class
-with factories for built-in computational vertices is `Processors`.
+section, aggregation can take place in a single stage or in two
+stages, and there are separate variants for batch and stream jobs.
 
-The complete matrix of factories for aggregator vertices
-is presented in the following table:
+The complete matrix of factories for aggregator vertices is presented
+in the following table:
 
 <table border="1">
 <tr>
