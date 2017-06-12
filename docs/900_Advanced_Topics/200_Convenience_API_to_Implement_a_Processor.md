@@ -5,11 +5,11 @@ the boilerplate in implementing the full `Processor` API.
 
 ## Receiving items
 
-On the reception side the first line of convenience are the `tryProcessN()` methods. While in the inbox the punctuation and data items are interleaved, these methods take care of the boilerplate needed to filter out the punctuation. Additionally, they get one item at a time, eliminating the need to write a suspendable loop over the input items.
+On the reception side the first line of convenience are the `tryProcessN()` methods. While in the inbox the watermark and data items are interleaved, these methods take care of the boilerplate needed to filter out the watermarks. Additionally, they get one item at a time, eliminating the need to write a suspendable loop over the input items.
 
 There is a separate method specialized for each edge from 0 to 4 (`tryProcess0`..`tryProcess4`) and a catch-all method `tryProcess(ordinal, item)`. If the processor doesn't need to distinguish between the inbound edges, the latter method is a good match; otherwise, it is simpler to implement one or more of the ordinal-specific methods. The catch-all method is also the only way to access inbound edges beyond ordinal 4, but such cases are very rare in practice.
 
-Paralleling the above there are `tryProcessPunc(ordinal, punc)` and `tryProcessPuncN(punc)` methods that get just the punctuation items.
+Paralleling the above there are `tryProcessWm(ordinal, wm)` and `tryProcessWmN(wm)` methods that get just the watermark items.
 
 ## Emitting items
 
