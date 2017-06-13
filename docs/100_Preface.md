@@ -1,13 +1,16 @@
 
 ## Naming
 
-- **Hazelcast Jet** or **Jet** both refer to the same distributed data processing engine provided by Hazelcast, Inc.
-- **Hazelcast** or **Hazelcast IMDG** both refer to Hazelcast in-memory data grid middleware. **Hazelcast** is also the name of the company (Hazelcast, Inc.) providing Hazelcast IMDG and Hazelcast Jet.
+- **Hazelcast Jet** or **Jet** both refer to the same distributed data
+processing engine provided by Hazelcast, Inc.
+- **Hazelcast** or **Hazelcast IMDG** both refer to Hazelcast in-memory
+data grid middleware. **Hazelcast** is also the name of the company
+(Hazelcast, Inc.) providing Hazelcast IMDG and Hazelcast Jet.
 
 ## Licensing
 
-Hazelcast Jet and Hazelcast Jet Reference Manual are free and provided under the Apache
-License, Version 2.0.
+Hazelcast Jet and Hazelcast Jet Reference Manual are free and provided
+under the Apache License, Version 2.0.
 
 ## Trademarks
 
@@ -24,7 +27,7 @@ For information on the commercial support for Hazelcast Jet, please see
 
 ## Typographical Conventions
 
-Below table shows the conventions used in this manual.
+The below table shows the conventions used in this manual.
 
 |Convention|Description|
 |:-|:-|
