@@ -17,7 +17,7 @@ primitives are tailor-made for Jet's aggregation style. We assume that
 both accumulation and combining are destructive operations, mutating the
 left-hand operand. Mutability means lower GC pressure and we always use
 it in our implementations. We also define the `deduct` primitive, absent
-from `Collector` and specifically targetted to the optimization of
+from `Collector` and specifically targetted at the optimization of
 sliding window aggregation.
 
 As a simple example we can define an aggregate operation that collects

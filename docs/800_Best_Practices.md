@@ -1,3 +1,5 @@
+[TOC]
+
 ## Jobs
 
 - All the code and state needed for the Jet job must be declared in the
