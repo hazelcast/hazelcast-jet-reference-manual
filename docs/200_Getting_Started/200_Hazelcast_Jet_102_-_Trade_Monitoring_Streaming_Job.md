@@ -120,9 +120,10 @@ Vertex tickerSource = dag.newVertex("ticker-source",
 Vertex generateTrades = dag.newVertex("generate-trades",
         generateTrades(TRADES_PER_SEC_PER_MEMBER));
 Vertex insertWatermarks = dag.newVertex("insert-watermarks",
-        Processors.insertWatermarks(Trade::getTime,
-                () -> limitingLagAndDelay(MAX_LAG, 100)
-                        .throttleByFrame(windowDef)));
+        Processors.insertWatermarks(
+                Trade::getTime,
+                withFixedLag(MAX_LAG),
+                emitByFrame(windowDef)));
 Vertex slidingStage1 = dag.newVertex("sliding-stage-1",
         Processors.accumulateByFrame(
                 Trade::getTicker,
@@ -167,8 +168,7 @@ would take more code and coordination.
 
 The major novelty is the watermark-inserting vertex. It must be added
 in front of the windowing vertex and will insert watermark items
-according to the configured
-[policy](/Core_API/WatermarkPolicy).
+according to the configured [policy](/Core_API/WatermarkPolicy).
 In this case we use the simplest one, `withFixedLag`, which will make
 the watermark lag behind the top observed event timestamp by a fixed
 amount. Emission of watermarks is additionally throttled, so that only
