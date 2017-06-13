@@ -87,5 +87,9 @@ $(function () {
     $('.Collapsible__trigger').click(function () {
         $('.Collapsible__content').slideToggle();
     });
+
+	// Expand navigation sections on load
+	// New Tree navigation
+	$('ul.Nav > li.has-children').addClass('Nav__item--open');
 });
 
