@@ -128,7 +128,7 @@ class Template
 
                 $folder = [
                     'title' => $node->getTitle(),
-                    'class' => $node->isHotPath() ? 'Nav__item--open' : '',
+                    'class' => "Nav__item--open " . ($node->isHotPath() ? 'Nav__item--active' : ''),
                 ];
 
                 if ($index = $node->getIndexPage()) {
