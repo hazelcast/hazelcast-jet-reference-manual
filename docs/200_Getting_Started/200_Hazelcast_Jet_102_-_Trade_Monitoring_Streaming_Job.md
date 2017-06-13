@@ -66,17 +66,16 @@ there is always a chance some items will arrive that violate its claim.
 If we do observe such an offending item, we categorize it as "too late"
 and just filter it out.
 
-In analogy to batch processing, the watermark is like an end-of-stream
-marker, only in this case it marks the end of a substream. Our reaction
-to it is analogous as well: we emit the aggregated results for items
-whose timestamp is less than the watermark.
+**Terminology note**: in this and other places you'll notice that we use
+the term "watermark" in two distinct, but closely related meanings:
 
-**Terminology note**: in this and other places you'll notice that we use the term "watermark" in several distinct, but closely related meanings:
-
-- As a property of a given location in the DAG pipeline: _the current value of the watermark_.
+- As a property of a given location in the DAG pipeline: _the current
+value of the watermark_.
 - As a data item: _a processor received a watermark_.
 
-The processor's current value of the watermark is updated when the processor receives a watermark item.
+The watermark can be considered as a "clock telling the event time", as
+opposed to the wall-clock time. The processor's watermark value advances
+when it receives a watermark item.
 
 ## Stream Skew
 

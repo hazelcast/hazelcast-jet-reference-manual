@@ -1,10 +1,10 @@
 As mentioned in the
-[Hazelcast Jet 102](/Getting_Started/Hazelcast_Jet_102_-_Trade_Monitoring_Streaming_Job)
-section, determining the watermark is somewhat of a black art; it's about
-superimposing order over a disordered stream of events. We must decide
-at which point it stops making sense to wait even longer for data about
-past events to arrive. There's a tension between two opposing forces
-here:
+[Hazelcast Jet 102](/Getting_Started/Hazelcast_Jet_102_-_Trade_Monitoring_Streaming_Job#page_Time+Ordering)
+section, determining the watermark is somewhat of a black art; it's
+about superimposing order over a disordered stream of events. We must
+decide at which point it stops making sense to wait even longer for data
+about past events to arrive. There's a tension between two opposing
+forces here:
 
 - wait as long as possible to account for all the data;
 - get results as soon as possible.
@@ -21,25 +21,29 @@ watermark value.
 
 ### Predefined watermark policies
 
- We provide some general, data-agnostic watermark policies in the
- `WatermarkPolicies` class:
+We provide some general, data-agnostic watermark policies in the
+`WatermarkPolicies` class. They vary in how well they deal with
+advancing the watermark during a stream lull. The better they deal with
+it, the more assumptions they must make on the nature of the events'
+timestamp values and on the relationship between the timestamps and the
+locally observed wall-clock time.
 
 #### "With Fixed Lag"
 
-The `withFixedLag()` policy will emit watermarks that lag behind the
-highest observed event timestamp by a configured amount. In other words,
-each time an event with the highest timestamp so far is encountered,
-this policy emits a watermark item with `eventTimestamp - lag`. This
-puts a limit on the spread between timestamps in the stream: all events
-whose timestamp is more than the configured `lag` behind the highest
-timestamp are considered late.
+The `withFixedLag()` policy will maintain a watermark that lags behind
+the highest observed event timestamp by a configured amount. In other
+words, each time an event with the highest timestamp so far is
+encountered, this policy advances the watermark to `eventTimestamp -
+lag`. This puts a limit on the spread between timestamps in the stream:
+all events whose timestamp is more than the configured `lag` behind the
+highest timestamp are considered late.
 
 
 #### "Limiting Lag and Delay"
 
 The `limitingLagAndDelay()` policy applies the same fixed-lag logic as
-above and adds another limit: maximum delay from observing any item and
-emitting a watermark at least as large as its timestamp. A stream may
+above and adds another limit: maximum delay from observing an item and
+advancing the watermark to at least that item's timestamp. A stream may
 experience a lull (no items arriving) and this added limit will ensure
 that the watermark doesn't stay behind the highest timestamp observed
 before the onset of the lull. However, the skew between substreams may
@@ -85,15 +89,16 @@ issue with `limitingLagAndLull()`.
 
 The policy objects presented above will return the "ideal" watermark
 value according to their logic; however it would be too much overhead to
-insert a watermark item each time the ideal watermark advances. This
-is why a throttling layer should always be added on top of the baseline
-policy. For the purpose of sliding windows, there is an easy answer:
-suppress all watermark items that belong to the same frame as the
-already emitted one. Such items would have no effect since the
-watermark must advance beyond a frame's end for the aggregating vertex
-to consider the frame completed and act upon its results. The method
-`WatermarkPolicy#throttleByFrame()` will return a policy with this
-kind of throttling applied. For other cases there is
-`throttleByMinStep()` which suppresses watermark items until the
-watermark has advanced more than `minStep` ahead of the previously
+insert a watermark item each time the ideal watermark advances
+(typically a thousand times per second). `WatermarkEmissionPolicy` is
+the object that decides whether to emit a watermark item given the last
+emitted and the current value of the watermark. For the purpose of
+sliding windows there is an easy answer: suppress all watermark items
+that belong to the same frame as the already emitted one. Such items
+would have no effect since the watermark must advance beyond a frame's
+end for the aggregating vertex to consider the frame completed and act
+upon its results. The method `WatermarkEmissionPolicy.emitByFrame()`
+will return a policy with this kind of throttling applied. For other
+cases there is `emitByMinStep()` which suppresses watermark items until
+the watermark has advanced at least `minStep` ahead of the previously
 emitted one.
