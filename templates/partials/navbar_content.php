@@ -5,7 +5,7 @@
             <a href="http://jet.hazelcast.org/"><img src="<?= $params['image'] ?>" style="padding-bottom:8px;"/></a>
           </div>
           <div>
-            <a class="Navbar__branda" href="<?= $params['base_page'] . $params['index']->getUri(); ?>">Reference Manual <span style="font-size:12px">0.4-SNAPSHOT</span></a>
+            <a class="Navbar__branda" href="<?= $params['base_page'] . $params['index']->getUri(); ?>">Reference Manual <span style="font-size:12px">0.4</span></a>
           </div>
         </div>
 <?php if ($params['html']['search']) {
