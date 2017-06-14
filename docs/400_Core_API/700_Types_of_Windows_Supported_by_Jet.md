@@ -55,7 +55,7 @@ window, yielding the final result: the number of events that occurred
 within the window's timespan.
 
 <img alt="Grouping disordered events by frame and then to sliding window" 
-    src="/images/windowing-frames.png"
+    src="../images/windowing-frames.png"
     width="800"/>
 
 This would be a useful interpretation of the results: "At the time 1:30,
@@ -71,7 +71,7 @@ on simultaneously for all the keys on all the members.
 The concept of frame combining helps us implement two-stage aggregation as well. In the first stage the individual members come up with their partial results by frame and send them over a distributed edge to the second stage, which combines the frames with the same timestamp. After having combined all the partial frames from members, it combines the results along the event time axis into the sliding window.
 
 <img alt="Combining partial frames in two-stage aggregation" 
-    src="/images/combining-frames.png"
+    src="../images/combining-frames.png"
     width="800"/>
 
 ## Session Window
@@ -89,7 +89,7 @@ Initially an event causes a new session window to be created, covering
 exactly the event interval. 
 
 <img alt="Session window: single event" 
-    src="/images/session-window-1.png"
+    src="../images/session-window-1.png"
     width="200"/>
 
 A following event under the same key belongs to this window iff its
@@ -97,20 +97,20 @@ interval overlaps it. The window is extended to cover the entire
 interval of the new event. 
 
 <img alt="Session window: extend with another event" 
-    src="/images/session-window-2.png"
+    src="../images/session-window-2.png"
     width="110"/>
     
 If the event interval don't overlap, a new session window is created for
 the new event.
 
 <img alt="Session window: create a new window after session timeout" 
-    src="/images/session-window-3.png"
+    src="../images/session-window-3.png"
     width="240"/>
 
 The event may happen to belong to two existing windows if its interval
 bridges the gap between them; in that case they are combined into one.
 
 <img alt="Session window: an event may merge two existing windows" 
-    src="/images/session-window-4.png"
+    src="../images/session-window-4.png"
     width="240"/>
 
