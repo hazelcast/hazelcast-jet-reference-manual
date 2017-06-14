@@ -98,7 +98,7 @@ of DAG design, not much changes going from batch to streaming. This is
 how it looks:
 
 <img alt="Trade monitoring DAG"
-     src="/images/stock-exchange-dag.png"
+     src="../images/stock-exchange-dag.png"
      width="300"/>
 
 We have the same cascade of source, two-stage aggregation, and sink. The

@@ -102,4 +102,4 @@ int result = ints.stream().map(Entry::getValue)
                  .reduce(0, (l, r) -> l + r);
 ```
 
-![image](../images/jus-dag.jpg)
+![image](./images/jus-dag.jpg)

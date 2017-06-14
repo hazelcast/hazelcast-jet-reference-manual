@@ -31,7 +31,7 @@ which can be used in both on-premise and cloud environments.
 
 ## High-level overview of Jet's Architecture
 
-<img src="/images/Jet_Architecture_.png" width="100%"/>
+<img src="./images/Jet_Architecture_.png" width="100%"/>
 
 ## The Data Processing Model
 
@@ -136,7 +136,7 @@ edges. Lite members should not be allowed to join a Jet cluster.
 At the core of Jet is the distributed computation engine based on the
 paradigm of a **directed acyclic graph** (DAG):
 
-![DAG](../images/dag.png)
+![DAG](./images/dag.png)
 
 ### Vertex 
 
@@ -177,7 +177,7 @@ network and memory usage.
 After a `Job` is created, Jet replicates the DAG to the whole Jet
 cluster and executes it in parallel on each member.
 
-![DAG Distribution](../images/dag-distribution.png)
+![DAG Distribution](./images/dag-distribution.png)
 
 Execution is done on a user-configurable number of threads which use
 work stealing to balance the amount of work being done on each thread.
@@ -191,7 +191,7 @@ parallelism of 8 running on 4 members would have a total of 32 tasklets
 running at the same time. Each member will have the same number of
 tasklets running.
 
-![Parallelism](../images/parallelism-model.png)
+![Parallelism](./images/parallelism-model.png)
 
 When a request to execute a Job is made, the corresponding DAG and
 additional resources are deployed to the Jet cluster. An execution plan
