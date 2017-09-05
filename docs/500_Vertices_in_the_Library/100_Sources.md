@@ -100,7 +100,7 @@ underlying storage system. Typical values are in the range of 1 to 4.
 Multiple files are read in parallel; if just a single file is read, it
 is always read by single thread.
 
-See the [Access log analyzer sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/batch/access-log-analyzer)
+See the [Access log analyzer sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/0.4-maintenance/batch/access-log-analyzer)
 for a fully working example.
 
 ## File Streamer
@@ -167,7 +167,7 @@ unreliability and this processor may experience infinite blocking,
 missed, or duplicate events as a result. Such problems may be resolved
 by upgrading the JRE to the latest version.
 
-See the [Access stream analyzer sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/streaming/access-stream-analyzer)
+See the [Access stream analyzer sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/0.4-maintenance/streaming/access-stream-analyzer)
 for a fully working example.
 
 ## Socket Streamer
@@ -188,7 +188,7 @@ No reconnection is attempted.
     // ... other vertices
 ```
 
-See the [Socket code sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/streaming/socket)
+See the [Socket code sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/0.4-maintenance/streaming/socket)
 for a fully working example.
 
 ## HDFS Reader
@@ -240,7 +240,7 @@ underlying job is cancelled.
 `streamKafka()` forces the `enable.auto.commit` property to `false` and commits the current offsets after they have been fully emitted.
 
 This vertex takes a `Properties` instance which will be forwarded to the underlying Kafka consumers as configuration. For example, this is how we configure it in our
-[`ConsumeKafka`](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/kafka/src/main/java/ConsumeKafka.java)
+[`ConsumeKafka`](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/0.4-maintenance/streaming/kafka/src/main/java/ConsumeKafka.java)
 code sample:
 
 ```java
