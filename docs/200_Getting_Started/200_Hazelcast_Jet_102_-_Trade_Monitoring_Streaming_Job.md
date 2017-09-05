@@ -159,7 +159,7 @@ return dag
 The source vertex reads a Hazelcast IMap, just like it did in the word
 counting example. Trade generating vertex uses a custom processor that
 generates mock trades. It can be reviewed
-[here](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/trade-generator/src/main/java/com/hazelcast/jet/sample/tradegenerator/GenerateTradesP.java).
+[here](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/0.4-maintenance/streaming/trade-generator/src/main/java/com/hazelcast/jet/sample/tradegenerator/GenerateTradesP.java).
 The implementation of `complete()` is non-trivial, but most of the
 complexity just deals with precision timing of events. For simplicity's
 sake the processor must be configured with a local parallelism of 1;
@@ -193,7 +193,7 @@ along with any aggregation results whose emission it triggers, to stage
 
 The full code of this sample is in
 [StockExchange.java](
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/stock-exchange/src/main/java/StockExchange.java)
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/0.4-maintenance/streaming/stock-exchange/src/main/java/StockExchange.java)
 and running it will get an endless stream of data accumulating on the
 disk. To spare your filesystem we've limited the execution time to 10
 seconds.
