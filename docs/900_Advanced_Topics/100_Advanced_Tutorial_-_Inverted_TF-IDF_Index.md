@@ -9,9 +9,9 @@ own with minimum boilerplate.
 The full code is available at the `hazelcast-jet-code-samples`
 repository:
 
-[TfIdfJdkStreams.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/0.4-maintenance/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
+[TfIdfJdkStreams.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
 
-[TfIdf.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/0.4-maintenance/batch/tf-idf/src/main/java/TfIdf.java)
+[TfIdf.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdf.java)
 
 Let us first introduce the problem. The inverted index is a basic data 
 structure in the domain of full-text search. First used in the 1950s, it
@@ -87,7 +87,7 @@ will not affect its score.
 To warm us up, let's see what it takes to build the inverted index with
 just thread parallelism and without the ability to scale out across
 many machines. It is expressible in Java Streams API without too much
-work. The full code is [here](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/0.4-maintenance/batch/tf-idf/src/main/java/TfIdfJdkStreams.java).
+work. The full code is [here](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java).
 
 We'll start by preparing a `Stream<Entry<Long, String>> docWords`: a
 stream of all the words found in all the documents. We use `Map.Entry` as
@@ -155,9 +155,9 @@ private static Entry<Long, Double> tfidfEntry(
 
 The search function can be implemented with another Streams expression,
 which you can review in the [SearchGui](
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/0.4-maintenance/batch/tf-idf/src/main/java/SearchGui.java)
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/SearchGui.java)
 class. You can also run the [TfIdfJdkStreams](
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/0.4-maintenance/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
 class and take the inverted index for a spin, making actual searches.
 
 There is one last concept in this model that we haven't mentioned yet:

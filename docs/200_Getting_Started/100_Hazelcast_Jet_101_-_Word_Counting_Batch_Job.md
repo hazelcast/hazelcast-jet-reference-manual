@@ -391,10 +391,10 @@ or=1, everything=1, spring=1, authorities=1, way=1, for=2]
 ```
 
 The full version of this sample can be found at the
-[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/0.4-maintenance/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java).
+[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java).
 
 You'll have to excuse the lack of indentation; we use that file to
 copy-paste from it into this tutorial. In the same directory there is
 also a more elaborated code sample that processes 100 MB of disk-based text
 data
-([WordCount.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/0.4-maintenance/batch/wordcount-core-api/src/main/java/WordCount.java)).
+([WordCount.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-core-api/src/main/java/WordCount.java)).

@@ -85,7 +85,7 @@ of the vertex should be set according to the performance
 characteristics of the underlying storage system. Typical
 values are in the range of 1 to 4.
 
-See the [Access log analyzer sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/0.4-maintenance/batch/access-log-analyzer)
+See the [Access log analyzer sample](https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/batch/access-log-analyzer)
 for a fully working example.
 
 ## Log Writer
