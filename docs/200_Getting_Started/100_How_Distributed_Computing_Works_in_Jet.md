@@ -1,25 +1,56 @@
-Let us now introduce the basic concept of DAG-based distributed
-computing. We'll use a simple example that may already be familiar:
-there is a dataset consisting of lines of text in plain English and we
-want to find the number of occurrences of each word in it. A
-single-threaded computation that does it can be expressed in just a few
-lines of Java:
+In this section we'll introduce the basic concepts of DAG-based distributed computing. We'll focus on one specific problem, already
+introduced as our Hello World example in the previous section: the Word
+Count. We'll start from basic Java code that solves the problem for a
+simple `List` and then gradually move on to a formulation that allows us to solve it for a data source distributed over the whole cluster,
+efficiently making use of all the available CPU power.
+
+In the second part we'll show you code to create a Jet cluster, build
+the DAG we designed, and execute it on the cluster. Keep in mind that
+the DAG-building code we present is not what you'd normally use in
+real-life projects; we use it here because we are explaining the
+fundamentals of distributed processing. The Pipeline API code we present in the end is how it would typically look in your project.
+
+Here is the single-threaded code that counts the words in a `List` of
+lines of text:
 
 ```java
 List<String> lines = ... // a pre-existing list
 Map<String, Long> counts = new HashMap<>();
 for (String line : lines) {
-    for (String word : line.split("\\W+")) {
-        counts.merge(word.toLowerCase(), 1L, (o, n) -> o + n);
+    for (String word : line.toLowerCase().split("\\W+")) {
+        if (!word.isEmpty()) {
+            counts.merge(word, 1L, (count, one) -> count + one);
+        }
     }
 }
 ```
+
+To move us closer to how this computation is expressed in Jet, let's 
+rewrite it in terms of the Java Streams API, still single-threaded:
+
+```java
+Map<String, Long> counts = 
+    lines.stream()
+         .flatMap(line -> Arrays.stream(line.toLowerCase().split("\\W+")))
+         .filter(word -> !word.isEmpty())
+         .collect(groupingBy(word -> word, counting()));
+```
+
+The Java Streams formulation gives us a clear insight into steps taken
+to process each data item:
+
+1. `lines.stream()`: read lines from the data source (we'll call this 
+   the "source" step).
+2. `flatMap()`+`filter()`: split each line into lowercase words,
+   avoiding empty strings (the "tokenizer" step).
+3. `collect()`: group equal words together and count them (the 
+   "accumulator" step).
 
 We'll move in small increments from this towards a formulation that is
 ready to be executed simultaneously on all machines in a cluster,
 utilizing all the CPU cores on each of them.
 
-The first step will be modeling the computation as a DAG. We'll start
+Our first move will be modeling the computation as a DAG. We'll start
 from a single-threaded model and gradually expand it into a
 parallelized, distributed one, discussing at each step the concerns that
 arise and how to meet them. Then, in the second part, we'll show you the
@@ -32,24 +63,22 @@ transforming it into another infinite stream.
 
 ## Modeling Word Count in terms of a DAG
 
-The word count computation can be roughly divided into three steps:
-
-1. Read a line from the map ("source" step).
-2. Split the line into words ("tokenize" step).
-3. Update the running totals for each word ("accumulate" step).
-
-We can represent these steps as a DAG:
+We can represent the steps outlined above as a DAG:
 
 <img alt="Word-counting DAG"
      src="../images/wordcount-dag.jpg"
      height="200"/>
 
-In the simplest case, the computation inside each vertex can be
-executed in turn in a single-threaded environment; however, just by
-modeling the computation as a DAG, we've split the work into isolated
-steps with clear data interfaces between them. This means each vertex
-can have its own thread and they can communicate over concurrent
-queues:
+The simplest, single-threaded code (shown above) deals with each item as
+it is produced: the outer loop reads the lines, the inner loop that runs
+for each line deals with the words on that line, and inside the inner
+loop we populate the result map with running counts.
+
+However, just by modeling the computation as a DAG, we've split the work
+into isolated steps with clear data interfaces between them. We can
+perform the same computation by running a separate loop for each step,
+each in its own thread. The source loop feeds the tokenizing loop over
+a concurrent queue and the same pattern goes on towards the data sink:
 
 <img alt="Word-counting DAG with concurrent queues shown"
      src="../images/wordcount-dag-queue.jpg"
@@ -106,13 +135,13 @@ is making this work across machines.
 
 For starters, our input can no longer be a simple in-memory list because
 that would mean each machine processes the same data. To exploit a
-cluster as a unified computation device, each cluster member must observe only a
-slice of the dataset. Given that a Jet instance is also a fully
-functional Hazelcast IMDG instance and a Jet cluster is also a Hazelcast
-IMDG cluster, the natural choice is to pre-load our data into an `IMap`,
-which will be automatically partitioned and distributed between the
-members. Now each Jet member can just read the slice of data that was stored
-locally on it.
+cluster as a unified computation device, each cluster member must
+observe only a slice of the dataset. Given that a Jet instance is also a
+fully functional Hazelcast IMDG instance and a Jet cluster is also
+Hazelcast IMDG cluster, the natural choice is to pre-load our data into
+an `IMap`, which will be automatically partitioned and distributed
+between the members. Now each Jet member can just read the slice of data
+that was stored locally on it.
 
 When run in a cluster, Jet will instantiate a replica of the whole DAG
 on each member. On a two-member cluster there will be two source
@@ -150,8 +179,9 @@ diagram:
 
 ## Implementing and Running the DAG
 
-Now that we've come up with a good DAG design, it's time to implement it
-using the Jet DAG API. We'll present this in several steps:
+Now that we've come up with a good DAG design, we can use Jet's Core API
+to implement and execute it. We'll break down the code into the
+following steps:
 
 1. Start a Jet cluster.
 2. Populate an `IMap` with sample data.
@@ -250,9 +280,9 @@ map-reading processor will do just what we want: on each member it will
 read only the data local to that member.
 
 The next vertex is the _tokenizer_, which does a simple "flat-mapping"
-operation (transforms one input item into zero or more output items). The
-low-level support for such a processor is a part of Jet's library, we just
-need to provide the mapping function:
+operation (transforms one input item into zero or more output items).
+The low-level support for such a processor is a part of Jet's library,
+we just need to provide the mapping function:
 
 ```java
 // (lineNum, line) -> words
@@ -266,14 +296,14 @@ Vertex tokenize = dag.newVertex("tokenize",
 
 This creates a processor that applies the given function to each
 incoming item, obtaining zero or more output items, and emits them.
-Specifically, our processor accepts items of type `Entry<Integer, String>`,
-splits the entry value into lowercase words, and emits all non-empty
-words. The function must return a `Traverser`, which is a functional
-interface used to traverse a sequence of non-null items. Its purpose is
-equivalent to the standard Java `Iterator`, but avoids the cumbersome
-two-method API. Since a lot of support for cooperative multithreading in
-Hazelcast Jet deals with sequence traversal, this abstraction simplifies
-many of its aspects.
+Specifically, our processor accepts items of type `Entry<Integer,
+String>`, splits the entry value into lowercase words, and emits all
+non-empty words. The function must return a `Traverser`, which is a
+functional interface used to traverse a sequence of non-null items. Its
+purpose is equivalent to the standard Java `Iterator`, but avoids the
+cumbersome two-method API. Since a lot of support for cooperative
+multithreading in Hazelcast Jet deals with sequence traversal, this
+abstraction simplifies many of its aspects.
 
 The next vertex will do the actual word count. We can use the built-in
 `accumulateByKey` processor for this:
@@ -293,8 +323,8 @@ function: our input item is just the word, which is also the grouping
 key. The second argument is the kind of aggregate operation we want to
 perform &mdash; counting. We're relying on Jet's out-of-the-box
 definitions here, but it's easy to define your own aggregate operations
-and key extractors. The processor emits nothing until it has received all
-the input, and at that point it emits the hashtable as a stream of
+and key extractors. The processor emits nothing until it has received
+all the input, and at that point it emits the hashtable as a stream of
 `Entry<String, Long>`.
 
 Next is the combining step which computes the grand totals from
@@ -391,10 +421,27 @@ or=1, everything=1, spring=1, authorities=1, way=1, for=2]
 ```
 
 The full version of this sample can be found at the
-[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java).
+[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java). You'll have to excuse
+the lack of indentation; we use that file to copy-paste from it into
+this tutorial.
 
-You'll have to excuse the lack of indentation; we use that file to
-copy-paste from it into this tutorial. In the same directory there is
-also a more elaborated code sample that processes 100 MB of disk-based text
-data
-([WordCount.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-core-api/src/main/java/WordCount.java)).
+For comparison, this is how you'd describe the same computation in the
+Jet Pipeline API. It's almost identical to the one we present in the
+Hello World example, except for reading entries from an `IMap` instead
+of just the lines of text from an `IList` (which isn't a partitioned
+data structure and is thus stored on a single member).
+
+```java
+Pattern delimiter = Pattern.compile("\\W+");
+Pipeline p = Pipeline.create();
+p.drawFrom(Sources.<Long, String>readMap(BOOK_LINES))
+ .flatMap(e -> traverseArray(delimiter.split(e.getValue().toLowerCase())))
+ .filter(word -> !word.isEmpty())
+ .groupBy(wholeItem(), counting())
+ .drainTo(Sinks.writeMap(COUNTS));
+```
+
+From this description Jet will automatically build the DAG that we
+presented in this tutorial. You can access this code sample at our 
+[code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-pipeline-api/src/main/java/WordCountPipelineApi.java), 
+too.

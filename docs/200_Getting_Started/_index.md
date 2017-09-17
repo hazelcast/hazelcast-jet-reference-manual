@@ -22,7 +22,7 @@ lines to your `pom.xml`:
   <dependency>
     <groupId>com.hazelcast.jet</groupId>
     <artifactId>hazelcast-jet</artifactId>
-    <version>0.4</version>
+    <version>0.5</version>
   </dependency>
 </dependencies>
 ```
@@ -30,7 +30,7 @@ lines to your `pom.xml`:
 If you prefer to use Gradle, execute the following command:
 
 ```groovy
-compile 'com.hazelcast.jet:hazelcast-jet:0.4'
+compile 'com.hazelcast.jet:hazelcast-jet:0.5'
 ```
 
 ## Downloading
@@ -53,3 +53,67 @@ job that was packaged in a self-contained JAR file.
 * `bin/cluster.sh` provides basic functionality for Hazelcast cluster
 manager, such as changing the cluster state, shutting down the cluster
 or forcing the cluster to clean its persisted data.
+
+## Hello, World!
+
+You can verify your setup by running this simple program. It processes
+the contents of a Hazelcast `IList` that contains lines of text, finds 
+the number of occurrences of each word in it, and stores its results
+in a Hazelcast `IMap`. In a distributed  computation job the input and 
+output cannot be simple in-memory structures like a Java `List`; they 
+must reside in the cluster so any member can access them. This is why we 
+use Hazelcast structures.
+
+```java
+import com.hazelcast.jet.Jet;
+import com.hazelcast.jet.JetInstance;
+import com.hazelcast.jet.pipeline.Pipeline;
+import com.hazelcast.jet.pipeline.Sinks;
+import com.hazelcast.jet.pipeline.Sources;
+
+import java.util.List;
+import java.util.Map;
+
+import static com.hazelcast.jet.Traversers.traverseArray;
+import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
+import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
+
+public class HelloWorld {
+    public static void main(String[] args) throws Exception {
+        // Create the specification of the computation pipeline. Note that it is 
+        // a pure POJO: no instance of Jet is needed to create it.
+        Pipeline p = Pipeline.create();
+        p.drawFrom(Sources.<String>readList("text"))
+         .flatMap(word -> traverseArray(word.toLowerCase().split("\\W+")))
+         .filter(word -> !word.isEmpty())
+         .groupBy(wholeItem(), counting())
+         .drainTo(Sinks.writeMap("counts"));
+
+        // Start Jet, populate the input list
+        JetInstance jet = Jet.newJetInstance();
+        try {
+            List<String> text = jet.getList("text");
+            text.add("hello world hello hello world");
+            text.add("world world hello world");
+            
+            // Perform the computation
+            p.execute(jet).get();
+            
+            // Check the results
+            Map<String, Long> counts = jet.getMap("counts");
+            System.out.println("Count of hello: " + counts.get("hello"));
+            System.out.println("Count of world: " + counts.get("world"));
+        } finally {
+            Jet.shutdownAll();
+        }
+    }
+}
+```
+
+You should expect to see a lot of logging output from Jet (sent to `stderr`) and two
+lines on `stdout`:
+
+```text
+Count of hello: 4
+Count of world: 5
+```
