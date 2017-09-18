@@ -1,8 +1,9 @@
 In this section we'll get you started using Hazelcast Jet. First we'll
-show you how to set up a Java project with the proper dependencies. This
-will be followed by two tutorials through which you'll learn about Jet's
-distributed computation model, its Core API, and how to use it to create
-and execute batch and streaming computation jobs.
+show you how to set up a Java project with the proper dependencies and a
+quick Hello World example to verify your setup. This will be followed by two lessons on the fundamental concepts of Jet's computation model.
+You'll be briefly exposed to the Core API, which lets you manipulate the
+building blocks directly. Later on our focus will shift to the
+higher-level Pipeline API, which you'll typically use in your projects.
 
 ## Requirements
 
@@ -84,8 +85,7 @@ public class HelloWorld {
         // a pure POJO: no instance of Jet is needed to create it.
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.<String>readList("text"))
-         .flatMap(word -> traverseArray(word.toLowerCase().split("\\W+")))
-         .filter(word -> !word.isEmpty())
+         .flatMap(word -> traverseArray(word.split("\\W+")))
          .groupBy(wholeItem(), counting())
          .drainTo(Sinks.writeMap("counts"));
 

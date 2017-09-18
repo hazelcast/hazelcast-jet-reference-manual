@@ -1,14 +1,16 @@
-In this section we'll introduce the basic concepts of DAG-based distributed computing. We'll focus on one specific problem, already
-introduced as our Hello World example in the previous section: the Word
-Count. We'll start from basic Java code that solves the problem for a
-simple `List` and then gradually move on to a formulation that allows us to solve it for a data source distributed over the whole cluster,
+In this section we'll introduce the basic concepts of DAG-based
+distributed computing. We'll focus on one specific problem, already
+introduced as our Hello World example: the Word Count. We'll start from
+some basic Java code that solves the problem for a simple `List` in a
+single thread and then gradually move on to a formulation that allows us
+to solve it for a data source distributed over the whole cluster,
 efficiently making use of all the available CPU power.
 
-In the second part we'll show you code to create a Jet cluster, build
-the DAG we designed, and execute it on the cluster. Keep in mind that
-the DAG-building code we present is not what you'd normally use in
-real-life projects; we use it here because we are explaining the
-fundamentals of distributed processing. The Pipeline API code we present in the end is how it would typically look in your project.
+In the second part we'll show you the Core API code that will directly
+build the DAG we designed. Keep in mind that this not what you'd
+normally use in real-life projects; we present it here to explain the
+fundamentals of Jet. The Pipeline API code we present at the end of this
+section is how it would typically look in your project.
 
 Here is the single-threaded code that counts the words in a `List` of
 lines of text:
@@ -177,96 +179,13 @@ diagram:
      src="../images/wordcount-distributed.jpg"
      height="420"/>
 
-## Implementing and Running the DAG
+## Implementing the DAG in Jet's Core API
 
 Now that we've come up with a good DAG design, we can use Jet's Core API
-to implement and execute it. We'll break down the code into the
-following steps:
+to implement it. Note that the DAG is a pure POJO and can be built 
+outside the context of any running Jet instances.
 
-1. Start a Jet cluster.
-2. Populate an `IMap` with sample data.
-3. Build the Jet DAG.
-4. Submit it for execution.
-
-To start a new Jet cluster, we must start some Jet instances.
-Typically these would be started on separate machines, but for the
-purposes of this tutorial we'll be using the same JVM for both
-instances. We can start them as shown below:
-
-```java
-public class WordCount {
-    public static void main(String[] args) {
-        JetInstance jet = Jet.newJetInstance();
-        Jet.newJetInstance();
-    }
-}
-```
-
-These two instances should automatically discover each other using IP
-multicast and form a cluster. You should see a log output similar to the
-following:
-
-```
-Members [2] {
-  Member [10.0.1.3]:5701 - f1e30062-e87e-4e97-83bc-6b4756ef6ea3
-  Member [10.0.1.3]:5702 - d7b66a8c-5bc1-4476-a528-795a8a2d9d97 this
-}
-```
-
-This means the members successfully formed a cluster. Don't forget to
-shut down the members afterwards, by adding the following as the last
-line of your application:
-
-```
-Jet.shutdownAll();
-```
-
-This must be executed unconditionally, even in the case of an exception;
-otherwise your Java process will stay alive because Jet has started its
-internal threads:
-
-```java
-public class WordCount {
-    public static void main(String[] args) {
-        try {
-            JetInstance jet = Jet.newJetInstance();
-            Jet.newJetInstance();
-
-            ... your code here...
-
-        } finally {
-            Jet.shutdownAll();
-        }
-    }
-}
-```
-
-As explained earlier, we'll use an `IMap` as our data source. Let's give it
-some sample data:
-
-```java
-IMap<Integer, String> map = jet.getMap("lines");
-map.put(0, "It was the best of times,");
-map.put(1, "it was the worst of times,");
-map.put(2, "it was the age of wisdom,");
-map.put(3, "it was the age of foolishness,");
-map.put(4, "it was the epoch of belief,");
-map.put(5, "it was the epoch of incredulity,");
-map.put(6, "it was the season of Light,");
-map.put(7, "it was the season of Darkness");
-map.put(8, "it was the spring of hope,");
-map.put(9, "it was the winter of despair,");
-map.put(10, "we had everything before us,");
-map.put(11, "we had nothing before us,");
-map.put(12, "we were all going direct to Heaven,");
-map.put(13, "we were all going direct the other way --");
-map.put(14, "in short, the period was so far like the present period, that some of "
-   + "its noisiest authorities insisted on its being received, for good or for "
-   + "evil, in the superlative degree of comparison only.");
-```
-
-Now we move on to the code that builds and runs the DAG. We start by
-instantiating the DAG class and adding the source vertex:
+We start by instantiating the DAG class and adding the source vertex:
 
 ```java
 DAG dag = new DAG();
@@ -400,36 +319,15 @@ hashcode-based partitioning would be safe as well because all of
 `String`, `Long`, and `Map.Entry` have the hash function specified in
 their Javadoc.
 
-To run the DAG and print out the results, we simply do the following:
-
-```java
-jet.newJob(dag).execute().get();
-System.out.println(jet.getMap("counts").entrySet());
-```
-
-The final output should look like the following:
-
-```
-[heaven=1, times=2, of=12, its=2, far=1, light=1, noisiest=1,
-the=14, other=1, incredulity=1, worst=1, hope=1, on=1, good=1, going=2,
-like=1, we=4, was=11, best=1, nothing=1, degree=1, epoch=2, all=2,
-that=1, us=2, winter=1, it=10, present=1, to=1, short=1, period=2,
-had=2, wisdom=1, received=1, superlative=1, age=2, darkness=1, direct=2,
-only=1, in=2, before=2, were=2, so=1, season=2, evil=1, being=1,
-insisted=1, despair=1, belief=1, comparison=1, some=1, foolishness=1,
-or=1, everything=1, spring=1, authorities=1, way=1, for=2]
-```
-
-The full version of this sample can be found at the
+You can acces a full, self-contained Java program with the above DAG code at the
 [Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java). You'll have to excuse
 the lack of indentation; we use that file to copy-paste from it into
 this tutorial.
 
+### Equivalent DAG in the Pipeline API
+
 For comparison, this is how you'd describe the same computation in the
-Jet Pipeline API. It's almost identical to the one we present in the
-Hello World example, except for reading entries from an `IMap` instead
-of just the lines of text from an `IList` (which isn't a partitioned
-data structure and is thus stored on a single member).
+Jet Pipeline API:
 
 ```java
 Pattern delimiter = Pattern.compile("\\W+");
@@ -441,7 +339,11 @@ p.drawFrom(Sources.<Long, String>readMap(BOOK_LINES))
  .drainTo(Sinks.writeMap(COUNTS));
 ```
 
-From this description Jet will automatically build the DAG that we
-presented in this tutorial. You can access this code sample at our 
-[code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-pipeline-api/src/main/java/WordCountPipelineApi.java), 
-too.
+From this description Jet will automatically build the same DAG that we
+built using the Core API. You can see that almost all concerns can be
+abstracted away, leaving just the business logic &mdash; this is the
+"magic" of a distributed computation platform. You can access this code
+sample at our
+[code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-pipeline-api/src/main/java/WordCountPipelineApi.java), too.
+
+

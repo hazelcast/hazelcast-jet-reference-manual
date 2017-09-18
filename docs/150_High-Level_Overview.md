@@ -29,7 +29,7 @@ manufacturers to build and maintain next generation systems. Also,
 Jet uses Hazelcast discovery for finding the members in the cluster, 
 which can be used in both on-premise and cloud environments.
 
-## High-level overview of Jet's Architecture
+## Architecture Overview
 
 <img src="./images/Jet_Architecture_.png" width="100%"/>
 

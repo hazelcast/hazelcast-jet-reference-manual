@@ -1,11 +1,11 @@
-Continuing our story from the previous section we shall now move on to
-infinite stream processing. The major challenge in batch jobs was
-properly parallelizing/distributing a "group by key" operation. To solve
-it we introduced the idea of partitioning the data based on a formula
-that takes just the grouping key as input and can be computed
-independently on any member, always yielding the same result. In the
-context of infinite stream processing we have the same concern and solve
-it with the same means, but we also face some new challenges.
+Continuing our story we shall now move on to infinite stream processing.
+The major challenge in batch jobs was properly
+parallelizing/distributing a "group by key" operation. To solve it we
+introduced the idea of partitioning the data based on a formula that
+takes just the grouping key as input and can be computed independently
+on any member, always yielding the same result. In the context of
+infinite stream processing we have the same concern and solve it with
+the same means, but we also face some new challenges.
 
 ## The Importance of "Right Now"
 
@@ -24,7 +24,6 @@ A single word that captures the above story is _latency_: we want our
 system to minimize the latency from observing an event to acting upon
 it.
 
-
 ## The Sliding Time Window
 
 We saw how the grouping processor keeps accumulating the data until the
@@ -34,7 +33,6 @@ of what it is that we want to compute. One useful concept is a _sliding
 window_ over our stream. It will compute some aggregate value, like
 average or linear trend, over a period of given size extending from now
 into the recent past. This is the one we'll use in our upcoming example.
-
 
 ## Time Ordering
 
@@ -73,9 +71,10 @@ the term "watermark" in two distinct, but closely related meanings:
 value of the watermark_.
 - As a data item: _a processor received a watermark_.
 
-The watermark can be considered as a "clock telling the event time", as
+The watermark can be considered as a "clock telling the event time" as
 opposed to the wall-clock time. The processor's watermark value advances
-when it receives a watermark item.
+when it receives a watermark item. In this analogy a processor only
+receives data about "present" and "future" events.
 
 ## Stream Skew
 
@@ -110,7 +109,14 @@ stage and on the sink side there's another mapping vertex,
 `format-output`, that transforms the window result items into lines of
 text. The `sink` vertex writes these lines to a file.
 
-The code should look generally familiar, too:
+Before we go on, let us point out that in the 0.5 release of Hazelcast
+Jet, the Pipeline API is still in infancy and doesn't support stream
+processing. Therefore the following example is given only in the Core
+API; with the next release we'll be able to present the much simpler
+code to do it in the Pipelines API.
+
+If you studied the DAG-building code for the Word Count job, this code
+should look generally familiar:
 
 ```java
 WindowDefinition windowDef = slidingWindowDef(
@@ -193,7 +199,7 @@ along with any aggregation results whose emission it triggers, to stage
 
 The full code of this sample is in
 [StockExchange.java](
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/stock-exchange/src/main/java/StockExchange.java)
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/stock-exchange/src/main/java/StockExchange.java)
 and running it will get an endless stream of data accumulating on the
 disk. To spare your filesystem we've limited the execution time to 10
 seconds.
