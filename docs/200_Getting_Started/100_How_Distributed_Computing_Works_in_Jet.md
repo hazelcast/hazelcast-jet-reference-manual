@@ -79,8 +79,41 @@ loop we populate the result map with running counts.
 However, just by modeling the computation as a DAG, we've split the work
 into isolated steps with clear data interfaces between them. We can
 perform the same computation by running a separate loop for each step,
-each in its own thread. The source loop feeds the tokenizing loop over
-a concurrent queue and the same pattern goes on towards the data sink:
+each in its own thread. Roughly speaking, these are the snippets we
+would run:
+
+```java
+// Source thread
+for (String line : readLines()) {
+    emit(line);
+}
+```
+```java
+// Tokenizer thread
+for (String line : receive()) {
+    for (String word : line.toLowerCase().split("\\W+")) {
+        if (!word.isEmpty()) {
+            emit(word);
+        }
+    }
+}
+```    
+```java
+// Accumulator thread
+Map<String, Long> counts = new HashMap<>();
+for (String word : receive()) {
+    counts.merge(word, 1L, (count, one) -> count + one);
+}
+// finally, when done receiving:
+for (Entry<String, Long> wordAndCount : counts.entrySet()) {
+    emit(wordAndCount);
+}    
+```
+
+The source loop feeds the tokenizer loop over a concurrent queue, the 
+tokenizer feeds the accumulator loop, and after the accumulator is done
+receiving, it emits its results to the sink. Diagrammatically it looks
+like this:
 
 <img alt="Word-counting DAG with concurrent queues shown"
      src="../images/wordcount-dag-queue.jpg"

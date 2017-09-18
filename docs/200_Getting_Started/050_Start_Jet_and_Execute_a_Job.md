@@ -1,19 +1,12 @@
 Before we go on, let us spend some time explaining the code needed to
 start a Jet cluster, load it with sample data, and submit jobs to it.
-
-We'll break down the code into the following steps:
-
-1. Start a Jet cluster.
-2. Populate an `IMap` with sample data.
-4. Submit a Jet job for execution.
-
 You can use the same template both for raw DAGs built with Core API and
 pipelines built with the Pipeline API.
 
-To start a new Jet cluster, we must start some Jet instances.
-Typically these would be started on separate machines, but for the
-purposes of this tutorial we'll be using the same JVM for both
-instances. We can start them as shown below:
+To start a new Jet cluster, we must start some Jet instances. Typically
+these would be started on separate machines, but for simple practice we'll
+be using the same JVM for both instances. We can start them as shown
+below:
 
 ```java
 public class WordCount {
@@ -63,7 +56,7 @@ public class WordCount {
 }
 ```
 
-As explained earlier, we'll use an `IMap` as our data source. Let's give it some sample data:
+We'll use an `IMap` as our data source. Let's give it some sample data:
 
 ```java
 IMap<Integer, String> map = jet.getMap("lines");
@@ -86,7 +79,6 @@ map.put(14, "in short, the period was so far like the present period, that some 
    + "evil, in the superlative degree of comparison only.");
 ```
 
-
 To run the DAG we do the following:
 
 ```java
@@ -105,7 +97,8 @@ Finally, this will print out the job's results:
 System.out.println(jet.getMap("counts").entrySet());
 ```
 
-The output should look like the following:
+If you use this with the DAG we are about to create in the next section,
+the output should look like the following:
 
 ```
 [heaven=1, times=2, of=12, its=2, far=1, light=1, noisiest=1,
@@ -118,7 +111,7 @@ insisted=1, despair=1, belief=1, comparison=1, some=1, foolishness=1,
 or=1, everything=1, spring=1, authorities=1, way=1, for=2]
 ```
 
-The two samples with
+Code samples with
 [the Core API DAG](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java) 
 and
 [the pipeline](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-pipeline-api/src/main/java/WordCountPipelineApi.java)
