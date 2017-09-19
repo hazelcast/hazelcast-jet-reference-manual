@@ -1,10 +1,10 @@
 In this section we'll introduce the basic concepts of DAG-based
-distributed computing. We'll focus on one specific problem, already
-introduced as our Hello World example: the Word Count. We'll start from
-some basic Java code that solves the problem for a simple `List` in a
-single thread and then gradually move on to a formulation that allows us
-to solve it for a data source distributed over the whole cluster,
-efficiently making use of all the available CPU power.
+distributed computing by dissecting one specific problem: the Word
+Count. We'll start from some basic Java code that solves the problem for
+a simple `List` in a single thread and then gradually move on to a
+formulation that allows us to solve it for a data source distributed
+over the whole cluster, efficiently making use of all the available CPU
+power.
 
 In the second part we'll show you the Core API code that will directly
 build the DAG we designed. Keep in mind that this not what you'd
@@ -78,9 +78,7 @@ loop we populate the result map with running counts.
 
 However, just by modeling the computation as a DAG, we've split the work
 into isolated steps with clear data interfaces between them. We can
-perform the same computation by running a separate loop for each step,
-each in its own thread. Roughly speaking, these are the snippets we
-would run:
+perform the same computation by running a separate thread for each step. Roughly speaking, these are the snippets the threads would be executing:
 
 ```java
 // Source thread
@@ -149,9 +147,9 @@ trickier: accumulators count word occurrences so using them as a pool
 will result in each processor observing almost all distinct words
 (entries taking space in its hashtable), but the counts will be partial
 and will need combining. The common strategy to reduce memory usage is
-to ensure that all occurrences of the same word go to the same processor.
-This is called "data partitioning" and in Jet we'll use a _partitioned
-edge_ between the tokenizer and the accumulator:
+to ensure that all occurrences of the same word go to the same
+processor. This is called "data partitioning" and in Jet we'll use a
+_partitioned edge_ between the tokenizer and the accumulator:
 
 <img alt="Word-counting DAG with tokenizer and accumulator parallelized"
      src="../images/wordcount-partitioned.jpg"
@@ -203,10 +201,10 @@ network traffic scales with the total data size so the more material we
 process, the more we save on network traffic.
 
 Jet distinguishes between _local_ and _distributed_ edges, so we'll use
-a _local partitioned_ edge for `tokenize`->`accumulate` and a _distributed
-partitioned_ edge for `accumulate`->`combine`. With this move we've
-finalized our DAG design, which can be illustrated by the following
-diagram:
+a _local partitioned_ edge for `tokenize`->`accumulate` and a
+_distributed partitioned_ edge for `accumulate`->`combine`. With this
+move we've finalized our DAG design, which can be illustrated by the
+following diagram:
 
 <img alt="Word-counting DAG parallelized and distributed"
      src="../images/wordcount-distributed.jpg"
@@ -215,14 +213,14 @@ diagram:
 ## Implementing the DAG in Jet's Core API
 
 Now that we've come up with a good DAG design, we can use Jet's Core API
-to implement it. Note that the DAG is a pure POJO and can be built 
-outside the context of any running Jet instances.
+to implement it. Note how we can build the DAG outside the context of
+any running Jet instances: it is a pure POJO.
 
 We start by instantiating the DAG class and adding the source vertex:
 
 ```java
 DAG dag = new DAG();
-Vertex source = dag.newVertex("source", Processors.readMap("lines"));
+Vertex source = dag.newVertex("source", SourceProcessors.readMap("lines"));
 ```
 
 It will read the lines from the `IMap` and emit items of type
@@ -241,7 +239,7 @@ we just need to provide the mapping function:
 Pattern delimiter = Pattern.compile("\\W+");
 Vertex tokenize = dag.newVertex("tokenize",
     Processors.flatMap((Entry<Integer, String> e) ->
-        Traversers.traverseArray(delimiter.split(e.getValue().toLowerCase()))
+        traverseArray(delimiter.split(e.getValue().toLowerCase()))
               .filter(word -> !word.isEmpty()))
 );
 ```
@@ -263,9 +261,7 @@ The next vertex will do the actual word count. We can use the built-in
 ```java
 // word -> (word, count)
 Vertex accumulate = dag.newVertex("accumulate",
-        Processors.accumulateByKey(
-            DistributedFunctions.wholeItem(),
-            AggregateOperations.counting())
+        Processors.accumulateByKey(wholeItem(), counting())
 );
 ```
 
@@ -285,7 +281,7 @@ individual members' contributions. This is the code:
 ```java
 // (word, count) -> (word, count)
 Vertex combine = dag.newVertex("combine",
-    Processors.combineByKey(AggregateOperations.counting())
+    Processors.combineByKey(counting())
 );
 ```
 
@@ -297,7 +293,7 @@ The final vertex is the sink &mdash; we want to store the output in
 another `IMap`:
 
 ```java
-Vertex sink = dag.newVertex("sink", Processors.writeMap("counts"));
+Vertex sink = dag.newVertex("sink", SinkProcessors.writeMap("counts"));
 ```
 
 Now that we have all the vertices, we must connect them into a graph and
@@ -307,19 +303,19 @@ the code at once:
 ```java
 dag.edge(between(source, tokenize))
    .edge(between(tokenize, accumulate)
-           .partitioned(DistributedFunctions.wholeItem(), Partitioner.HASH_CODE))
+           .partitioned(wholeItem(), Partitioner.HASH_CODE))
    .edge(between(accumulate, combine)
            .distributed()
-           .partitioned(DistributedFunctions.entryKey()))
-   .edge(between(combiner, sink));
+           .partitioned(entryKey()))
+   .edge(between(combine, sink));
 ```
 
 Let's take a closer look at some of the edges. First, source to
 tokenizer:
 
 ```java
-   .edge(between(tokenize, accumulate)
-           .partitioned(DistributedFunctions.wholeItem(), Partitioner.HASH_CODE))
+.edge(between(tokenize, accumulate)
+       .partitioned(wholeItem(), Partitioner.HASH_CODE))
 ```
 
 We chose a _local partitioned_ edge. For each word, there will be a
@@ -338,24 +334,23 @@ Next, the edge from the accumulator to the combiner:
 ```java
 .edge(between(accumulate, combine)
        .distributed()
-       .partitioned(DistributedFunctions.entryKey()))
+       .partitioned(entryKey()))
 ```
 
 It is _distributed partitioned_: for each word there is a single
 `combiner` processor in the whole cluster responsible for it and items
 will be sent over the network if needed. The partitioning key is again
 the word, but here it is the key part of the `Map.Entry<String, Long>`.
-For demonstration purposes we are using the default partitioning policy
-here (Hazelcast's own partitioning scheme). It is the slower-but-safe
-choice on a distributed edge. Detailed inspection shows that
-hashcode-based partitioning would be safe as well because all of
-`String`, `Long`, and `Map.Entry` have the hash function specified in
-their Javadoc.
+We are using the default partitioning policy here (Hazelcast's own
+partitioning scheme). It is the slower-but-safe choice on a distributed
+edge. Detailed inspection shows that hashcode-based partitioning would
+be safe as well because all of `String`, `Long`, and `Map.Entry` have
+the hash function specified in their Javadoc.
 
 You can acces a full, self-contained Java program with the above DAG code at the
 [Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java). You'll have to excuse
 the lack of indentation; we use that file to copy-paste from it into
-this tutorial.
+this manual.
 
 ### Equivalent DAG in the Pipeline API
 
@@ -379,4 +374,47 @@ abstracted away, leaving just the business logic &mdash; this is the
 sample at our
 [code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-pipeline-api/src/main/java/WordCountPipelineApi.java), too.
 
+## Expected results
+
+If we populate our source `IMap` with the following data:
+
+```java
+IMap<Integer, String> map = jet.getMap("lines");
+map.put(0, "It was the best of times,");
+map.put(1, "it was the worst of times,");
+map.put(2, "it was the age of wisdom,");
+map.put(3, "it was the age of foolishness,");
+map.put(4, "it was the epoch of belief,");
+map.put(5, "it was the epoch of incredulity,");
+map.put(6, "it was the season of Light,");
+map.put(7, "it was the season of Darkness");
+map.put(8, "it was the spring of hope,");
+map.put(9, "it was the winter of despair,");
+map.put(10, "we had everything before us,");
+map.put(11, "we had nothing before us,");
+map.put(12, "we were all going direct to Heaven,");
+map.put(13, "we were all going direct the other way --");
+map.put(14, "in short, the period was so far like the present period, that some of "
+   + "its noisiest authorities insisted on its being received, for good or for "
+   + "evil, in the superlative degree of comparison only.");
+```
+
+and run the job, we can print out its results like this:
+
+```java
+System.out.println(jet.getMap("counts").entrySet());
+```
+
+and we should get this output:
+
+```
+[heaven=1, times=2, of=12, its=2, far=1, light=1, noisiest=1,
+the=14, other=1, incredulity=1, worst=1, hope=1, on=1, good=1, going=2,
+like=1, we=4, was=11, best=1, nothing=1, degree=1, epoch=2, all=2,
+that=1, us=2, winter=1, it=10, present=1, to=1, short=1, period=2,
+had=2, wisdom=1, received=1, superlative=1, age=2, darkness=1, direct=2,
+only=1, in=2, before=2, were=2, so=1, season=2, evil=1, being=1,
+insisted=1, despair=1, belief=1, comparison=1, some=1, foolishness=1,
+or=1, everything=1, spring=1, authorities=1, way=1, for=2]
+```
 

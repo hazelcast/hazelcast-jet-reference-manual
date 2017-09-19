@@ -1,9 +1,6 @@
-In this section we'll get you started using Hazelcast Jet. First we'll
+In this section we'll get you started using Hazelcast Jet. We'll
 show you how to set up a Java project with the proper dependencies and a
-quick Hello World example to verify your setup. This will be followed by two lessons on the fundamental concepts of Jet's computation model.
-You'll be briefly exposed to the Core API, which lets you manipulate the
-building blocks directly. Later on our focus will shift to the
-higher-level Pipeline API, which you'll typically use in your projects.
+quick Hello World example to verify your setup. 
 
 ## Requirements
 
@@ -55,7 +52,7 @@ job that was packaged in a self-contained JAR file.
 manager, such as changing the cluster state, shutting down the cluster
 or forcing the cluster to clean its persisted data.
 
-## Hello, World!
+## Verify Your Setup
 
 You can verify your setup by running this simple program. It processes
 the contents of a Hazelcast `IList` that contains lines of text, finds 
