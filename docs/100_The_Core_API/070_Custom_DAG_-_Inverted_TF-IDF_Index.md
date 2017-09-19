@@ -1,5 +1,5 @@
-In this tutorial we'll explore what the DAG model offers beyond the
-simple cascade of computing steps. Our DAG will feature splits, joins,
+In this tutorial we'll explore what the Core API DAG model offers beyond
+the capabilities of the Pipeline API. Our DAG will feature splits, joins,
 broadcast, and prioritized edges. We'll access data from the file system
 and show a simple technique to distribute file reading across Jet
 members. Several vertices we use can't be implemented in terms of
