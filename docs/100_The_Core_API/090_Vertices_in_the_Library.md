@@ -23,12 +23,12 @@ in the same package, `com.hazelcast.jet.processor`, exposing the
 module's source and sink definitions.
 
 The main factory class for the source vertices provided by the Jet core
-module is `Sources`. It contains sources that ingest data from Hazelcast
-IMDG structures like `IMap`, `ICache`, `IList`, etc., as well as some
-simple sources that get data from files and TCP sockets (`readFiles`,
+module is `SourceProcessors`. It contains sources that ingest data from
+Hazelcast IMDG structures like `IMap`, `ICache`, `IList`, etc., as well as
+some simple sources that get data from files and TCP sockets (`readFiles`,
 `streamSocket` and some more).
 
-Paralleling the sources there's `Sinks` for the sink vertices,
+Paralleling the sources there's `SinkProcessors` for the sink vertices,
 supporting the same range of resources (IMDG, files, sockets). There's
 also a general `writeBuffered` method that takes some boilerplate out of
 writing custom sinks. The user must implement a few primitives: create a

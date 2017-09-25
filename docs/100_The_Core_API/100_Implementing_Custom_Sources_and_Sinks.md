@@ -1,3 +1,8 @@
+The Hazelcast Jet distribution contains implementations of source and
+sink processors for the sources and sinks exposed through the Pipeline
+API. You can extend Jet's support for sources and sinks by writing your
+own.
+
 One of the main concerns when writing custom sources is that the source
 is typically distributed across multiple machines and partitions, and
 the work needs to be distributed across multiple members and processors.
