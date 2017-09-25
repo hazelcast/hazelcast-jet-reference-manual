@@ -224,12 +224,36 @@ If you need to co-group more than three streams, you'll have to use the
 co-group builder object. For example, your goal may be correlating
 events coming from different systems, where all the systems serve the
 same user base. In an online store you may have separate streams for
-product page visits, adding to shopping cart, payments and deliveries.
-You want to see all the actions by user.
+product page visits, adding to shopping cart, payments, and deliveries.
+You want to correlate all the events associated with the same user.
 
 ```java
-CoGroupBuilder<Integer, Trade> builder = 
-    trades.coGroupBuilder(Trade::classId);
+Pipeline p = Pipeline.create();
+ComputeStage<PageVisit> pageVisit = p.drawFrom(readList("pageVisit"));
+ComputeStage<AddToCart> addToCart = p.drawFrom(readList("addToCart"));
+ComputeStage<Payment> payment = p.drawFrom(readList("payment"));
+ComputeStage<Delivery> delivery = p.drawFrom(readList("delivery"));
+
+CoGroupBuilder<Long, PageVisit> b = pageVisit.coGroupBuilder(PageVisit::userId);
+Tag<PageVisit> pageVisitTag = b.tag0();
+Tag<AddToCart> addToCartTag = b.add(addToCart, AddToCart::userId);
+Tag<Payment> paymentTag = b.add(payment, Payment::userId);
+Tag<Delivery> deliveryTag = b.add(delivery, Delivery::userId);
+
+ComputeStage<Tuple2<Long, long[]>> coGrouped = b.build(AggregateOperation
+        .withCreate(() -> Stream.generate(LongAccumulator::new)
+                                .limit(4)
+                                .toArray(LongAccumulator[]::new))
+        .andAccumulate(pageVisitTag, (accs, x) -> accs[0].add(1))
+        .andAccumulate(addToCartTag, (accs, x) -> accs[1].add(1))
+        .andAccumulate(paymentTag, (accs, x) -> accs[2].add(1))
+        .andAccumulate(deliveryTag, (accs, x) -> accs[3].add(1))
+        .andCombine((accs1, accs2) -> IntStream.range(0, 3)
+                                               .forEach(i -> accs1[i].add(accs2[i])))
+        .andFinish(accs -> Stream.of(accs)
+                                 .mapToLong(LongAccumulator::get)
+                                 .toArray())
+);
 ```
 
 ### hashJoin
