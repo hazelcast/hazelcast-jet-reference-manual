@@ -1,75 +1,7 @@
-[TOC]
-
-## Start Jet and Submit Jobs to it
-
-To create a Jet cluster, we simply start some Jet instances. Normally
-these would be started on separate machines, but for simple practice
-we can use the same JVM for both instances. Even though they are in the
-same JVM, they'll communicate over the network interface.
-
-```java
-public class WordCount {
-    public static void main(String[] args) {
-        JetInstance jet = Jet.newJetInstance();
-        Jet.newJetInstance();
-    }
-}
-```
-
-These two instances should automatically discover each other using IP
-multicast and form a cluster. You should see a log output similar to the
-following:
-
-```
-Members [2] {
-  Member [10.0.1.3]:5701 - f1e30062-e87e-4e97-83bc-6b4756ef6ea3
-  Member [10.0.1.3]:5702 - d7b66a8c-5bc1-4476-a528-795a8a2d9d97 this
-}
-```
-
-This means the members successfully formed a cluster. Since the Jet
-instances start their own threads, it is important to explicitly shut
-them down at the end of your program; otherwise the Java process will
-remain alive after the `main()` method completes:
-
-```java
-public class WordCount {
-    public static void main(String[] args) {
-        try {
-            JetInstance jet = Jet.newJetInstance();
-            Jet.newJetInstance();
-
-            ... work with Jet ...
-
-        } finally {
-            Jet.shutdownAll();
-        }
-    }
-}
-```
-
-This is how you submit a Jet pipeline for execution:
-
-```java
-pipeline.execute(jet).get();
-```
-
-Alternatively, you can submit a Core API DAG:
-
-```java
-jet.newJob(dag).execute().get();
-```
-
-Code samples with
-[the Core API DAG](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java) 
-and
-[the pipeline](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-pipeline-api/src/main/java/WordCountPipelineApi.java)
-are available at our Code Samples repo.
-
-## Build a Pipeline
+## The Shape of a Pipeline
 
 The general shape of any data processing pipeline is `drawFromSource -> transform -> drainToSink` and the natural way to build it is from source
-to sink. The Pipeline API follows that pattern. For example,
+to sink. The Pipeline API follows this pattern. For example,
 
 ```java
 Pipeline p = Pipeline.create();
@@ -109,6 +41,7 @@ src.map(String::toUpperCase)
 src.map(String::toLowerCase)
    .drainTo(Sinks.writeList("lowercase"));
 ```
+
 
 ## Choose Your Data Sources and Sinks
 
@@ -150,8 +83,7 @@ aggregate operation. In this case the key function is a trivial identity
 because we use the word itself as the grouping key and the definition of
 the aggregate operation hides behind the `counting()` method call. This
 is a static method in our `AggregateOperations` utility class and its
-simplified definition would look much like `counting2()` given above,
-but for just one input stream:
+simplified definition would look like this:
 
 ```java
 AggregateOperation
@@ -192,8 +124,8 @@ Here is the example we already used earlier on this page:
 Pipeline p = Pipeline.create();
 ComputeStage<String> src1 = p.drawFrom(Sources.readList("src1"));
 ComputeStage<String> src2 = p.drawFrom(Sources.readList("src2"));
-src1.coGroup(wholeItem(), src2, wholeItem(), counting2())
-    .drainTo(Sinks.writeMap("result"));
+ComputeStage<Tuple2<String, Long>> coGrouped =
+        src1.coGroup(wholeItem(), src2, wholeItem(), counting2());
 ```
 
 These are the arguments:
@@ -220,12 +152,16 @@ private static AggregateOperation2<String, String, LongAccumulator, Long> counti
 This demonstrates the individual treatment of input streams: stream 1 is
 weighted so that each of its items is worth ten items from stream 0.
 
+#### coGroup Builder
+
 If you need to co-group more than three streams, you'll have to use the
 co-group builder object. For example, your goal may be correlating
 events coming from different systems, where all the systems serve the
 same user base. In an online store you may have separate streams for
 product page visits, adding to shopping cart, payments, and deliveries.
-You want to correlate all the events associated with the same user.
+You want to correlate all the events associated with the same user. The
+example below calculates the number of events per category for each
+user:
 
 ```java
 Pipeline p = Pipeline.create();
@@ -234,25 +170,27 @@ ComputeStage<AddToCart> addToCart = p.drawFrom(readList("addToCart"));
 ComputeStage<Payment> payment = p.drawFrom(readList("payment"));
 ComputeStage<Delivery> delivery = p.drawFrom(readList("delivery"));
 
-CoGroupBuilder<Long, PageVisit> b = pageVisit.coGroupBuilder(PageVisit::userId);
+CoGroupBuilder<Long, PageVisit> b =
+    pageVisit.coGroupBuilder(PageVisit::userId);
 Tag<PageVisit> pageVisitTag = b.tag0();
 Tag<AddToCart> addToCartTag = b.add(addToCart, AddToCart::userId);
 Tag<Payment> paymentTag = b.add(payment, Payment::userId);
 Tag<Delivery> deliveryTag = b.add(delivery, Delivery::userId);
 
 ComputeStage<Tuple2<Long, long[]>> coGrouped = b.build(AggregateOperation
-        .withCreate(() -> Stream.generate(LongAccumulator::new)
-                                .limit(4)
-                                .toArray(LongAccumulator[]::new))
-        .andAccumulate(pageVisitTag, (accs, x) -> accs[0].add(1))
-        .andAccumulate(addToCartTag, (accs, x) -> accs[1].add(1))
-        .andAccumulate(paymentTag, (accs, x) -> accs[2].add(1))
-        .andAccumulate(deliveryTag, (accs, x) -> accs[3].add(1))
-        .andCombine((accs1, accs2) -> IntStream.range(0, 3)
-                                               .forEach(i -> accs1[i].add(accs2[i])))
-        .andFinish(accs -> Stream.of(accs)
-                                 .mapToLong(LongAccumulator::get)
-                                 .toArray())
+    .withCreate(() -> Stream.generate(LongAccumulator::new)
+                            .limit(4)
+                            .toArray(LongAccumulator[]::new))
+    .andAccumulate(pageVisitTag, (accs, x) -> accs[0].add(1))
+    .andAccumulate(addToCartTag, (accs, x) -> accs[1].add(1))
+    .andAccumulate(paymentTag, (accs, x) -> accs[2].add(1))
+    .andAccumulate(deliveryTag, (accs, x) -> accs[3].add(1))
+    .andCombine((accs1, accs2) -> 
+            IntStream.range(0, 3)
+                     .forEach(i -> accs1[i].add(accs2[i])))
+    .andFinish(accs -> Stream.of(accs)
+                             .mapToLong(LongAccumulator::get)
+                             .toArray())
 );
 ```
 
@@ -277,13 +215,13 @@ _products_ and _brokers_.
 Pipeline p = Pipeline.create();
 
 // The primary stream: trades
-ComputeStage<Trade> trades = p.drawFrom(Sources.<Trade>readList(TRADES));
+ComputeStage<Trade> trades = p.drawFrom(Sources.<Trade>readList("trades"));
 
 // The enriching streams: products and brokers
-ComputeStage<Entry<Integer, Product>> prodEntries = 
-    p.drawFrom(Sources.<Integer, Product>readMap(PRODUCTS));
-ComputeStage<Entry<Integer, Broker>> brokEntries = 
-    p.drawFrom(Sources.<Integer, Broker>readMap(BROKERS));
+ComputeStage<Entry<Integer, Product>> prodEntries =
+        p.drawFrom(Sources.<Integer, Product>readMap("products"));
+ComputeStage<Entry<Integer, Broker>> brokEntries =
+        p.drawFrom(Sources.<Integer, Broker>readMap("brokers"));
 
 // Join the trade stream with the product and broker streams
 ComputeStage<Tuple3<Trade, Product, Broker>> joined = trades.hashJoin(
@@ -313,3 +251,45 @@ each cluster member. That's why this operation is also known as a
 _replicated_ join. This is something to keep in mind when estimating
 the RAM requirements for a hash-join operation.
 
+#### hashJoin Builder
+
+You can hash-join a stream with up to two enriching streams using the
+API we demonstrated above. If you have more than two enriching streams,
+you'll use the hash-join builder. For example, you may want to enrich a
+trade with its associated product, broker, and market:
+
+```java
+Pipeline p = Pipeline.create();
+
+// The primary stream: trades
+ComputeStage<Trade> trades = p.drawFrom(Sources.<Trade>readList("trades"));
+
+// The enriching streams: products and brokers
+ComputeStage<Entry<Integer, Product>> prodEntries =
+        p.drawFrom(Sources.<Integer, Product>readMap("products"));
+ComputeStage<Entry<Integer, Broker>> brokEntries =
+        p.drawFrom(Sources.<Integer, Broker>readMap("brokers"));
+ComputeStage<Entry<Integer, Market>> marketEntries =
+        p.drawFrom(Sources.<Integer, Market>readMap("markets"));
+
+HashJoinBuilder<Trade> b = trades.hashJoinBuilder();
+Tag<Product> prodTag = b.add(prodEntries, joinMapEntries(Trade::productId));
+Tag<Broker> brokTag = b.add(brokEntries, joinMapEntries(Trade::brokerId));
+Tag<Market> marketTag = b.add(marketEntries, joinMapEntries(Trade::marketId));
+ComputeStage<Tuple2<Trade, ItemsByTag>> joined = b.build();
+```
+
+The data type on the hash-joined stage is `Tuple2<Trade, ItemsByTag>`.
+The next snippet shows how to use it to access the primary and enriching
+items:
+
+```java
+ComputeStage<String> mapped = joined.map(t -> {
+    Trade trade = t.f0();
+    ItemsByTag ibt = t.f1();
+    Product product = ibt.get(prodTag);
+    Broker broker = ibt.get(brokTag);
+    Market market = ibt.get(marketTag);
+    return trade + ": " + product + ", " + broker + ", " + market;
+});
+```

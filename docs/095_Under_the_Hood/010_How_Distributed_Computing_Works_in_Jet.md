@@ -339,9 +339,7 @@ be safe as well because all of `String`, `Long`, and `Map.Entry` have
 the hash function specified in their Javadoc.
 
 You can acces a full, self-contained Java program with the above DAG code at the
-[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java). You'll have to excuse
-the lack of indentation; we use that file to copy-paste from it into
-this manual.
+[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java).
 
 ### Equivalent DAG in the Pipeline API
 
