@@ -4,13 +4,13 @@ discuss this difference and some concerns specific to infinite streams.
 
 ### Finite aka. Batch Processing
 
-Finite (batch) processing is the simpler variant where you provide one
-or more pre-existing datasets and order Jet to mine them for interesting
-information. The most important workhorse in this area is the "group and
-aggregate" operation: you define a classifying function that computes a
-grouping key for each item of the dataset and an aggregate operation
-that will be performed on all the items in each group, yielding one
-result item per distinct key.
+Finite stream (batch) processing is the simpler variant where you
+provide one or more pre-existing datasets and order Jet to mine them for
+interesting information. The most important workhorse in this area is
+the "group and aggregate" operation: you define a classifying function
+that computes a grouping key for each item of the dataset and an
+aggregate operation that will be performed on all the items in each
+group, yielding one result item per distinct key.
 
 ### The Importance of "Right Now"
 
@@ -49,10 +49,10 @@ recent past. As the time moves on, the fresh data displaces the old and
 the length of time covered by the window stays the same.
 
 Another popular policy is called the _session window_ and it's used to
-detect bursts of continuous activity by correlating events bunched
-together on the time axis. In the analogy to a user's session with a
-web application, the session window "closes" at the point where two
-consecutive events are spaced by more than the defined session timeout.
+detect bursts of activity by correlating events bunched together on the
+time axis. In an analogy to a user's session with a web application,
+the session window "closes" when the specified session timeout elapses
+with no further events.
 
 ### Time Ordering
 
@@ -74,15 +74,20 @@ may have a higher timestamp value. We can't just keep a sliding window's
 worth of items and evict everything older; we have to wait some more
 time for the data to "settle down" before acting upon it.
 
+With session windows the logic is even more complex: since the window
+boundaries are derived from the data, they must be constantly updated,
+including the possibility of two separate windows merging into one due
+to a "bridging" event that belongs to both.
+
 ### Watermark
 
-To solve these issues we introduce the concept of the _watermark_.
-It is a timestamped item inserted into the stream that tells us "from
-this point on there will be no more items with timestamp less than
-this". Computing the watermark is a matter of educated guessing and
-there is always a chance some items will arrive that violate its claim.
-If we do observe such an offending item, we categorize it as "too late"
-and just filter it out.
+A step towards the solution of these challenges is the concept of the
+_watermark_. It is a timestamped item inserted into the stream that
+tells us "from this point on there will be no more items with timestamp
+less than this". Computing the watermark is a matter of educated
+guessing and there is always a chance some items will arrive that
+violate its claim. If we do observe such an offending item, we
+categorize it as "too late" and just filter it out.
 
 **Terminology note**: in this and other places you'll notice that we use
 the term "watermark" in two distinct, but closely related meanings:
@@ -108,6 +113,16 @@ least of watermarks received from the contributing substreams.
 
 ## Note for Hazelcast Jet version 0.5
 
-Hazelcast Jet's version 0.5 was released with the Pipeline API still under construction. We started from the simple case of batch jobs and we support two major batch operations: (co)group-and-aggregate and data enrichment (hash-joins). The next release will feature a fully developed API that supports infinite streams.
+Hazelcast Jet's version 0.5 was released with the Pipeline API still under construction. We started from the simple case of batch jobs and we support the major batch operation of (co)group-and-aggregate, but still
+lack the API to define the windowing and watermark policies. Other,
+non-aggregating operations aren't sensitive to the difference between
+finite and infinite streams and are ready to use. The major example here
+is data enrichment (hash join), which is essentially a mapping stream
+transformation. We also provide data sources of infinite streams such as
+Kafka, TCP sockets, and a filesystem directory monitored for changes.
+The next release of Jet will feature a fully developed API that supports
+windowed aggregation of infinite streams.
 
-At the Core API level, Jet has had full-fledged infinite stream support since version 0.4, and you can refer to the [Under the Hood](Under_the_Hood) chapter for details on how to create a Core API DAG that does infinite stream processing.
+On the other hand, Jet's core has had full-fledged infinite stream
+support since version 0.4. You can refer to the [Under the Hood](Under_the_Hood) chapter for details on how to create a Core API DAG
+that does infinite stream aggregation.
