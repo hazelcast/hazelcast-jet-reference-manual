@@ -57,7 +57,7 @@ Hazelcast Jet has support for these data sources and sinks:
 
 You can access them via the `Sources` and `Sinks` utility classes.
 
-## Basic Pipeline Transforms
+## Compose the Pipeline Transforms
 
 The simplest kind of transformation is one that can be done on each item
 individually and independent of other items. The major examples are
@@ -66,9 +66,14 @@ previous examples. `map` transforms each item to another item; `filter`
 discards items that don't match its predicate; and `flatMap` transforms
 each item into zero or more output items.
 
-### groupBy
+## groupBy
 
-Stepping up from the simplest transforms we come to `groupBy`: it groups the data items by a key computed for each item and performs an aggregate operation over all the items in a group. The output of this transform is one aggregation result per distinct grouping key. We saw this one used in the introductory Hello World code with a word count pipeline:
+Stepping up from the simplest transforms we come to `groupBy`, the
+quintessential finite stream transform. It groups the data items by a
+key computed for each item and performs an aggregate operation over all
+the items in a group. The output of this transform is one aggregation
+result per distinct grouping key. We saw this one used in the
+introductory Hello World code with a word count pipeline:
 
 ```java
 Pipeline p = Pipeline.create();
@@ -105,9 +110,6 @@ The `AggregateOperations` class contains quite a few ready-made
 aggregate operations, but you should be able to specify your custom ones
 without too much trouble. You should study the Javadoc of
 `AggregateOperation` if you need to write one.
-
-
-## Multi-Input Transforms
 
 A more complex variety of pipeline transforms are those that merge
 several input stages into a single resulting stage. In Hazelcast Jet
@@ -239,7 +241,8 @@ holder of the three functions that specify how to perform a join:
 3. the projection function that transforms the enriching stream's item
 into the item that will be used for enrichment. 
 
-Typically the enriching streams will be `Map.Entry`s coming from a key-value store, but you want just the entry value to appear as the
+Typically the enriching streams will be `Map.Entry`s coming from a 
+key-value store, but you want just the entry value to appear as the
 enriching item. In that case you'll specify `Map.Entry::getValue` as the
 projection function. This is what `joinMapEntries()` does for you. It
 takes just one function, primary stream's key extractor, and fills in
@@ -284,12 +287,13 @@ The next snippet shows how to use it to access the primary and enriching
 items:
 
 ```java
-ComputeStage<String> mapped = joined.map(t -> {
-    Trade trade = t.f0();
-    ItemsByTag ibt = t.f1();
-    Product product = ibt.get(prodTag);
-    Broker broker = ibt.get(brokTag);
-    Market market = ibt.get(marketTag);
-    return trade + ": " + product + ", " + broker + ", " + market;
-});
+ComputeStage<String> mapped = joined.map(
+        (Tuple2<Trade, ItemsByTag> t) -> {
+            Trade trade = t.f0();
+            ItemsByTag ibt = t.f1();
+            Product product = ibt.get(prodTag);
+            Broker broker = ibt.get(brokTag);
+            Market market = ibt.get(marketTag);
+            return trade + ": " + product + ", " + broker + ", " + market;
+        });
 ```

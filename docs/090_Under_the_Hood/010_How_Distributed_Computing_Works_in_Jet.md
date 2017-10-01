@@ -1,6 +1,25 @@
 In this section we'll take a deep dive into the fundamentals of
 distributed computing and Jet's specific take on it. We'll do this by
-dissecting one specific problem: the Word Count. Starting from the single-threaded Java code that solves the problem for a basic data structure such as an `ArrayList`, we'll gradually move on to a formulation that allows us to solve it for a data source distributed over the whole cluster, efficiently making use of all the available CPU power. The section culminates with a display of Core API code that directly builds the DAG we designed.
+dissecting one specific problem: the Word Count. This is how you'd
+describe it in the [Jet Pipeline API](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-pipeline-api/src/main/java/WordCountPipelineApi.java):
+
+```java
+Pattern delimiter = Pattern.compile("\\W+");
+Pipeline p = Pipeline.create();
+p.drawFrom(Sources.<Long, String>readMap(BOOK_LINES))
+ .flatMap(e -> traverseArray(delimiter.split(e.getValue().toLowerCase())))
+ .filter(word -> !word.isEmpty())
+ .groupBy(wholeItem(), counting())
+ .drainTo(Sinks.writeMap(COUNTS));
+```
+
+We'll step back from this and start from the single-threaded Java code
+that solves the problem for a basic data structure such as an
+`ArrayList` and gradually move on to a formulation that allows us to
+solve it for a data source distributed over the whole cluster,
+efficiently making use of all the available CPU power. Towards the end
+of the section we'll show you the Core API code that directly builds the
+DAG we designed.
 
 Here is the single-threaded code that counts the words in a `List` of
 lines of text:
@@ -63,7 +82,8 @@ loop we populate the result map with running counts.
 
 However, just by modeling the computation as a DAG, we've split the work
 into isolated steps with clear data interfaces between them. We can
-perform the same computation by running a separate thread for each step. Roughly speaking, these are the snippets the threads would be executing:
+perform the same computation by running a separate thread for each step.
+Roughly speaking, these are the snippets the threads would be executing:
 
 ```java
 // Source thread
@@ -102,7 +122,15 @@ like this:
      src="../images/wordcount-dag-queue.jpg"
      height="200"/>
 
-This transformation brought us a _pipelined_ architecture: while the tokenizer is busy with the regex work, the accumulator is updating the map using the data the tokenizer is done with; and the source and sink stages are pumping the data from/to the environment. Our design is now able to engage more than one CPU core and will complete that much sooner; however, we're still limited by the number of vertices. We'll be able utilize two or three cores regardless of how many are available. To move forward we must try to parallelize the work of each individual vertex.
+This transformation brought us a _pipelined_ architecture: while the
+tokenizer is busy with the regex work, the accumulator is updating the
+map using the data the tokenizer is done with; and the source and sink
+stages are pumping the data from/to the environment. Our design is now
+able to engage more than one CPU core and will complete that much
+sooner; however, we're still limited by the number of vertices. We'll be
+able utilize two or three cores regardless of how many are available. To
+move forward we must try to parallelize the work of each individual
+vertex.
 
 Given that our input is an in-memory list of lines, the bottleneck
 occurs in the processing stages (tokenizing and accumulating). Let's
@@ -185,7 +213,9 @@ for (Entry<String, Long> wordAndCount : combined.entrySet()) {
 }    
 ```
 
-As noted above, such a scheme takes more memory due to more hashtable entries on each member, but it saves network traffic (an issue we didn't have within a member). Given that memory costs scale with the number of
+As noted above, such a scheme takes more memory due to more hashtable
+entries on each member, but it saves network traffic (an issue we didn't
+have within a member). Given that memory costs scale with the number of
 distinct keys (english words in our case), the memory cost is
 more-or-less constant regardless of how much book material we process.
 On the other hand, network traffic scales with the total data size so
@@ -204,7 +234,8 @@ following diagram:
 ## Implementing the DAG in Jet's Core API
 
 Now that we've come up with a good DAG design, we can use Jet's Core API
-to implement it. We start by instantiating the DAG class and adding the source vertex:
+to implement it. We start by instantiating the DAG class and adding the 
+source vertex:
 
 ```java
 DAG dag = new DAG();
@@ -340,28 +371,6 @@ the hash function specified in their Javadoc.
 
 You can acces a full, self-contained Java program with the above DAG code at the
 [Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java).
-
-### Equivalent DAG in the Pipeline API
-
-For comparison, this is how you'd describe the same computation in the
-Jet Pipeline API:
-
-```java
-Pattern delimiter = Pattern.compile("\\W+");
-Pipeline p = Pipeline.create();
-p.drawFrom(Sources.<Long, String>readMap(BOOK_LINES))
- .flatMap(e -> traverseArray(delimiter.split(e.getValue().toLowerCase())))
- .filter(word -> !word.isEmpty())
- .groupBy(wholeItem(), counting())
- .drainTo(Sinks.writeMap(COUNTS));
-```
-
-From this description Jet will automatically build the same DAG that we
-built using the Core API. You can see that almost all concerns can be
-abstracted away, leaving just the business logic &mdash; this is the
-"magic" of a distributed computation platform. You can access this code
-sample at our
-[code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-pipeline-api/src/main/java/WordCountPipelineApi.java), too.
 
 ## Expected results
 

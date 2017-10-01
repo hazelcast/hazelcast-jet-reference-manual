@@ -47,18 +47,20 @@ public class WordCount {
 This is how you submit a Jet pipeline for execution:
 
 ```java
-pipeline.execute(jet).get();
+jet.newJob(pipeline).join();
 ```
 
 Alternatively, you can submit a Core API DAG:
 
 ```java
-jet.newJob(dag).execute().get();
+jet.newJob(dag).join();
 ```
 
 Code samples with
-[the Core API DAG](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java) 
+[the pipeline](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountRefMan.java)
 and
-[the pipeline](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-pipeline-api/src/main/java/WordCountPipelineApi.java)
+[the Core API DAG](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java) 
 are available at our Code Samples repo.
 
+In the [Practical Considerations](Practical_Considerations) section we'll deepen this story and
+explain what it takes to submit a job to a real-life Jet cluster.
