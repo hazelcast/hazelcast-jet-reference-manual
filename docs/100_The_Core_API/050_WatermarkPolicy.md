@@ -1,6 +1,6 @@
 As mentioned in the
-[Hazelcast Jet 102](/Getting_Started/Hazelcast_Jet_102_-_Trade_Monitoring_Streaming_Job#page_Time+Ordering)
-section, determining the watermark is somewhat of a black art; it's
+[Work_with_Jet](/Work_with_Jet/Finite_vs_Infinite_Stream_Processing#page_Time+Ordering)
+chapter, determining the watermark is somewhat of a black art; it's
 about superimposing order over a disordered stream of events. We must
 decide at which point it stops making sense to wait even longer for data
 about past events to arrive. There's a tension between two opposing

@@ -78,8 +78,7 @@ the JDK-standard collectors make sense.
 ## Word Count
 
 The word count example that was described in the
-[Hazelcast Jet 101](Getting_Started/Hazelcast_Jet_101_-_Word_Counting_Batch_Job) chapter can be rewritten
-using the `java.util.stream` API as follows:
+[Get Started](Get_Started) section can be rewritten using the `java.util.stream` API as follows:
 
 ```java
 IMap<String, Long> counts = lines
