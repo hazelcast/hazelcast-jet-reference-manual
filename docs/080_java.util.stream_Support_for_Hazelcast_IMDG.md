@@ -83,7 +83,7 @@ The word count example that was described in the
 ```java
 IMap<String, Long> counts = lines
                 .stream()
-                .flatMap(m -> Stream.of(PATTERN.split(m.getValue().toLowerCase())))
+                .flatMap(word -> Stream.of(word.split("\\W+")))
                 .collect(DistributedCollectors.toIMap(w -> w, w -> 1L, (left, right) -> left + right));
 ```
 
