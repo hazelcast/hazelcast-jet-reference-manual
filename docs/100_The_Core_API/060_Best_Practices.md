@@ -76,45 +76,81 @@ output of all the processors on all the members saved on a single member
 
 ## How to Unit-Test a Processor
 
-Utility classes for unit testing is provided as part of the core API
-inside `com.hazelcast.jet.test` package. Using these utility classes,
+Utility classes for unit testing are provided as part of the core API
+inside `com.hazelcast.jet.core.test` package. Using these utility classes,
 you can unit test custom processors by passing them input items and
 asserting the expected output.
 
-A `TestSupport.testProcessor()` set of methods is provided for the
-typical case.
+Start by calling `TestSupport.verifyProcessor()` by passing it a processor
+supplier or a by directly passing a processor instance.
 
-For cooperative processors a 1-capacity outbox will be provided, which
-will additionally be full on every other processing method call. This
-will test edge cases in cooperative processors.
-
-This method does the following:
+The test process does the following:
 
 * initializes the processor by calling `Processor.init()`
-* calls `Processor.process(0, inbox)`, the `inbox` contains all items
+* does snapshot+restore (optional, see below)
+* calls `Processor.process(0, inbox)`. The inbox always contains one item 
 from `input` parameter
-* asserts the progress of the `process()` call: that something was taken
-from the inbox or put to the outbox
-* calls `Processor.complete()` until it returns `true`
-* asserts the progress of the `complete()` call if it returned `false`:
-something must have been put to the outbox.
+* every time the inbox gets empty does snapshot+restore
+* calls `Processor.complete()` until it returns `true` (optional)
+* does snapshot+restore after `complete()` returned `false`
 
-Note that this method never calls `Processor.tryProcess()`.
+The optional snapshot+restore test procedure:
+* `saveToSnapshot()` is called
+* new processor instance is created, from now on only this instance will be 
+used
+* snapshot is restored using `restoreFromSnapshot()`
+* `finishSnapshotRestore()` is called
+
+For each call to any processing method the progress is asserted (optional). 
+The processor must do at least one of these:
+* take something from inbox
+* put something to outbox
+* for `boolean`-returning methods, returning `true` is considered as making 
+progress
+
+#### Cooperative processors
+
+For cooperative processors a 1-capacity outbox will be provided, which will 
+additionally be full in every other call to `process()`. This will test the edge 
+case: the `process()` method is called even when the outbox is full to give 
+the processor a chance to process inbox. The snapshot outbox will also have 
+capacity of 1 for a cooperative processor.
+
+Additionally, time spent in each call to processing method must not exceed 
+timeout specified by `cooperativeTimeout(long)`.
+
+#### Not-covered cases
 
 This class does not cover these cases:
+* Testing of processors which distinguish input or output edges by ordinal
+* Checking that the state of a stateful processor is empty at the end (you can 
+do that yourself afterwards with the last instance returned from your supplier).
+* This utility never calls `Processor.tryProcess()`.
 
-* testing of processors which distinguish input or output edges by
-ordinal.
+#### Example usage
 
-* checking that the state of a stateful processor is empty at the end
-(you can do that yourself afterwards).
-
-Example usage. This will test one of the jet-provided processors:
+This will test one of the jet-provided processors:
 
 ```java
-      TestSupport.testProcessor(
-              Processors.map((String s) -> s.toUpperCase()),
-              asList("foo", "bar"),
-              asList("FOO", "BAR")
-      );
+TestSupport.verifyProcessor(Processors.map((String s) -> s.toUpperCase()))
+           .disableCompleteCall()             // enabled by default
+           .disableLogging()                  // enabled by default
+           .disableProgressAssertion()        // enabled by default
+           .disableSnapshots()                // enabled by default
+           .cooperativeTimeout(<timeoutInMs>) // default is 1000
+           .outputChecker(<function>)         // default is `Objects::equal`
+           .input(asList("foo", "bar"))       // default is `emptyList()`
+           .expectOutput(asList("FOO", "BAR"));
 ```
+
+#### Other utility classes
+
+Following classes are suitable to be used as implementations of Jet interfaces 
+in tests: 
+* `TestInbox`
+* `TestOutbox`
+* `TestProcessorContext`
+* `TestProcessorSupplierContext`
+* `TestProcessorMetaSupplierContext`
+* `JetAssert`: mini implementation of JUnit-like `assert` methods to avoid
+dependency on JUnit
