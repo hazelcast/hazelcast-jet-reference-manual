@@ -110,13 +110,19 @@ partition.
 Jet can also use any remote Hazelcast IMDG instance via Hazelcast IMDG
 connector.
 
-## Fault Detection
+## Fault Tolerance
 
-In its current version, Hazelcast Jet can only detect a failure in one
-of the cluster members that was running the computation, and abort the
-job. A feature planned for the future is _fault tolerance_: the ability
-to go back to a saved snapshot of the computation state and resume the
-computation without the failed member.
+A job that processes an infinite stream never completes and cannot be
+restarted from the beginning if it fails. For such a job, fault
+tolerance is essential: the engine must be able to detect a failure,
+recover from it, and resume processing without data loss.
+
+Hazelcast Jet achieves fault tolerance by making a snapshot of
+thinternal processing state at regular intervals. If a member of the
+cluster fails while a job is running, Hazelcast Jet will detect this and
+restart the job on the new cluster topology. It will restore its
+internal state from the snapshot and tell the source to start sending
+data from the last "committed" position (where the snapshot was taken).
 
 ## Elasticity
 
