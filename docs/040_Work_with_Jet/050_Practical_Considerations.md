@@ -2,7 +2,7 @@
 
 The API to submit a job to Jet is in a way deceptively simple: "just
 call a method." As long as you're toying around with Jet instances
-started locally on your computer, everything will indeed work. However,
+started locally in a single JVM, everything will indeed work. However,
 as soon as you try to deploy to an actual cluster, you'll face the
 consequences of the fact that your job definition must travel over the
 wire to reach remote members which don't have your code on their
@@ -26,7 +26,7 @@ For more complex jobs it will become more practical to first package the
 job in a JAR and then use a command-line utility to submit it, as
 explained next.
 
-## Submit a Job from the Command Line
+### Submit a Job from the Command Line
 
 Jet comes with the `submit-job` script, which allows you to submit a Jet
 job packaged in a JAR file. You can find it in the Jet distribution
@@ -69,18 +69,19 @@ $ submit-jet.sh jetjob.jar
 ## Common Pitfalls with Serialization
 
 A typical Jet pipeline involves lambda expressions. Since the whole
-pipeline must be serialized to be sent to the cluster, the lambda
-expressions must be serializable as well. The Java standard provides an
-essential building block: if the static type of the lambda is a subtype
-of `Serializable`, you will automatically get a lambda instance that can
-serialize itself.
+pipeline definition must be serialized to be sent to the cluster, the
+lambda expressions must be serializable as well. The Java standard
+provides an essential building block: if the static type of the lambda
+is a subtype of `Serializable`, you will automatically get a lambda
+instance that can serialize itself.
 
 None of the functional interfaces in the JDK extend `Serializable`, so
 we had to mirror the entire `java.util.function` package in our own
 `com.hazelcast.jet.function` with all the interfaces subtyped and made
 `Serializable`. Each subtype has the name of the original with
 `Distributed` prepended. For example, a `DistributedFunction` is just
-like `Function`, but implements `Serializable`.
+like `Function`, but implements `Serializable`. We use these types
+everywhere in the Pipeline API.
 
 As always, the magic of auto-serializability of lambdas has its
 flipside: it is easy to overlook what's going on.
