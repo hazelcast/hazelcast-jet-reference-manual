@@ -10,86 +10,64 @@ one (undo the effects of `combine`).
 - `finish` accumulation by transforming the accumulator object into the
 final result.
 
-If you are familiar with `java.util.stream.Collector`, you may get a
-déjà vu here: except for some naming differences, `AggregateOperation`
-is a very similar object. The devil is in the detail, however, and these
-primitives are tailor-made for Jet's aggregation style. We assume that
-both accumulation and combining are destructive operations, mutating the
-left-hand operand. Mutability means lower GC pressure and we always use
-it in our implementations. We also define the `deduct` primitive, absent
-from `Collector` and specifically targetted at the optimization of
-sliding window aggregation.
+The most important primitives are `accumulate` and `finish`: they
+specify your business logic in the narrow sense. `create`, `combine` and
+`deduct` give Jet the support it needs to manage the accumulators.
+`deduct` is the most specialized one: it's only used in sliding
+window aggregation and even there it's optional. However, its presence
+makes the computation significantly cheaper.
 
-As a simple example we can define an aggregate operation that collects
-items to a set:
+Let's see how this works on a basic example: counting the items. We need
+a mutable object that holds the count. Jet's library contains the
+`com.hazelcast.jet.accumulator` package with some object designed to be
+used as accumulators and one of them is `LongAccumulator`. Our
+`accumulate` primitive would be `(longAcc, x) -> longAcc.add(1)` and,
+since we want the standard `Long` as the aggregation result, we can
+define the `finish` primitive as `LongAccumulator::get`.
 
-```java
-AggregateOperation.of(
-        HashSet::new,
-        Set::add,
-        Set::addAll,
-        Set::removeAll,
-        Set::toString
-);
-```
+Now we have to define the other three primitives to match our main
+logic. For `create` we just refer to the constructor:
+`LongAccumulator::new`. Combining means adding the value of the
+right-hand accumulator to the left-hand one: `(acc1, acc2) ->
+acc1.add(acc2.get())` or, since `LongAccumulator` has a convenience
+method for this, just `LongAccumulator::add`. Deducting must undo the
+effect of a previous `combine`: `(acc1, acc2) -> acc1.subtract(acc2)` or
+just `LongAccumulator::subtract`.
 
-`of()` is a factory method that takes the primitives in the order we
-gave above. Let's have a brief look at this definition. Our accumulator
-object is a `HashSet` instance. We accumulate an item with `add()`; we
-combine it with another accumulator with `addAll()`; we undo this
-operation with `removeAll()`. Our final output is a string
-representation of the set.
-
-This example was easy and familiar because `Set` is a mutable
-abstraction so the fit is natural. It gets less natural when your
-accumulated value is something the JDK doesn't provide in mutable form.
-If you want to accumulate a `long` value, you'll need a mutable
-container object for it. We do provide convenience that will create an
-`AggregateOperation` from immutable reduction primitives, so you could
-use that:
+All put together, we can define our counting operation as follows:
 
 ```java
-AggregateOperations.reducing(
-        0L,
-        (Long x) -> x,
-        (sum1, sum2) -> sum1 + sum2,
-        (sum1, sum2) -> sum1 - sum2
-);
+AggregateOperation1<Object, LongAccumulator, Long> aggrOp = AggregateOperation
+    .withCreate(LongAccumulator::new)
+    .andAccumulate((acc, x) -> acc.add(1))
+    .andCombine(LongAccumulator::add)
+    .andDeduct(LongAccumulator::subtract)
+    .andFinish(LongAccumulator::get);
 ```
 
-Under the hood Jet will instantiate a mutable holder that keeps a
-reference to the immutable objects returned from the user-supplied
-primitives. `reducing()` takes these arguments: 
+Let's stop for a second to look at the type we got:
+`AggregateOperation1<Object, LongAccumulator, Long>`. As opposed to the
+general `AggregateOperation`, `AggregateOperation1` statically encodes
+the fact that it accepts only one input stream, for example in a
+`groupBy` transform. In an
+[earlier section](Build_Your_Computation_Pipeline#page_coGroup)
+we said you can co-group two or three streams with full type safety, by
+calling `andAccumulate0()`, `andAccumulate1()`, and `andAccumulate2()`
+on the aggregate operation builder object. In such cases you'd get
+`AggregateOperation2` or `AggregateOperation3` as the static type. If
+you use the co-group builder object, then you'll construct the aggregate
+operation by calling `andAccumulate(tag, accFn)` with all the tags you
+got from the co-group builder. In that case the static type will be just
+`AggrgegateOperation`.
 
-1. the "empty" accumulated value
-2. the function that takes a stream item and computes its accumulated
-value
-3. the `combine` primitive
-4. the `deduct` primitive
+If you are familiar with `java.util.stream.Collector`, you may recognize
+some similarities. It is also a holder of functional primitives to
+perform an aggregate operation, but there are several important
+differences:
 
-Note that `combine` and `deduct` here are pure functions acting on
-immutable arguments and have appropriately different lambda shapes than
-those in `AggregateOperation`.
+- it supports only one input stream
+- it doesn't define the `deduct` primitive, which is important for
+  the sliding window computation
+- its `combiner` primitive is defined as potentially "destructive" to
+  both accumulators passed to it so the engine can't reuse them
 
-While simple, the above definition of summing will create a lot of
-garbage `Long` objects. Jet's own summing operation looks like this:
-
-```java
-return AggregateOperation.of(
-        LongAccumulator::new,
-        (a, item) -> a.addExact(mapToLongF.applyAsLong(item)),
-        LongAccumulator::addExact,
-        LongAccumulator::subtractExact,
-        LongAccumulator::get
-);
-```
-
-Instead of one immutable `Long` per input item we create just a single
-`LongAccumulator` instance for the whole operation. There's no
-intermediate step of first computing the accumulated value of an item
-and then combining it with the running state (this would force us to
-create an object); here the `accumulate` primitive takes the whole item
-and works it out internally how to update the accumulator.
-`LongAccumulator` declares methods for "exact" addition/subtraction
-(result is checked for integer overflow) and we use them here,
-preferring fail-fast behavior to emitting incorrect results.

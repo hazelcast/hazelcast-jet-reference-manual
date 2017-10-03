@@ -141,11 +141,11 @@ These are the arguments:
 which may be defined as follows:
 
 ```java
-private static AggregateOperation2<String, String, LongAccumulator, Long> counting2() {
+private static AggregateOperation2<Object, Object, LongAccumulator, Long> counting2() {
     return AggregateOperation
             .withCreate(LongAccumulator::new)
-            .<String>andAccumulate0((count, item) -> count.add(1))
-            .<String>andAccumulate1((count, item) -> count.add(10))
+            .andAccumulate0((count, item) -> count.add(1))
+            .andAccumulate1((count, item) -> count.add(10))
             .andCombine(LongAccumulator::add)
             .andFinish(LongAccumulator::get);
 }
