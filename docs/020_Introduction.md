@@ -117,8 +117,8 @@ restarted from the beginning if it fails. For such a job, fault
 tolerance is essential: the engine must be able to detect a failure,
 recover from it, and resume processing without data loss.
 
-Hazelcast Jet achieves fault tolerance by making a snapshot of
-thinternal processing state at regular intervals. If a member of the
+Hazelcast Jet achieves fault tolerance by making a snapshot of the
+internal processing state at regular intervals. If a member of the
 cluster fails while a job is running, Hazelcast Jet will detect this and
 restart the job on the new cluster topology. It will restore its
 internal state from the snapshot and tell the source to start sending
