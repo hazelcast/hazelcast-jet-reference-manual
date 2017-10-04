@@ -19,10 +19,10 @@ makes the computation significantly cheaper.
 
 Let's see how this works on a basic example: counting the items. We need
 a mutable object that holds the count. Jet's library contains the
-`com.hazelcast.jet.accumulator` package with some object designed to be
-used as accumulators and one of them is `LongAccumulator`. Our
-`accumulate` primitive would be `(longAcc, x) -> longAcc.add(1)` and,
-since we want the standard `Long` as the aggregation result, we can
+`com.hazelcast.jet.accumulator` package with objects designed to be used
+as accumulators and one of them is `LongAccumulator`. Using it we can
+express our `accumulate` primitive as `(longAcc, x) -> longAcc.add(1)`.
+Since we want the standard `Long` as the aggregation result, we can
 define the `finish` primitive as `LongAccumulator::get`.
 
 Now we have to define the other three primitives to match our main
@@ -46,28 +46,52 @@ AggregateOperation1<Object, LongAccumulator, Long> aggrOp = AggregateOperation
 ```
 
 Let's stop for a second to look at the type we got:
-`AggregateOperation1<Object, LongAccumulator, Long>`. As opposed to the
-general `AggregateOperation`, `AggregateOperation1` statically encodes
-the fact that it accepts only one input stream, for example in a
-`groupBy` transform. In an
+`AggregateOperation1<Object, LongAccumulator, Long>`. Its type
+parameters are:
+1. `Object`: the type of the input item (since we just count them, we
+   can take any object here)
+2. `LongAccumulator`: the type of the accumulator
+3. `Long`: the type of the result
+
+If you compare this signature to that of the general
+`AggregateOperation`, you'll see that one only captures the latter two,
+so it lacks type safety with respect to the input type. This is because
+it can be constructed to work with an arbitrary number of input streams.
+`AggregateOperation1` is a specialization that strictly works with one
+input stream and captures its static type. It is used in the `groupBy`
+transform. In an
 [earlier section](Build_Your_Computation_Pipeline#page_coGroup)
-we said you can co-group two or three streams with full type safety, by
-calling `andAccumulate0()`, `andAccumulate1()`, and `andAccumulate2()`
-on the aggregate operation builder object. In such cases you'd get
-`AggregateOperation2` or `AggregateOperation3` as the static type. If
-you use the co-group builder object, then you'll construct the aggregate
-operation by calling `andAccumulate(tag, accFn)` with all the tags you
-got from the co-group builder. In that case the static type will be just
-`AggrgegateOperation`.
+we mentioned that you can co-group two or three streams with full type
+safety. Let's study a similar example where we're interested in the
+behavior of users in an online shop application. We want to compare the
+number of product page visits vs. number of items added to the shopping
+cart vs. number of purchases made by each user. This data is dispersed
+among separate datasets: `PageVisit`, `AddToCart` and `Payment`. We can
+perform a co-group transform with the following aggregate operation:
 
-If you are familiar with `java.util.stream.Collector`, you may recognize
-some similarities. It is also a holder of functional primitives to
-perform an aggregate operation, but there are several important
-differences:
+```java
+AggregateOperation3<PageVisit, AddToCart, Payment, LongAccumulator[], long[]> aggrOp = 
+        AggregateOperation
+                .withCreate(() -> Stream.generate(LongAccumulator::new)
+                                        .limit(3)
+                                        .toArray(LongAccumulator[]::new))
+                .<PageVisit>andAccumulate0((accs, x) -> accs[0].add(1))
+                .<AddToCart>andAccumulate1((accs, x) -> accs[1].add(1))
+                .<Payment>andAccumulate2((accs, x) -> accs[2].add(1))
+                .andCombine((accs1, accs2) -> IntStream.range(0, 2)
+                                                       .forEach(i -> accs1[i].add(accs2[i])))
+                .andFinish(accs -> Stream.of(accs)
+                                         .mapToLong(LongAccumulator::get)
+                                 .toArray());
+```
 
-- it supports only one input stream
-- it doesn't define the `deduct` primitive, which is important for
-  the sliding window computation
-- its `combiner` primitive is defined as potentially "destructive" to
-  both accumulators passed to it so the engine can't reuse them
+Note how we got an `AggregateOperation3` and how it captured each input
+type. When we use it as an argument to a co-group transform, the
+compiler will ensure that the `ComputeStage`s we attach it to have the
+correct type and are in the correct order.
 
+On the other hand, if you use the co-group builder object, you'll
+construct the aggregate operation by calling `andAccumulate(tag, accFn)`
+with all the tags you got from the co-group builder, and the static type
+will be just `AggregateOperation`. The compiler won't be able to match
+up the inputs to their treatment in the aggregate operation.

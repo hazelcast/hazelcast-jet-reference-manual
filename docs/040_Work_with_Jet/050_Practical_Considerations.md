@@ -1,3 +1,5 @@
+[TOC]
+
 ## Remember that a Jet Job is Distributed
 
 The API to submit a job to Jet is in a way deceptively simple: "just
@@ -66,7 +68,7 @@ After building the JAR, submit the job:
 $ submit-jet.sh jetjob.jar
 ```
 
-## Common Pitfalls with Serialization
+## Watch out for Capturing Lambdas
 
 A typical Jet pipeline involves lambda expressions. Since the whole
 pipeline definition must be serialized to be sent to the cluster, the
@@ -85,8 +87,6 @@ everywhere in the Pipeline API.
 
 As always, the magic of auto-serializability of lambdas has its
 flipside: it is easy to overlook what's going on.
-
-### Lambda variable capture
 
 If the lambda references a variable in the outer scope, the variable is
 captured and must also be serializable. If it references an instance
@@ -206,12 +206,13 @@ class JetJob {
 }
 ```
 
-### Serialization performance
+## Standard Java Serialization is Slow
 
 When it comes to serializing the description of a Jet job, performance
-is not critical. However, when the job executes, every distributed edge
-in the DAG will cause stream items to be serialized and sent over the
-network. In this context the performance of Java serialization is so
+is not critical. However, for the data passing through the pipeline,
+the cost of the serialize-deserialize cycle can easily dwarf the cost of
+actual data transfer, especially on high-end LANs typical for data
+centers. In this context the performance of Java serialization is so
 poor that it regularly becomes the bottleneck. This is due to its heavy
 usage of reflection, overheads in the serialized form, etc.
 
