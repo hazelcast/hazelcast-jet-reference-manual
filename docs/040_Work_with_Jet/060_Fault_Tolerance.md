@@ -12,7 +12,7 @@ JobConfig config = new JobConfig();
 config.setSnapshotIntervalMillis(MINUTES.toMillis(1));
 config.setAutomaticRestartsEnabled(true);
 config.setProcessingGuarantee(ProcessingGuarantee.EXACTLY_ONCE);
-config.setSplitBrainProtectionEnabled(true);
+config.setSplitBrainProtection(true);
 jetInstance.newJob(pipeline, config);
 ```
 
