@@ -61,27 +61,32 @@ it can be constructed to work with an arbitrary number of input streams.
 input stream and captures its static type. It is used in the `groupBy`
 transform. In an
 [earlier section](Build_Your_Computation_Pipeline#page_coGroup)
-we mentioned that you can co-group two or three streams with full type
-safety. Let's study a similar example where we're interested in the
-behavior of users in an online shop application. We want to compare the
-number of product page visits vs. number of items added to the shopping
-cart vs. number of purchases made by each user. This data is dispersed
-among separate datasets: `PageVisit`, `AddToCart` and `Payment`. We can
-perform a co-group transform with the following aggregate operation:
+we mentioned that you can also co-group two or three streams with full
+type safety. Let's study an example where we're interested in the
+behavior of users in an online shop application. We want to gather the
+following statistics for each user:
+
+1. total load time of the visited product pages
+2. quantity of items added to the shopping cart
+3. amount payed for bought items
+
+This data is dispersed among separate datasets: `PageVisit`, `AddToCart`
+and `Payment`. We can perform a co-group transform with the following
+aggregate operation:
 
 ```java
-AggregateOperation3<PageVisit, AddToCart, Payment, LongAccumulator[], long[]> aggrOp = 
-        AggregateOperation
-                .withCreate(() -> Stream.generate(LongAccumulator::new)
-                                        .limit(3)
-                                        .toArray(LongAccumulator[]::new))
-                .<PageVisit>andAccumulate0((accs, x) -> accs[0].add(1))
-                .<AddToCart>andAccumulate1((accs, x) -> accs[1].add(1))
-                .<Payment>andAccumulate2((accs, x) -> accs[2].add(1))
-                .andCombine((accs1, accs2) -> IntStream.range(0, 2)
-                                                       .forEach(i -> accs1[i].add(accs2[i])))
-                .andFinish(accs -> Stream.of(accs)
-                                         .mapToLong(LongAccumulator::get)
+AggregateOperation3<PageVisit, AddToCart, Payment, LongAccumulator[], long[]> aggrOp =
+    AggregateOperation
+        .withCreate(() -> Stream.generate(LongAccumulator::new)
+                                .limit(3)
+                                .toArray(LongAccumulator[]::new))
+        .<PageVisit>andAccumulate0((accs, pv) -> accs[0].add(pv.loadTime()))
+        .<AddToCart>andAccumulate1((accs, atc) -> accs[1].add(atc.quantity()))
+        .<Payment>andAccumulate2((accs, pm) -> accs[2].add(pm.amount()))
+        .andCombine((accs1, accs2) -> IntStream.range(0, 2)
+                                               .forEach(i -> accs1[i].add(accs2[i])))
+        .andFinish(accs -> Stream.of(accs)
+                                 .mapToLong(LongAccumulator::get)
                                  .toArray());
 ```
 

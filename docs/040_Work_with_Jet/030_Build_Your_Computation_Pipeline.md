@@ -162,8 +162,7 @@ events coming from different systems, where all the systems serve the
 same user base. In an online store you may have separate streams for
 product page visits, adding to shopping cart, payments, and deliveries.
 You want to correlate all the events associated with the same user. The
-example below calculates the number of events per category for each
-user:
+example below calculates statistics per category for each user:
 
 ```java
 Pipeline p = Pipeline.create();
@@ -172,27 +171,25 @@ ComputeStage<AddToCart> addToCart = p.drawFrom(readList("addToCart"));
 ComputeStage<Payment> payment = p.drawFrom(readList("payment"));
 ComputeStage<Delivery> delivery = p.drawFrom(readList("delivery"));
 
-CoGroupBuilder<Long, PageVisit> b =
-    pageVisit.coGroupBuilder(PageVisit::userId);
-Tag<PageVisit> pageVisitTag = b.tag0();
-Tag<AddToCart> addToCartTag = b.add(addToCart, AddToCart::userId);
-Tag<Payment> paymentTag = b.add(payment, Payment::userId);
-Tag<Delivery> deliveryTag = b.add(delivery, Delivery::userId);
+CoGroupBuilder<Long, PageVisit> b = pageVisit.coGroupBuilder(PageVisit::userId);
+Tag<PageVisit> pvTag = b.tag0();
+Tag<AddToCart> atcTag = b.add(addToCart, AddToCart::userId);
+Tag<Payment> pmtTag = b.add(payment, Payment::userId);
+Tag<Delivery> delTag = b.add(delivery, Delivery::userId);
 
 ComputeStage<Tuple2<Long, long[]>> coGrouped = b.build(AggregateOperation
-    .withCreate(() -> Stream.generate(LongAccumulator::new)
-                            .limit(4)
-                            .toArray(LongAccumulator[]::new))
-    .andAccumulate(pageVisitTag, (accs, x) -> accs[0].add(1))
-    .andAccumulate(addToCartTag, (accs, x) -> accs[1].add(1))
-    .andAccumulate(paymentTag, (accs, x) -> accs[2].add(1))
-    .andAccumulate(deliveryTag, (accs, x) -> accs[3].add(1))
-    .andCombine((accs1, accs2) -> 
-            IntStream.range(0, 3)
-                     .forEach(i -> accs1[i].add(accs2[i])))
-    .andFinish(accs -> Stream.of(accs)
-                             .mapToLong(LongAccumulator::get)
-                             .toArray())
+        .withCreate(() -> Stream.generate(LongAccumulator::new)
+                                .limit(4)
+                                .toArray(LongAccumulator[]::new))
+        .andAccumulate(pvTag, (accs, pv) -> accs[0].add(pv.loadTime()))
+        .andAccumulate(atcTag, (accs, atc) -> accs[1].add(atc.quantity()))
+        .andAccumulate(pmtTag, (accs, pm) -> accs[2].add(pm.amount()))
+        .andAccumulate(delTag, (accs, d) -> accs[3].add(d.days()))
+        .andCombine((accs1, accs2) -> IntStream.range(0, 3)
+                                               .forEach(i -> accs1[i].add(accs2[i])))
+        .andFinish(accs -> Stream.of(accs)
+                                 .mapToLong(LongAccumulator::get)
+                                 .toArray())
 );
 ```
 
@@ -297,3 +294,10 @@ ComputeStage<String> mapped = joined.map(
             return trade + ": " + product + ", " + broker + ", " + market;
         });
 ```
+
+## Note on Hazelcast Jet Version 0.5
+
+The Pipeline API is still under construction and we plan to add more
+transforms in 0.6. The major missing feature is the windowing of infinite
+streams (sliding, tumbling, session windows), but we also plan to add
+more batch transforms (`sort` and `distinct` for example).
