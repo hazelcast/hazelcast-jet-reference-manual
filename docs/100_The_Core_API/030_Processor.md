@@ -114,5 +114,46 @@ on the passage of wall-clock time, and it can do it inside the
 Jet calls `complete()` after all the input edges are exhausted. It is
 the last method to be invoked on the processor before disposing of it.
 Typically this is where a batch processor emits the results of an
-accumulating operation. If it can't emit everything in a given call, it
+aggregating operation. If it can't emit everything in a given call, it
 should return `false` and will be called again later.
+
+## Snapshotting Callbacks
+
+Hazelcast Jet supports fault-tolerant processing jobs by taking
+distributed snapshots. In regular time intervals each of the source
+vertices will perform a snapshot of its own state and then emit a
+special item to its output stream: a _barrier_. The downstream vertex
+that receives the barrier item makes its own snapshot and then forwards
+the barrier to its outbound edges, and so on towards the sinks.
+
+At the level of the `Processor` API the barrier items are not visible;
+`ProcessorTasklet` handles them internally and invokes the snapshotting
+callback methods described below.
+
+### saveToSnapshot()
+
+Jet will call this method when it determines it's time for the processor
+to save its state to the current snapshot. Except for source vertices,
+this happens when the processor has received the barrier item from all
+its inbound streams and processed all the data items preceding it. The
+method must emit all its state to the special _snapshotting bucket_ in
+the Outbox, by calling `outbox.offerToSnapshot()`. If the outbox doesn't
+accept all the data, it must return `false` to be called again later,
+after the outbox has been flushed.
+
+When this method returns `true`, `ProcessorTasklet` will forward the
+barrier item to all the outbound edges.
+
+### restoreFromSnapshot()
+
+When a Jet job is restarting after having been suspended, it will first
+reload all the state from the last successful snapshot. Each processor
+will get its data through the invocations of this method. Its parameter
+is the `Inbox` filled with a batch of snapshot data. The method will be
+called repeatedly until it consumes all the snapshot data.
+
+### finishSnapshotRestore()
+
+Jet will call this method after it has delivered all the snapshot data
+to `restoreFromSnapshot()`. The processor may use it to initialize some
+transient state from the restored state.

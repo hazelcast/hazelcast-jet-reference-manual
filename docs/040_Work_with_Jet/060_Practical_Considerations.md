@@ -45,7 +45,9 @@ instance (instead of `Jet.newJetClient()`).
 * Run your JAR, but instead of `java -jar jetjob.jar` use `submit-jet.sh
 jetjob.jar`.
 
-* The script will create a Jet client and configure it from `hazelcast-client.xml` located in the `config` directory of Jet's distribution. Adjust that file to suit your needs.
+* The script will create a Jet client and configure it from
+`hazelcast-client.xml` located in the `config` directory of Jet's
+distribution. Adjust that file to suit your needs.
 
 For example, write a class like this:
 

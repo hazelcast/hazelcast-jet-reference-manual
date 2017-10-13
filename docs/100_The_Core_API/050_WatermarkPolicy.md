@@ -1,5 +1,5 @@
 As mentioned in the
-[Work_with_Jet](/Work_with_Jet/Finite_vs_Infinite_Stream_Processing#page_Time+Ordering)
+[Work_with_Jet](/Work_with_Jet/Infinite_Stream_Processing#page_Time+Ordering)
 chapter, determining the watermark is somewhat of a black art; it's
 about superimposing order over a disordered stream of events. We must
 decide at which point it stops making sense to wait even longer for data
