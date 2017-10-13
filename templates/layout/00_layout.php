@@ -80,5 +80,13 @@
 
     } ?>
 
+        <script type="text/javascript" src="<?= $base_url; ?>themes/daux/js/anchor.js"></script>
+        <script type="text/javascript"> 
+             $(function(){
+                   anchors.add();
+             });
+        </script>
+
+
 </body>
 </html>
