@@ -1,6 +1,7 @@
 ## The Shape of a Pipeline
 
-The general shape of any data processing pipeline is `drawFromSource -> transform -> drainToSink` and the natural way to build it is from source
+The general shape of any data processing pipeline is `drawFromSource ->
+transform -> drainToSink` and the natural way to build it is from source
 to sink. The Pipeline API follows this pattern. For example,
 
 ```java
@@ -47,13 +48,14 @@ src.map(String::toLowerCase)
 
 Hazelcast Jet has support for these data sources and sinks:
 
-- Hazelcast `IMap`
-- Hazelcast `ICache`
-- Hazelcast `IList`
-- Hadoop Distributed File System (HDFS)
-- Kafka topic
-- TCP socket
-- a directory on the filesystem
+- Hazelcast `IMap` and `ICache`, both as a batch source of just their
+contents and their event journal as an infinite source
+- Hazelcast `IList` (batch)
+- Hadoop Distributed File System (HDFS) (batch)
+- Kafka topic (infinite stream)
+- TCP socket (infinite stream)
+- a directory on the filesystem, both as a batch source of the current
+  file contents and an infinite source of append events to the files
 
 You can access them via the `Sources` and `Sinks` utility classes.
 
@@ -295,9 +297,23 @@ ComputeStage<String> mapped = joined.map(
         });
 ```
 
-## Note on Hazelcast Jet Version 0.5
 
-The Pipeline API is still under construction and we plan to add more
-transforms in 0.6. The major missing feature is the windowing of infinite
-streams (sliding, tumbling, session windows), but we also plan to add
-more batch transforms (`sort` and `distinct` for example).
+## Note for Hazelcast Jet version 0.5
+
+Hazelcast Jet's version 0.5 was released with the Pipeline API still
+under construction. We started from the simple case of batch jobs and we
+support the major batch operation of (co)group-and-aggregate, but still
+lack the API to define the windowing and watermark policies. Other,
+non-aggregating operations aren't sensitive to the difference between
+finite and infinite streams and are ready to use. The major example here
+is data enrichment
+([hash join](Build_Your_Computation_Pipeline#page_hashJoin)),
+which is essentially a mapping stream transformation. The next release
+of Jet will feature a fully developed API that supports windowed
+aggregation of infinite streams and we also plan to add more batch
+transforms (`sort` and `distinct` for example).
+
+On the other hand, since 0.4 Jet's core has had full-fledged support for
+all of the windows described above. You can refer to the
+[Under the Hood](Under_the_Hood) chapter for details on how to create a
+Core API DAG that does infinite stream aggregation.

@@ -44,18 +44,21 @@ time explicitly.
 Furthermore, in a batch it is obvious when to stop aggregating and emit
 the results: when we have exhausted the whole dataset, but with infinite 
 streams we need a policy on how to select finite chunks whose aggregate
-results we are interested in. This is called _windowing_.
+results we are interested in. This is called _windowing_. We imagine the
+window as a time interval laid over the time axis. A given window
+contains only the events that belong to that interval.
 
-A very basic type of windowing policy is the _tumbling window_, which
-splits the data into batches based on event time. Each event gets
-assigned to the batch whose time interval covers the event's timestamp.
-The result of this is very similar to running a sequence of batch jobs,
-one per time interval.
+A very basic type of window is the _tumbling window_, which can be
+imagined to advance by tumbling over each time. There is no overlap
+between the successive positions of the window. In other words, it
+splits the time-series data into batches delimited by points on the time
+axis. The result of this is very similar to running a sequence of batch
+jobs, one per time interval.
 
-A more useful and powerful policy is the _sliding window_: it aggregates
-over a period of given size extending from now into the recent past. As
-the time passes, the window (pseudo-)continuously slides forward and the
-fresh data gradually displaces the old.
+A more useful and powerful policy is the _sliding window_: instead of
+splitting the data at fixed boundaries, it lets it roll in
+incrementally, new data gradually displacing the old. The window
+(pseudo)continuously slides along the time axis.
 
 Another popular policy is called the _session window_ and it's used to
 detect bursts of activity by correlating events bunched together on the
@@ -73,8 +76,8 @@ for all kinds of reasons the items will arrive to our datacenter out of
 order, even with significant delays due to connectivity issues.
 
 This disorder in the event stream makes it more difficult to formally
-specify a rule that tells us when all the data for a given window has
-been gathered, allowing us to emit the aggregated result.
+specify a rule that tells us at which point all the data for a given
+window has been gathered, allowing us to emit the aggregated result.
 
 To approach these challenges we use the concept of the _watermark_. It
 is a timestamped item inserted into the stream that tells us "from this
@@ -109,15 +112,27 @@ computation in a differently laid-out cluster exactly where it left off
 and neither miss anything nor process it twice. The technical term for
 this is the "exactly-once processing guarantee".
 
+### Distributed Snapshots
+
+The technique Jet uses to achieve fault tolerance is called a
+"distributed snapshot". At regular intervals Jet will insert a special
+item into the data streams coming in from the sources: a _barrier_. The
+source must ensure that, in the case of a restart, it will be able to
+replay all the data it emitted after the last barrier. Every other
+component in the computation job must ensure it will be able to restore
+its processing state to exactly what it was at the last barrier. If a
+cluster member goes away, Jet will restart the job on the remaining
+members, the state of processing will rewind back to the last barrier
+and then seamlessly continue from that point.
+
 As always when guarantees are involved, the principle of the weakest
 link applies: if any part of the system is unable to provide it, the
 system as a whole fails to provide it. For stream processing the
 critical points are the sources and sinks because they are the boundary
 between the domain under Jet's control and the environment. A source
-must be able to consistently replay data to Jet from the exact point
-where we left off before the interruption, and the sink must either
-support transactions or be _idempotent_, tolerating duplicate submission
-of data.
+must be able to consistently replay data to Jet from a point it asks
+for, and the sink must either support transactions or be _idempotent_,
+tolerating duplicate submission of data.
 
 As of version 0.5, Hazelcast Jet supports exactly-once with the source
 being either a Hazelcast `IMap` or a Kafka topic, and the sink being a
@@ -127,13 +142,15 @@ A lesser, but still useful guarantee you can configure Jet for is
 "at-least-once". In this case no stream item will be missed, but some
 items may get processed again after a restart, as if they represented
 new events. Jet can provide this guarantee at a higher throughput and
-lower latency than exactly-once and in some cases you may prefer this
-tradeoff.
+lower latency than exactly-once, and some kinds of data processing can
+gracefully tolerate it. In some cases, however, it may even result in
+data loss (this is described in the documentation on Jet
+[Processor](The_Core_API/Processor#page_Issues+in+At-Least-Once+Jobs)).
 
 We also have an in-between case: if you configure Jet for exactly-once
-but use Kafka as the sink, you may get duplicates in the output. As
-opposed to duplicating an input item, this is much more benign because
-it just means getting the exact same result twice.
+but use Kafka as the sink, after a job restart you may get duplicates in
+the output. As opposed to duplicating an input item, this is much more
+benign because it just means getting the exact same result twice.
 
 ### Enable Fault Tolerance
 
@@ -145,11 +162,7 @@ JobConfig jobConfig = new JobConfig();
 jobConfig.setSnapshotIntervalMillis(SECONDS.toMillis(10));
 ```
 
-Jet achieves fault tolerance by saving a snapshot of all the internal
-state of its processors at regular intervals. If a cluster member goes
-away, Jet will restart the job on the remaining members and ask the
-source to re-emit the data it already sent after the last snapshot was
-taken. Using less frequent snapshots, more data will have to be replayed
+Using less frequent snapshots, more data will have to be replayed
 and the temporary spike in the latency of the output will be greater.
 More frequent snapshots will reduce the throughput and introduce more
 latency variation during regular processing.
@@ -172,10 +185,11 @@ JetInstance = Jet.newJetInstance(config);
 
 ### Split-Brain Protection
 
-A particularly nasty kind of failure is the "split brain": the cluster
-splits into two parts, where within each part the members see each
-other, but none of those in the other part(s). Each part by itself lives
-on thinking the other members left the cluster. Now we have two
+A particularly nasty kind of failure is the "split brain": due to a very
+specific pattern in the loss of network connectivity the cluster splits
+into two parts, where within each part the members see each other, but
+none of those in the other part(s). Each part by itself lives on
+thinking the other members left the cluster. Now we have two
 fully-functioning Jet clusters where there was supposed to be one. Each
 one will recover and restart the same Jet job, making a mess in our
 application.
@@ -194,24 +208,3 @@ add more members to any of the sub-clusters and have them both grow to
 more than half the previous size. Since the job will keep trying to
 restart itself and by definition one cluster has no idea of the other's
 existence, it will restart as soon as the quorum value is reached.
-
-## Note for Hazelcast Jet version 0.5
-
-Hazelcast Jet's version 0.5 was released with the Pipeline API still
-under construction. We started from the simple case of batch jobs and we
-support the major batch operation of (co)group-and-aggregate, but still
-lack the API to define the windowing and watermark policies. Other,
-non-aggregating operations aren't sensitive to the difference between
-finite and infinite streams and are ready to use. The major example here
-is data enrichment
-([hash join](Build_Your_Computation_Pipeline#page_hashJoin)),
-which is essentially a mapping stream transformation. We also provide
-data sources of infinite streams such as Kafka, TCP sockets, and a
-filesystem directory monitored for changes. The next release of Jet will
-feature a fully developed API that supports windowed aggregation of
-infinite streams.
-
-On the other hand, Jet's core has had full-fledged infinite stream
-support since version 0.4. You can refer to the
-[Under the Hood](Under_the_Hood) chapter for details on how to create a
-Core API DAG that does infinite stream aggregation.

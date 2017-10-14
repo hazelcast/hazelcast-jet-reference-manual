@@ -7,63 +7,21 @@ independently on any member, always yielding the same result. In the
 context of infinite stream processing we have the same concern and solve
 it with the same means, but we also face some new challenges.
 
-## Stream Skew and Watermark Propagation
+## Stream Skew
 
 We
 [already introduced](Work_with_Jet/Infinite_Stream_Processing#page_Time+Ordering+and+the+Watermark)
-the concept of the watermark and how it imposes order onto a disordered
-data stream. Items arriving out of order aren't our only challenge;
-modern stream sources like Kafka are partitioned and distributed so "the
-stream" is actually a set of independent substreams, moving on in
-parallel. Substantial time difference may arise between events being
-processed on each one, but our system must produce coherent output as if
-there was only one stream. 
-
-For a parallelism of N, there are N watermark values being determined in
-parallel, and as they travel downstream to M processors of the next
-vertex, its processors must receive correct and meaningful values. These
-are the special rules that apply to watermark items:
-
-* The value of the watermark a processor emits must be strictly
-increasing. 
-
-* The watermark item is always broadcast, regardless of the edge type.
-This means that all N upstream processors send their watermark to all M
-downstream processors.
-
-* The logic in the edge _coalesces_ all these watermark items before
-delivering them to the downstream processors. The processor will observe
-a watermark value only after a value at least that high was received
-from all upstream processors.
-
-### Non-Monotonic Watermark in At-Least-Once Jobs
-
-The rules we just stated mean that a processor can be coded by assuming
-that the watermark value always increases. However, there is an
-inconvenient interaction between watermarks and snapshotting in the
-_at-least-once_ mode. In this mode, a processor is allowed to continue
-consuming a stream after having observed a barrier, before observing it
-in other streams. By the time it receives all barriers and stops to emit
-the snapshot of its state, it has already processed items past the
-barrier. This may include watermark items as well, advancing the
-processor's watermark value. After the job restarts and the state gets
-restored to the snapshotted point, the watermark will appear to have
-decreased. This breakage of the assumption of increasing watermark may
-have far-reaching  consequences for the behavior of a processor, and is
-just a special case of a more general problem outlined below.
-
-Imagine a very simple kind of processor: it matches up the items that
-belong to a _pair_ based on some rule. If it receives item A first, it
-remembers it. Later on, when it receives item B, it will emit that fact
-to its outbound edge and forget about the two items. It may also first
-receive B and wait for A.
-
-Now imagine this sequence: `A -- barrier -- B`. In at-least-once it
-processes both A and B, emits that to the downstream, and forgets about
-them. After restart, however, the item B will be replayed because it
-occurred after the last snapshot, but item A won't. Now the processor is
-stuck forever in a state where it's expecting A and has no idea it
-already got both and emitted that fact.
+the concept of the watermark and how it imposes
+order onto a disordered data stream. Items arriving out of order aren't
+our only challenge; modern stream sources like Kafka are partitioned and
+distributed so "the stream" is actually a set of independent substreams,
+moving on in parallel. Substantial time difference may arise between
+events being processed on each one, but our system must produce coherent
+output as if there was only one stream. We meet this challenge by
+coalescing watermarks: as the data travels over a partitioned/distributed
+edge, we make sure the downstream processor observes the correct watermark
+value, which is the least of watermarks received from the contributing
+substreams.
 
 ## Sliding and Tumbling Window
 
