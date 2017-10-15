@@ -193,19 +193,10 @@ processor receives a barrier item from an input stream, it will stop
 consuming from that input stream  until it has received the same barrier
 from all input streams. Then it will take a snapshot. With
 _at-least-once_ it will take a snapshot at the same point, but won't
-stop consuming any input streams. This can have far-reaching
-consequences on the behavior of a processor in the _at-least-once_ mode,
-some of which are quite counterintuitive.
-
-### Non-Monotonic Watermark
-
-Thanks to watermark coalescing, processors are typically implemented
-against the invariant that the watermark value always increases.
-However, there is an inconvenient interaction between watermarks and
-snapshotting in the _at-least-once_ mode: watermark items received after
-a barrier will advance the processor's watermark value. After the job
-restarts and the state gets restored to the snapshotted point, the
-watermark will appear to have decreased, breaking the invariant.
+stop consuming any input streams. After a restart, the state it restores
+will have accounted for all those items received past the barrier, but
+it will also receive these items again. The consequences of this can be
+far-reaching to quite an unexpected degree, as we discuss next.
 
 ### Data Loss
 
@@ -227,7 +218,17 @@ until it has got enough information to emit the results and then forgets
 it. By the time it takes a snapshot, the post-barrier items will have
 caused it to forget facts about pre-barrier items. After a restart it
 will behave as though it has never observed the pre-barrier items,
-resulting in data loss.
+resulting in behavior equivalent to data loss.
+
+### Non-Monotonic Watermark
+
+One special case of the above story concerns watermark items. Thanks to
+watermark coalescing, processors are typically implemented against the
+invariant that the watermark value always increases. However, in
+_at-least-once_ the post-barrier watermark items will advance the
+processor's watermark value. After the job restarts and the state gets
+restored to the snapshotted point, the watermark will appear to have
+gone back, breaking the invariant. This can again lead to data loss.
 
 ### Best Practice: Document At-Least-Once Behavior
 
