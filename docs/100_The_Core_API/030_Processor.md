@@ -18,14 +18,14 @@ kinds of vertices, including sources and sinks.
 ## Cooperative Multithreading
 
 Cooperative multithreading is one of the core features of Jet and can be
-roughly compared to [green
-threads](https://en.wikipedia.org/wiki/Green_threads). It is purely a
-library-level feature and does not involve any low-level system or JVM
-tricks; the `Processor` API is simply designed in such a way that the
-processor can do a small amount of work each time it is invoked, then
-yield back to the Jet engine. The engine manages a thread pool of fixed
-size and on each thread, the processors take their turn in a round-robin
-fashion.
+roughly compared to
+[green threads](https://en.wikipedia.org/wiki/Green_threads). 
+It is purely a library-level feature and does not involve any low-level
+system or JVM tricks; the `Processor` API is simply designed in such a
+way that the processor can do a small amount of work each time it is
+invoked, then yield back to the Jet engine. The engine manages a thread
+pool of fixed size and on each thread, the processors take their turn in
+a round-robin fashion.
 
 The point of cooperative multithreading is better performance. Several
 factors contribute to this:
@@ -34,8 +34,8 @@ factors contribute to this:
 since the operating system's thread scheduler is not involved.
 - The worker thread driving the processors stays on the same core for
 longer periods, preserving the CPU cache lines.
-- The worker thread has direct knowledge of the ability of a processor to
-make progress (by inspecting its input/output buffers).
+- The worker thread has direct knowledge of the ability of a processor
+to make progress (by inspecting its input/output buffers).
 
 `Processor` instances are cooperative by default. The processor can opt
 out of cooperative multithreading by overriding `isCooperative()` to
@@ -58,11 +58,6 @@ capacity and will refuse an item when full. A cooperative processor
 should be implemented such that when its item is rejected by the outbox,
 it saves its processing state and returns from the processing method.
 The execution engine will then drain the outbox buckets.
-
-By contrast, a non-cooperative processor gets an auto-flushing, blocking
-outbox that never rejects an item. This can be leveraged to simplify the
-processor's implementation; however the simplification alone should
-never be the reason to declare a processor non-cooperative.
 
 ## Rules of Watermark Propagation
 
@@ -195,8 +190,7 @@ from all input streams. Then it will take a snapshot. With
 _at-least-once_ it will take a snapshot at the same point, but won't
 stop consuming any input streams. After a restart, the state it restores
 will have accounted for all those items received past the barrier, but
-it will also receive these items again. The consequences of this can be
-far-reaching to quite an unexpected degree, as we discuss next.
+it will also receive these items again. The consequences of this can be far-reaching to quite an unexpected degree, as we discuss next.
 
 ### Data Loss
 
@@ -206,12 +200,12 @@ remembers it. Later on, when it receives item B, it emits that fact
 to its outbound edge and forgets about the two items. It may also first
 receive B and wait for A.
 
-Now imagine this sequence: `A -- barrier -- B`. In at-least-once it
-processes both A and B, emits that to the downstream, and forgets about
-them. After restart, however, the item B will be replayed because it
-occurred after the last snapshot, but item A won't. Now the processor is
-stuck forever in a state where it's expecting A and has no idea it
-already got both and emitted that fact.
+Now imagine this sequence: `A -- barrier -- B`. In at-least-once the
+processor may observe both A and B, emit its output, and forget about
+them. Then it will take a snapshot. After restart, however, the item B
+will be replayed because it occurred after the last snapshot, but item A
+won't. Now the processor is stuck forever in a state where it's
+expecting A and has no idea it already got both and emitted that fact.
 
 Problems similar to this will happen with any state the processor keeps
 until it has got enough information to emit the results and then forgets
