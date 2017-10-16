@@ -5,7 +5,7 @@ contains the code of the computation to be performed by a vertex. There
 are a number of Processor building blocks in the Jet API which allow you
 to just specify the computation logic, while the provided code
 handles the processor's cooperative behavior. Please refer to the
-[AbstractProcessor section](Convenience_API_to_Implement_a_Processor).
+[AbstractProcessor](AbstractProcessor) section.
 
 A processor's work can be conceptually described as follows: "receive
 data from zero or more input streams and emit data into zero or more
@@ -202,10 +202,10 @@ receive B and wait for A.
 
 Now imagine this sequence: `A -- barrier -- B`. In at-least-once the
 processor may observe both A and B, emit its output, and forget about
-them. Then it will take a snapshot. After restart, however, the item B
-will be replayed because it occurred after the last snapshot, but item A
-won't. Now the processor is stuck forever in a state where it's
-expecting A and has no idea it already got both and emitted that fact.
+them, all before taking the snapshot. After the restart, item B will be
+replayed because it occurred after the last barrier, but item A won't.
+Now the processor is stuck forever in a state where it's expecting A and
+has no idea it already got it and emitted that fact.
 
 Problems similar to this will happen with any state the processor keeps
 until it has got enough information to emit the results and then forgets

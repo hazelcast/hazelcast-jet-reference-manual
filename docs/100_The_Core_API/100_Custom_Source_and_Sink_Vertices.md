@@ -29,7 +29,7 @@ of that vertex.
 Let's say we want to write a simple source that will generate numbers
 from 0 to 1,000,000 (exclusive). It is trivial to write a single
 `Processor` which can do this using `java.util.stream` and
-[`Traverser`](Convenience_API_to_Implement_a_Processor#page_Traverser).
+[`Traverser`](AbstractProcessor#page_Traverser).
 
 ```java
 class GenerateNumbersP extends AbstractProcessor {
