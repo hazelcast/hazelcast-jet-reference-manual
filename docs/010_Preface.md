@@ -21,7 +21,9 @@ trademarks in this manual are held by their respective owners.
 
 Hazelcast uses phone home data to learn about usage of Hazelcast Jet.
 
-Hazelcast Jet instances call our phone home server initially when they are started and then every 24 hours. This applies to all the instances joined to the cluster.
+Hazelcast Jet instances call our phone home server initially when they 
+are started and then every 24 hours. This applies to all the instances 
+joined to the cluster.
 
 **What is sent in?**
 
@@ -49,13 +51,18 @@ The following information is sent in a phone home:
 
 **Phone Home Code**
 
-The phone home code itself is open source. Please see <a href="https://github.com/hazelcast/hazelcast/blob/master/hazelcast/src/main/java/com/hazelcast/util/PhoneHome.java" target="_blank">here</a>.
+The phone home code itself is open source. Please see <a 
+href="https://github.com/hazelcast/hazelcast/blob/master/hazelcast/src/main/java/com/hazelcast/util/PhoneHome.java" 
+target="_blank">here</a>.
 
 **Disabling Phone Homes**
 
-Set the `hazelcast.phone.home.enabled` system property to false either in the config or on the Java command line. 
+Set the `hazelcast.phone.home.enabled` system property to false either 
+in the config or on the Java command line.
 
-Starting with Hazelcast Jet 0.5, you can also disable the phone home using the environment variable `HZ_PHONE_HOME_ENABLED`. Simply add the following line to your `.bash_profile`:
+Starting with Hazelcast Jet 0.5, you can also disable the phone home 
+using the environment variable `HZ_PHONE_HOME_ENABLED`. Simply add the 
+following line to your `.bash_profile`:
 
 ```
 export HZ_PHONE_HOME_ENABLED=false
@@ -63,17 +70,23 @@ export HZ_PHONE_HOME_ENABLED=false
 
 **Phone Home URLs**
 
-For versions 1.x and 2.x: <a href="http://www.hazelcast.com/version.jsp" target="_blank">http://www.hazelcast.com/version.jsp</a>.
+For versions 1.x and 2.x: <a href="http://www.hazelcast.com/version.jsp" 
+target="_blank">http://www.hazelcast.com/version.jsp</a>.
 
-For versions 3.x up to 3.6: <a href="http://versioncheck.hazelcast.com/version.jsp" target="_blank">http://versioncheck.hazelcast.com/version.jsp</a>.
+For versions 3.x up to 3.6: <a 
+href="http://versioncheck.hazelcast.com/version.jsp" target="_blank">
+http://versioncheck.hazelcast.com/version.jsp</a>.
 
-For versions after 3.6: <a href="http://phonehome.hazelcast.com/ping" target="_blank">http://phonehome.hazelcast.com/ping</a>.
+For versions after 3.6: <a href="http://phonehome.hazelcast.com/ping" 
+target="_blank">http://phonehome.hazelcast.com/ping</a>.
 
 
 ## Getting Help
 
-Support for Hazelcast Jet is provided via [GitHub](https://github.com/hazelcast/hazelcast-jet), [Hazelcast Jet mailing list ](https://groups.google.com/forum/#!forum/hazelcast-jet) and
-[Stack Overflow](http://www.stackoverflow.com).
+Support for Hazelcast Jet is provided via 
+[GitHub](https://github.com/hazelcast/hazelcast-jet), [Hazelcast Jet 
+mailing list ](https://groups.google.com/forum/#!forum/hazelcast-jet) 
+and [Stack Overflow](https://stackoverflow.com/questions/tagged/hazelcast-jet).
 
 For information on the commercial support for Hazelcast Jet, please see
 [hazelcast.com](https://hazelcast.com/pricing/).

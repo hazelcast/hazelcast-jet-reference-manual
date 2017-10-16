@@ -190,7 +190,7 @@ transient state from the restored state.
 
 In a job configured for _exactly once_ processing, as soon as a
 processor receives a barrier item from an input stream, it will stop
-consuming from that input stream  until it has received the same barrier
+consuming from that input stream until it has received the same barrier
 from all input streams. Then it will take a snapshot. With
 _at-least-once_ it will take a snapshot at the same point, but won't
 stop consuming any input streams. After a restart, the state it restores
@@ -203,7 +203,7 @@ far-reaching to quite an unexpected degree, as we discuss next.
 Imagine a very simple kind of processor: it matches up the items that
 belong to a _pair_ based on some rule. If it receives item A first, it
 remembers it. Later on, when it receives item B, it emits that fact
-to its outbound edge and forget about the two items. It may also first
+to its outbound edge and forgets about the two items. It may also first
 receive B and wait for A.
 
 Now imagine this sequence: `A -- barrier -- B`. In at-least-once it

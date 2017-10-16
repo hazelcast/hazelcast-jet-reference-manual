@@ -16,7 +16,7 @@ required by the `dag.newVertex(name, procSupplier)` calls. There is a
 convention in Jet that every module containing vertex implementations
 contributes a utility class to the same package. Inspecting the
 contents of this package in your IDE should allow you to discover all
-vertex implementations available on the projet's classpath. For example,
+vertex implementations available on the project's classpath. For example,
 there are modules that connect to 3rd party resources like Kafka and
 Hadoop Distributed File System (HDFS). Each such module declares a class
 in the same package, `com.hazelcast.jet.processor`, exposing the

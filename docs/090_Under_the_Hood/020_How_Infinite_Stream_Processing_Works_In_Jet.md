@@ -54,7 +54,7 @@ window becomes just a special case with one step per window.
 
 This allows us to divide the timestamp axis into _frames_ of equal length
 and assign each event to its frame. Instead of keeping the event object,
-we immediatly pass it to the aggregate operation's _accumulate_ primitive.
+we immediately pass it to the aggregate operation's _accumulate_ primitive.
 To compute a sliding window, we take all the frames covered by it and
 combine them. Finally, to compute the next window, we just _deduct_ the
 trailing frame and _combine_ the leading frame into the existing result.

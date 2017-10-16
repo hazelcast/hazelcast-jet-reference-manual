@@ -57,7 +57,7 @@ the unit of measurement used for event timestamps.
 #### "Limiting Lag and Lull"
 
 The `limitingLagAndLull()` policy is similar to `limitingLagAndDelay` in
-adressing the stream lull problem and goes a step further by addressing
+addressing the stream lull problem and goes a step further by addressing
 the issues of lull combined with skew. To achieve this it must introduce
 an assumption, though: that the time unit used for event timestamps is
 milliseconds. After a given period passes with the watermark not being
