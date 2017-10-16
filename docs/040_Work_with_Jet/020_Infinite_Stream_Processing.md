@@ -155,7 +155,7 @@ benign because it just means getting the exact same result twice.
 ### Enable Fault Tolerance
 
 Fault tolerance is off by default. To activate it for a job, create a
-`JobConfig` object and set the _snapshot interval_ to a positive value:
+[`JobConfig`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/config/JobConfig.html) object and set the _snapshot interval_ to a positive value:
 
 ```java
 JobConfig jobConfig = new JobConfig();
