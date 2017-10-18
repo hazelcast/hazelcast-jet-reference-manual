@@ -239,7 +239,7 @@ source vertex:
 
 ```java
 DAG dag = new DAG();
-Vertex source = dag.newVertex("source", SourceProcessors.readMap("lines"));
+Vertex source = dag.newVertex("source", SourceProcessors.readMapP("lines"));
 ```
 
 Note how we can build the DAG outside the context of any running Jet
@@ -260,7 +260,7 @@ we just need to provide the mapping function:
 // (lineNum, line) -> words
 Pattern delimiter = Pattern.compile("\\W+");
 Vertex tokenize = dag.newVertex("tokenize",
-    Processors.flatMap((Entry<Integer, String> e) ->
+    Processors.flatMapP((Entry<Integer, String> e) ->
         traverseArray(delimiter.split(e.getValue().toLowerCase()))
               .filter(word -> !word.isEmpty()))
 );
@@ -283,7 +283,7 @@ The next vertex will do the actual word count. We can use the built-in
 ```java
 // word -> (word, count)
 Vertex accumulate = dag.newVertex("accumulate",
-        Processors.accumulateByKey(wholeItem(), counting())
+        Processors.accumulateByKeyP(wholeItem(), counting())
 );
 ```
 
@@ -303,7 +303,7 @@ individual members' contributions. This is the code:
 ```java
 // (word, count) -> (word, count)
 Vertex combine = dag.newVertex("combine",
-    Processors.combineByKey(counting())
+    Processors.combineByKeyP(counting())
 );
 ```
 
@@ -315,7 +315,7 @@ The final vertex is the sink &mdash; we want to store the output in
 another `IMap`:
 
 ```java
-Vertex sink = dag.newVertex("sink", SinkProcessors.writeMap("counts"));
+Vertex sink = dag.newVertex("sink", SinkProcessors.writeMapP("counts"));
 ```
 
 Now that we have all the vertices, we must connect them into a graph and

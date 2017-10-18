@@ -18,38 +18,38 @@ stage and on the sink side there's another mapping vertex,
 text. The `sink` vertex writes these lines to a file.
 
 Before we go on, let us point out that in the 0.5 release of Hazelcast
-Jet, the Pipeline API is still in infancy and doesn't support stream
-processing. Therefore the following example is given only in the Core
-API; with the next release we'll be able to present the much simpler
-code to do it in the Pipelines API.
+Jet, the Pipeline API is still in infancy and doesn't support all the
+features needod for stream processing. Therefore the following example
+is given only in the Core API; with the next release we'll be able to
+present the much simpler code to do it in the Pipelines API.
 
 If you studied the DAG-building code for the Word Count job, this code
 should look generally familiar:
 
 ```java
-WindowDefinition windowDef = slidingWindowDef(
+WindowDefinition windowDef = WindowDefinition.slidingWindowDef(
         SLIDING_WINDOW_LENGTH_MILLIS, SLIDE_STEP_MILLIS);
 Vertex tickerSource = dag.newVertex("ticker-source",
-        Sources.readMap(TICKER_MAP_NAME));
+        SourceProcessors.readMapP(GenerateTradesP.TICKER_MAP_NAME));
 Vertex generateTrades = dag.newVertex("generate-trades",
-        generateTrades(TRADES_PER_SEC_PER_MEMBER));
+        GenerateTradesP.generateTradesP(TRADES_PER_SEC_PER_MEMBER));
 Vertex insertWatermarks = dag.newVertex("insert-watermarks",
-        Processors.insertWatermarks(
+        Processors.insertWatermarksP(
                 Trade::getTime,
-                withFixedLag(MAX_LAG),
+                withFixedLag(GenerateTradesP.MAX_LAG),
                 emitByFrame(windowDef)));
 Vertex slidingStage1 = dag.newVertex("sliding-stage-1",
-        Processors.accumulateByFrame(
+        Processors.accumulateByFrameP(
                 Trade::getTicker,
                 Trade::getTime, TimestampKind.EVENT,
                 windowDef,
                 counting()));
 Vertex slidingStage2 = dag.newVertex("sliding-stage-2",
-        Processors.combineToSlidingWindow(windowDef, counting()));
+        Processors.combineToSlidingWindowP(windowDef, counting()));
 Vertex formatOutput = dag.newVertex("format-output",
         formatOutput());
 Vertex sink = dag.newVertex("sink",
-        Sinks.writeFile(OUTPUT_DIR_NAME));
+        SinkProcessors.writeFileP(OUTPUT_DIR_NAME));
 
 tickerSource.localParallelism(1);
 generateTrades.localParallelism(1);
@@ -58,22 +58,22 @@ return dag
         .edge(between(tickerSource, generateTrades)
                 .distributed().broadcast())
         .edge(between(generateTrades, insertWatermarks)
-                .oneToMany())
+                .isolated())
         .edge(between(insertWatermarks, slidingStage1)
                 .partitioned(Trade::getTicker, HASH_CODE))
         .edge(between(slidingStage1, slidingStage2)
                 .partitioned(Entry<String, Long>::getKey, HASH_CODE)
                 .distributed())
         .edge(between(slidingStage2, formatOutput)
-                .oneToMany())
+                .isolated())
         .edge(between(formatOutput, sink)
-                .oneToMany());
+                .isolated());
 ```
 
 The source vertex reads a Hazelcast IMap, just like it did in the word
 counting example. Trade generating vertex uses a custom processor that
 generates mock trades. It can be reviewed
-[here](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/trade-generator/src/main/java/com/hazelcast/jet/sample/tradegenerator/GenerateTradesP.java).
+[here](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/trade-generator/src/main/java/trades/tradegenerator/GenerateTradesP.java).
 The implementation of `complete()` is non-trivial, but most of the
 complexity just deals with precision timing of events. For simplicity's
 sake the processor must be configured with a local parallelism of 1;
@@ -108,6 +108,6 @@ along with any aggregation results whose emission it triggers, to stage
 The full code of this sample is in
 [StockExchange.java](
 https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/stock-exchange/src/main/java/StockExchange.java)
-and running it will get an endless stream of data accumulating on the
+and running it you'll get an endless stream of data accumulating on the
 disk. To spare your filesystem we've limited the execution time to 10
 seconds.

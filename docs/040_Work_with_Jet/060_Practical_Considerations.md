@@ -36,9 +36,9 @@ zipfile, in the `bin` directory. On Windows use `submit-jet.bat`. To use
 it, follow these steps:
 
 * Write your `main()` method and your Jet code the usual way, except
-for calling `JetBootstrap.getInstance()` to acquire a Jet client
-instance (instead of `Jet.newJetClient()`).
-
+for calling
+[`JetBootstrap.getInstance()`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/server/JetBootstrap.html)
+to acquire a Jet client instance (instead of `Jet.newJetClient()`).
 * Create a runnable JAR which declares its `Main-Class` in
 * `MANIFEST.MF`.
 
@@ -87,7 +87,7 @@ we had to mirror the entire `java.util.function` package in our own
 like `Function`, but implements `Serializable`. We use these types
 everywhere in the Pipeline API.
 
-As always, the magic of auto-serializability of lambdas has its
+As always with this kind of magic, auto-serializability of lambdas has its
 flipside: it is easy to overlook what's going on.
 
 If the lambda references a variable in the outer scope, the variable is

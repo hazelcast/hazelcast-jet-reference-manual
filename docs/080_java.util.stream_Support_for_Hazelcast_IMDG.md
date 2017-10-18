@@ -21,25 +21,23 @@ map.put("Jakarta", -6);
 map.stream().filter(e -> e.getValue() < 0).forEach(System.out::println);
 ```
 
-## Serializable Lambda Functions
+Java specifies that a stream computation starts upon invoking the
+terminal operation on it (such as `forEach()`). At that point Jet
+converts the expression into a Core API DAG and submits it for
+execution.
 
-By default, the functional interfaces which were added to
-`java.util.function` are not serializable. In a distributed system, the
-defined lambdas need to be serialized and sent to the other members. Jet
-includes the serializable version of all the interfaces found in the
-`java.util.function` which can be accessed using the
-`com.hazelcast.jet.stream.Distributed` class.
 
 ## Distributed Collectors
 
-Like with the functional interfaces, Jet also includes the distributed
+Like with the functional interfaces, Jet also includes distributed
 versions of the classes found in `java.util.stream.Collectors`. These
-can be reached via `com.hazelcast.jet.stream.DistributedCollectors`.
-However, keep in mind that the collectors such as `toMap()`,
-`toCollection()`, `toList()`, and `toArray()` create a local data
-structure and load all the results into it. This works fine with the
-regular JDK streams, where everything is local, but usually fails badly
-in the context of a distributed computing job.
+can be reached from the
+[`DistributedCollectors`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/stream/DistributedCollectors.html)
+utility class. However, keep in mind that the collectors such as
+`toMap()`, `toCollection()`, `toList()`, and `toArray()` create a
+local data structure and load all the results into it. This works fine
+with the regular JDK streams, where everything is local, but usually
+fails badly in the context of a distributed computing job.
 
 For example the following innocent-looking code can easily cause
 out-of-memory errors because the whole distributed map will need to be
@@ -87,18 +85,3 @@ IMap<String, Long> counts = lines
                 .collect(DistributedCollectors.toIMap(w -> w, w -> 1L, (left, right) -> left + right));
 ```
 
-## Implementation Notes
-
-Jet's `java.util.stream` implementation will automatically convert a
-stream into a `DAG` when one of the terminal methods are called. The DAG
-creation is done lazily, and only if a terminal method is called.
-
-The following DAG will be compiled as follows:
-
-```java
-IStreamMap<String, Integer> ints = jet.getMap("ints");
-int result = ints.stream().map(Entry::getValue)
-                 .reduce(0, (l, r) -> l + r);
-```
-
-![image](./images/jus-dag.jpg)

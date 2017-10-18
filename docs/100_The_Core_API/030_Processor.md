@@ -1,9 +1,10 @@
 [TOC]
 
-`Processor` is the main type whose implementation is up to the user: it
-contains the code of the computation to be performed by a vertex. There
-are a number of Processor building blocks in the Jet API which allow you
-to just specify the computation logic, while the provided code
+[`Processor`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/Processor.html)
+is the main type whose implementation is up to the user of the Core API:
+it contains the code of the computation to be performed by a vertex.
+There are a number of Processor building blocks in the Core API which
+allow you to just specify the computation logic, while the provided code
 handles the processor's cooperative behavior. Please refer to the
 [AbstractProcessor](AbstractProcessor) section.
 
@@ -15,33 +16,16 @@ input and output items; a processor can emit any data it sees fit,
 including none at all. The same `Processor` abstraction is used for all
 kinds of vertices, including sources and sinks.
 
-## Cooperative Multithreading
+The implementation of a processor can be stateful and does not need to
+be thread-safe because Jet guarantees to use the processor instances
+from one thread at a time, although not necessarily always the same
+thread.
 
-Cooperative multithreading is one of the core features of Jet and can be
-roughly compared to
-[green threads](https://en.wikipedia.org/wiki/Green_threads). 
-It is purely a library-level feature and does not involve any low-level
-system or JVM tricks; the `Processor` API is simply designed in such a
-way that the processor can do a small amount of work each time it is
-invoked, then yield back to the Jet engine. The engine manages a thread
-pool of fixed size and on each thread, the processors take their turn in
-a round-robin fashion.
-
-The point of cooperative multithreading is better performance. Several
-factors contribute to this:
-
-- The overhead of context switching between processors is much lower
-since the operating system's thread scheduler is not involved.
-- The worker thread driving the processors stays on the same core for
-longer periods, preserving the CPU cache lines.
-- The worker thread has direct knowledge of the ability of a processor
-to make progress (by inspecting its input/output buffers).
+## Cooperativeness
 
 `Processor` instances are cooperative by default. The processor can opt
 out of cooperative multithreading by overriding `isCooperative()` to
 return `false`. Jet will then start a dedicated thread for it.
-
-### Requirements
 
 To maintain an overall good throughput, a cooperative processor must
 take care not to hog the thread for too long (a rule of thumb is up to a
@@ -52,59 +36,27 @@ they often have no choice but calling into blocking I/O APIs.
 
 ## The Outbox
 
-The processor sends its output items to its `Outbox`, which has a
-separate bucket for each outbound edge. The buckets have limited
-capacity and will refuse an item when full. A cooperative processor
-should be implemented such that when its item is rejected by the outbox,
-it saves its processing state and returns from the processing method.
-The execution engine will then drain the outbox buckets.
-
-## Rules of Watermark Propagation
-
-Jet's class `ConcurrentInboundEdgeStream` (CIES for short) manages a
-processor's input streams belonging to a single edge. As it receives
-watermark items from each of them, its duty is to sort out when to
-present the watermark item to the processor. 
-
-Let's start our analysis from the vertex upstream to CIES. There are N
-parallel processors determining each its own watermark value and
-emitting a watermark item when the value advances. All these items
-travel downstream to M processors of the next vertex, but if they were
-all let through, the downstream processors would experience a wildly
-erratic watermark value. This is why CIES contains logic that coalesces
-the watermark items before letting its processor observe them. These are
-the rules:
-
-* The value of the watermark a processor emits must be strictly
-increasing. CIES will throw an exception if it detects a non-increasing
-watermark in any input stream.
-
-* The watermark item is always broadcast, regardless of the edge type.
-This means that all N upstream processors send their watermark to all M
-downstream processors.
-
-* The processor will observe a watermark value only once it has received
-a value at least that high from all upstream processors.
+The processor sends its output items to its
+[`Outbox`,](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/Outbox.html)
+which has a separate bucket for each outbound edge. The buckets have
+limited capacity and will refuse an item when full. A cooperative
+processor should be implemented such that when the outbox refuses its
+item, it saves its processing state and returns from the processing method. The execution engine will then drain the outbox buckets.
 
 ## Data Processing Callbacks
-
-Two callback methods are involved in data processing: `process()` and
-`complete()`. Implementations of these methods can be stateful and do
-not need to be thread-safe because Jet guarantees to use the processor
-instances from one thread at a time, although not necessarily always the
-same thread.
 
 ### process(ordinal, inbox)
 
 Jet passes the items received over a given edge to the processor by
-calling `process(ordinal, inbox)`. All items received since the last
-`process()` call are in the inbox, but also all the items the processor
-hasn't removed in a previous `process()` call. There is a separate
-instance of `Inbox` for each  inbound edge, so any given `process()`
-call involves items from only one edge.
+calling
+[`process(ordinal, inbox)`.](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/Processor.html#process-int-com.hazelcast.jet.core.Inbox-)
+All items received since the last `process()` call are in the inbox, but
+also all the items the processor hasn't removed in a previous
+`process()` call. There is a separate instance of `Inbox` for each
+inbound edge, so any given `process()` call involves items from only one
+edge.
 
-The processor must not remove an item from the inbox until it has
-fully processed it. This is important with respect to the cooperative
+The processor must not remove an item from the inbox until it has fully processed it. This is important with respect to the cooperative
 behavior: the processor may not be allowed to emit all items
 corresponding to a given input item and may need to return from the
 `process()` call early, saving its state. In such a case the item should
@@ -113,7 +65,8 @@ no new items are received.
 
 ### tryProcess()
 
-If a processor's inbox is empty, Jet will call its `tryProcess()`
+If a processor's inbox is empty, Jet will call its
+[`tryProcess()`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/Processor.html#tryProcess--)
 method instead. This allows the processor to perform work that is not
 input data-driven. The method has a `boolean` return value and if it
 returns `false`, it will be called again before any other methods are
@@ -134,11 +87,13 @@ on the passage of wall-clock time, and it can do it inside the
 
 ### complete()
 
-Jet calls `complete()` after all the input edges are exhausted. It is
-the last method to be invoked on the processor before disposing of it.
-Typically this is where a batch processor emits the results of an
-aggregating operation. If it can't emit everything in a given call, it
-should return `false` and will be called again later.
+Jet calls
+[`complete()`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/Processor.html#complete--)
+when all the input edges are exhausted. It is the last method to be
+invoked on the processor before disposing of it. Typically this is where
+a batch processor emits the results of an aggregating operation. If it
+can't emit everything in a given call, it should return `false` and will
+be called again later.
 
 ## Snapshotting Callbacks
 
@@ -155,14 +110,16 @@ callback methods described below.
 
 ### saveToSnapshot()
 
-Jet will call this method when it determines it's time for the processor
-to save its state to the current snapshot. Except for source vertices,
-this happens when the processor has received the barrier item from all
-its inbound streams and processed all the data items preceding it. The
-method must emit all its state to the special _snapshotting bucket_ in
-the Outbox, by calling `outbox.offerToSnapshot()`. If the outbox doesn't
-accept all the data, it must return `false` to be called again later,
-after the outbox has been flushed.
+Jet will call
+[`saveToSnapshot()`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/Processor.html#saveToSnapshot--)
+when it determines it's time for the processor to save its state to the
+current snapshot. Except for source vertices, this happens when the
+processor has received the barrier item from all its inbound streams and
+processed all the data items preceding it. The method must emit all its
+state to the special _snapshotting bucket_ in the Outbox, by calling
+`outbox.offerToSnapshot()`. If the outbox doesn't accept all the data,
+it must return `false` to be called again later, after the outbox has
+been flushed.
 
 When this method returns `true`, `ProcessorTasklet` will forward the
 barrier item to all the outbound edges.
@@ -171,15 +128,47 @@ barrier item to all the outbound edges.
 
 When a Jet job is restarting after having been suspended, it will first
 reload all the state from the last successful snapshot. Each processor
-will get its data through the invocations of this method. Its parameter
-is the `Inbox` filled with a batch of snapshot data. The method will be
-called repeatedly until it consumes all the snapshot data.
+will get its data through the invocations of
+[`restoreFromSnapshot()`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/Processor.html#restoreFromSnapshot-com.hazelcast.jet.core.Inbox-).
+Its parameter is the `Inbox` filled with a batch of snapshot data. The
+method will be called repeatedly until it consumes all the snapshot
+data.
 
 ### finishSnapshotRestore()
 
-Jet will call this method after it has delivered all the snapshot data
-to `restoreFromSnapshot()`. The processor may use it to initialize some
-transient state from the restored state.
+After it has delivered all the snapshot data to `restoreFromSnapshot()`,
+Jet will call
+[`finishSnapshotRestore()`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/Processor.html#finishSnapshotRestore--).
+The processor may use it to initialize some transient state from the
+restored state.
+
+## Rules of Watermark Propagation
+
+Jet's internal class
+[`ConcurrentInboundEdgeStream`](https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/ConcurrentInboundEdgeStream.java)
+(CIES for short) manages a processor's input streams belonging to a
+single edge. As it receives watermark items from each of them, its duty
+is to sort out when to present the watermark item to the processor. 
+
+Let's start our analysis from the vertex upstream to CIES. There are N
+parallel processors determining each its own watermark value and
+emitting a watermark item when the value advances. All these items
+travel downstream to M processors of the next vertex, but if they were
+all let through, the downstream processors would experience a wildly
+erratic watermark value. This is why CIES contains logic that coalesces
+the watermark items before letting its processor observe them. These are
+the rules:
+
+* The value of the watermark a processor emits must be strictly
+  increasing. CIES will throw an exception if it detects a
+  non-increasing watermark in any input stream.
+
+* The watermark item is always broadcast, regardless of the edge type.
+  This means that all N upstream processors send their watermark to all
+  M downstream processors.
+
+* The processor will observe a watermark value only once CIES has
+  received a value at least that high from all upstream processors.
 
 ## Issues in At-Least-Once Jobs
 
@@ -200,7 +189,7 @@ remembers it. Later on, when it receives item B, it emits that fact
 to its outbound edge and forgets about the two items. It may also first
 receive B and wait for A.
 
-Now imagine this sequence: `A -- barrier -- B`. In at-least-once the
+Now imagine this sequence: `A -> BARRIER -> B`. In at-least-once the
 processor may observe both A and B, emit its output, and forget about
 them, all before taking the snapshot. After the restart, item B will be
 replayed because it occurred after the last barrier, but item A won't.

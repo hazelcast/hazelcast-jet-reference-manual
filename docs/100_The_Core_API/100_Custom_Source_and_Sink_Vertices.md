@@ -7,22 +7,59 @@ data source is typically distributed across multiple machines and
 partitions, and the work needs to be distributed across multiple members
 and processors.
 
-Jet provides a flexible `ProcessorMetaSupplier` and `ProcessorSupplier`
-API which can be used to control how a source is distributed across the
-network.
+## How Jet Creates and Initializes a Job
 
-The procedure for generating `Processor` instances is as follows:
+These are the steps taken to create and initialize a Jet job:
 
-1. The `ProcessorMetaSupplier` for the `Vertex` is serialized and sent
-to the coordinating member.
-2. The coordinator calls `ProcessorMetaSupplier.get()` once for each
-member in the cluster and a `ProcessorSupplier` is created for each
+1. The user builds the DAG and submits it to the local Jet client   
+   instance.
+2. The client instance serializes the DAG and sends it to a member of
+   the Jet cluster. This member becomes the **coordinator** for this Jet
+   job.
+3. The coordinator deserializes the DAG and builds an execution plan for
+   each member.
+4. The coordinator serializes the execution plans and distributes each
+   to its target member.
+5. Each member acts upon its execution plan by creating all the needed
+   tasklets, concurrent queues, network senders/receivers, etc.
+6. The coordinator sends the signal to all members to start job
+   execution.
+
+The most visible consequence of the above process is the
+[`ProcessorMetaSupplier`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html)
+type: one must be provided for each `Vertex`. In Step 3, the coordinator
+deserializes the meta-supplier as a constituent of the `DAG` and asks it
+to create `ProcessorSupplier` instances which go into the execution
+plans. A separate instance of `ProcessorSupplier` is created
+specifically for each member's plan. In Step 4, the coordinator
+serializes these and sends each to its member. In Step 5 each member
+deserializes its `ProcessorSupplier` and asks it to create as many
+`Processor` instances as configured by the vertex's `localParallelism`
+property.
+
+This process is so involved because each `Processor` instance may need
+to be differently configured. This is especially relevant for processors
+driving a source vertex: typically each one will emit only a slice of
+the total data stream, as appropriate to the partitions it is in charge
+of.
+
+### ProcessorMetaSupplier
+
+Instances of this type are serialized and transferred as a part of each
+`Vertex` instance in a `DAG`. The **coordinator** member deserializes it
+to retrieve `ProcessorSupplier`s. Before being asked for
+`ProcessorSupplier`s, the meta-supplier is given access to the Hazelcast
+instance so it can find out the parameters of the cluster the job will
+run on. Most typically, the meta-supplier in the source vertex will use
+the cluster size to control the assignment of data partitions to each
 member.
-3. The `ProcessorSupplier` for each member is serialized and sent to
-that member.
-4. Each member will call its own `ProcessorSupplier` with the correct
-`count` parameter, which corresponds to the `localParallelism` setting
-of that vertex.
+
+### ProcessorSupplier
+
+Usually this type will be custom-implemented in the same cases where its
+meta-supplier is custom-implemented and complete the logic of a
+distributed data source's partition assignment. It supplies instances of
+`Processor` ready to start executing the vertex's logic.
 
 ## Example - Distributed Integer Generator
 
@@ -231,12 +268,13 @@ number generated just once.
 Like a source, a sink is just another kind of processor. It accepts
 items from the inbox and pushes them into some system external to the
 Jet job (Hazelcast IMap, files, databases, distributed queues, etc.). A
-simple way to implement it is to extend `AbstractProcessor` and override
-`tryProcess`, which deals with items one at a time. However, sink
-processors must often explicitly deal with batching. In this case
-directly implementing `Processor` is better because its `process()`
-method gets the entire `Inbox` which can be drained to a buffer and
-flushed out.
+simple way to implement it is to extend
+[`AbstractProcessor`](AbstractProcessor)
+and override `tryProcess`, which deals with items one at a time.
+However, sink processors must often explicitly deal with batching. In
+this case directly implementing `Processor` is better because its
+`process()` method gets the entire `Inbox` which can be drained to a
+buffer and flushed out.
 
 ## Example - File Writer
 

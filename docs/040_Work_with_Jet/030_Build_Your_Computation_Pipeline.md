@@ -1,8 +1,12 @@
+[TOC]
+
 ## The Shape of a Pipeline
 
 The general shape of any data processing pipeline is `drawFromSource ->
 transform -> drainToSink` and the natural way to build it is from source
-to sink. The Pipeline API follows this pattern. For example,
+to sink. The 
+[Pipeline](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Pipeline.html)
+API follows this pattern. For example,
 
 ```java
 Pipeline p = Pipeline.create();
@@ -57,25 +61,39 @@ contents and their event journal as an infinite source
 - a directory on the filesystem, both as a batch source of the current
   file contents and an infinite source of append events to the files
 
-You can access them via the `Sources` and `Sinks` utility classes.
+You can access most of them via the
+[`Sources`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html)
+and
+[`Sinks`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html)
+utility classes. 
+[Kafka](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/KafkaSources.html)
+and
+[HDFS](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/HdfsSources.html)
+connectors are in their separate modules.
 
 ## Compose the Pipeline Transforms
 
 The simplest kind of transformation is one that can be done on each item
 individually and independent of other items. The major examples are
-`map`, `filter` and `flatMap`. We already saw them in use in the
-previous examples. `map` transforms each item to another item; `filter`
-discards items that don't match its predicate; and `flatMap` transforms
-each item into zero or more output items.
+
+[`map`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#map-com.hazelcast.jet.function.DistributedFunction-),
+[`filter`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#filter-com.hazelcast.jet.function.DistributedPredicate-)
+and
+[`flatMap`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#flatMap-com.hazelcast.jet.function.DistributedFunction-).
+We already saw them in use in the previous examples. `map` transforms
+each item to another item; `filter` discards items that don't match its
+predicate; and `flatMap` transforms each item into zero or more output
+items.
 
 ## groupBy
 
-Stepping up from the simplest transforms we come to `groupBy`, the
-quintessential finite stream transform. It groups the data items by a
-key computed for each item and performs an aggregate operation over all
-the items in a group. The output of this transform is one aggregation
-result per distinct grouping key. We saw this one used in the
-introductory Hello World code with a word count pipeline:
+Stepping up from the simplest transforms we come to
+[`groupBy`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#groupBy-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation1-),
+the quintessential finite stream transform. It groups the data items by
+a key computed for each item and performs an aggregate operation over
+all the items in a group. The output of this transform is one
+aggregation result per distinct grouping key. We saw this one used in
+the introductory Hello World code with a word count pipeline:
 
 ```java
 Pipeline p = Pipeline.create();
@@ -89,8 +107,9 @@ takes two parameters: the function to compute the grouping key and the
 aggregate operation. In this case the key function is a trivial identity
 because we use the word itself as the grouping key and the definition of
 the aggregate operation hides behind the `counting()` method call. This
-is a static method in our `AggregateOperations` utility class and its
-simplified definition would look like this:
+is a static method in our
+[`AggregateOperations`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/aggregate/AggregateOperations.html)
+utility class and its simplified definition would look like this:
 
 ```java
 AggregateOperation
@@ -111,7 +130,8 @@ generic aggregation engine to implement the operation.
 The `AggregateOperations` class contains quite a few ready-made
 aggregate operations, but you should be able to specify your custom ones
 without too much trouble. You should study the Javadoc of
-`AggregateOperation` if you need to write one.
+[`AggregateOperation`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html)
+if you need to write one.
 
 A more complex variety of pipeline transforms are those that merge
 several input stages into a single resulting stage. In Hazelcast Jet
@@ -119,7 +139,8 @@ there are two such transforms of special interest: `coGroup` and `hashJoin`.
 
 ### coGroup
 
-`coGroup` is a generalization of `groupBy` to more than one contributing
+[`coGroup`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#coGroup-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation2-)
+is a generalization of `groupBy` to more than one contributing
 data stream. Instead of a single `accumulate` primitive you provide one
 for each input stream so the operation can discriminate between them.
 Here is the example we already used earlier on this page:
@@ -159,12 +180,13 @@ weighted so that each of its items is worth ten items from stream 0.
 #### coGroup Builder
 
 If you need to co-group more than three streams, you'll have to use the
-co-group builder object. For example, your goal may be correlating
-events coming from different systems, where all the systems serve the
-same user base. In an online store you may have separate streams for
-product page visits, adding to shopping cart, payments, and deliveries.
-You want to correlate all the events associated with the same user. The
-example below calculates statistics per category for each user:
+[co-group builder](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#coGroupBuilder-com.hazelcast.jet.function.DistributedFunction-)
+object. For example, your goal may be correlating events coming from
+different systems, where all the systems serve the same user base. In an
+online store you may have separate streams for product page visits,
+adding to shopping cart, payments, and deliveries. You want to correlate
+all the events associated with the same user. The example below
+calculates statistics per category for each user:
 
 ```java
 Pipeline p = Pipeline.create();
@@ -197,13 +219,14 @@ ComputeStage<Tuple2<Long, long[]>> coGrouped = b.build(AggregateOperation
 
 ### hashJoin
 
-`hashJoin` is a specialization of a general "join" operation, optimized
-for the use case of _data enrichment_. In this scenario there is a
-single, potentially infinite data stream (the _primary_ stream), that
-goes through a mapping transformation which attaches to each item some
-more items it found by hashtable lookup. The hashtables have been
-populated from all the other streams (the _enriching_ streams) before
-the consumption of the primary stream started.
+[`hashJoin`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#hashJoin-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-)
+is a specialization of a general "join" operation, optimized for the use
+case of _data enrichment_. In this scenario there is a single,
+potentially infinite data stream (the _primary_ stream), that goes
+through a mapping transformation which attaches to each item some more
+items it found by hashtable lookup. The hashtables have been populated
+from all the other streams (the _enriching_ streams) before the
+consumption of the primary stream started.
 
 For each enriching stream you can specify a pair of key-extracting
 functions: one for the enriching item and one for the primary item. This
@@ -257,8 +280,10 @@ the RAM requirements for a hash-join operation.
 
 You can hash-join a stream with up to two enriching streams using the
 API we demonstrated above. If you have more than two enriching streams,
-you'll use the hash-join builder. For example, you may want to enrich a
-trade with its associated product, broker, and market:
+you'll use the
+[hash-join builder](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#hashJoinBuilder--).
+For example, you may want to enrich a trade with its associated product,
+broker, and market:
 
 ```java
 Pipeline p = Pipeline.create();

@@ -1,10 +1,11 @@
 You can configure Hazelcast Jet either programmatically or declaratively (XML).
 
-## Configuring Programmatically
+## Programmatic Configuration
 
-Programmatic configuration is the simplest way to configure Jet. For
-example, the following will configure Jet to use only two threads
-for cooperative execution:
+Programmatic configuration is the simplest way to configure Jet. You instantiate a
+[`JetConfig`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/config/JetConfig.html)
+object and set the desired properties. For example, the following will
+configure Jet to use only two threads for cooperative execution:
 
 ```java
 JetConfig config = new JetConfig();
@@ -12,22 +13,20 @@ config.getInstanceConfig().setCooperativeThreadCount(2);
 JetInstance jet = Jet.newJetInstance(config);
 ```
 
-Any XML configuration files that might be present will be ignored when
-programmatic configuration is used.
+## Declarative Configuration
 
-## Configuring Declaratively
+If you don't pass an explicit `JetConfig` object when constructing a Jet
+instance, it will look for an XML configuration file in the following
+locations (in that order):
 
-It is also possible to configure Jet through XML files when a
-`JetInstance` is created without any explicit `JetConfig` file. Jet will
-look for a configuration file in the following order:
-
-1. Check the system property `hazelcast.jet.config`. If the value is set,
-and starts with `classpath:`, then it will be treated as a classpath
-resource. Otherwise, it will be treated as a file reference.
-2. Check for the presence of `hazelcast-jet.xml` in the working directory.
+1. Check the system property `hazelcast.jet.config`. If the value is set
+   and starts with `classpath:`, Jet treats it as a classpath resource.
+   Otherwise it treats it as a file pathname.
+2. Check for the presence of `hazelcast-jet.xml` in the working
+   directory.
 3. Check for the presence of `hazelcast-jet.xml` in the classpath.
-4. If all the above checks fail, then the default XML
-configuration will be loaded.
+4. If all the above checks fail, then Jet loads the default XML
+   configuration that's packaged in the Jet JAR file.
 
 An example configuration looks like the following:
 
@@ -72,11 +71,11 @@ The following table lists the configuration elements for Hazelcast Jet:
 |Flow Control Period| While executing a Jet job there is the issue of regulating the rate at which one member of the cluster sends data to another member. The receiver will regularly report to each sender how much more data it is allowed to send over a given DAG edge. This option sets the length (in milliseconds) of the interval between flow-control packets.|100ms
 |Edge Defaults|The default values to be used for all edges.|Please see the section on [Tuning Edges](/The_Core_API/DAG#page_Fine-Tuning).
 
-## Configuring Underlying Hazelcast Instance
+## Configure the Underlying Hazelcast Instance
 
-Each Jet member or client, will have a respective underlying Hazelcast
-member or client. Please refer to the [Hazelcast Reference Manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#understanding-configuration) for specific configuration options for Hazelcast
-IMDG.
+Each Jet member or client has its underlying Hazelcast member or client. Please refer to the
+[Hazelcast Reference Manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#understanding-configuration)
+for specific configuration options for Hazelcast IMDG.
 
 ### Programmatic
 
@@ -96,8 +95,9 @@ ClientConfig clientConfig = new ClientConfig();
 clientConfig.getGroupConfig().setName("test");
 JetInstance jet = Jet.newJetClient(clientConfig);
 ````
+
 ### Declarative
 
-The underlying Hazelcast IMDG configuration can also be updated declaratively.
+Hazelcast IMDG can also be configured declaratively as well.
 Please refer to the [Hazelcast Reference Manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#configuring-declaratively)
- for information on how to do this.
+for information on how to do this.

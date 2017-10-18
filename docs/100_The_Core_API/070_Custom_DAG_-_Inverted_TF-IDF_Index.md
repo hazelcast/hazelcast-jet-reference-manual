@@ -1,7 +1,7 @@
 In this tutorial we'll explore what the Core API DAG model offers beyond
-the capabilities of the Pipeline API. Our DAG will feature splits, joins,
-broadcast, and prioritized edges. We'll access data from the file system
-and show a simple technique to distribute file reading across Jet
+the capabilities of the Pipeline API. Our DAG will feature splits,
+joins, broadcast, and prioritized edges. We'll access data from the file
+system and show a simple technique to distribute file reading across Jet
 members. Several vertices we use can't be implemented in terms of
 out-of-the-box processors, so we'll also show you how to implement your
 own with minimum boilerplate.
@@ -154,10 +154,10 @@ private static Entry<Long, Double> tfidfEntry(
 ```
 
 The search function can be implemented with another Streams expression,
-which you can review in the [SearchGui](
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/SearchGui.java)
-class. You can also run the [TfIdfJdkStreams](
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
+which you can review in the
+[SearchGui](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/SearchGui.java)
+class. You can also run the
+[TfIdfJdkStreams](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
 class and take the inverted index for a spin, making actual searches.
 
 There is one last concept in this model that we haven't mentioned yet:
@@ -217,16 +217,16 @@ document count used in the TF-IDF formula. We end up with this DAG:
      width="520"/>
 
 
-The choice of edge types into and out of `doc-count` may look surprising,
-so let's examine it. We start with the `doc-source` vertex, which emits
-one item per document, but its output is distributed across the cluster.
-To get the full document count on each member, each `doc-count`
-processor must get all the items, and that's just what the distributed
-broadcast edge will achieve. We'll configure `doc-count` with local
-parallelism of 1, so there will be one processor on every member, each
-observing all the `doc-source` items. The output of `doc-count` must
-reach all `tf-idf` processors on the same member, so we use the local
-broadcast edge.
+The choice of edge types into and out of `doc-count` may look
+surprising, so let's examine it. We start with the `doc-source` vertex,
+which emits one item per document, but its output is distributed across
+the cluster. To get the full document count on each member, each
+`doc-count` processor must get all the items, and that's just what the
+distributed broadcast edge will achieve. We'll configure `doc-count`
+with local parallelism of 1, so there will be one processor on every
+member, each observing all the `doc-source` items. The output of
+`doc-count` must reach all `tf-idf` processors on the same member, so we
+use the local broadcast edge.
 
 Another thing to note are the two flat-mapping vertices: `doc-lines` and
 `tokenize`. From a purely semantic standpoint, composing flatmap with

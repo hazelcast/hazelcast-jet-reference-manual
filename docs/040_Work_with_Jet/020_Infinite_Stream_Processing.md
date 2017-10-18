@@ -79,13 +79,14 @@ This disorder in the event stream makes it more difficult to formally
 specify a rule that tells us at which point all the data for a given
 window has been gathered, allowing us to emit the aggregated result.
 
-To approach these challenges we use the concept of the _watermark_. It
-is a timestamped item inserted into the stream that tells us "from this
-point on there will be no more items with timestamp less than this".
-Unfortunately, we almost never know for sure when such a statement
-becomes true and there is always a chance some events will arrive even
-later. If we do observe such an offending item, we must categorize it as
-"too late" and just filter it out.
+To approach these challenges we use the concept of the 
+[_watermark_](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/Watermark.html). 
+It is a timestamped item inserted into the stream that tells us "from
+this point on there will be no more items with timestamp less than
+this". Unfortunately, we almost never know for sure when such a
+statement becomes true and there is always a chance some events will
+arrive even later. If we do observe such an offending item, we must
+categorize it as "too late" and just filter it out.
 
 Note the tension in defining the "perfect" watermark for a given use
 case: it is bad both the more we wait and the less we wait to emit a
@@ -155,7 +156,9 @@ benign because it just means getting the exact same result twice.
 ### Enable Fault Tolerance
 
 Fault tolerance is off by default. To activate it for a job, create a
-[`JobConfig`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/config/JobConfig.html) object and set the _snapshot interval_ to a positive value:
+`JobConfig` object and set the
+[_snapshot interval_](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/config/JobConfig.html#setSnapshotIntervalMillis-long-)
+to a positive value:
 
 ```java
 JobConfig jobConfig = new JobConfig();
@@ -194,8 +197,9 @@ fully-functioning Jet clusters where there was supposed to be one. Each
 one will recover and restart the same Jet job, making a mess in our
 application.
 
-Hazelcast Jet offers a mechanism to fight off this hazard: _split-brain
-protection_. It works by ensuring that a job cannot be restarted in a
+Hazelcast Jet offers a mechanism to fight off this hazard: 
+[_split-brain protection_](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/config/JobConfig.html#setSplitBrainProtection-boolean-).
+It works by ensuring that a job cannot be restarted in a
 cluster whose size isn't more than half of what it was before the job
 was suspended. Enable split-brain protection like this:
 
