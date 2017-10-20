@@ -9,9 +9,9 @@ discuss this difference and some concerns specific to infinite streams.
 Finite stream (batch) processing is the simpler variant where you
 provide one or more pre-existing datasets and order Jet to mine them for
 interesting information. The most important workhorse in this area is
-the "group and aggregate" operation: you define a classifying function
-that computes a grouping key for each item of the dataset and an
-aggregate operation that will be performed on all the items in each
+the "join, group and aggregate" operation: you define a classifying
+function that computes a grouping key for each of the datasets and
+an aggregate operation that will be performed on all the items in each
 group, yielding one result item per distinct key.
 
 ## The Importance of "Right Now"
@@ -116,36 +116,43 @@ this is the "exactly-once processing guarantee".
 ### Distributed Snapshots
 
 The technique Jet uses to achieve fault tolerance is called a
-"distributed snapshot". At regular intervals Jet will insert a special
-item into the data streams coming in from the sources: a _barrier_. The
-source must ensure that, in the case of a restart, it will be able to
-replay all the data it emitted after the last barrier. Every other
-component in the computation job must ensure it will be able to restore
-its processing state to exactly what it was at the last barrier. If a
-cluster member goes away, Jet will restart the job on the remaining
-members, the state of processing will rewind back to the last barrier
-and then seamlessly continue from that point.
+"distributed snapshot", described in a
+[paper by Chandy and Lamport](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/Determining-Global-States-of-a-Distributed-System.pdf).
+At regular intervals Jet will insert a special item into the data
+streams coming in from the sources: a _barrier_. The source must ensure
+that, in the case of a restart, it will be able to replay all the data
+it emitted after the last barrier. Every other component in the
+computation job must ensure it will be able to restore its processing
+state to exactly what it was at the last barrier. If a cluster member
+goes away, Jet will restart the job on the remaining members, the state
+of processing will rewind back to the last barrier and then seamlessly
+continue from that point.
+
+### Exactly-Once
 
 As always when guarantees are involved, the principle of the weakest
 link applies: if any part of the system is unable to provide it, the
-system as a whole fails to provide it. For stream processing the
-critical points are the sources and sinks because they are the boundary
-between the domain under Jet's control and the environment. A source
-must be able to consistently replay data to Jet from a point it asks
-for, and the sink must either support transactions or be _idempotent_,
-tolerating duplicate submission of data.
+system as a whole fails to provide it. The critical points are the
+sources and sinks because they are the boundary between the domain under
+Jet's control and the environment. A source must be able to consistently
+replay data to Jet from a point it asks for, and the sink must either
+support transactions or be _idempotent_, tolerating duplicate submission
+of data.
 
 As of version 0.5, Hazelcast Jet supports exactly-once with the source
 being either a Hazelcast `IMap` or a Kafka topic, and the sink being a
 Hazelcast `IMap`.
+
+### At-Least-Once
 
 A lesser, but still useful guarantee you can configure Jet for is
 "at-least-once". In this case no stream item will be missed, but some
 items may get processed again after a restart, as if they represented
 new events. Jet can provide this guarantee at a higher throughput and
 lower latency than exactly-once, and some kinds of data processing can
-gracefully tolerate it. In some cases, however, it may even result in
-data loss (this is described in the documentation on Jet
+gracefully tolerate it. In some other cases, however, duplicate
+processing of data items can have quite surprising consequences. There
+is more information about this in the section on Jet
 [Processor](The_Core_API/Processor#page_Issues+in+At-Least-Once+Jobs)).
 
 We also have an in-between case: if you configure Jet for exactly-once
@@ -172,13 +179,15 @@ latency variation during regular processing.
 
 ### Level of Safety
 
-Jet stores the snapshots into Hazelcast `IMap`s, which means that the
-mechanism is at most as safe as the `IMap` itself. `IMap` is a
-replicated in-memory data structure, storing each key-value pair on a
-configurable number of cluster members. By default it will store one
-master value plus one backup, resulting in a system that tolerates the
-failure of a single member at a time. You can tweak this setting when
-starting Jet, for example increase the backup count to two:
+Jet stores the snapshots into Hazelcast `IMap`s, which means that you
+don't have to install any other system for it to work. It also means
+that the mechanism is at most as safe as the `IMap` itself so it is
+important to configure its level of safety. `IMap` is a replicated
+in-memory data structure, storing each key-value pair on a configurable
+number of cluster members. By default it will store one master value
+plus one backup, resulting in a system that tolerates the failure of a
+single member at a time. You can tweak this setting when starting Jet,
+for example increase the backup count to two:
 
 ```java
 JetConfig config = new JetConfig();

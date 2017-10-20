@@ -4,9 +4,12 @@ and services of [Hazelcast In-Memory Data
 Grid](http://www.hazelcast.org) (IMDG), but is otherwise a separate
 product with features not available in the IMDG.
 
-Jet also enriches the IMDG data structures such as `IMap` and `IList`
-with a distributed implementation of
+In addition to its own
+[Pipeline API](/Work_with_Jet/Build_Your_Computation_Pipeline),
+Jet also offers a distributed implementation of
 [`java.util.stream`](https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html).
+You can express your computation over any data source Jet supports using
+the familiar API from the JDK 8.
 
 With Hazelcast’s IMDG providing storage functionality, Hazelcast
 Jet performs parallel execution to enable data-intensive applications to

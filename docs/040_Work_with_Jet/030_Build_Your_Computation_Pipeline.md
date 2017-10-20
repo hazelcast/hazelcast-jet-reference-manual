@@ -121,11 +121,12 @@ AggregateOperation
 
 This expression constructs an aggregate operation from its primitives:
 `create`, `accumulate`, `combine`, and `finish`. They are similar to,
-but also different from Java Streams' `Collector`. The central primitive
-is `accumulate`: it contains the main business logic of our aggregation.
-In this example it simply increments the count in the accumulator
-object. The other primitives must be specified to allow Jet's fully
-generic aggregation engine to implement the operation.
+but also different from Java Streams'
+[`Collector`](https://docs.oracle.com/javase/9/docs/api/java/util/stream/Collector.html).
+The central primitive is `accumulate`: it contains the main business 
+logic of our aggregation. In this example it simply increments the count
+in the accumulator object. The other primitives must be specified to
+allow Jet's fully generic aggregation engine to implement the operation.
 
 The `AggregateOperations` class contains quite a few ready-made
 aggregate operations, but you should be able to specify your custom ones

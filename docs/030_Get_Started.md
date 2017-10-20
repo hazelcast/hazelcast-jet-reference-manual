@@ -82,7 +82,7 @@ public class HelloWorld {
         // a pure POJO: no instance of Jet is needed to create it.
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.<String>readList("text"))
-         .flatMap(word -> traverseArray(word.split("\\W+")))
+         .flatMap(line -> traverseArray(line.split("\\W+")))
          .groupBy(wholeItem(), counting())
          .drainTo(Sinks.writeMap("counts"));
 
