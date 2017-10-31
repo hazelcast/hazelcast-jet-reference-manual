@@ -1,5 +1,5 @@
 Hazelcast Jet adds distributed `java.util.stream` support for Hazelcast
-IMap and IList data structures.
+IMap, ICache and IList data structures.
 
 For extensive information about `java.util.stream` API please refer to
 the official [javadocs](https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html).
@@ -15,10 +15,22 @@ map.put("NYC", 40);
 map.put("Sydney", -34);
 map.put("Sao Paulo", -23);
 map.put("Jakarta", -6);
-```
 
-```java
 map.stream().filter(e -> e.getValue() < 0).forEach(System.out::println);
+```
+In addition to Hazelcast data structures any source processor
+can be used to create a distributed stream.
+```java
+JetInstance jet = Jet.newJetInstance();
+ProcessorSupplier processorSupplier = SourceProcessors.readFilesP("path", UTF_8, "*");
+
+IList<String> sink = DistributedStream
+        .<String>fromSource(jet, ProcessorMetaSupplier.of(processorSupplier))
+        .flatMap(line -> Arrays.stream(line.split(" ")))
+        .collect(DistributedCollectors.toIList("sink"));
+
+
+sink.forEach(System.out::println);
 ```
 
 Java specifies that a stream computation starts upon invoking the
