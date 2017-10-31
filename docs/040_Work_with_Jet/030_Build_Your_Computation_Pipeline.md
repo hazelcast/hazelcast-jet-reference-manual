@@ -323,23 +323,3 @@ ComputeStage<String> mapped = joined.map(
         });
 ```
 
-
-## Note for Hazelcast Jet version 0.5
-
-Hazelcast Jet's version 0.5 was released with the Pipeline API still
-under construction. We started from the simple case of batch jobs and we
-support the major batch operation of (co)group-and-aggregate, but still
-lack the API to define the windowing and watermark policies. Other,
-non-aggregating operations aren't sensitive to the difference between
-finite and infinite streams and are ready to use. The major example here
-is data enrichment
-([hash join](Build_Your_Computation_Pipeline#page_hashJoin)),
-which is essentially a mapping stream transformation. The next release
-of Jet will feature a fully developed API that supports windowed
-aggregation of infinite streams and we also plan to add more batch
-transforms (`sort` and `distinct` for example).
-
-On the other hand, since 0.4 Jet's core has had full-fledged support for
-all of the windows described above. You can refer to the
-[Under the Hood](Under_the_Hood) chapter for details on how to create a
-Core API DAG that does infinite stream aggregation.

@@ -49,15 +49,15 @@ support deducting.
 
 This is the way we leverage the above properties: our sliding window
 actually "hops" in fixed-size steps. The length of the window is an
-integer multiple of the step size. Under such a definition, the _tumbling_
-window becomes just a special case with one step per window.
+integer multiple of the step size. Under such a definition, the _tumbling_ window becomes just a special case with one step per window.
 
-This allows us to divide the timestamp axis into _frames_ of equal length
-and assign each event to its frame. Instead of keeping the event object,
-we immediately pass it to the aggregate operation's _accumulate_ primitive.
-To compute a sliding window, we take all the frames covered by it and
-combine them. Finally, to compute the next window, we just _deduct_ the
-trailing frame and _combine_ the leading frame into the existing result.
+This allows us to divide the timestamp axis into _frames_ of equal
+length and assign each event to its frame. Instead of keeping the event
+object, we immediately pass it to the aggregate operation's _accumulate_
+primitive. To compute a sliding window, we take all the frames covered
+by it and combine them. Finally, to compute the next window, we just
+_deduct_ the trailing frame and _combine_ the leading frame into the
+existing result.
 
 Even without _deduct_ the above process is much cheaper than the most
 naïve approach where you'd keep all data and recompute everything from
@@ -108,10 +108,10 @@ results along the event time axis into the sliding window.
 ## Session Window
 
 In the abstract sense, the session window is a quite intuitive concept:
-it simply captures a burst of events. As soon as the gap between two
-events exceeds the configured session timeout, the window closes.
-However, because the Jet processor encounters events out of their
-original order, this kind of window becomes quite tricky to compute.
+it simply captures a burst of events. If no new events occur within the
+configured session timeout, the window closes. However, because the Jet
+processor encounters events out of their original order, this kind of
+window becomes quite tricky to compute.
 
 The way Jet computes the session windows is easiest to explain in terms
 of the _event interval_: the range
@@ -131,16 +131,108 @@ interval of the new event.
     src="../images/session-window-2.png"
     width="110"/>
     
-If the event interval don't overlap, a new session window is created for
-the new event.
+If the event intervals don't overlap, a new session window is created
+for the new event.
 
 <img alt="Session window: create a new window after session timeout" 
     src="../images/session-window-3.png"
     width="240"/>
 
-The event may happen to belong to two existing windows if its interval
+An event may happen to belong to two existing windows if its interval
 bridges the gap between them; in that case they are combined into one.
 
 <img alt="Session window: an event may merge two existing windows" 
     src="../images/session-window-4.png"
     width="240"/>
+
+Once the watermark has passed the closing time of a session window, Jet
+can close it and emit the result of its aggregation.
+
+## Distributed Snapshot
+
+The technique Jet uses to achieve
+[fault tolerance](Work_with_Jet/Infinite_Stream_Processing#page_Fault+Tolerance+and+Processing+Guarantees)
+is called a "distributed snapshot", described in a
+[paper by Chandy and Lamport](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/Determining-Global-States-of-a-Distributed-System.pdf).
+At regular intervals, Jet raises a global flag that says "it's time for another snapshot". All processors belonging to source vertices observe the flag, create a checkpoint on their source, and emit a barrier item to the downstream processors.
+
+As the barrier item reaches a processor, it stops what it's doing and emits its state to the snapshot storage. Once complete, it forwards the barrier item to its downstream processors.
+
+A processor in a vertex that has more than one inbound edge must
+coordinate the barrier items from all edges. There are two approaches it
+can take, as explained below.
+
+### Exactly-Once Snapshotting
+
+With _exactly-once_ configured, as soon as the processor gets a barrier
+item in an input stream, it must stop consuming it until it gets the
+barrier in all the streams:
+
+<img alt="Exactly-once processing: received one barrier" 
+    src="../images/exactly-once-1.png"
+    width="350"/>
+
+<img alt="Exactly-once processing: received both barriers" 
+    src="../images/exactly-once-2.png"
+    width="350"/>
+
+<img alt="Exactly-once processing: forward the barrier" 
+    src="../images/exactly-once-3.png"
+    width="350"/>
+
+
+### At-Least-Once Snapshotting
+
+With _at-least-once_ configured, the processor can keep consuming all
+the streams until it gets all the barriers, at which point it will stop to take the snapshot:
+
+<img alt="At-Least-once processing: received one barrier" 
+    src="../images/at-least-once-1.png"
+    width="350"/>
+
+<img alt="At-Least-once processing: received both barriers" 
+    src="../images/at-least-once-2.png"
+    width="350"/>
+
+<img alt="At-Least-once processing: forward the barrier" 
+    src="../images/at-least-once-3.png"
+    width="350"/>
+
+Even though they occur after the barrier, the processor consumed and processed the items `x1` and `x2`, changing its state. If the computation job stops and restarts, the source will replay `x1` and `x2` on top of the snapshotted state (which already accounts for them) and the processor will treat them as two new items.
+
+## The Pitfalls of At-Least-Once Processing
+
+_At-least-once_ semantics can have consequences of quite an unexpected magnitude, as we discuss next.
+
+### Data Loss
+
+Imagine a very simple kind of processor: it matches up the items that
+belong to a _pair_ based on some rule. If it receives item A first, it
+remembers it. Later on, when it receives item B, it emits that fact
+to its outbound edge and forgets about the two items. It may also first
+receive B and wait for A.
+
+Now imagine this sequence: `A -> BARRIER -> B`. In at-least-once the
+processor may observe both A and B, emit its output, and forget about
+them, all before taking the snapshot. After the restart, item B will be
+replayed because it occurred after the last barrier, but item A won't.
+Now the processor is stuck forever in a state where it's expecting A and
+has no idea it already got it and emitted that fact.
+
+Problems similar to this will happen with any state the processor keeps
+until it has got enough information to emit the results and then forgets
+it. By the time it takes a snapshot, the post-barrier items will have
+caused it to forget facts about pre-barrier items. After a restart it
+will behave as though it has never observed the pre-barrier items,
+resulting in behavior equivalent to data loss.
+
+### Non-Monotonic Watermark
+
+One special case of the above story concerns watermark items. Thanks to
+watermark coalescing, processors are typically implemented against the
+invariant that the watermark value always increases. However, in
+_at-least-once_ the post-barrier watermark items will advance the
+processor's watermark value. After the job restarts and the state gets
+restored to the snapshotted point, the watermark will appear to have
+gone back, breaking the invariant. This can again lead to data loss.
+

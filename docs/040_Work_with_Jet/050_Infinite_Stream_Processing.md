@@ -1,8 +1,8 @@
 [TOC]
 
 Distributed stream processing has two major variants: finite and
-infinite. Before proceeding to the details of pipeline transforms, let's
-discuss this difference and some concerns specific to infinite streams.
+infinite. Let's discuss this difference and some concerns specific to
+infinite streams.
 
 ## Finite aka. Batch Processing
 
@@ -100,6 +100,26 @@ Jet comes with some predefined policies which you can tune with a few
 configurable parameters. You can also write your own policy from
 scratch.
 
+## Note for Hazelcast Jet version 0.5
+
+Hazelcast Jet's version 0.5 was released with the Pipeline API still
+under construction. We started from the simple case of batch jobs and we
+support the major batch operation of (co)group-and-aggregate, but still
+lack the API to define the windowing and watermark policies. Other,
+non-aggregating operations aren't sensitive to the difference between
+finite and infinite streams and are ready to use. The major example here
+is data enrichment
+([hash join](Build_Your_Computation_Pipeline#page_hashJoin)),
+which is essentially a mapping stream transformation. The next release
+of Jet will feature a fully developed API that supports windowed
+aggregation of infinite streams and we also plan to add more batch
+transforms (`sort` and `distinct` for example).
+
+On the other hand,Jet's core has had full-fledged support for all of the
+windows described above since version 0.4. You can refer to the
+[Under the Hood](Under_the_Hood) chapter for details on how to create a
+Core API DAG that does infinite stream aggregation.
+
 ## Fault Tolerance and Processing Guarantees
 
 One less-than-obvious consequence of stepping up from finite to infinite
@@ -113,20 +133,9 @@ computation in a differently laid-out cluster exactly where it left off
 and neither miss anything nor process it twice. The technical term for
 this is the "exactly-once processing guarantee".
 
-### Distributed Snapshots
+### Snapshotting the State of Computation
 
-The technique Jet uses to achieve fault tolerance is called a
-"distributed snapshot", described in a
-[paper by Chandy and Lamport](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/Determining-Global-States-of-a-Distributed-System.pdf).
-At regular intervals Jet will insert a special item into the data
-streams coming in from the sources: a _barrier_. The source must ensure
-that, in the case of a restart, it will be able to replay all the data
-it emitted after the last barrier. Every other component in the
-computation job must ensure it will be able to restore its processing
-state to exactly what it was at the last barrier. If a cluster member
-goes away, Jet will restart the job on the remaining members, the state
-of processing will rewind back to the last barrier and then seamlessly
-continue from that point.
+To achieve fault tolerance, Jet takes snapshots of the entire state of the computation at regular intervals. The snapshot is coordinated across the cluster and synchronized with a checkpoint on the data source. The source must ensure that, in the case of a restart, it will be able to replay all the data it emitted after the last checkpoint. Every other component in the computation must ensure it will be able to restore its processing state to exactly what it was at the last snapshot. If a cluster member goes away, Jet will restart the job on the remaining members, rewind the sources to the last checkpoint, restore the state of processing from the last snapshot, and then seamlessly continue from that point.
 
 ### Exactly-Once
 
