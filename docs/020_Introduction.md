@@ -34,7 +34,7 @@ which can be used in both on-premise and cloud environments.
 
 ## Architecture Overview
 
-<img src="./images/Jet_Architecture.png" width="100%"/>
+<img src="./images/architecture-overview.png" width="100%"/>
 
 ## The Data Processing Model
 
