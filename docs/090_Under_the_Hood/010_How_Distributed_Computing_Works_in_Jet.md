@@ -1,3 +1,5 @@
+[TOC]
+
 In this section we'll take a deep dive into the fundamentals of
 distributed computing and Jet's specific take on it. We'll do this by
 dissecting one specific problem: the Word Count. This is how you'd
@@ -370,49 +372,4 @@ be safe as well because all of `String`, `Long`, and `Map.Entry` have
 the hash function specified in their Javadoc.
 
 You can acces a full, self-contained Java program with the above DAG code at the
-[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-core-api/src/main/java/refman/WordCountRefMan.java).
-
-## Expected results
-
-If we populate our source `IMap` with the following data:
-
-```java
-IMap<Integer, String> map = jet.getMap("lines");
-map.put(0, "It was the best of times,");
-map.put(1, "it was the worst of times,");
-map.put(2, "it was the age of wisdom,");
-map.put(3, "it was the age of foolishness,");
-map.put(4, "it was the epoch of belief,");
-map.put(5, "it was the epoch of incredulity,");
-map.put(6, "it was the season of Light,");
-map.put(7, "it was the season of Darkness");
-map.put(8, "it was the spring of hope,");
-map.put(9, "it was the winter of despair,");
-map.put(10, "we had everything before us,");
-map.put(11, "we had nothing before us,");
-map.put(12, "we were all going direct to Heaven,");
-map.put(13, "we were all going direct the other way --");
-map.put(14, "in short, the period was so far like the present period, that some of "
-   + "its noisiest authorities insisted on its being received, for good or for "
-   + "evil, in the superlative degree of comparison only.");
-```
-
-and run the job, we can print out its results like this:
-
-```java
-System.out.println(jet.getMap("counts").entrySet());
-```
-
-and we should get this output:
-
-```
-[heaven=1, times=2, of=12, its=2, far=1, light=1, noisiest=1,
-the=14, other=1, incredulity=1, worst=1, hope=1, on=1, good=1, going=2,
-like=1, we=4, was=11, best=1, nothing=1, degree=1, epoch=2, all=2,
-that=1, us=2, winter=1, it=10, present=1, to=1, short=1, period=2,
-had=2, wisdom=1, received=1, superlative=1, age=2, darkness=1, direct=2,
-only=1, in=2, before=2, were=2, so=1, season=2, evil=1, being=1,
-insisted=1, despair=1, belief=1, comparison=1, some=1, foolishness=1,
-or=1, everything=1, spring=1, authorities=1, way=1, for=2]
-```
-
+[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java).

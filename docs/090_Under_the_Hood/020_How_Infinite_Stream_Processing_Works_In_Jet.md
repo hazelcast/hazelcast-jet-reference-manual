@@ -1,3 +1,5 @@
+[TOC]
+
 Continuing our deep dive into Jet's fundamentals we shall now move on to
 infinite stream processing. The major challenge in batch jobs was
 properly parallelizing/distributing a "group by key" operation. To solve
@@ -178,13 +180,28 @@ barrier in all the streams:
     src="../images/exactly-once-1.png"
     width="350"/>
 
+1. At the barrier on edge X, but not Y. Must not accept any more X items.
+
+<br>
+<br>
+
 <img alt="Exactly-once processing: received both barriers" 
     src="../images/exactly-once-2.png"
     width="350"/>
 
+2. At the barrier on both edges, taking a snapshot.
+
+<br>
+<br>
+
 <img alt="Exactly-once processing: forward the barrier" 
     src="../images/exactly-once-3.png"
     width="350"/>
+
+3. Snapshot done, barrier forwarded. Can resume processing all items.
+
+<br>
+<br>
 
 
 ### At-Least-Once Snapshotting
@@ -193,30 +210,47 @@ With _at-least-once_ configured, the processor can keep consuming all
 the streams until it gets all the barriers, at which point it will stop 
 to take the snapshot:
 
+
+
 <img alt="At-Least-once processing: received one barrier" 
     src="../images/at-least-once-1.png"
-    width="350"/>
+    width="370"/>
+
+1. At the barrier on edge X, but not Y. Carry on processing all items.
+
+<br>
+<br>
 
 <img alt="At-Least-once processing: received both barriers" 
     src="../images/at-least-once-2.png"
-    width="350"/>
+    width="370"/>
+
+2. At the barrier on both edges, already consumed `x1` and `x2`. Taking a snapshot.
+
+<br>
+<br>
 
 <img alt="At-Least-once processing: forward the barrier" 
     src="../images/at-least-once-3.png"
-    width="350"/>
+    width="370"/>
 
-Even though they occur after the barrier, the processor consumed and 
-processed the items `x1` and `x2`, changing its state. If the 
-computation job stops and restarts, the source will replay `x1` and `x2` 
-on top of the snapshotted state (which already accounts for them) and 
-the processor will treat them as two new items.
+3. Snapshot done, barrier forwarded.
+
+<br>
+<br>
+
+Even though `x1` and `x2` occur after the barrier, the processor
+consumed and processed them, updating its state accordingly. If the
+computation job stops and restarts, this state will be restored from the
+snapshot and then the source will replay `x1` and `x2`. The processor
+will think it got two new items.
 
 ## The Pitfalls of At-Least-Once Processing
 
-_At-least-once_ semantics can have consequences of quite an unexpected 
-magnitude, as we discuss next.
+In some cases _at-least-once_ semantics can have consequences of quite
+an unexpected magnitude, as we discuss next.
 
-### Data Loss
+### Apparent Data Loss
 
 Imagine a very simple kind of processor: it matches up the items that
 belong to a _pair_ based on some rule. If it receives item A first, it
@@ -246,5 +280,5 @@ invariant that the watermark value always increases. However, in
 _at-least-once_ the post-barrier watermark items will advance the
 processor's watermark value. After the job restarts and the state gets
 restored to the snapshotted point, the watermark will appear to have
-gone back, breaking the invariant. This can again lead to data loss.
+gone back, breaking the invariant. This can again lead to apparent data loss.
 
