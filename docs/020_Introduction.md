@@ -34,7 +34,7 @@ which can be used in both on-premise and cloud environments.
 
 ## Architecture Overview
 
-<img src="./images/Jet_Architecture_.png" width="100%"/>
+<img src="./images/Jet_Architecture.png" width="100%"/>
 
 ## The Data Processing Model
 
@@ -139,80 +139,3 @@ One caveat is the special kind of member allowed by the Hazelcast IMDG:
 a _lite member_. These members don't get any partitions assigned to them
 and will malfunction when attempting to run a DAG with partitioned
 edges. Lite members should not be allowed to join a Jet cluster.
-
-## The DAG
-
-At the core of Jet is the distributed computation engine based on the
-paradigm of a **directed acyclic graph** (DAG):
-
-![DAG](./images/dag.png)
-
-### Vertex 
-
-The vertex represents a stage in the pipeline of the distributed
-computation job. The three main categories of vertex are the source, the
-sink, and the computational vertex. Jet doesn't make a formal
-distinction between these; for example, any vertex lacking inbound edges
-acts as a source. Internally it is implemented in terms of the same
-API as a sink or a computational vertex.
-
-A source can be distributed, which means that on each member of
-the Jet cluster a different slice of the full data set will be read.
-Similarly, a sink can also be distributed so each member can write a
-slice of the result data to its local storage. _Data partitioning_ is
-used to route each slice to its target member. Examples of distributed
-sources supported by Jet are HDFS files and Hazelcast's `IMap`, `ICache`
-and `IList`.
-
-The executable code of a vertex is implemented in a subtype of the
-`Processor` interface. To run a job, Jet creates several instances of
-this type on each cluster member. It routes a part of the complete data
-stream to each processor and on the output side it collects the partial
-data streams from each processor, reshuffles the data as configured on
-the edge, and routes to downstream processors.
-
-### Edge 
-
-The edge transfers data from one vertex to the next and contains the
-logic that decides which target processor an item should be routed to.
-This could be guided by the partitioning logic, or could be one of the
-other choices like broadcast or pooled unicast. An edge may be
-configured to keep the data within a member, routing only to local
-processors. This allows us to design DAGs which optimally balance
-network and memory usage.
-
-## Running a Jet job
-
-After a `Job` is created, Jet replicates the DAG to the whole Jet
-cluster and executes it in parallel on each member.
-
-![DAG Distribution](./images/dag-distribution.png)
-
-Execution is done on a user-configurable number of threads which use
-work stealing to balance the amount of work being done on each thread.
-Each worker thread has a list of tasklets it is in charge of and as
-tasklets complete at different rates, the remaining ones are moved
-between workers to keep the load balanced.
-
-Each instance of a `Processor` is wrapped in one tasklet which is
-repeatedly executed until it reports it is done. A vertex with a
-parallelism of 8 running on 4 members would have a total of 32 tasklets
-running at the same time. Each member will have the same number of
-tasklets running.
-
-![Parallelism](./images/parallelism-model.png)
-
-When a request to execute a Job is made, the corresponding DAG and
-additional resources are deployed to the Jet cluster. An execution plan
-for the DAG is built on each member, which creates the associated
-tasklets for each Vertex and connects them to their inputs and outputs.
-
-Jet uses Single Producer/Single Consumer ringbuffers to transfer the
-data between processors on the same member. They are data-type agnostic,
-so any data type can be used to transfer the data between vertices.
-
-Ringbuffers, being bounded queues, introduce natural backpressure into
-the system; if a consumer’s ringbuffer is full, the producer will have
-to back off until it can enqueue the next item. When data is sent to
-another member over the network, there is no natural backpressure, so
-Jet uses explicit signaling in the form of adaptive receive windows.
