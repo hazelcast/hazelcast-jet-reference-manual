@@ -84,7 +84,7 @@ processor.
 When you submit a `Job` to it, Jet replicates the DAG to the whole Jet
 cluster and executes a copy of it on each member.
 
-![DAG Distribution](./images/dag-distribution.png)
+![DAG Distribution](/images/dag-distribution.png)
 
 Jet executes the job on a user-configurable number of threads which use
 work stealing to balance the amount of work being done on each thread.
@@ -98,7 +98,9 @@ parallelism of 8 running on 4 members would have a total of 32 tasklets
 running at the same time. Each member has the same number of tasklets
 running.
 
-![Parallelism](./images/parallelism-model.png)
+<img alt="Tasklet execution model"
+     src="/images/parallelism-model.png"
+     width="800"/>
 
 When you make a request to execute a Job, the corresponding DAG and
 additional resources are deployed to the Jet cluster. Jet builds an
