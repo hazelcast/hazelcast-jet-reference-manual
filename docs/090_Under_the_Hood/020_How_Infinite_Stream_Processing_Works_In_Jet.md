@@ -47,9 +47,10 @@ regression are some examples. All of these also support the undoing
 an example that has CA, but no good notion of negation and thus doesn't
 support deducting.
 
-This is the way we leverage the above properties: our sliding window
-actually "hops" in fixed-size steps. The length of the window is an
-integer multiple of the step size. Under such a definition, the _tumbling_ window becomes just a special case with one step per window.
+This is the way we leverage the above properties: our sliding window 
+actually "hops" in fixed-size steps. The length of the window is an 
+integer multiple of the step size. Under such a definition, the 
+_tumbling_ window becomes just a special case with one step per window.
 
 This allows us to divide the timestamp axis into _frames_ of equal
 length and assign each event to its frame. Instead of keeping the event
@@ -154,9 +155,14 @@ The technique Jet uses to achieve
 [fault tolerance](Work_with_Jet/Infinite_Stream_Processing#page_Fault+Tolerance+and+Processing+Guarantees)
 is called a "distributed snapshot", described in a
 [paper by Chandy and Lamport](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/Determining-Global-States-of-a-Distributed-System.pdf).
-At regular intervals, Jet raises a global flag that says "it's time for another snapshot". All processors belonging to source vertices observe the flag, create a checkpoint on their source, and emit a barrier item to the downstream processors.
+At regular intervals, Jet raises a global flag that says "it's time for 
+another snapshot". All processors belonging to source vertices observe 
+the flag, create a checkpoint on their source, and emit a barrier item 
+to the downstream processors.
 
-As the barrier item reaches a processor, it stops what it's doing and emits its state to the snapshot storage. Once complete, it forwards the barrier item to its downstream processors.
+As the barrier item reaches a processor, it stops what it's doing and 
+emits its state to the snapshot storage. Once complete, it forwards the 
+barrier item to its downstream processors.
 
 A processor in a vertex that has more than one inbound edge must
 coordinate the barrier items from all edges. There are two approaches it
@@ -183,8 +189,9 @@ barrier in all the streams:
 
 ### At-Least-Once Snapshotting
 
-With _at-least-once_ configured, the processor can keep consuming all
-the streams until it gets all the barriers, at which point it will stop to take the snapshot:
+With _at-least-once_ configured, the processor can keep consuming all 
+the streams until it gets all the barriers, at which point it will stop 
+to take the snapshot:
 
 <img alt="At-Least-once processing: received one barrier" 
     src="../images/at-least-once-1.png"
@@ -198,11 +205,16 @@ the streams until it gets all the barriers, at which point it will stop to take 
     src="../images/at-least-once-3.png"
     width="350"/>
 
-Even though they occur after the barrier, the processor consumed and processed the items `x1` and `x2`, changing its state. If the computation job stops and restarts, the source will replay `x1` and `x2` on top of the snapshotted state (which already accounts for them) and the processor will treat them as two new items.
+Even though they occur after the barrier, the processor consumed and 
+processed the items `x1` and `x2`, changing its state. If the 
+computation job stops and restarts, the source will replay `x1` and `x2` 
+on top of the snapshotted state (which already accounts for them) and 
+the processor will treat them as two new items.
 
 ## The Pitfalls of At-Least-Once Processing
 
-_At-least-once_ semantics can have consequences of quite an unexpected magnitude, as we discuss next.
+_At-least-once_ semantics can have consequences of quite an unexpected 
+magnitude, as we discuss next.
 
 ### Data Loss
 

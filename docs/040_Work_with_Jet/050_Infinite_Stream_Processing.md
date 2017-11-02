@@ -135,7 +135,17 @@ this is the "exactly-once processing guarantee".
 
 ### Snapshotting the State of Computation
 
-To achieve fault tolerance, Jet takes snapshots of the entire state of the computation at regular intervals. The snapshot is coordinated across the cluster and synchronized with a checkpoint on the data source. The source must ensure that, in the case of a restart, it will be able to replay all the data it emitted after the last checkpoint. Every other component in the computation must ensure it will be able to restore its processing state to exactly what it was at the last snapshot. If a cluster member goes away, Jet will restart the job on the remaining members, rewind the sources to the last checkpoint, restore the state of processing from the last snapshot, and then seamlessly continue from that point.
+To achieve fault tolerance, Jet takes snapshots of the entire state of 
+the computation at regular intervals. The snapshot is coordinated across 
+the cluster and synchronized with a checkpoint on the data source. The 
+source must ensure that, in the case of a restart, it will be able to 
+replay all the data it emitted after the last checkpoint. Every other 
+component in the computation must ensure it will be able to restore its 
+processing state to exactly what it was at the last snapshot. If a 
+cluster member goes away, Jet will restart the job on the remaining 
+members, rewind the sources to the last checkpoint, restore the state of 
+processing from the last snapshot, and then seamlessly continue from 
+that point.
 
 ### Exactly-Once
 
@@ -173,11 +183,13 @@ benign because it just means getting the exact same result twice.
 
 Fault tolerance is off by default. To activate it for a job, create a
 `JobConfig` object and set the
-[_snapshot interval_](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/config/JobConfig.html#setSnapshotIntervalMillis-long-)
-to a positive value:
+[_processing guarantee_](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/config/JobConfig.html#setProcessingGuarantee-com.hazelcast.jet.config.ProcessingGuarantee-).
+You can also configure
+[_snapshot interval_](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/config/JobConfig.html#setSnapshotIntervalMillis-long-).
 
 ```java
 JobConfig jobConfig = new JobConfig();
+jobConfig.setProcessingGuarantee(ProcessingGuarantee.EXACTLY_ONCE);
 jobConfig.setSnapshotIntervalMillis(SECONDS.toMillis(10));
 ```
 
