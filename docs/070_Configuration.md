@@ -31,7 +31,7 @@ locations (in that order):
 An example configuration looks like the following:
 
 ```xml
-<hazelcast-jet xsi:schemaLocation="http://www.hazelcast.com/schema/jet-config hazelcast-jet-config-0.3.xsd"
+<hazelcast-jet xsi:schemaLocation="http://www.hazelcast.com/schema/jet-config hazelcast-jet-config-0.5.xsd"
                xmlns="http://www.hazelcast.com/schema/jet-config"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <instance>
@@ -41,6 +41,8 @@ An example configuration looks like the following:
        <flow-control-period>100</flow-control-period>
         <!-- working directory to use for placing temporary files -->
        <temp-dir>/var/tmp/jet</temp-dir>
+        <!-- number of backups for job specifics maps -->
+       <backup-count>1</backup-count>
     </instance>
     <properties>
        <property name="custom.property">custom property</property>
@@ -48,9 +50,6 @@ An example configuration looks like the following:
     <edge-defaults>
         <!-- number of available slots for each concurrent queue between two vertices -->
        <queue-size>1024</queue-size>
-
-       <!-- number of slots in each outbox's bucket -->
-       <outbox-capacity>2048</outbox-capacity>
 
         <!-- maximum packet size in bytes, only applies to distributed edges -->
        <packet-size-limit>16384</packet-size-limit>
@@ -69,6 +68,7 @@ The following table lists the configuration elements for Hazelcast Jet:
 |Cooperative Thread Count|Maximum number of cooperative threads to be used for execution of jobs.|`Runtime.getRuntime().availableProcessors()`
 |Temp Directory| Directory where temporary files will be placed, such as JAR files submitted by clients.|Jet will create a temp directory, which will be deleted on exit.
 |Flow Control Period| While executing a Jet job there is the issue of regulating the rate at which one member of the cluster sends data to another member. The receiver will regularly report to each sender how much more data it is allowed to send over a given DAG edge. This option sets the length (in milliseconds) of the interval between flow-control packets.|100ms
+|Backup Count|Sets the number of synchronous backups for storing job metadata and snapshots. Maximum allowed value is 6.|1|
 |Edge Defaults|The default values to be used for all edges.|Please see the section on [Tuning Edges](/The_Core_API/DAG#page_Fine-Tuning).
 
 ## Configure the Underlying Hazelcast Instance
