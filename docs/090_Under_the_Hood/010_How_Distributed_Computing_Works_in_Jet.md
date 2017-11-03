@@ -38,11 +38,11 @@ for (String line : lines) {
 }
 ```
 
-To move us closer to how this computation is expressed in Jet, let's 
+To move us closer to how this computation is expressed in Jet, let's
 rewrite it in terms of the Java Streams API, still single-threaded:
 
 ```java
-Map<String, Long> counts = 
+Map<String, Long> counts =
     lines.stream()
          .flatMap(line -> Arrays.stream(line.toLowerCase().split("\\W+")))
          .filter(word -> !word.isEmpty())
@@ -52,11 +52,11 @@ Map<String, Long> counts =
 The Java Streams formulation gives us clear insight into the steps taken
 to process each data item:
 
-1. `lines.stream()`: read lines from the data source (we'll call this 
+1. `lines.stream()`: read lines from the data source (we'll call this
    the "source" step).
 2. `flatMap()`+`filter()`: split each line into lowercase words,
    avoiding empty strings (the "tokenizer" step).
-3. `collect()`: group equal words together and count them (the 
+3. `collect()`: group equal words together and count them (the
    "accumulator" step).
 
 Our first move will be modeling the computation as a DAG. We'll start
@@ -74,7 +74,7 @@ transforming it into another infinite stream.
 We can represent the steps outlined above as a DAG:
 
 <img alt="Word-counting DAG"
-     src="../images/wordcount-dag.jpg"
+     src="../images/wordcount-dag.png"
      height="200"/>
 
 The simplest, single-threaded code (shown above) deals with each item as
@@ -115,13 +115,13 @@ for (Entry<String, Long> wordAndCount : counts.entrySet()) {
 }    
 ```
 
-The source loop feeds the tokenizer loop over a concurrent queue, the 
+The source loop feeds the tokenizer loop over a concurrent queue, the
 tokenizer feeds the accumulator loop, and after the accumulator is done
 receiving, it emits its results to the sink. Diagrammatically it looks
 like this:
 
 <img alt="Word-counting DAG with concurrent queues shown"
-     src="../images/wordcount-dag-queue.jpg"
+     src="../images/wordcount-dag-queue.png"
      height="200"/>
 
 This transformation brought us a _pipelined_ architecture: while the
@@ -144,8 +144,8 @@ processors doing the work of a single vertex. Let's add another
 tokenizing processor:
 
 <img alt="Word-counting DAG with tokenizer vertex parallelized"
-     src="../images/wordcount-tokenizer.jpg"
-     height="200"/>
+     src="../images/wordcount-tokenizer.png"
+     height="300"/>
 
 The input processor can now use all the available tokenizers as a pool
 and submit to any one whose queue has some room.
@@ -160,8 +160,8 @@ processor. This is called "data partitioning" and in Jet we'll use a
 _partitioned edge_ between the tokenizer and the accumulator:
 
 <img alt="Word-counting DAG with tokenizer and accumulator parallelized"
-     src="../images/wordcount-partitioned.jpg"
-     height="200"/>
+     src="../images/wordcount-partitioned.png"
+     height="300"/>
 
 As a word is emitted from the tokenizer, it goes through a "switchboard"
 stage where it's routed to the correct downstream processor. To
@@ -206,7 +206,7 @@ vertex executes:
 // Combining vertex
 Map<String, Long> combined = new HashMap<>();
 for (Entry<String, Long> wordAndCount : receive()) {
-    combined.merge(wordAndCount.getKey(), wordAndCount.getValue(), 
+    combined.merge(wordAndCount.getKey(), wordAndCount.getValue(),
                     (accCount, newCount) -> accCount + newCount);
 }
 // finally, when done receiving:
@@ -230,13 +230,13 @@ move we've finalized our DAG design, which can be illustrated by the
 following diagram:
 
 <img alt="Word-counting DAG parallelized and distributed"
-     src="../images/wordcount-distributed.jpg"
+     src="../images/wordcount-distributed.png"
      height="420"/>
 
 ## Implementing the DAG in Jet's Core API
 
 Now that we've come up with a good DAG design, we can use Jet's Core API
-to implement it. We start by instantiating the DAG class and adding the 
+to implement it. We start by instantiating the DAG class and adding the
 source vertex:
 
 ```java
