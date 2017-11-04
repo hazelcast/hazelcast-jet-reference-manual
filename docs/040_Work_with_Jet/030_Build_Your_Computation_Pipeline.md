@@ -88,7 +88,7 @@ each item to another item; `filter` discards items that don't match its
 predicate; and `flatMap` transforms each item into zero or more output
 items.
 
-## groupBy
+### groupBy
 
 Stepping up from the simplest transforms we come to
 [`groupBy`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#groupBy-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation1-),

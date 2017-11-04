@@ -160,27 +160,29 @@ is called a "distributed snapshot", described in a
 At regular intervals, Jet raises a global flag that says "it's time for 
 another snapshot". All processors belonging to source vertices observe 
 the flag, create a checkpoint on their source, and emit a barrier item 
-to the downstream processors.
+to the downstream processors and resumes processing.
 
-As the barrier item reaches a processor, it stops what it's doing and 
-emits its state to the snapshot storage. Once complete, it forwards the 
+As the barrier item reaches a processor, it stops what it's doing and
+emits its state to the snapshot storage. Once complete, it forwards the
 barrier item to its downstream processors.
 
-A processor in a vertex that has more than one inbound edge must
-coordinate the barrier items from all edges. There are two approaches it
-can take, as explained below.
+Due to parallelism, in most cases a processor receives data from more
+than one upstream processor. It will receive the barrier item from each
+of them at separate times, but it must start taking a snapshot at a
+single point in time. There are two approaches it can take, as explained
+below.
 
 ### Exactly-Once Snapshotting
 
 With _exactly-once_ configured, as soon as the processor gets a barrier
-item in an input stream, it must stop consuming it until it gets the
-barrier in all the streams:
+item in any input stream (from any upstream processor), it must stop
+consuming it until it gets the same barrier item in all the streams:
 
 <img alt="Exactly-once processing: received one barrier" 
     src="../images/exactly-once-1.png"
     width="350"/>
 
-1. At the barrier on edge X, but not Y. Must not accept any more X items.
+1. At the barrier in stream X, but not Y. Must not accept any more X items.
 
 <br>
 <br>
@@ -189,7 +191,7 @@ barrier in all the streams:
     src="../images/exactly-once-2.png"
     width="350"/>
 
-2. At the barrier on both edges, taking a snapshot.
+2. At the barrier in both streams, taking a snapshot.
 
 <br>
 <br>
@@ -198,7 +200,7 @@ barrier in all the streams:
     src="../images/exactly-once-3.png"
     width="350"/>
 
-3. Snapshot done, barrier forwarded. Can resume processing all items.
+3. Snapshot done, barrier forwarded. Can resume consuming all streams.
 
 <br>
 <br>
@@ -211,12 +213,11 @@ the streams until it gets all the barriers, at which point it will stop
 to take the snapshot:
 
 
-
 <img alt="At-Least-once processing: received one barrier" 
     src="../images/at-least-once-1.png"
     width="370"/>
 
-1. At the barrier on edge X, but not Y. Carry on processing all items.
+1. At the barrier in stream X, but not Y. Carry on consuming all streams.
 
 <br>
 <br>
@@ -225,7 +226,7 @@ to take the snapshot:
     src="../images/at-least-once-2.png"
     width="370"/>
 
-2. At the barrier on both edges, already consumed `x1` and `x2`. Taking a snapshot.
+2. At the barrier in both streams, already consumed `x1` and `x2`. Taking a snapshot.
 
 <br>
 <br>
