@@ -104,15 +104,13 @@ stored on it.
         <br/>
         <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#map-java.lang.String-">Sink</a>
     </td>
-    <td><a href="">Source</a>
-        <br/>
-        <a href="">Sink</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/MapSourceSink.java">Sample</a>
     </td>
     <td align="center">❌</td>
     <td align="center">✅</td>
     <td align="center">❌</td>
     <td align="center">✅</td>
-    <td align="center">✅</td>
+    <td align="center">Src ✅ <br/> Sink ❌</td>
   </tr>
   <tr>
     <td>ICache</td>
@@ -120,25 +118,21 @@ stored on it.
         <br/>
         <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#cache-java.lang.String-">Sink</a>
     </td>
-    <td><a href="">Source</a>
-        <br/>
-        <a href="">Sink</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/CacheSourceSink.java">Sample</a>
     </td>
     <td align="center">❌</td>
     <td align="center">✅</td>
     <td align="center">❌</td>
     <td align="center">✅</td>
-    <td align="center">✅</td>
+    <td align="center">Src ✅ <br/> Sink ❌</td>
   </tr>
   <tr>
-    <td>Remote IMap</td>
+    <td>IMap in another cluster</td>
     <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-">Source</a>
         <br/>
         <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-">Sink</a>
     </td>
-    <td><a href="">Source</a>
-        <br/>
-        <a href="">Sink</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/RemoteSourceSink.java">Sample</a>
     </td>
     <td align="center">❌</td>
     <td align="center">✅</td>
@@ -147,14 +141,12 @@ stored on it.
     <td align="center">✅</td>
   </tr>
   <tr>
-    <td>Remote ICache</td>
+    <td>ICache in another cluster</td>
     <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-">Source</a>
         <br/>
         <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-">Sink</a>
     </td>
-    <td><a href="">Source</a>
-        <br/>
-        <a href="">Sink</a>
+    <td>
     </td>
     <td align="center">❌</td>
     <td align="center">✅</td>
@@ -167,7 +159,7 @@ stored on it.
     <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#mapJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
         <br/>
     </td>
-    <td><a href="">Source</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/event-journal/src/main/java/StreamEventJournal.java">Sample</a>
     </td>
     <td align="center">✅</td>
     <td align="center">✅</td>
@@ -179,7 +171,7 @@ stored on it.
     <td>ICache's Event Journal</td>
     <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#cacheJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
     </td>
-    <td><a href="">Source</a>
+    <td>
     </td>
     <td align="center">✅</td>
     <td align="center">✅</td>
@@ -188,10 +180,10 @@ stored on it.
     <td align="center">✅</td>
   </tr>
   <tr>
-    <td>Remote IMap's Event Journal</td>
+    <td>Event Journal of IMap in another cluster</td>
     <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#remoteMapJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
     </td>
-    <td><a href="">Source</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/event-journal/src/main/java/StreamRemoteEventJournal.java">Sample</a>
     </td>
     <td align="center">✅</td>
     <td align="center">✅</td>
@@ -200,10 +192,10 @@ stored on it.
     <td align="center">❌</td>
   </tr>
   <tr>
-    <td>Remote ICache's Event Journal</td>
+    <td>Event Journal of ICache in another cluster</td>
     <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#remoteCacheJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
     </td>
-    <td><a href="">Source</a>
+    <td>
     </td>
     <td align="center">✅</td>
     <td align="center">✅</td>
@@ -217,9 +209,7 @@ stored on it.
         <br/>
         <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#list-java.lang.String-">Sink</a>
     </td>
-    <td><a href="">Source</a>
-        <br/>
-        <a href="">Sink</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/ListSourceSink.java">Sample</a>
     </td>
     <td align="center">❌</td>
     <td align="center">✅</td>
@@ -228,14 +218,12 @@ stored on it.
     <td align="center">❌</td>
   </tr>
   <tr>
-    <td>Remote IList</td>
+    <td>IList in another cluster</td>
     <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-">Source</a>
         <br/>
         <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-">Sink</a>
     </td>
-    <td><a href="">Source</a>
-        <br/>
-        <a href="">Sink</a>
+    <td>
     </td>
     <td align="center">❌</td>
     <td align="center">✅</td>
@@ -249,9 +237,7 @@ stored on it.
         <br/>
         <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/HdfsSinks.html">Sink</a>
     </td>
-    <td><a href="">Source</a>
-        <br/>
-        <a href="">Sink</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-hadoop/src/main/java/HadoopWordCount.java">Core API sample</a>
     </td>
     <td align="center">❌</td>
     <td align="center">✅</td>
@@ -265,9 +251,7 @@ stored on it.
         <br/>
         <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/KafkaSinks.html">Sink</a>
     </td>
-    <td><a href="">Source</a>
-        <br/>
-        <a href="">Sink</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/kafka/src/main/java/ConsumeKafka.java">Sample</a>
     </td>
     <td align="center">✅</td>
     <td align="center">✅</td>
@@ -281,9 +265,7 @@ stored on it.
         <br/>
         <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-">Sink</a>
     </td>
-    <td><a href="">Source</a>
-        <br/>
-        <a href="">Sink</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/access-log-analyzer/src/main/java/AccessLogAnalyzer.java">Sample</a>
     </td>
     <td align="center">❌</td>
     <td align="center">✅</td>
@@ -295,7 +277,7 @@ stored on it.
     <td>File Watcher</td>
     <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-">Source</a>
     </td>
-    <td><a href="">Source</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/access-stream-analyzer/src/main/java/AccessStreamAnalyzer.java">Core API sample</a>
     </td>
     <td align="center">✅</td>
     <td align="center">❌</td>
@@ -309,9 +291,9 @@ stored on it.
         <br/>
         <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#socket-java.lang.String-int-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-">Sink</a>
     </td>
-    <td><a href="">Source</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/socket/src/main/java/StreamTextSocket.java">Source (Core API)</a>
         <br/>
-        <a href="">Sink</a>
+        <a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/socket/src/main/java/WriteTextSocket.java">Sink (Core API)</a>
     </td>
     <td align="center">✅</td>
     <td align="center">❌</td>
@@ -323,44 +305,12 @@ stored on it.
     <td>Application Log</td>
     <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#writeLogger-com.hazelcast.jet.function.DistributedFunction-">Sink</a>
     </td>
-    <td><a href="">Sink</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/enrichment-core-api/src/main/java/HashMapEnrichment.java">Sample (Core API)</a>
     </td>
     <td align="center">N/A</td>
     <td align="center">N/A</td>
     <td align="center">❌</td>
     <td align="center">❌</td>
     <td align="center">✅</td>
-  </tr>
-  <tr>
-    <td>X</td>
-    <td><a href="">Source</a>
-        <br/>
-        <a href="">Sink</a>
-    </td>
-    <td><a href="">Source</a>
-        <br/>
-        <a href="">Sink</a>
-    </td>
-    <td align="center">✅❌</td>
-    <td align="center">✅❌</td>
-    <td align="center">✅❌</td>
-    <td align="center">✅❌</td>
-    <td align="center">✅❌</td>
-  </tr>
-  <tr>
-    <td>X</td>
-    <td><a href="">Source</a>
-        <br/>
-        <a href="">Sink</a>
-    </td>
-    <td><a href="">Source</a>
-        <br/>
-        <a href="">Sink</a>
-    </td>
-    <td align="center">✅❌</td>
-    <td align="center">✅❌</td>
-    <td align="center">✅❌</td>
-    <td align="center">✅❌</td>
-    <td align="center">✅❌</td>
   </tr>
 </table>
