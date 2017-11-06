@@ -171,8 +171,9 @@ new events. Jet can provide this guarantee at a higher throughput and
 lower latency than exactly-once, and some kinds of data processing can
 gracefully tolerate it. In some other cases, however, duplicate
 processing of data items can have quite surprising consequences. There
-is more information about this in the section on Jet
-[Processor](The_Core_API/Processor#page_Issues+in+At-Least-Once+Jobs)).
+is more information about this in our
+[Under the Hood](/Under_the_Hood/How_Infinite_Stream_Processing_Works_In_Jet#page_The+Pitfalls+of+At-Least-Once+Processing)
+chapter.
 
 We also have an in-between case: if you configure Jet for exactly-once
 but use Kafka as the sink, after a job restart you may get duplicates in

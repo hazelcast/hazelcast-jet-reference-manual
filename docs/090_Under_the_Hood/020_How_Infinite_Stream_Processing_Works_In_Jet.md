@@ -266,11 +266,11 @@ replayed because it occurred after the last barrier, but item A won't.
 Now the processor is stuck forever in a state where it's expecting A and
 has no idea it already got it and emitted that fact.
 
-Problems similar to this will happen with any state the processor keeps
+Problems similar to this may happen with any state the processor keeps
 until it has got enough information to emit the results and then forgets
 it. By the time it takes a snapshot, the post-barrier items will have
-caused it to forget facts about pre-barrier items. After a restart it
-will behave as though it has never observed the pre-barrier items,
+caused it to forget facts about some pre-barrier items. After a restart
+it will behave as though it has never observed those pre-barrier items,
 resulting in behavior equivalent to data loss.
 
 ### Non-Monotonic Watermark
