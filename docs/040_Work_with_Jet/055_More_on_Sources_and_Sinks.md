@@ -159,7 +159,7 @@ stored on it.
     <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#mapJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
         <br/>
     </td>
-    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/event-journal/src/main/java/StreamEventJournal.java">Sample</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/event-journal/src/main/java/StreamEventJournal.java">Sample (Core API)</a>
     </td>
     <td align="center">✅</td>
     <td align="center">✅</td>
@@ -183,7 +183,7 @@ stored on it.
     <td>Event Journal of IMap in another cluster</td>
     <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#remoteMapJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
     </td>
-    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/event-journal/src/main/java/StreamRemoteEventJournal.java">Sample</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/event-journal/src/main/java/StreamRemoteEventJournal.java">Sample (Core API)</a>
     </td>
     <td align="center">✅</td>
     <td align="center">✅</td>
@@ -237,7 +237,7 @@ stored on it.
         <br/>
         <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/HdfsSinks.html">Sink</a>
     </td>
-    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-hadoop/src/main/java/HadoopWordCount.java">Core API sample</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-hadoop/src/main/java/HadoopWordCount.java">Sample (Core API)</a>
     </td>
     <td align="center">❌</td>
     <td align="center">✅</td>
@@ -251,7 +251,7 @@ stored on it.
         <br/>
         <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/KafkaSinks.html">Sink</a>
     </td>
-    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/kafka/src/main/java/ConsumeKafka.java">Sample</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/kafka/src/main/java/ConsumeKafka.java">Sample (Core API)</a>
     </td>
     <td align="center">✅</td>
     <td align="center">✅</td>
@@ -277,7 +277,7 @@ stored on it.
     <td>File Watcher</td>
     <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-">Source</a>
     </td>
-    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/access-stream-analyzer/src/main/java/AccessStreamAnalyzer.java">Core API sample</a>
+    <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/access-stream-analyzer/src/main/java/AccessStreamAnalyzer.java">Sample (Core API)</a>
     </td>
     <td align="center">✅</td>
     <td align="center">❌</td>
@@ -314,3 +314,180 @@ stored on it.
     <td align="center">✅</td>
   </tr>
 </table>
+
+
+## IMap and ICache
+
+Hazelcast IMDG's `IMap` and `ICache` are very similar in the way Jet
+uses them and largely interchangeable. `IMap` has a bit more features.
+The most basic usage is very simple, here are snippets to use `IMap`
+and `ICache` as a source and a sink:
+
+```java
+Pipeline pipeline = Pipeline.create();
+ComputeStage<Entry<String, Long>> stage = 
+        pipeline.drawFrom(Sources.<String, Long>map("myMap"));
+stage.drainTo(Sinks.map("myMap"));
+```
+
+```java
+Pipeline pipeline = Pipeline.create();
+ComputeStage<Entry<String, Long>> stage = 
+        pipeline.drawFrom(Sources.<String, Long>cache("myCache"));
+stage.drainTo(Sinks.cache("myCache"));
+```
+
+In these snippets we draw from and drain to the same kind of structure,
+but you can use any combination.
+
+### Access an External Cluster
+
+To access a Hazelcast IMDG cluster separate from the Jet cluster, you
+have to provide Hazelcast client configuration for the connection. In
+this simple example we use programmatic configuration to draw from and
+drain to remote `IMap` and `ICache`. Just for variety, we funnel the
+data from `IMap` to `ICache` and vice versa:
+
+```java
+ClientConfig cfg = new ClientConfig();
+cfg.getGroupConfig().setName("myGroup").setPassword("pAssw0rd");
+cfg.getNetworkConfig().addAddress("node1.mydomain.com", "node2.mydomain.com");
+Pipeline pipeline = Pipeline.create();
+ComputeStage<Entry<String, Long>> fromMap =
+        pipeline.drawFrom(Sources.<String, Long>remoteMap("inputMap", cfg));
+ComputeStage<Entry<String, Long>> fromCache =
+        pipeline.drawFrom(Sources.<String, Long>remoteCache("inputCache", cfg));
+fromMap.drainTo(Sinks.remoteCache("outputCache", cfg));
+fromCache.drainTo(Sinks.remoteMap("outputMap", cfg));
+```
+
+For a full discussion on how to configure your client connection, refer
+to the
+[Hazelcast IMDG documentation](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#configuring-java-client)
+on this topic.
+
+### Optimize Data Traffic
+
+If your use case calls for some filtering and/or transformation of the
+data you retrieve, you can optimize the traffic volume by providing a
+filtering predicate and an arbitrary transformation function to the
+source adapter itself and they'll get applied on the remote side, before
+sending:
+
+```java
+Pipeline pipeline = Pipeline.create();
+pipeline.drawFrom(Sources.<String, Person, Integer>remoteMap(
+        "inputMap", clientConfig,
+        e -> e.getValue().getAge() > 21,
+        e -> e.getValue().getAge()));
+```
+
+The same optimization works on a local `IMap`, too, but has less impact.
+However, Hazelcast IMDG goes a step further in optimizing your filtering
+and mapping to a degree that matters even locally. If you use its
+[`PredicateBuilder`](http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/query/PredicateBuilder.html)
+instead of an arbitrary lambda function, it will create a specialized
+predicate that leverages indexes created on the `IMap`. If you want to
+select just a small subset of the data, this will have a large impact.
+Also, if the mapping you need is of a constrained kind where you just
+extract one or more object fields (attributes), you can specify a
+_projection_ instead of a general mapping lambda: 
+[`Projections.singleAttribute()`](http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/projection/Projections.html#singleAttribute-java.lang.String-)
+or [
+`Projections.multiAttribute()`](http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/projection/Projections.html#multiAttribute-java.lang.String...-). Depending on the format in which your data is
+stored in the `IMap` (e.g., Hazelcast's
+[portable serialization](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#implementing-portable-serialization)),
+it may be possible to extract the attributes without first deserializing
+the whole object. If you store large objects and the Jet job projects
+them into much smaller tuples of attributes, this will result in a
+significant performance gain.
+
+Note that the above feature is not available on `ICache`. It is,
+however, available on `ICache`'s event journal, which we introduce next.
+
+### Receive an Infinite Stream of Update Events
+
+You can use `IMap`/`ICache` as sources of infinite event streams. For
+this to work you have to enable the Event Journal on your data
+structure. This is a feature you enable in the Jet/IMDG instance
+configuration, which means you cannot change it while the cluster is
+running.
+
+This is how you enable the Event Journal on an `IMap`:
+
+```java
+JetConfig cfg = new JetConfig();
+cfg.getHazelcastConfig()
+   .getMapEventJournalConfig("inputMap")
+   .setEnabled(true)
+   .setCapacity(1000) // how many events to keep before evicting
+   .setTimeToLiveSeconds(10); // evict events older than this
+JetInstance jet = Jet.newJetInstance(cfg);
+```
+
+The default journal capacity is 10,000 and the default time-to-live is 0
+(which means "unlimited"). Since the entire event journal is kept in
+RAM, you should take care to adjust these values to match your use case.
+
+The configuration API for `ICache` is identical:
+
+```java
+cfg.getHazelcastConfig()
+   .getCacheEventJournalConfig("inputCache")
+   .setEnabled(true)
+   .setCapacity(1000)
+   .setTimeToLiveSeconds(10);
+```
+
+Once properly configured, you use Event Journal sources like this:
+
+```java
+Pipeline pipeline = Pipeline.create();
+ComputeStage<EventJournalMapEvent<String, Long>> fromMap =
+        pipeline.drawFrom(Sources.<String, Long>mapJournal("inputMap", true));
+ComputeStage<EventJournalCacheEvent<String, Long>> fromCache =
+        pipeline.drawFrom(Sources.<String, Long>cacheJournal("inputCache", true));
+```
+
+`IMap` and `ICache` are on an equal footing here. The second argument,
+`true` here, means "start receiving from the latest update event". If
+you specify `false`, you'll get all the events still on record.
+
+Note the type of the stream element: `EventJournalMapEvent` and
+`EventJournalCacheEvent`. These are almost the same and have these
+methods:
+
+- `getKey()`
+- `getOldValue()`
+- `getNewValue()`
+- `getType()`
+
+The only difference is the return type of `getType()` which is specific
+to each kind of structure and gives detailed insight into what kind of
+event it reports. _Add_, _remove_ and _update_ are the basic ones, but
+there are also _evict_, _clear_, _expire_ and some others. When you use
+the Event Journal as a stream source, most often you'll care just about
+the basic event types and just the key and the new value. You can supply
+the appropriate filtering and mapping functions to the source:
+
+```java
+EnumSet<EntryEventType> evTypesToAccept =
+        EnumSet.of(ADDED, REMOVED, UPDATED);
+ComputeStage<Entry<String, Long>> stage = pipeline.drawFrom(
+        Sources.<String, Long, Entry<String, Long>>mapJournal("inputMap",
+                e -> evTypesToAccept.contains(e.getType()),
+                e -> entry(e.getKey(), e.getNewValue()),
+                true));
+```
+
+Finally, you can get all of the above from a map/cache in another
+cluster, you just have to prepend `remote` to the source names and add
+`ClientConfig`, for example:
+
+```java
+ComputeStage<EventJournalMapEvent<String, Long>> fromRemoteMap = pipeline.drawFrom(
+        Sources.<String, Long>remoteMapJournal("inputMap", clientConfig(), true));
+ComputeStage<EventJournalCacheEvent<String, Long>> fromRemoteCache = pipeline.drawFrom(
+        Sources.<String, Long>remoteCacheJournal("inputCache", clientConfig(), true));
+```
+
