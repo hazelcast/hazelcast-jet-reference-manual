@@ -371,8 +371,8 @@ on this topic.
 If your use case calls for some filtering and/or transformation of the
 data you retrieve, you can optimize the traffic volume by providing a
 filtering predicate and an arbitrary transformation function to the
-source adapter itself and they'll get applied on the remote side, before
-sending:
+source connector itself and they'll get applied on the remote side,
+before sending:
 
 ```java
 Pipeline pipeline = Pipeline.create();
@@ -384,23 +384,24 @@ pipeline.drawFrom(Sources.<String, Person, Integer>remoteMap(
 
 The same optimization works on a local `IMap`, too, but has less impact.
 However, Hazelcast IMDG goes a step further in optimizing your filtering
-and mapping to a degree that matters even locally. If you use its
-[`PredicateBuilder`](http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/query/PredicateBuilder.html)
-instead of an arbitrary lambda function, it will create a specialized
-predicate that leverages indexes created on the `IMap`. If you want to
-select just a small subset of the data, this will have a large impact.
-Also, if the mapping you need is of a constrained kind where you just
-extract one or more object fields (attributes), you can specify a
-_projection_ instead of a general mapping lambda: 
+and mapping to a degree that matters even locally. If you don't need
+fully general functions, but can express your predicate via
+[`Predicates`](http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/query/Predicates.html)
+or
+[`PredicateBuilder`](http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/query/PredicateBuilder.html),
+they will create a specialized predicate instance that can test the
+object without deserializing it. Similarly, if the mapping you need is
+of a constrained kind where you just extract one or more object fields
+(attributes), you can specify a _projection_ instead of a general
+mapping lambda:
 [`Projections.singleAttribute()`](http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/projection/Projections.html#singleAttribute-java.lang.String-)
 or [
-`Projections.multiAttribute()`](http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/projection/Projections.html#multiAttribute-java.lang.String...-). Depending on the format in which your data is
-stored in the `IMap` (e.g., Hazelcast's
-[portable serialization](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#implementing-portable-serialization)),
-it may be possible to extract the attributes without first deserializing
-the whole object. If you store large objects and the Jet job projects
-them into much smaller tuples of attributes, this will result in a
-significant performance gain.
+`Projections.multiAttribute()`](http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/projection/Projections.html#multiAttribute-java.lang.String...-).
+These will extract the listed attributes without deserializing the whole
+object. For these optimizations to work, however, your objects must
+employ Hazelcast's [portable serialization](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#implementing-portable-serialization).
+They are especially relevant if the volume of data you need in the Jet
+job is significantly less than the volume of the stored data.
 
 Note that the above feature is not available on `ICache`. It is,
 however, available on `ICache`'s event journal, which we introduce next.
@@ -409,7 +410,7 @@ however, available on `ICache`'s event journal, which we introduce next.
 
 You can use `IMap`/`ICache` as sources of infinite event streams. For
 this to work you have to enable the Event Journal on your data
-structure. This is a feature you enable in the Jet/IMDG instance
+structure. This is a feature you set in the Jet/IMDG instance
 configuration, which means you cannot change it while the cluster is
 running.
 
