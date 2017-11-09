@@ -1,3 +1,5 @@
+[TOC]
+
 ## IMap and ICache
 
 Hazelcast IMDG's `IMap` and `ICache` are very similar in the way Jet
