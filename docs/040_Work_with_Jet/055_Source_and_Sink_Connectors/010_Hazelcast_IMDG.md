@@ -201,5 +201,11 @@ System.out.println("Results: " + new ArrayList<>(resultList));
 You can access a list in an external cluster as well, by providing a `ClientConfig` object:
 
 ```java
+ClientConfig clientConfig = new ClientConfig();
+clientConfig.getGroupConfig().setName("myGroup").setPassword("pAssw0rd");
+clientConfig.getNetworkConfig().addAddress("node1.mydomain.com", "node2.mydomain.com");
+
 Pipeline p = Pipeline.create();
-p.drawFrom(Sources.remoteList(LIST_1, clientConfig))
+ComputeStage<Object> stage = p.drawFrom(Sources.remoteList("inputlist", clientConfig));
+stage.drainTo(Sinks.remoteList("resultList", clientConfig));
+```
