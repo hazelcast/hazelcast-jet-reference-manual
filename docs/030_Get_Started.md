@@ -65,9 +65,9 @@ use Hazelcast structures.
 ```java
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
-import com.hazelcast.jet.pipeline.Pipeline;
-import com.hazelcast.jet.pipeline.Sinks;
-import com.hazelcast.jet.pipeline.Sources;
+import com.hazelcast.jet.Pipeline;
+import com.hazelcast.jet.Sinks;
+import com.hazelcast.jet.Sources;
 
 import java.util.List;
 import java.util.Map;
@@ -76,15 +76,16 @@ import static com.hazelcast.jet.Traversers.traverseArray;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 
-public class HelloWorld {
+public class WordCountRefMan {
     public static void main(String[] args) throws Exception {
-        // Create the specification of the computation pipeline. Note that it is 
+        // Create the specification of the computation pipeline. Note that it is
         // a pure POJO: no instance of Jet is needed to create it.
         Pipeline p = Pipeline.create();
-        p.drawFrom(Sources.<String>readList("text"))
-         .flatMap(line -> traverseArray(line.split("\\W+")))
+        p.drawFrom(Sources.<String>list("text"))
+         .flatMap(word -> traverseArray(word.toLowerCase().split("\\W+")))
+         .filter(word -> !word.isEmpty())
          .groupBy(wholeItem(), counting())
-         .drainTo(Sinks.writeMap("counts"));
+         .drainTo(Sinks.map("counts"));
 
         // Start Jet, populate the input list
         JetInstance jet = Jet.newJetInstance();
@@ -92,10 +93,10 @@ public class HelloWorld {
             List<String> text = jet.getList("text");
             text.add("hello world hello hello world");
             text.add("world world hello world");
-            
+
             // Perform the computation
-            p.execute(jet).get();
-            
+            jet.newJob(p).join();
+
             // Check the results
             Map<String, Long> counts = jet.getMap("counts");
             System.out.println("Count of hello: " + counts.get("hello"));
