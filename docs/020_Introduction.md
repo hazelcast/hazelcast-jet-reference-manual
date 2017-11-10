@@ -26,10 +26,10 @@ results of a computation or as a cache for datasets to be used during
 the computation. Extremely low end-to-end latencies can be achieved this
 way.
 
-It is extremely simple to use -- in particular, Jet can be fully 
+It is extremely simple to use -- in particular, Jet can be fully
 embedded for OEMs and for Microservices – making it is easier for
 manufacturers to build and maintain next generation systems. Also,
-Jet uses Hazelcast discovery for finding the members in the cluster, 
+Jet uses Hazelcast discovery for finding the members in the cluster,
 which can be used in both on-premise and cloud environments.
 
 ## Architecture Overview
@@ -113,19 +113,27 @@ partition.
 Jet can also use any remote Hazelcast IMDG instance via Hazelcast IMDG
 connector.
 
-## Fault Tolerance
+## High Availability and Fault Tolerance
 
-A job that processes an infinite stream never completes and cannot be
-restarted from the beginning if it fails. For such a job, fault
-tolerance is essential: the engine must be able to detect a failure,
-recover from it, and resume processing without data loss.
+Jet provides highly available and fault tolerant distributed computation.
+If one of the cluster members fails and leaves the cluster during job
+execution, the job restarted on the remaining members automatically
+and transparently. Jet achieves this by maintaining in-memory copies
+of the job metadata inside the cluster. The user does not need to designate
+any node as the master.
 
-Hazelcast Jet achieves fault tolerance by making a snapshot of the
-internal processing state at regular intervals. If a member of the
-cluster fails while a job is running, Hazelcast Jet will detect this and
-restart the job on the new cluster topology. It will restore its
-internal state from the snapshot and tell the source to start sending
-data from the last "committed" position (where the snapshot was taken).
+In case of a failure, a batch job can typically just be restarted from
+beginning as the data can easily be replayed. For streaming jobs that run
+continuously, this might not be possible so the engine must be able
+to detect a failure, recover from it, and resume processing without data loss.
+
+Jet achieves fault tolerance in streaming jobs by making a
+snapshot of the internal processing state at regular intervals. If a
+member of the cluster fails while a job is running, Hazelcast Jet will
+detect this and restart the job on the new cluster topology. It will
+restore its internal state from the snapshot and tell the source to start
+sending data from the last "committed" position (where the snapshot was
+taken).
 
 ## Elasticity
 
