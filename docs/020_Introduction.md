@@ -113,6 +113,25 @@ partition.
 Jet can also use any remote Hazelcast IMDG instance via Hazelcast IMDG
 connector.
 
+## Job Lifecycle Management
+
+Starting with the 0.5 release, Hazelcast Jet introduces the highly available 
+and fault tolerant execution of distributed computations. Hazelcast Jet 
+maintains job information in internal IMaps. When a job is submitted, the 
+job information is distributed in a set of IMap instances. Hazelcast Jet 
+enables fault tolerance for job information by having multiple replicas 
+for the internal IMap instances. In addition, Hazelcast Jet clusters 
+coordinate execution of the submitted jobs transparently and automatically. 
+Internally, a single Hazelcast Jet node, called coordinator, coordinates 
+job executions. If the coordinator node fails for any reason, another node 
+automatically takes the responsibility of job coordination. Relatedly, if 
+a node fails during execution, the job is automatically restarted on the 
+remaining nodes.
+
+`JetInstance` contains a new API, `getJobs()` to query the jobs submitted 
+to the cluster. Using the `Job` objects returned by this new API, you can
+query job status, track execution, and cancel jobs from any Jet instance.
+
 ## Fault Tolerance
 
 A job that processes an infinite stream never completes and cannot be
