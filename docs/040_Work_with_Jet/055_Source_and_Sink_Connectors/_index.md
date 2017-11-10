@@ -104,11 +104,11 @@ stored on it.
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/MapSourceSink.java">Sample</a>
     </td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
-    <td align="center">Src ✅ <br/> Sink ❌</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">Src ✅ <br/> Sink ❌</td>
   </tr>
   <tr>
     <td>ICache</td>
@@ -118,11 +118,11 @@ stored on it.
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/CacheSourceSink.java">Sample</a>
     </td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
-    <td align="center">Src ✅ <br/> Sink ❌</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">Src ✅ <br/> Sink ❌</td>
   </tr>
   <tr>
     <td>IMap in another cluster</td>
@@ -132,11 +132,11 @@ stored on it.
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/RemoteSourceSink.java">Sample</a>
     </td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
   </tr>
   <tr>
     <td>ICache in another cluster</td>
@@ -146,11 +146,11 @@ stored on it.
     </td>
     <td>
     </td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
   </tr>
   <tr>
     <td>IMap's Event Journal</td>
@@ -159,11 +159,11 @@ stored on it.
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/event-journal/src/main/java/StreamEventJournal.java">Sample (Core API)</a>
     </td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
   </tr>
   <tr>
     <td>ICache's Event Journal</td>
@@ -171,11 +171,11 @@ stored on it.
     </td>
     <td>
     </td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
   </tr>
   <tr>
     <td>Event Journal of IMap in another cluster</td>
@@ -183,11 +183,11 @@ stored on it.
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/event-journal/src/main/java/StreamRemoteEventJournal.java">Sample (Core API)</a>
     </td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">❌</td>
   </tr>
   <tr>
     <td>Event Journal of ICache in another cluster</td>
@@ -195,11 +195,11 @@ stored on it.
     </td>
     <td>
     </td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">❌</td>
   </tr>
   <tr>
     <td>IList</td>
@@ -209,11 +209,11 @@ stored on it.
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/ListSourceSink.java">Sample</a>
     </td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">❌</td>
   </tr>
   <tr>
     <td>IList in another cluster</td>
@@ -223,11 +223,11 @@ stored on it.
     </td>
     <td>
     </td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">❌</td>
   </tr>
   <tr>
     <td>HDFS</td>
@@ -237,11 +237,11 @@ stored on it.
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/wordcount-hadoop/src/main/java/HadoopWordCount.java">Sample (Core API)</a>
     </td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
   </tr>
   <tr>
     <td>Kafka</td>
@@ -251,11 +251,11 @@ stored on it.
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/kafka/src/main/java/ConsumeKafka.java">Sample (Core API)</a>
     </td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">❌</td>
   </tr>
   <tr>
     <td>Files</td>
@@ -265,11 +265,11 @@ stored on it.
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/access-log-analyzer/src/main/java/AccessLogAnalyzer.java">Sample</a>
     </td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
   </tr>
   <tr>
     <td>File Watcher</td>
@@ -277,11 +277,11 @@ stored on it.
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/access-stream-analyzer/src/main/java/AccessStreamAnalyzer.java">Sample (Core API)</a>
     </td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
   </tr>
   <tr>
     <td>TCP Socket</td>
@@ -293,11 +293,11 @@ stored on it.
         <br/>
         <a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/socket/src/main/java/WriteTextSocket.java">Sink (Core API)</a>
     </td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
+    <td style="text-align: center">✅</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">❌</td>
   </tr>
   <tr>
     <td>Application Log</td>
@@ -305,10 +305,10 @@ stored on it.
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/enrichment-core-api/src/main/java/HashMapEnrichment.java">Sample (Core API)</a>
     </td>
-    <td align="center">N/A</td>
-    <td align="center">N/A</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-    <td align="center">✅</td>
+    <td style="text-align: center">N/A</td>
+    <td style="text-align: center">N/A</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">❌</td>
+    <td style="text-align: center">✅</td>
   </tr>
 </table>
