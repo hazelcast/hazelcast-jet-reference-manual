@@ -146,7 +146,10 @@ there are two such transforms of special interest: `coGroup` and `hashJoin`.
 [`coGroup`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#coGroup-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation2-)
 is a generalization of `groupBy` to more than one contributing
 data stream. Instead of a single `accumulate` primitive you provide one
-for each input stream so the operation can discriminate between them.
+for each input stream so the operation can discriminate between them. In
+SQL terms it can be intepreted as JOIN coupled with GROUP BY. The JOIN
+condition is constrained to matching on the grouping key.
+
 Here is the example we already used earlier on this page:
 
 ```java
