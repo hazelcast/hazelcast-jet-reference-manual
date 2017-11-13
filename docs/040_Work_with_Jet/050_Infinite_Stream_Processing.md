@@ -42,11 +42,11 @@ unfolding, in near-real time, and the computation itself must deal with
 time explicitly.
 
 Furthermore, in a batch it is obvious when to stop aggregating and emit
-the results: when we have exhausted the whole dataset, but with infinite 
-streams we need a policy on how to select finite chunks whose aggregate
-results we are interested in. This is called _windowing_. We imagine the
-window as a time interval laid over the time axis. A given window
-contains only the events that belong to that interval.
+the results: when we have exhausted the whole dataset. However, with
+infinite streams we need a policy on how to select finite chunks whose
+aggregate results we are interested in. This is called _windowing_. We
+imagine the window as a time interval laid over the time axis. A given
+window contains only the events that belong to that interval.
 
 A very basic type of window is the _tumbling window_, which can be
 imagined to advance by tumbling over each time. There is no overlap

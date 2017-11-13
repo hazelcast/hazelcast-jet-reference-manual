@@ -76,7 +76,7 @@ import static com.hazelcast.jet.Traversers.traverseArray;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 
-public class WordCountRefMan {
+public class HelloWorld {
     public static void main(String[] args) throws Exception {
         // Create the specification of the computation pipeline. Note that it is
         // a pure POJO: no instance of Jet is needed to create it.
@@ -108,8 +108,8 @@ public class WordCountRefMan {
 }
 ```
 
-You should expect to see a lot of logging output from Jet (sent to `stderr`) and two
-lines on `stdout`:
+You should expect to see a lot of logging output from Jet (sent to
+`stderr`) and two lines on `stdout`:
 
 ```text
 Count of hello: 4
