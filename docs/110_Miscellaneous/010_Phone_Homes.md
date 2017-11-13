@@ -1,5 +1,5 @@
 
-(THIS WHOLE SECTION NEEDS TO BE REVIEWED BY JET TEAM)
+(SOME EXTRA INFO NEEDS TO BE ADDED BY JET TEAM)
 
 
 Hazelcast uses phone home data to learn about the usage of Hazelcast Jet.
@@ -51,16 +51,9 @@ following line to your `.bash_profile`:
 export HZ_PHONE_HOME_ENABLED=false
 ```
 
-**Phone Home URLs**
+**Phone Home URL**
 
-For versions 1.x and 2.x: <a href="http://www.hazelcast.com/version.jsp" 
-target="_blank">http://www.hazelcast.com/version.jsp</a>.
-
-For versions 3.x up to 3.6: <a 
-href="http://versioncheck.hazelcast.com/version.jsp" target="_blank">
-http://versioncheck.hazelcast.com/version.jsp</a>.
-
-For versions after 3.6: <a href="http://phonehome.hazelcast.com/ping" 
+<a href="http://phonehome.hazelcast.com/ping" 
 target="_blank">http://phonehome.hazelcast.com/ping</a>.
 
 

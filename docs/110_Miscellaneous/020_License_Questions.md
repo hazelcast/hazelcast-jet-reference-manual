@@ -1,4 +1,3 @@
-!!TO BE REVIEWED!!
 
 Hazelcast Jet is distributed using the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License 2</a>, therefore permissions are granted
 to use, reproduce and distribute it along with any kind of open source and closed source applications.
