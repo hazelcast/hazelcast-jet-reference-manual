@@ -115,7 +115,7 @@ of Jet will feature a fully developed API that supports windowed
 aggregation of infinite streams and we also plan to add more batch
 transforms (`sort` and `distinct` for example).
 
-On the other hand,Jet's core has had full-fledged support for all of the
+On the other hand, Jet's core has had full-fledged support for all of the
 windows described above since version 0.4. You can refer to the
 [Under the Hood](Under_the_Hood) chapter for details on how to create a
 Core API DAG that does infinite stream aggregation.
