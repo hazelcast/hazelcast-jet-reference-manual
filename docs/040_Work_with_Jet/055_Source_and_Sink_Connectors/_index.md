@@ -98,9 +98,9 @@ stored on it.
   </tr>
   <tr>
     <td>IMap</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#map-java.lang.String-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#map-java.lang.String-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-">Source</a>
         <br/>
-        <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#map-java.lang.String-">Sink</a>
+        <a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#map-java.lang.String-">Sink</a>
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/MapSourceAndSink.java">Sample</a>
     </td>
@@ -112,9 +112,9 @@ stored on it.
   </tr>
   <tr>
     <td>ICache</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#cache-java.lang.String-">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#cache-java.lang.String-">Source</a>
         <br/>
-        <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#cache-java.lang.String-">Sink</a>
+        <a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#cache-java.lang.String-">Sink</a>
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/CacheSourceAndSink.java">Sample</a>
     </td>
@@ -126,9 +126,9 @@ stored on it.
   </tr>
   <tr>
     <td>IMap in another cluster</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-">Source</a>
         <br/>
-        <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-">Sink</a>
+        <a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-">Sink</a>
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/RemoteMapSourceAndSink.java">Sample</a>
     </td>
@@ -140,9 +140,9 @@ stored on it.
   </tr>
   <tr>
     <td>ICache in another cluster</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-">Source</a>
         <br/>
-        <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-">Sink</a>
+        <a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-">Sink</a>
     </td>
     <td>
     </td>
@@ -154,7 +154,7 @@ stored on it.
   </tr>
   <tr>
     <td>IMap's Event Journal</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#mapJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#mapJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
         <br/>
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/map-journal-source/src/main/java/MapJournalSource.java">Sample</a>
@@ -167,7 +167,7 @@ stored on it.
   </tr>
   <tr>
     <td>ICache's Event Journal</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#cacheJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#cacheJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
     </td>
     <td>
     </td>
@@ -179,7 +179,7 @@ stored on it.
   </tr>
   <tr>
     <td>Event Journal of IMap in another cluster</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#remoteMapJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteMapJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/map-journal-source/src/main/java/RemoteMapJournalSource.java">Sample</a>
     </td>
@@ -191,7 +191,7 @@ stored on it.
   </tr>
   <tr>
     <td>Event Journal of ICache in another cluster</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#remoteCacheJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteCacheJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a>
     </td>
     <td>
     </td>
@@ -203,9 +203,9 @@ stored on it.
   </tr>
   <tr>
     <td>IList</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#list-java.lang.String-">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#list-java.lang.String-">Source</a>
         <br/>
-        <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#list-java.lang.String-">Sink</a>
+        <a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#list-java.lang.String-">Sink</a>
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/ListSourceAndSink.java">Sample</a>
     </td>
@@ -217,9 +217,9 @@ stored on it.
   </tr>
   <tr>
     <td>IList in another cluster</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-">Source</a>
         <br/>
-        <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-">Sink</a>
+        <a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-">Sink</a>
     </td>
     <td>
     </td>
@@ -231,9 +231,9 @@ stored on it.
   </tr>
   <tr>
     <td>HDFS</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/HdfsSources.html">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSources.html">Source</a>
         <br/>
-        <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/HdfsSinks.html">Sink</a>
+        <a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSinks.html">Sink</a>
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-hadoop/src/main/java/HadoopWordCount.java">Sample</a>
     </td>
@@ -245,9 +245,9 @@ stored on it.
   </tr>
   <tr>
     <td>Kafka</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/KafkaSources.html">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/KafkaSources.html">Source</a>
         <br/>
-        <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/KafkaSinks.html">Sink</a>
+        <a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/KafkaSinks.html">Sink</a>
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/kafka-source/src/main/java/KafkaSource.java">Source</a>
     </td>
@@ -259,9 +259,9 @@ stored on it.
   </tr>
   <tr>
     <td>Files</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-">Source</a>
         <br/>
-        <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-">Sink</a>
+        <a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-">Sink</a>
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/access-log-analyzer/src/main/java/AccessLogAnalyzer.java">Sample</a>
     </td>
@@ -273,7 +273,7 @@ stored on it.
   </tr>
   <tr>
     <td>File Watcher</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-">Source</a>
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/access-stream-analyzer/src/main/java/AccessStreamAnalyzer.java">Sample (Core API)</a>
     </td>
@@ -285,9 +285,9 @@ stored on it.
   </tr>
   <tr>
     <td>TCP Socket</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html#socket-java.lang.String-int-java.nio.charset.Charset-">Source</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#socket-java.lang.String-int-java.nio.charset.Charset-">Source</a>
         <br/>
-        <a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#socket-java.lang.String-int-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-">Sink</a>
+        <a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#socket-java.lang.String-int-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-">Sink</a>
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/socket-connector/src/main/java/StreamTextSocket.java">Source</a>
         <br/>
@@ -301,7 +301,7 @@ stored on it.
   </tr>
   <tr>
     <td>Application Log</td>
-    <td><a href="https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html#writeLogger-com.hazelcast.jet.function.DistributedFunction-">Sink</a>
+    <td><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#writeLogger-com.hazelcast.jet.function.DistributedFunction-">Sink</a>
     </td>
     <td><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/enrichment/src/main/java/Enrichment.java">Sink</a>
     </td>

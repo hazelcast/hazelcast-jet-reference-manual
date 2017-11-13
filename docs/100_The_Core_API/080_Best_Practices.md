@@ -12,7 +12,7 @@ ways to capture the input/output of a vertex and inspect it.
 The first approach is to decorate a vertex declaration with a layer that
 will log all the data traffic going through it. This support is present
 in the
-[`DiagnosticProcessors`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/processor/DiagnosticProcessors.html)
+[`DiagnosticProcessors`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/DiagnosticProcessors.html)
 factory class, which contains the following methods:
 
 * `peekInput()`: logs items received at any edge ordinal.
@@ -54,7 +54,7 @@ developer runs locally in his development environment.
 Since most vertices are implemented to emit the same data stream to all
 attached edges, it is usually possible to attach a diagnostic sink to
 any vertex. For example, Jet's standard
-[`writeFileP()`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/processor/SinkProcessors.html#writeFileP-java.lang.String-)
+[`writeFileP()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/SinkProcessors.html#writeFileP-java.lang.String-)
 sink vertex can be very useful here.
 
 #### Example Usage
@@ -79,12 +79,12 @@ output of all the processors on all the members saved on a single member
 ## How to Unit-Test a Processor
 
 We provide some utility classes to simplify writing unit tests for your custom processors. You can find them in the
-[`com.hazelcast.jet.core.test`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/test/package-summary.html)
+[`com.hazelcast.jet.core.test`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/package-summary.html)
 package. Using these utility classes you can unit test your processor by
 passing it some input items and asserting the expected output.
 
 Start by calling
-[`TestSupport.verifyProcessor()`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/test/TestSupport.html#verifyProcessor-com.hazelcast.jet.core.ProcessorSupplier-)
+[`TestSupport.verifyProcessor()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/TestSupport.html#verifyProcessor-com.hazelcast.jet.core.ProcessorSupplier-)
 by passing it a processor supplier or a processor instance.
 
 The test process does the following:

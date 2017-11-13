@@ -3,7 +3,7 @@ You can configure Hazelcast Jet either programmatically or declaratively (XML).
 ## Programmatic Configuration
 
 Programmatic configuration is the simplest way to configure Jet. You instantiate a
-[`JetConfig`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/config/JetConfig.html)
+[`JetConfig`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JetConfig.html)
 object and set the desired properties. For example, the following will
 configure Jet to use only two threads for cooperative execution:
 

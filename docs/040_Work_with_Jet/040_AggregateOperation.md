@@ -1,4 +1,4 @@
-[`AggregateOperation`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html)
+[`AggregateOperation`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html)
 is a holder of five functional primitives Jet uses to evaluate an
 aggregate function over a set of data items:
 
@@ -20,10 +20,10 @@ makes the computation significantly cheaper.
 
 Let's see how this works on a basic example: counting the items. We need
 a mutable object that holds the count. Jet's library contains the
-[`com.hazelcast.jet.accumulator`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/accumulator/package-summary.html)
+[`com.hazelcast.jet.accumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/package-summary.html)
 package with objects designed to be used as accumulators and one of them
 is 
-[`LongAccumulator`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/accumulator/LongAccumulator.html).
+[`LongAccumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/LongAccumulator.html).
 Using it we can express our `accumulate` primitive as `(longAcc, x) ->
 longAcc.add(1)`. Since we want the standard `Long` as the aggregation
 result, we can define the `finish` primitive as `LongAccumulator::get`.

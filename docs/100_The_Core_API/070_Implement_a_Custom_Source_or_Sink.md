@@ -26,7 +26,7 @@ These are the steps taken to create and initialize a Jet job:
    execution.
 
 The most visible consequence of the above process is the
-[`ProcessorMetaSupplier`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html)
+[`ProcessorMetaSupplier`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html)
 type: one must be provided for each `Vertex`. In Step 3, the coordinator
 deserializes the meta-supplier as a constituent of the `DAG` and asks it
 to create `ProcessorSupplier` instances which go into the execution

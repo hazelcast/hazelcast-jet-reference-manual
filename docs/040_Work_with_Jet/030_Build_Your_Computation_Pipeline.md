@@ -5,7 +5,7 @@
 The general shape of any data processing pipeline is `drawFromSource ->
 transform -> drainToSink` and the natural way to build it is from source
 to sink. The 
-[Pipeline](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Pipeline.html)
+[Pipeline](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Pipeline.html)
 API follows this pattern. For example,
 
 ```java
@@ -62,13 +62,13 @@ contents and their event journal as an infinite source
   file contents and an infinite source of append events to the files
 
 You can access most of them via the
-[`Sources`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sources.html)
+[`Sources`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html)
 and
-[`Sinks`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/Sinks.html)
+[`Sinks`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html)
 utility classes. 
-[Kafka](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/KafkaSources.html)
+[Kafka](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/KafkaSources.html)
 and
-[HDFS](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/HdfsSources.html)
+[HDFS](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSources.html)
 connectors are in their separate modules.
 
 There's a [dedicated section](More_on_Sources_and_Sinks) that discusses
@@ -79,10 +79,10 @@ the topic of data sources and sinks in more detail.
 The simplest kind of transformation is one that can be done on each item
 individually and independent of other items. The major examples are
 
-[`map`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#map-com.hazelcast.jet.function.DistributedFunction-),
-[`filter`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#filter-com.hazelcast.jet.function.DistributedPredicate-)
+[`map`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#map-com.hazelcast.jet.function.DistributedFunction-),
+[`filter`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#filter-com.hazelcast.jet.function.DistributedPredicate-)
 and
-[`flatMap`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#flatMap-com.hazelcast.jet.function.DistributedFunction-).
+[`flatMap`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#flatMap-com.hazelcast.jet.function.DistributedFunction-).
 We already saw them in use in the previous examples. `map` transforms
 each item to another item; `filter` discards items that don't match its
 predicate; and `flatMap` transforms each item into zero or more output
@@ -91,7 +91,7 @@ items.
 ### groupBy
 
 Stepping up from the simplest transforms we come to
-[`groupBy`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#groupBy-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation1-),
+[`groupBy`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#groupBy-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation1-),
 the quintessential finite stream transform. It groups the data items by
 a key computed for each item and performs an aggregate operation over
 all the items in a group. The output of this transform is one
@@ -111,7 +111,7 @@ aggregate operation. In this case the key function is a trivial identity
 because we use the word itself as the grouping key and the definition of
 the aggregate operation hides behind the `counting()` method call. This
 is a static method in our
-[`AggregateOperations`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/aggregate/AggregateOperations.html)
+[`AggregateOperations`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperations.html)
 utility class and its simplified definition would look like this:
 
 ```java
@@ -134,7 +134,7 @@ allow Jet's fully generic aggregation engine to implement the operation.
 The `AggregateOperations` class contains quite a few ready-made
 aggregate operations, but you should be able to specify your custom ones
 without too much trouble. You should study the Javadoc of
-[`AggregateOperation`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html)
+[`AggregateOperation`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html)
 if you need to write one.
 
 A more complex variety of pipeline transforms are those that merge
@@ -143,7 +143,7 @@ there are two such transforms of special interest: `coGroup` and `hashJoin`.
 
 ### coGroup
 
-[`coGroup`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#coGroup-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation2-)
+[`coGroup`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#coGroup-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation2-)
 is a generalization of `groupBy` to more than one contributing
 data stream. Instead of a single `accumulate` primitive you provide one
 for each input stream so the operation can discriminate between them.
@@ -184,7 +184,7 @@ weighted so that each of its items is worth ten items from stream 0.
 #### coGroup Builder
 
 If you need to co-group more than three streams, you'll have to use the
-[co-group builder](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#coGroupBuilder-com.hazelcast.jet.function.DistributedFunction-)
+[co-group builder](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#coGroupBuilder-com.hazelcast.jet.function.DistributedFunction-)
 object. For example, your goal may be correlating events coming from
 different systems, where all the systems serve the same user base. In an
 online store you may have separate streams for product page visits,
@@ -223,7 +223,7 @@ ComputeStage<Tuple2<Long, long[]>> coGrouped = b.build(AggregateOperation
 
 ### hashJoin
 
-[`hashJoin`](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#hashJoin-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-)
+[`hashJoin`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#hashJoin-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-)
 is a specialization of a general "join" operation, optimized for the use
 case of _data enrichment_. In this scenario there is a single,
 potentially infinite data stream (the _primary_ stream), that goes
@@ -285,7 +285,7 @@ the RAM requirements for a hash-join operation.
 You can hash-join a stream with up to two enriching streams using the
 API we demonstrated above. If you have more than two enriching streams,
 you'll use the
-[hash-join builder](https://hazelcast-l337.ci.cloudbees.com/view/Jet/job/Jet-javadoc/javadoc/com/hazelcast/jet/ComputeStage.html#hashJoinBuilder--).
+[hash-join builder](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#hashJoinBuilder--).
 For example, you may want to enrich a trade with its associated product,
 broker, and market:
 
