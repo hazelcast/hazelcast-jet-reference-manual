@@ -49,42 +49,13 @@
     }
     ?>
 
-    <!-- jQuery -->
-    <script src="<?= $base_url; ?>themes/daux/js/jquery-1.11.3.min.js"></script>
-
-    <!-- hightlight.js -->
-    <script src="<?= $base_url; ?>themes/daux/js/highlight.pack.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
-
-    <!-- JS -->
-    <?php foreach ($params['theme']['js'] as $js) {
-        echo '<script src="' . $js . '"></script>';
-    } ?>
-
+    <script src="<?= $base_url; ?>themes/daux/js/jquery-1.12.4.min.js"></script>
+    <script src="<?= $base_url; ?>themes/daux/js/highlight-9.12.0.min.js"></script>
+    <script type="text/javascript" src="<?= $base_url; ?>themes/daux/js/anchor-4.1.0.min.js"></script>
     <script src="<?= $base_url; ?>themes/daux/js/daux.js"></script>
-
-    <?php if ($params['html']['search']) {
-        ?>
-        <!-- Tipue Search -->
-        <script type="text/javascript" src="<?php echo $base_url; ?>tipuesearch/tipuesearch.js"></script>
-
-        <script>
-            window.onunload = function(){}; // force $(document).ready to be called on back/forward navigation in firefox
-            $(function() {
-                tipuesearch({
-                    'base_url': '<?php echo $base_url?>'
-                });
-            });
-        </script>
-    <?php
-
-    } ?>
-
-        <script type="text/javascript" src="<?= $base_url; ?>themes/daux/js/anchor.js"></script>
-        <script type="text/javascript">
-             anchors.add();
-        </script>
-
-
+    <script type="text/javascript">
+         hljs.initHighlightingOnLoad();
+         anchors.add();
+    </script>
 </body>
 </html>
