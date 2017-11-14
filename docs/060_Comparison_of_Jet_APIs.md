@@ -1,10 +1,21 @@
-## Comparison of Jet APIs
+Hazelcast Jet defines several kinds of API, each of which can be used to
+build comptutation jobs. However, there are significant differences between them.
 
-Jet provides several APIs which can be used to execute jobs. All APIs
-are compiled down to the Core API before being executed. Both pipeline
-and java.util.stream APIs are built on top of the Core API.
+The most fundamental API is the Core API. All the other APIs are
+different front ends to it. It establishes strong low-level abstractions
+that expose all the mechanics of Jet's computation. While it can
+definitely be used to build a Jet job "from scratch", it is quite
+unwieldy to do so because for many aspects there is only one right way
+to set them up and many wrong ones.
 
-This chart summarizes the main differences between them:
+This is where the high-level APIs come in: they give you less control,
+but allow you to express your business logic in a far more concise and
+readable form. Your first choice to implement a Jet job should be the Pipeline API. It is powerful and expressive, yet quite simple to grasp and become productive in. 
+
+The second choice is Jet's implementation of the java.util.stream API, which some users already familiar with the JDK implementation may find appealing. However, it is less expressive and also suffers from a paradigm mismatch: it promises to deliver the job's result in the return value, which is a cumbersome way to interact with a distributed computation system. The return value's scope is restricted to the scope of the Java variable that holds it, but the actual results remain in the Jet cluster, leading even to possible memory leaks if not handled with
+care.
+
+This chart summarizes the main differences between the APIs.
 
 <table>
 	<tr>
@@ -14,16 +25,16 @@ This chart summarizes the main differences between them:
 		<th style="width: 30%">Core API (DAG)</th>
 	</tr>
 	<tr>
-		<td>Use for</td>
-		<td>Building rich bounded and unbounded data pipelines on a variety of sources and sinks.</td>
+		<td>Use cases</td>
+		<td>Build rich data pipelines on a variety of sources and sinks.</td>
 		<td>Simple transform and reduce operations on top of IMap and IList.</td>		
 		<td>
 <ul>
-<li>Building custom sources and sinks</li>
-<li>Integration with other libraries or frameworks</li>
+<li>Implement a custom source or sink</li>
+<li>Integrate with other libraries or frameworks</li>
 <li>Low-level control over data flow</li>
-<li>Fine-tuning performance.</li>
-<li>Building DSLs</li>
+<li>Fine-tune performance</li>
+<li>Build a DSL</li>
 </ul>
 </p>
 </td>
