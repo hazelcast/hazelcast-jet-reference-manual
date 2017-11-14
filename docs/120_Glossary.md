@@ -1,12 +1,29 @@
-<table>
-<tr><th>Term</th><th>Definition</th>
-</tr><tr><td><b>
+<table><tr><th>
+Term
+</th><th>
+Definition
+</th></tr><tr><td><b>
+
+Accumulation
+</b></td><td>
+The act of building up an intermediate result inside a mutable object
+(called the _accumulator_) as a part of performing an aggregate
+operation. After all accumulation is done, a _finishing_ function is
+applied to the object to produce the result of the operation.
+</td></tr><tr><td><b>
 
 Aggregate Operation
 </b></td><td>
 A set of functional primitives that instructs Jet how to calculate some
 aggregate function over one or more data sets. Used in the group-by,
 co-group and windowing transforms.
+</td></tr><tr><td><b>
+
+Aggregation
+</b></td><td>
+The act of applying an _aggregate function_ to a stream of items. The
+result of the function can be simple, like a sum or average, or complex,
+like a collection of all aggregated items.
 </td></tr><tr><td><b>
 
 At-Least-Once Processing Guarantee
@@ -25,6 +42,17 @@ Client Server Topology
 </b></td><td>Hazelcast topology where members run outside the user
 application and are connected to clients using client libraries. The
 client library is installed in the user application.
+</td></tr><tr><td><b>
+
+Co-Grouping
+</b></td><td>
+An operation that is a mix of an SQL JOIN and GROUP BY with specific
+restrictions. Sometimes called a "stream join". Each item of each stream
+that is being joined must be mapped to its grouping key. All items with
+the same grouping key (from all streams) are aggregated together into a
+single result. However, the result can be structured and preserve all 
+input items separated by their stream of origin. In that form the
+operation effectively becomes a pure JOIN with no aggregation.
 </td></tr><tr><td><b>
 
 DAG
@@ -62,10 +90,23 @@ The system guarantees that it will process each item of the input
 stream(s) and will never process an item more than once.
 </td></tr><tr><td><b>
 
-Hazelcast Jet Cluster
+Fault Tolerance
 </b></td><td>
-A virtual distributed environment formed by Hazelcast Jet members
-communicating with each other in a cluster.
+The property of a distributed comptutation system that gives it
+resilience to changes in the topology of the cluster running the
+computation. If a member leaves the cluster, the system adapts to the
+change and resumes the computation without loss.
+</td></tr><tr><td><b>
+
+Hash-Join
+</b></td><td>
+A special-purpose stream join optimized for the use case of data
+enrichment. Each item of the _primary_ stream is joined with one item
+from each of the _enriching_ streams. Items are matched by the join key.
+The name "hash-join" stems from the fact that the contents of the
+enriching streams are held in hashtables for fast lookup. Hashtables are
+replicated on each cluster member, which is why this operation is also
+known as a "replicated join".
 </td></tr><tr><td><b>
 
 Hazelcast IMDG
@@ -91,6 +132,23 @@ specifying what to do. A distributed array of Jet processors performs
 the computation.
 </td></tr><tr><td><b>
 
+Kafka
+</b></td><td>
+Apache Kafka is a product that offers a distributed publish-subscribe
+message queue with guarantees of delivery and message persistence. The
+most commonly used component over which heterogenous distributed
+systems exchange data.
+</td></tr><tr><td><b>
+
+Latency
+</b></td><td>
+The time that passes from the occurrence of an event that triggers some
+response to the occurrence of the response. In the case of Hazelcast
+Jet's stream processing, latency refers to the time that passes from the
+point in time the last item that belongs to a window enters the system
+to the point where the result for that window appears in the output.
+</td></tr><tr><td><b>
+
 Member
 </b></td><td>
 A Hazelcast Jet instance (node) that is a member of a cluster. A single
@@ -98,13 +156,32 @@ JVM can host one or more Jet members, but in production there should be
 one member per physical machine.
 </td></tr><tr><td><b>
 
-Partition
+Partition (Data)
 </b></td><td>
 To guarantee that all items with the same grouping key are processed by
 the same processor, Hazelcast Jet uses a total surjective function to
 map each data item to the ID of its partition and assigns to each
 processor its unique subset of all partition IDs. A partitioned edge
 then routes all items with the same partition ID to the same processor.
+</td></tr><tr><td><b>
+
+Partition (Network)
+</b></td><td>
+A malfunction in network connectivity that splits the cluster into two
+or more parts that are mutually unreachable, but the connections among
+nodes within each part remain intact. May cause each of the parts to
+behave as if it was "the" cluster that lost the other members. Also
+known as "split brain".
+</td></tr><tr><td><b>
+
+Pipeline
+</b></td><td>
+Hazelcast Jet's name for the high-level description of a computation job
+constructed using the Pipeline API. Topologically it is a DAG, but the
+vertices have different semantics than the Core API vertices and are
+called _pipeline stages_. Edges are implicit and not expressed in the
+API. Each stage (except for source/sink stages) has an associated
+_transform_ that it performs on its input data.
 </td></tr><tr><td><b>
 
 Processor
@@ -147,12 +224,36 @@ data. Hazelcast Jet uses a _sink connector_ to access the resource.
 Alternatively, _sink_ may refer to the vertex that hosts the connector.
 </td></tr><tr><td><b>
 
+Skew
+</b></td><td>
+A generalization of the term "clock skew" applied to distributed stream
+processing. In this context it refers to the deviation in _event time_
+as opposed to wall-clock time in the classical usage. Several substreams
+of a distributed stream may at the same time emit events with timestamps
+differing by some delta, due to various lags that accumulate in the
+delivery pipeline for each substream. This is called _stream skew_.
+_Event skew_ refers to the disorder within a substream, where data items
+appear out of order with respect to their timestamps.
+</td></tr><tr><td><b>
+
+Split Brain
+</b></td><td>
+A popular name for a _network partition_, which see above.
+</td></tr><tr><td><b>
+
 Stream Processing
 </b></td><td>
 The act of processing an infinite stream of data, typically implying
 that the data is processed as soon as it appears. Such a processing job
 must explicitly deal with the notion of time in order to make sense of
 the data. It achieves this with the concept of _windowing_.
+</td></tr><tr><td><b>
+
+Throughput
+</b></td><td>
+A measure for the volume of data a system is capable of processing per
+unit of time. Typical ways to express it for Hazelcast Jet are in terms
+of events per second and megabytes per second.
 </td></tr><tr><td><b>
 
 Tumbling Window
