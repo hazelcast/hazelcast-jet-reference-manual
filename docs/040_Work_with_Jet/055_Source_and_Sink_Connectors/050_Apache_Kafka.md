@@ -1,4 +1,8 @@
-Apache Kafka can be used as both a streaming source and a sink for Jet.
+Apache Kafka is a production-worthy choice of both source and sink
+for infinite stream processing jobs. It supports fault tolerance and
+snapshotting. The basic paradigm is that of a distributed
+publish/subscribe message queue. Jet's Kafka Source subscribes to a
+Kafka topic and the sink publishes events to a Kafka topic.
 
 The following code will consume from topics `t1` and `t2` and then write to
 `t3`:
@@ -18,43 +22,40 @@ p.drawFrom(KafkaSources.kafka(props, "t1", "t2"))
 
 ### Using Kafka as a Source
 
-When used as a streaming source, the Kafka source emits entries of
-type `Map.Entry<Key,Value>` which can be transformed using an optional
-mapping function. A Kafka source never terminates until the job is
-explicitly cancelled or there is some other failure.
+The Kafka source emits entries of type `Map.Entry<Key,Value>` which
+can be transformed using an optional mapping function. It never
+completes. The job will end only if explicitly cancelled or aborted
+due to an error.
 
-Internally, a `KafkaConsumer` is created per `Processor` instance using the
-supplied properties. Jet uses manual partition assignment to allocate
-available Kafka partitions among the available processors and the
-`group.id` property will be ignored.
+Internally Jet creates one `KafkaConsumer` per `Processor` instance
+using the supplied properties. Jet uses manual partition assignment
+to arrange the available Kafka partitions among the available
+processors and will ignore the `group.id` property.
 
-Currently there is a requirement that the global parallelism of the Kafka
-source should not be more than the number of partitions you are
-subscribing to. If the parallelism of the Kafka source is `2` and
-you have `4` nodes, this means that a minimum of `8` Kafka partitions
-should be available.
+Currently there is a requirement that the global parallelism of the
+Kafka source be at most the number of partitions you are subscribing
+to. The local parallelism of the Kafka source is 2 and if your Jet
+cluster has 4 members, this means that a minimum of 8 Kafka
+partitions must be available.
 
-If any new partitions are added while the job is running, these will
-be automatically assigned to one of the existing processors and consumed
-from the beginning of the partition.
+If any new partitions are added while the job is running, Jet will
+automatically assign them to the existing processors and consume
+them from the beginning.
 
 ### Processing Guarantees
 
-The Kafka source supports snapshots. On each snapshot, the current offset
-for each partition is saved. When a job is restarted from a snapshot
-the processor can continue reading from the saved offset.
+The Kafka source supports snapshots. Upon each snapshot it saves the
+current offset for each partition. When the job is restarted from a
+snapshot, the source can continue reading from the saved offset.
 
-If snapshots are disabled, then the processor will commit the offset on the
-Kafka cluster instead, however the offset being committed does not give
-any guarantees that the event has been processed through the whole
-Jet pipeline, only that it has been read by the processor.
+If snapshots are disabled, the source will commit the offset of the
+last record it read to the Kafka cluster. Since the fact that the
+source read an item doesn't mean that the whole Jet pipeline
+processed it, this doesn't guarantee against data loss.
 
 ### Using Kafka as a Sink
 
-When used as a sink, a `KafkaProducer` is created per node with the
-supplied properties and shared among the processor instances running
-on that node.
-
-It's possible to provide a mapping function that creates `ProducerRecord`
-based on incoming items or use the other overloads which simply take
-a topic name.
+The Kafka sink creates one `KafkaProducer` per cluster member and
+shares it among all the sink processors on that member. You can
+provide a mapping function that transforms the items the sink
+receives into `ProducerRecord`s.

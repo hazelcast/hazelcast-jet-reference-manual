@@ -1,4 +1,7 @@
-Jet provides both a source and sink for HDFS.
+The Hadoop Distributed File System is a production-worthy choice for
+both a data source and sink in a batch computation job. It is a
+distributed, replicated storage system that handles these concerns
+automatically, exposing a simple unified view to the client.
 
 The HDFS source and sink require a configuration object of type
 [JobConf](https://hadoop.apache.org/docs/r2.7.3/api/org/apache/hadoop/mapred/JobConf.html)
