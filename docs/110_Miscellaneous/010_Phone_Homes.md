@@ -1,11 +1,7 @@
-
-(SOME EXTRA INFO NEEDS TO BE ADDED BY JET TEAM)
-
-
 Hazelcast uses phone home data to learn about the usage of Hazelcast Jet.
 
-Hazelcast Jet instances call our phone home server initially when they 
-are started and then every 24 hours. This applies to all the instances 
+Hazelcast Jet instances call our phone home server initially when they
+are started and then every 24 hours. This applies to all the instances
 joined to the cluster.
 
 **What is sent in?**
@@ -14,7 +10,7 @@ The following information is sent in a phone home:
 
 - Hazelcast Jet version
 - Local Hazelcast Jet member UUID
-- Download ID 
+- Download ID
 - A hash value of the cluster ID
 - Cluster size bands for 5, 10, 20, 40, 60, 100, 150, 300, 600 and > 600
 - Number of connected clients bands of 5, 10, 20, 40, 60, 100, 150, 300, 600 and > 600
@@ -26,25 +22,25 @@ The following information is sent in a phone home:
 	- Version of operating system
 	- Version of installed Java
 	- Name of Java Virtual Machine
-- Hazelcast IMDG Enterprise specific: 
+- Hazelcast IMDG Enterprise specific:
 	- Number of clients by language (Java, C++, C#)
-	- Flag for Hazelcast Enterprise 
+	- Flag for Hazelcast Enterprise
 	- Hash value of license key
 	- Native memory usage
 
 **Phone Home Code**
 
-The phone home code itself is open source. Please see <a 
-href="https://github.com/hazelcast/hazelcast/blob/master/hazelcast/src/main/java/com/hazelcast/util/PhoneHome.java" 
+The phone home code itself is open source. Please see <a
+href="https://github.com/hazelcast/hazelcast/blob/master/hazelcast/src/main/java/com/hazelcast/util/PhoneHome.java"
 target="_blank">here</a>.
 
 **Disabling Phone Homes**
 
-Set the `hazelcast.phone.home.enabled` system property to false either 
+Set the `hazelcast.phone.home.enabled` system property to false either
 in the config or on the Java command line.
 
-Starting with Hazelcast Jet 0.5, you can also disable the phone home 
-using the environment variable `HZ_PHONE_HOME_ENABLED`. Simply add the 
+Starting with Hazelcast Jet 0.5, you can also disable the phone home
+using the environment variable `HZ_PHONE_HOME_ENABLED`. Simply add the
 following line to your `.bash_profile`:
 
 ```
@@ -53,7 +49,6 @@ export HZ_PHONE_HOME_ENABLED=false
 
 **Phone Home URL**
 
-<a href="http://phonehome.hazelcast.com/ping" 
+The URL used for phone home requests is
+<a href="http://phonehome.hazelcast.com/ping"
 target="_blank">http://phonehome.hazelcast.com/ping</a>.
-
-

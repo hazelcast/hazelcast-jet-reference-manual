@@ -1,7 +1,8 @@
 Hazelcast Jet provides a few connectors that have limited production
 use, but are simple and can be very useful in an early rapid prototyping
 phase. These are the connectors for the local file system and TCP/IP
-sockets. They assume the data is in the form of plain text and emit/receive data items which represent individual lines of text.
+sockets. They assume the data is in the form of plain text and
+emit/receive data items which represent individual lines of text.
 
 Some of these sources are infinite, but when used in a stream processing
 job they don't offer any fault tolerance because they are not
@@ -10,7 +11,11 @@ replayable: it just reads the same files again.
 
 # File
 
-These connectors work with a directory in the file system on each member. Since each member has its own file system, these are to some extent distributed sources and sinks; however there is no unified view of all the data on all members. The user must manually distribute the source data and collect the sink data from all the cluster members.
+These connectors work with a directory in the file system on each member.
+Since each member has its own file system, these are to some extent
+distributed sources and sinks; however there is no unified view of all
+the data on all members. The user must manually distribute the source
+data and collect the sink data from all the cluster members.
 
 ## Source
 
@@ -28,13 +33,14 @@ is deleted.
 
 ## Sink
 
-The 
+The
 [`Sources.files()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-)
 sink writes output to several files in the configured directory. Each
 undelying processor writes to its own file to avoid contention.
 
 The file sink only guarantees that items have been flushed to the
-operating system on a snapshot, but it doesn't guarantee that the content is actually written to disk.
+operating system on a snapshot, but it doesn't guarantee that the
+content is actually written to disk.
 
 The socket source can be used to receive text input over a network socket.
 
