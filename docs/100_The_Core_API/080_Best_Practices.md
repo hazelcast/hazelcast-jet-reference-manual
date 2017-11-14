@@ -1,3 +1,5 @@
+[TOC]
+
 ## Inspecting Processor Input and Output
 
 The structure of the DAG model is a very poor match for Java's type
