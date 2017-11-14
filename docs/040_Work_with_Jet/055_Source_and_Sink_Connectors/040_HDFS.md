@@ -1,5 +1,3 @@
-## HDFS
-
 Jet provides both a source and sink for HDFS.
 
 The HDFS source and sink require a configuration object of type

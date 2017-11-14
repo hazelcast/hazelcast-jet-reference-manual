@@ -1,5 +1,3 @@
-## Apache Kafka
-
 Apache Kafka can be used as both a streaming source and a sink for Jet.
 
 The following code will consume from topics `t1` and `t2` and then write to
