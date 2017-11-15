@@ -112,30 +112,10 @@ because we use the word itself as the grouping key and the definition of
 the aggregate operation hides behind the `counting()` method call. This
 is a static method in our
 [`AggregateOperations`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperations.html)
-utility class and its simplified definition would look like this:
-
-```java
-AggregateOperation
-    .withCreate(LongAccumulator::new)
-    .<String>andAccumulate((count, item) -> count.add(1))
-    .andCombine(LongAccumulator::add)
-    .andFinish(LongAccumulator::get);
-```
-
-This expression constructs an aggregate operation from its primitives:
-`create`, `accumulate`, `combine`, and `finish`. They are similar to,
-but also different from Java Streams'
-[`Collector`](https://docs.oracle.com/javase/9/docs/api/java/util/stream/Collector.html).
-The central primitive is `accumulate`: it contains the main business 
-logic of our aggregation. In this example it simply increments the count
-in the accumulator object. The other primitives must be specified to
-allow Jet's fully generic aggregation engine to implement the operation.
-
-The `AggregateOperations` class contains quite a few ready-made
-aggregate operations, but you should be able to specify your custom ones
-without too much trouble. You should study the Javadoc of
-[`AggregateOperation`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html)
-if you need to write one.
+utility class, which provides you with some predefined aggregate
+operations. You can also implement your own aggregate operations; please
+refer to the section
+[dedicated to this](Implement_Your_Aggregate_Function).
 
 A more complex variety of pipeline transforms are those that merge
 several input stages into a single resulting stage. In Hazelcast Jet

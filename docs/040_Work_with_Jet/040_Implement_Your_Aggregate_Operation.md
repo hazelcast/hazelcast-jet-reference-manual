@@ -89,6 +89,13 @@ sliding window over an infinite stream, this primitive can give a
 significant performance boost because it allows Jet to reuse the results
 of the previous calculations.
 
+If you happen to have a deeper familiarity with JDK's java.util.stream API,
+you'll find `AggregateOperation` quite similar to
+[`Collector`](https://docs.oracle.com/javase/9/docs/api/java/util/stream/Collector.html),
+which is also a holder of several functional primitives. Jet's definitions
+are slightly different, though, and ther's also the additional `deduct`
+primitive.
+
 Let's see how this works with our `average` function. First we'll choose
 the accumulator object. Jet's library contains the
 [`com.hazelcast.jet.accumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/package-summary.html)
