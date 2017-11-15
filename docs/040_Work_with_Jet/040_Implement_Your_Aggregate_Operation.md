@@ -25,12 +25,12 @@ numbers: `{17, 37, 5, 11, 42}`, you can sum up `{17, 5}` separately from
 `{42, 11, 37}` and then combine the partial sums (also note the
 reordering of the elements).
 
-Something just slightly more complex, like `average`, doesn't by itself
-have this property, however if you add one more ingredient, the `finish`
+If you need something more complex, like `average`, it doesn't by itself
+have this property; however if you add one more ingredient, the `finish`
 function, you can express it easily. Jet allows you to first compute
 some CA function, whose partial results can be combined, and then at the
 very end apply the `finish` function on the fully combined result. To
-compute the `average`, your CA function will output a pair of `(sum,
+compute the `average`, your CA function will output the pair `(sum,
 count)`. Two such pairs are trivial to combine by summing each
 component. The `finish` function will be `sum / count`.
 
@@ -68,11 +68,25 @@ public class AvgAccumulator {
 }
 ```
 
+This object will also have to be serializable, and preferrably with
+Hazelcast's serialization instead of Java's because in a group-by
+operation there's one accumulator per each key and all of them have to
+be sent across the network to be combined and finished.
+
 Instead of requiring you to write a complete class from scratch, Jet
-instead requires you to provide a set of five functions (we call them
-"primitives") which allow you to reuse basic accumulator objects across
-many different aggregate functions. The `AggregateOperation` type is a
-of five functional primitives:
+separates the concern of holding the accumulated state from that of the
+computation performed on it. This means that you just need one
+accumulator class per the kind of structure that holds the accumulated
+data, as opposed to one per each aggregate operation. Jet's library
+offers in the
+[`com.hazelcast.jet.accumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/package-summary.html)
+package several such classes, one of them being
+[`LongLongAccumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/LongLongAccumulator.html),
+which is a match for our `average` function. You'll just have to supply
+the logic on top of it.
+
+Specifically, you have to provide a set of five functions (we call them
+"primitives"):
 
 - `create` a new accumulator object.
 - `accumulate` the data of an item by mutating the accumulator's state.
@@ -89,20 +103,15 @@ sliding window over an infinite stream, this primitive can give a
 significant performance boost because it allows Jet to reuse the results
 of the previous calculations.
 
-If you happen to have a deeper familiarity with JDK's java.util.stream API,
-you'll find `AggregateOperation` quite similar to
+If you happen to have a deeper familiarity with JDK's java.util.stream
+API, you'll find `AggregateOperation` quite similar to
 [`Collector`](https://docs.oracle.com/javase/9/docs/api/java/util/stream/Collector.html),
-which is also a holder of several functional primitives. Jet's definitions
-are slightly different, though, and ther's also the additional `deduct`
-primitive.
+which is also a holder of several functional primitives. Jet's
+definitions are slightly different, though, and there's also the
+additional `deduct` primitive.
 
-Let's see how this works with our `average` function. First we'll choose
-the accumulator object. Jet's library contains the
-[`com.hazelcast.jet.accumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/package-summary.html)
-package with objects designed to be used as accumulators and one of them
-is 
-[`LongLongAccumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/LongLongAccumulator.html).
-Using it we can express our `accumulate` primitive as 
+Let's see how this works with our `average` function. Using
+`LongLongAccumulator` we can express our `accumulate` primitive as
 
 ```java
 (acc, n) -> {
@@ -119,8 +128,9 @@ acc -> (double) acc.getValue1() / acc.getValue2()
 
 Now we have to define the other three primitives to match our main
 logic. For `create` we just refer to the constructor:
-`LongAccumulator::new`. The `combine` primitive expects you to update
-the left-hand accumulator with the contents of the right-hand one, so:
+`LongLongAccumulator::new`. The `combine` primitive expects you to
+update the left-hand accumulator with the contents of the right-hand
+one, so:
 
 ```java
 (left, right) -> {
