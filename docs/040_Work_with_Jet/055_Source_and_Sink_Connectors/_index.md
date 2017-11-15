@@ -1,6 +1,6 @@
-In an [earlier section](Build_Your_Computation_Pipeline) we briefly
+In an [earlier section](../Build_Your_Computation_Pipeline) we briefly
 listed the resources you can use as sources and sinks of a Jet job's
-data and where they fit in the general outline of a p. Now let's
+data and where they fit in the general outline of a pipeline. Now let's
 revisit this topic in more detail.
 
 Jet accesses data sources and sinks via its _connectors_. They are a

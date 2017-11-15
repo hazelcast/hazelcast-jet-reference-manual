@@ -25,7 +25,7 @@ mailing list ](https://groups.google.com/forum/#!forum/hazelcast-jet)
 and [Stack Overflow](https://stackoverflow.com/questions/tagged/hazelcast-jet).
 
 For information on the commercial support for Hazelcast Jet, please see
-[hazelcast.com](https://hazelcast.com/pricing/).
+[hazelcast.com](https://hazelcast.com/pricing/hazelcast-jet-annual-subscription-plans).
 
 ## Typographical Conventions
 
