@@ -1,6 +1,76 @@
-[`AggregateOperation`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html)
-is a holder of five functional primitives Jet uses to evaluate an
-aggregate function over a set of data items:
+The single most important kind of processing Jet does is aggregation. In
+general it is a transformation of a set of input values into a single
+output value. The function that does this transformation is called the
+"aggregate function". A basic example is `sum` applied to a set of
+integer numbers, but the result can also be a complex value, for example
+a list of all the input items.
+
+Jet exposes an abstraction, called
+[`AggregateOperation`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html),
+that allows you to plug your own aggregate function into Hazelcast Jet.
+Since Jet does the aggregation in a parallelized and distributed way,
+you can't simply supply a piece of Java code that does it; we need you
+to break it down into several smaller pieces that fit into Jet's
+processing engine.
+
+The ability to compute the aggregate function in parallel comes at a
+cost: Jet must be able to give a slice of the total data set to each
+processing unit and then combine the partial results from all the units.
+The combining step is crucial: it will only make sense if we're
+combining the partial results of a _commutative associative_ function
+(CA for short). On the example of `sum` this is trivial: we know from
+elementary school that `+` is a CA operation. If you have a stream of
+numbers: `{17, 37, 5, 11, 42}`, you can sum up `{17, 5}` separately from
+`{42, 11, 37}` and then combine the partial sums (also note the
+reordering of the elements).
+
+Something just slightly more complex, like `average`, doesn't by itself
+have this property, however if you add one more ingredient, the `finish`
+function, you can express it easily. Jet allows you to first compute
+some CA function, whose partial results can be combined, and then at the
+very end apply the `finish` function on the fully combined result. To
+compute the `average`, your CA function will output a pair of `(sum,
+count)`. Two such pairs are trivial to combine by summing each
+component. The `finish` function will be `sum / count`.
+
+In addition to the mathematical side, there is also the practical one:
+you have to provide Jet with a specific mutable object, called the
+`accumulator`, which will keep the "running score" of the operation in
+progress. For the `average` example, it would be something like
+
+```java
+public class AvgAccumulator {
+    private long sum;
+    private long count;
+    
+    public void accumulate(long value) {
+        sum += value;
+        count++;
+    }
+    
+    public void combine(AvgAccumulator that) {
+        this.sum += that.sum;
+        this.count += that.sum;
+    }
+    
+    public double finish() {
+        return (double) sum / count;
+    }
+    
+    public long getSum() { 
+        return sum; 
+    }
+    
+    public long getCount() { 
+        return count; 
+    }
+}
+```
+
+Instead of requiring you to write a complete class from scratch, Jet
+instead requires you to provide a set of five functions (we call them
+"primitives") that achieve the above process. Therefore our
+`AggregateOperation` is actually a holder of five primitives:
 
 - `create` a new accumulator object.
 - `accumulate` the data of an item by mutating the accumulator's state.
@@ -11,12 +81,11 @@ one (undo the effects of `combine`).
 - `finish` accumulation by transforming the accumulator object into the
 final result.
 
-The most important primitives are `accumulate` and `finish`: they
-specify your business logic in the narrow sense. `create`, `combine` and
-`deduct` give Jet the support it needs to manage the accumulators.
-`deduct` is the most specialized one: it's only used in sliding
-window aggregation and even there it's optional. However, its presence
-makes the computation significantly cheaper.
+So far we mentioned all of these except for `deduct`. This one is
+optional and Jet can manage without it, but if you are computing a
+sliding window over an infinite stream, this primitive can give a
+significant performance boost because it allows Jet to reuse the results
+of the previous calculations.
 
 Let's see how this works on a basic example: counting the items. We need
 a mutable object that holds the count. Jet's library contains the
