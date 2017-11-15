@@ -75,7 +75,7 @@ locally.
 
 If you're using `IMap`/`ICache` as data sources, you have two basic
 choices: have Jet connect to a Hazelcast IMDG cluster, or use Jet itself
-to host the data (since a Jet cluster is at the same time a Hazelcest
+to host the data (since a Jet cluster is at the same time a Hazelcast
 IMDG cluster). In the second case Jet will automatically ensure a
 data-local access pattern, but there's a caveat: if the Jet job causes
 an error of unrestricted scope, such as `OutOfMemoryError` or
