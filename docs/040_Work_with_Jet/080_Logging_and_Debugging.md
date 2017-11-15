@@ -26,7 +26,7 @@ JetConfig config = new JetConfig() ;
 config.getHazelcastConfig().setProperty( "hazelcast.logging.type", "log4j" );
 ```
 
-For more detail information about how to configure logging, please refer
+For more detailed information about how to configure logging, please refer
 to the [IMDG reference manual](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#logging-configuration).
 
 ## Inspecting Output of Individual Stages

@@ -33,14 +33,6 @@ Depending on the used features, additional dependencies might be added
 to the dependency set. Those runtime dependencies might have
 other licenses. See the following list of additional runtime dependencies.
 
-### JCache API (JSR 107)
-
-Hazelcast Jet offers a native implementation for JCache (JSR 107),
-which has a runtime dependency to the JCache API.
-
-The JCache API is distributed under the terms of the so called <a href="https://jcp.org/aboutJava/communityprocess/licenses/jsr107/Spec-License-JSR-107-10_22_12.pdf" target="_blank">Specification License</a>).
-Please read carefully the terms of this license since restrictions might apply.
-
 ### Apache Hadoop
 
 Hazelcast integrates with Apache Hadoop and can use it as a data
