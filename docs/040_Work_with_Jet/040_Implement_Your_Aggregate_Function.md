@@ -5,13 +5,14 @@ output value. The function that does this transformation is called the
 integer numbers, but the result can also be a complex value, for example
 a list of all the input items.
 
-Jet exposes an abstraction, called
+Jet's library contains a range of
+[predefined aggregate functions](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperations.html),
+but it also exposes an abstraction, called
 [`AggregateOperation`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html),
-that allows you to plug your own aggregate function into Hazelcast Jet.
-Since Jet does the aggregation in a parallelized and distributed way,
-you can't simply supply a piece of Java code that does it; we need you
-to break it down into several smaller pieces that fit into Jet's
-processing engine.
+that allows you to plug in your own. Since Jet does the aggregation in a
+parallelized and distributed way, you can't simply supply a piece of
+Java code that does it; we need you to break it down into several
+smaller pieces that fit into Jet's processing engine.
 
 The ability to compute the aggregate function in parallel comes at a
 cost: Jet must be able to give a slice of the total data set to each
@@ -69,8 +70,9 @@ public class AvgAccumulator {
 
 Instead of requiring you to write a complete class from scratch, Jet
 instead requires you to provide a set of five functions (we call them
-"primitives") that achieve the above process. Therefore our
-`AggregateOperation` is actually a holder of five primitives:
+"primitives") which allow you to reuse basic accumulator objects across
+many different aggregate functions. The `AggregateOperation` type is a
+of five functional primitives:
 
 - `create` a new accumulator object.
 - `accumulate` the data of an item by mutating the accumulator's state.
@@ -87,51 +89,82 @@ sliding window over an infinite stream, this primitive can give a
 significant performance boost because it allows Jet to reuse the results
 of the previous calculations.
 
-Let's see how this works on a basic example: counting the items. We need
-a mutable object that holds the count. Jet's library contains the
+Let's see how this works with our `average` function. First we'll choose
+the accumulator object. Jet's library contains the
 [`com.hazelcast.jet.accumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/package-summary.html)
 package with objects designed to be used as accumulators and one of them
 is 
-[`LongAccumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/LongAccumulator.html).
-Using it we can express our `accumulate` primitive as `(longAcc, x) ->
-longAcc.add(1)`. Since we want the standard `Long` as the aggregation
-result, we can define the `finish` primitive as `LongAccumulator::get`.
+[`LongLongAccumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/LongLongAccumulator.html).
+Using it we can express our `accumulate` primitive as 
+
+```java
+(acc, n) -> {
+    acc.setValue1(acc.getValue1() + n);
+    acc.setValue2(acc.getValue2() + 1);
+}
+```
+
+The `finish` primitive will be
+
+```java
+acc -> (double) acc.getValue1() / acc.getValue2()
+```
 
 Now we have to define the other three primitives to match our main
 logic. For `create` we just refer to the constructor:
-`LongAccumulator::new`. Combining means adding the value of the
-right-hand accumulator to the left-hand one: `(acc1, acc2) ->
-acc1.add(acc2.get())` or, since `LongAccumulator` has a convenience
-method for this, just `LongAccumulator::add`. Deducting must undo the
-effect of a previous `combine`: `(acc1, acc2) -> acc1.subtract(acc2)` or
-just `LongAccumulator::subtract`.
+`LongAccumulator::new`. The `combine` primitive expects you to update
+the left-hand accumulator with the contents of the right-hand one, so:
+
+```java
+(left, right) -> {
+    left.setValue1(left.getValue1() + right.getValue1();
+    left.setValue2(left.getValue2() + right.getValue2();
+}    
+```
+
+Deducting must undo the effect of a previous `combine`: 
+
+```java
+(left, right) -> {
+    left.setValue1(left.getValue1() - right.getValue1();
+    left.setValue2(left.getValue2() - right.getValue2();
+}    
+```
 
 All put together, we can define our counting operation as follows:
 
 ```java
-AggregateOperation1<Object, LongAccumulator, Long> aggrOp = AggregateOperation
-    .withCreate(LongAccumulator::new)
-    .andAccumulate((acc, x) -> acc.add(1))
-    .andCombine(LongAccumulator::add)
-    .andDeduct(LongAccumulator::subtract)
-    .andFinish(LongAccumulator::get);
+AggregateOperation1<Long, LongLongAccumulator, Double> aggrOp = AggregateOperation
+    .withCreate(LongLongAccumulator::new)
+    .andAccumulate((acc, n) -> {
+        acc.setValue1(acc.getValue1() + n);
+        acc.setValue2(acc.getValue2() + 1);
+    })
+    .andCombine((left, right) -> {
+        left.setValue1(left.getValue1() + right.getValue1();
+        left.setValue2(left.getValue2() + right.getValue2();
+    })
+    .andDeduct((left, right) -> {
+        left.setValue1(left.getValue1() - right.getValue1();
+        left.setValue2(left.getValue2() - right.getValue2();
+    })
+    .andFinish(acc -> (double) acc.getValue1() / acc.getValue2());
 ```
 
 Let's stop for a second to look at the type we got:
-`AggregateOperation1<Object, LongAccumulator, Long>`. Its type
+`AggregateOperation1<Long, LongLongAccumulator, Double>`. Its type
 parameters are:
-1. `Object`: the type of the input item (since we just count them, we
-   can take any object here)
-2. `LongAccumulator`: the type of the accumulator
-3. `Long`: the type of the result
+1. `Long`: the type of the input item
+2. `LongLongAccumulator`: the type of the accumulator
+3. `Double`: the type of the result
 
 If you compare this signature to that of the general
-`AggregateOperation`, you'll see that one only captures the latter two,
-so it lacks type safety with respect to the input type. This is because
-it can be constructed to work with an arbitrary number of input streams.
-`AggregateOperation1` is a specialization that strictly works with one
-input stream and captures its static type. It is used in the `groupBy`
-transform. In an
+`AggregateOperation`, you'll see it only captures the last two
+parameters, so it lacks type safety with respect to the input type. This
+is because it can be constructed to work with an arbitrary number of
+input streams. `AggregateOperation1` is a specialization that strictly
+works with one input stream and captures its static type. It is used in
+the `groupBy` transform. In an
 [earlier section](Build_Your_Computation_Pipeline#page_coGroup)
 we mentioned that you can also co-group two or three streams with full
 type safety. Let's study an example where we're interested in the
@@ -143,8 +176,9 @@ following statistics for each user:
 3. amount payed for bought items
 
 This data is dispersed among separate datasets: `PageVisit`, `AddToCart`
-and `Payment`. We can perform a co-group transform with the following
-aggregate operation:
+and `Payment`. Note that in each case we're dealing with a simple `sum`
+applied to a field in the input item. We can perform a co-group
+transform with the following aggregate operation:
 
 ```java
 AggregateOperation3<PageVisit, AddToCart, Payment, LongAccumulator[], long[]> aggrOp =
