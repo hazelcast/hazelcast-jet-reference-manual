@@ -322,7 +322,7 @@ class WriteFileP extends AbstractProcessor implements Closeable {
 Some comments:
 
 * The constructor declares the processor
-[non-cooperative](Processor#page_Cooperative+Multithreading)
+[non-cooperative](Processor#page_Cooperativeness)
 because it will perform blocking IO operations.
 * `init()` method finds a unique filename for each processor by relying
 on the information reachable from the `Context` object.

@@ -3,7 +3,7 @@
 In this section we'll take a deep dive into the fundamentals of
 distributed computing and Jet's specific take on it. We'll do this by
 dissecting one specific problem: the Word Count. This is how you'd
-describe it in the [Jet Pipeline API](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-pipeline-api/src/main/java/WordCountPipelineApi.java):
+describe it in the [Jet Pipeline API](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount/src/main/java/WordCount.java):
 
 ```java
 Pattern delimiter = Pattern.compile("\\W+");

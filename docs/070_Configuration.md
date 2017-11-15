@@ -69,7 +69,7 @@ The following table lists the configuration elements for Hazelcast Jet:
 |Temp Directory| Directory where temporary files will be placed, such as JAR files submitted by clients.|Jet will create a temp directory, which will be deleted on exit.
 |Flow Control Period| While executing a Jet job there is the issue of regulating the rate at which one member of the cluster sends data to another member. The receiver will regularly report to each sender how much more data it is allowed to send over a given DAG edge. This option sets the length (in milliseconds) of the interval between flow-control packets.|100ms
 |Backup Count|Sets the number of synchronous backups for storing job metadata and snapshots. Maximum allowed value is 6.|1|
-|Edge Defaults|The default values to be used for all edges.|Please see the section on [Tuning Edges](/The_Core_API/DAG#page_Fine-Tuning).
+|Edge Defaults|The default values to be used for all edges.|Please see the section on [Tuning Edges](/The_Core_API/DAG#page_Fine-Tuning+Edges).
 
 ## Configure the Underlying Hazelcast Instance
 

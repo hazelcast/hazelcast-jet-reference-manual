@@ -9,11 +9,11 @@ own with minimum boilerplate.
 The full code is available at the `hazelcast-jet-code-samples`
 repository:
 
-[TfIdfJdkStreams.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
+[TfIdfJdkStreams.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
 
-[TfIdf.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdf.java)
+[TfIdf.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java)
 
-Let us first introduce the problem. The inverted index is a basic data 
+Let us first introduce the problem. The inverted index is a basic data
 structure in the domain of full-text search. First used in the 1950s, it
 is still at the core of modern information retrieval systems such as
 Lucene. The goal is to be able to quickly find the documents that
@@ -87,7 +87,7 @@ will not affect its score.
 To warm us up, let's see what it takes to build the inverted index with
 just thread parallelism and without the ability to scale out across
 many machines. It is expressible in Java Streams API without too much
-work. The full code is [here](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java).
+work. The full code is [here](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java).
 
 We'll start by preparing a `Stream<Entry<Long, String>> docWords`: a
 stream of all the words found in all the documents. We use `Map.Entry` as
@@ -103,7 +103,7 @@ Stream<Entry<Long, String>> docWords = docId2Name
         .flatMap(this::tokenize);
 ```
 
-We know the number of all documents so we can compute `double 
+We know the number of all documents so we can compute `double
 logDocCount`, the logarithm of the document count:
 
 ```java
@@ -155,9 +155,9 @@ private static Entry<Long, Double> tfidfEntry(
 
 The search function can be implemented with another Streams expression,
 which you can review in the
-[SearchGui](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/SearchGui.java)
+[SearchGui](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/SearchGui.java)
 class. You can also run the
-[TfIdfJdkStreams](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
+[TfIdfJdkStreams](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
 class and take the inverted index for a spin, making actual searches.
 
 There is one last concept in this model that we haven't mentioned yet:
@@ -250,7 +250,7 @@ implementation code. Let's start from the source vertex. It is easy,
 just the standard `IMap` reader:
 
 ```java
-dag.newVertex("doc-source", Processors.readMap(DOCID_NAME));
+dag.newVertex("doc-source", SourceProcessors.readMapP(DOCID_NAME));;
 ```
 
 The stopwords-producing processor has custom code, but it's quite
@@ -277,7 +277,7 @@ The `doc-count` processor can be built from the primitives provided in
 Jet's library:
 
 ```java
-dag.newVertex("doc-count", Processors.aggregate(counting()));
+dag.newVertex("doc-count", Processors.aggregateP(counting()));
 ```
 
 The `doc-lines` processor is more of a mouthful, but still built from
@@ -285,8 +285,8 @@ existing primitives:
 
 ```java
 dag.newVertex("doc-lines",
-    Processors.nonCooperative(
-        Processors.flatMap((Entry<Long, String> e) ->
+    Processors.nonCooperativeP(
+        Processors.flatMapP((Entry<Long, String> e) ->
             traverseStream(docLines("books/" + e.getValue())
                            .map(line -> entry(e.getKey(), line))))));
 ```
@@ -355,7 +355,7 @@ place.
 primitives:
 
 ```java
-dag.newVertex("tf", Processors.aggregateByKey(wholeItem(), counting()));
+dag.newVertex("tf", Processors.aggregateByKeyP(wholeItem(), counting()));
 ```
 
 `tf-idf` is the most complex processor:
@@ -432,6 +432,5 @@ that obtains a traverser from a map after it has been populated.
 Finally, our DAG is terminated by a sink vertex:
 
 ```java
-dag.newVertex("sink", Processors.writeMap(INVERTED_INDEX));
+dag.newVertex("sink", SinkProcessors.writeMapP(INVERTED_INDEX));
 ```
-

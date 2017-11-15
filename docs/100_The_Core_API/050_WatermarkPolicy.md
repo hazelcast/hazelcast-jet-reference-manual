@@ -1,5 +1,5 @@
 As mentioned in the
-[Work_with_Jet](/Work_with_Jet/Infinite_Stream_Processing#page_Time+Ordering)
+[Work_with_Jet](/Work_with_Jet/Infinite_Stream_Processing#page_Time+Ordering+and+the+Watermark)
 chapter, determining the watermark is somewhat of a black art; it's
 about superimposing order over a disordered stream of events. We must
 decide at which point it stops making sense to wait even longer for data
@@ -66,7 +66,7 @@ policy is similar to `limitingLagAndDelay` in addressing the stream lull
 problem and goes a step further by addressing the issues of lull combined
 with skew. To achieve this it must introduce an assumption, though: that
 the time unit used for event timestamps is milliseconds. After a given
-period passes with the watermark not being advanced by the arriving data 
+period passes with the watermark not being advanced by the arriving data
 (i.e., a lull happens), it will start advancing it in lockstep with the
 passage of the local system time. The watermark isn't adjusted _towards_
 the local time; the policy just ensures the difference between local time
