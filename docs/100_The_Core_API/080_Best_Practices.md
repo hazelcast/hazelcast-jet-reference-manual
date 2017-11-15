@@ -48,7 +48,7 @@ Vertex combine = dag.newVertex("combine",
 ```
 
 Keep in mind that logging happens on the machine running hosting the
-processor, so this technique is primarily targetted to Jet jobs the
+processor, so this technique is primarily targeted to Jet jobs the
 developer runs locally in his development environment.
 
 ### Attaching a Sink Vertex

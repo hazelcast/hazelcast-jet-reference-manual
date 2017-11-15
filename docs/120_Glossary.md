@@ -92,7 +92,7 @@ stream(s) and will never process an item more than once.
 
 Fault Tolerance
 </b></td><td>
-The property of a distributed comptutation system that gives it
+The property of a distributed computation system that gives it
 resilience to changes in the topology of the cluster running the
 computation. If a member leaves the cluster, the system adapts to the
 change and resumes the computation without loss.

@@ -19,7 +19,7 @@ text. The `sink` vertex writes these lines to a file.
 
 Before we go on, let us point out that in the 0.5 release of Hazelcast
 Jet, the Pipeline API is still in infancy and doesn't support all the
-features needod for stream processing. Therefore the following example
+features needed for stream processing. Therefore the following example
 is given only in the Core API; with the next release we'll be able to
 present the much simpler code to do it in the Pipelines API.
 

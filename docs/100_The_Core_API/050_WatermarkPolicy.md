@@ -10,7 +10,7 @@ forces here:
 - get results as soon as possible.
 
 While there are ways to (kind of) achieve both, there's a significant
-associated cost in terms of complexity and overal performance. Hazelcast
+associated cost in terms of complexity and overall performance. Hazelcast
 Jet takes a simple approach and strictly triages stream items into
 "still on time" and "late", discarding the latter.
 

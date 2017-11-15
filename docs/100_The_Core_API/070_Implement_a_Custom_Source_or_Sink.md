@@ -2,7 +2,7 @@ The Hazelcast Jet distribution contains vertices for the sources and
 sinks exposed through the Pipeline API. You can extend Jet's support for
 sources and sinks by writing your own vertex implementations.
 
-One of the main concerns when implemnting a source vertex is that the
+One of the main concerns when implementing a source vertex is that the
 data source is typically distributed across multiple machines and
 partitions, and the work needs to be distributed across multiple members
 and processors.

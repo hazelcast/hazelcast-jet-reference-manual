@@ -1,5 +1,5 @@
 Hazelcast Jet defines several kinds of API, each of which can be used to
-build comptutation jobs. However, there are significant differences between them.
+build computation jobs. However, there are significant differences between them.
 
 The most fundamental API is the Core API. All the other APIs are
 different front ends to it. It establishes strong low-level abstractions

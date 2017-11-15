@@ -36,7 +36,7 @@ is deleted.
 The
 [`Sources.files()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-)
 sink writes output to several files in the configured directory. Each
-undelying processor writes to its own file to avoid contention.
+underlying processor writes to its own file to avoid contention.
 
 The file sink only guarantees that items have been flushed to the
 operating system on a snapshot, but it doesn't guarantee that the
