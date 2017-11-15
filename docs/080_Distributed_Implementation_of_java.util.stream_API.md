@@ -44,7 +44,7 @@ execution.
 Like with the functional interfaces, Jet also includes distributed
 versions of the classes found in `java.util.stream.Collectors`. These
 can be reached from the
-[`DistributedCollectors`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/stream/DistributedCollectors.html)
+[`DistributedCollectors`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/stream/DistributedCollectors.html)
 utility class. However, keep in mind that the collectors such as
 `toMap()`, `toCollection()`, `toList()`, and `toArray()` create a
 local data structure and load all the results into it. This works fine

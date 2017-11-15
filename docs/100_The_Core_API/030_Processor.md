@@ -1,6 +1,6 @@
 [TOC]
 
-[`Processor`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html)
+[`Processor`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/core/Processor.html)
 is the main type whose implementation is up to the user of the Core API:
 it contains the code of the computation to be performed by a vertex.
 There are a number of Processor building blocks in the Core API which
@@ -37,7 +37,7 @@ they often have no choice but calling into blocking I/O APIs.
 ## The Outbox
 
 The processor sends its output items to its
-[`Outbox`,](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Outbox.html)
+[`Outbox`,](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/core/Outbox.html)
 which has a separate bucket for each outbound edge. The buckets have
 limited capacity and will refuse an item when full. A cooperative
 processor should be implemented such that when the outbox refuses its
@@ -49,7 +49,7 @@ item, it saves its processing state and returns from the processing method. The 
 
 Jet passes the items received over a given edge to the processor by
 calling
-[`process(ordinal, inbox)`.](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#process-int-com.hazelcast.jet.core.Inbox-)
+[`process(ordinal, inbox)`.](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/core/Processor.html#process-int-com.hazelcast.jet.core.Inbox-)
 All items received since the last `process()` call are in the inbox, but
 also all the items the processor hasn't removed in a previous
 `process()` call. There is a separate instance of `Inbox` for each
@@ -66,7 +66,7 @@ no new items are received.
 ### tryProcess()
 
 If a processor's inbox is empty, Jet will call its
-[`tryProcess()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#tryProcess--)
+[`tryProcess()`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/core/Processor.html#tryProcess--)
 method instead. This allows the processor to perform work that is not
 input data-driven. The method has a `boolean` return value and if it
 returns `false`, it will be called again before any other methods are
@@ -88,7 +88,7 @@ on the passage of wall-clock time, and it can do it inside the
 ### complete()
 
 Jet calls
-[`complete()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#complete--)
+[`complete()`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/core/Processor.html#complete--)
 when all the input edges are exhausted. It is the last method to be
 invoked on the processor before disposing of it. Typically this is where
 a batch processor emits the results of an aggregating operation. If it
@@ -111,7 +111,7 @@ callback methods described below.
 ### saveToSnapshot()
 
 Jet will call
-[`saveToSnapshot()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#saveToSnapshot--)
+[`saveToSnapshot()`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/core/Processor.html#saveToSnapshot--)
 when it determines it's time for the processor to save its state to the
 current snapshot. Except for source vertices, this happens when the
 processor has received the barrier item from all its inbound streams and
@@ -129,7 +129,7 @@ barrier item to all the outbound edges.
 When a Jet job is restarting after having been suspended, it will first
 reload all the state from the last successful snapshot. Each processor
 will get its data through the invocations of
-[`restoreFromSnapshot()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#restoreFromSnapshot-com.hazelcast.jet.core.Inbox-).
+[`restoreFromSnapshot()`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/core/Processor.html#restoreFromSnapshot-com.hazelcast.jet.core.Inbox-).
 Its parameter is the `Inbox` filled with a batch of snapshot data. The
 method will be called repeatedly until it consumes all the snapshot
 data.
@@ -138,14 +138,14 @@ data.
 
 After it has delivered all the snapshot data to `restoreFromSnapshot()`,
 Jet will call
-[`finishSnapshotRestore()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#finishSnapshotRestore--).
+[`finishSnapshotRestore()`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/core/Processor.html#finishSnapshotRestore--).
 The processor may use it to initialize some transient state from the
 restored state.
 
 ## Rules of Watermark Propagation
 
 Jet's internal class
-[`ConcurrentInboundEdgeStream`](https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/ConcurrentInboundEdgeStream.java)
+[`ConcurrentInboundEdgeStream`](https://github.com/hazelcast//hazelcast-jet/blob/0.5-maintenance/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/ConcurrentInboundEdgeStream.java)
 (CIES for short) manages a processor's input streams belonging to a
 single edge. As it receives watermark items from each of them, its duty
 is to sort out when to present the watermark item to the processor. 

@@ -6,7 +6,7 @@ integer numbers, but the result can also be a complex value, for example
 a list of all the input items.
 
 Jet exposes an abstraction, called
-[`AggregateOperation`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html),
+[`AggregateOperation`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html),
 that allows you to plug your own aggregate function into Hazelcast Jet.
 Since Jet does the aggregation in a parallelized and distributed way,
 you can't simply supply a piece of Java code that does it; we need you
@@ -89,10 +89,10 @@ of the previous calculations.
 
 Let's see how this works on a basic example: counting the items. We need
 a mutable object that holds the count. Jet's library contains the
-[`com.hazelcast.jet.accumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/package-summary.html)
+[`com.hazelcast.jet.accumulator`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/accumulator/package-summary.html)
 package with objects designed to be used as accumulators and one of them
 is 
-[`LongAccumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/LongAccumulator.html).
+[`LongAccumulator`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/accumulator/LongAccumulator.html).
 Using it we can express our `accumulate` primitive as `(longAcc, x) ->
 longAcc.add(1)`. Since we want the standard `Long` as the aggregation
 result, we can define the `finish` primitive as `LongAccumulator::get`.

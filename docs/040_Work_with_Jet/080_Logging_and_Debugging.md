@@ -35,7 +35,7 @@ refer to the
 
 When building pipelines, it's often useful to see what the  output of
 each stage is. This can be achieved by using the
-[`peek()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#peek--)
+[`peek()`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/ComputeStage.html#peek--)
 stage. For example:
 
 ```java

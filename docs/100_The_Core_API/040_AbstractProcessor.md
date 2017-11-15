@@ -1,4 +1,4 @@
-[`AbstractProcessor`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/AbstractProcessor.html)
+[`AbstractProcessor`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/core/AbstractProcessor.html)
 is a convenience class designed to deal with most of the boilerplate in
 implementing the full `Processor` API.
 

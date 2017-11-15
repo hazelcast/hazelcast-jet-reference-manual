@@ -21,9 +21,9 @@ data and collect the sink data from all the cluster members.
 
 Jet provides two main ways to use the filesystem as a source:
 
-1. [`Sources.files()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-)): read all the files in a
+1. [`Sources.files()`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-)): read all the files in a
 directory and complete. The files should not change while being read.
-2. [`Sources.fileWatcher()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-):
+2. [`Sources.fileWatcher()`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-):
 first emit the contents of the files present in the directory and then
 continue watching the directory for further changes. Each time a
 complete line of text appears in an existing or a newly created file,
@@ -34,7 +34,7 @@ is deleted.
 ## Sink
 
 The
-[`Sources.files()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-)
+[`Sources.files()`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-)
 sink writes output to several files in the configured directory. Each
 underlying processor writes to its own file to avoid contention.
 
@@ -59,7 +59,7 @@ meaningful dispersion of data among all the connected clients, but
 how it does it is outside of Jet's control.
 
 You can study a comprehensive
-[code sample](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/socket-connector/src/main/java/StreamTextSocket.java)
+[code sample](https://github.com/hazelcast//hazelcast-jet-code-samples/blob/0.5-maintenance/streaming/socket-connector/src/main/java/StreamTextSocket.java)
 including a sample socket server using Netty.
 
 ## Sink

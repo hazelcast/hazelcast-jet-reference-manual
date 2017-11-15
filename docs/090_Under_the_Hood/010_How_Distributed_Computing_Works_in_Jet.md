@@ -3,7 +3,7 @@
 In this section we'll take a deep dive into the fundamentals of
 distributed computing and Jet's specific take on it. We'll do this by
 dissecting one specific problem: the Word Count. This is how you'd
-describe it in the [Jet Pipeline API](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-pipeline-api/src/main/java/WordCountPipelineApi.java):
+describe it in the [Jet Pipeline API](https://github.com/hazelcast//hazelcast-jet-code-samples/blob/0.5-maintenance/batch/wordcount-pipeline-api/src/main/java/WordCountPipelineApi.java):
 
 ```java
 Pattern delimiter = Pattern.compile("\\W+");
@@ -372,4 +372,4 @@ be safe as well because all of `String`, `Long`, and `Map.Entry` have
 the hash function specified in their Javadoc.
 
 You can acces a full, self-contained Java program with the above DAG code at the
-[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java).
+[Hazelcast Jet code samples repository](https://github.com/hazelcast//hazelcast-jet-code-samples/blob/0.5-maintenance/refman/src/main/java/refman/WordCountCoreApiRefMan.java).

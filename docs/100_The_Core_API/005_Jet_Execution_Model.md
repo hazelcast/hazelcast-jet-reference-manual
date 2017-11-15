@@ -1,5 +1,5 @@
 At the heart of Jet is the 
-[`TaskletExecutionService`](https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/TaskletExecutionService.java).
+[`TaskletExecutionService`](https://github.com/hazelcast//hazelcast-jet/blob/0.5-maintenance/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/TaskletExecutionService.java).
 It manages the threads that perform all the computation in a Jet job.
 Although this class is not formally a part of Jet's public API,
 understanding how it schedules code for execution is essential if you
@@ -31,7 +31,7 @@ to make progress (by inspecting its input/output buffers).
 
 The execution service doesn't deal with processors directly; instead it
 deals with _tasklets_.
-[`Tasklet`](https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/Tasklet.java)
+[`Tasklet`](https://github.com/hazelcast//hazelcast-jet/blob/0.5-maintenance/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/Tasklet.java)
 is a very simple functional interface derived from the standard Java
 `Callable<ProgressState>`. The execution service manages a pool of
 worker threads, each being responsible for a list of tasklets. The
@@ -60,7 +60,7 @@ progress.
 
 ## ProcessorTasklet
 
-[`ProcessorTasklet`](https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/ProcessorTasklet.java)
+[`ProcessorTasklet`](https://github.com/hazelcast//hazelcast-jet/blob/0.5-maintenance/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/ProcessorTasklet.java)
 is the one that drives a processor. It manages its inbox, outbox,
 inbound/outbound concurrent queues, and tracks the current processor
 state so it knows which of its callback methods to call.
