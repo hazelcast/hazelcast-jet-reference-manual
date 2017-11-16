@@ -62,5 +62,6 @@ and
 [the Core API DAG](https://github.com/hazelcast//hazelcast-jet-code-samples/blob/0.5-maintenance/refman/src/main/java/refman/WordCountCoreApiRefMan.java) 
 are available at our Code Samples repo.
 
-In the [Practical Considerations](Practical_Considerations) section we'll deepen this story and
-explain what it takes to submit a job to a real-life Jet cluster.
+In the [Practical Considerations](Practical_Considerations) section
+we'll deepen this story and explain what it takes to submit a job to a
+real-life Jet cluster.
