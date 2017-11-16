@@ -57,14 +57,6 @@ public class AvgAccumulator {
     public double finish() {
         return (double) sum / count;
     }
-    
-    public long getSum() { 
-        return sum; 
-    }
-    
-    public long getCount() { 
-        return count; 
-    }
 }
 ```
 
@@ -134,8 +126,8 @@ one, so:
 
 ```java
 (left, right) -> {
-    left.setValue1(left.getValue1() + right.getValue1();
-    left.setValue2(left.getValue2() + right.getValue2();
+    left.setValue1(left.getValue1() + right.getValue1());
+    left.setValue2(left.getValue2() + right.getValue2());
 }    
 ```
 
@@ -143,8 +135,8 @@ Deducting must undo the effect of a previous `combine`:
 
 ```java
 (left, right) -> {
-    left.setValue1(left.getValue1() - right.getValue1();
-    left.setValue2(left.getValue2() - right.getValue2();
+    left.setValue1(left.getValue1() - right.getValue1());
+    left.setValue2(left.getValue2() - right.getValue2());
 }    
 ```
 
@@ -158,12 +150,12 @@ AggregateOperation1<Long, LongLongAccumulator, Double> aggrOp = AggregateOperati
         acc.setValue2(acc.getValue2() + 1);
     })
     .andCombine((left, right) -> {
-        left.setValue1(left.getValue1() + right.getValue1();
-        left.setValue2(left.getValue2() + right.getValue2();
+        left.setValue1(left.getValue1() + right.getValue1());
+        left.setValue2(left.getValue2() + right.getValue2());
     })
     .andDeduct((left, right) -> {
-        left.setValue1(left.getValue1() - right.getValue1();
-        left.setValue2(left.getValue2() - right.getValue2();
+        left.setValue1(left.getValue1() - right.getValue1());
+        left.setValue2(left.getValue2() - right.getValue2());
     })
     .andFinish(acc -> (double) acc.getValue1() / acc.getValue2());
 ```
@@ -175,22 +167,23 @@ parameters are:
 2. `LongLongAccumulator`: the type of the accumulator
 3. `Double`: the type of the result
 
-If you compare this signature to that of the general
-`AggregateOperation`, you'll see it only captures the last two
-parameters, so it lacks type safety with respect to the input type. This
-is because it can be constructed to work with an arbitrary number of
-input streams. `AggregateOperation1` is a specialization that strictly
-works with one input stream and captures its static type. It is used in
-the `groupBy` transform. In an
-[earlier section](Build_Your_Computation_Pipeline#page_coGroup)
-we mentioned that you can also co-group two or three streams with full
-type safety. Let's study an example where we're interested in the
-behavior of users in an online shop application. We want to gather the
-following statistics for each user:
+Specifically note the `1` at the end of the type's name: it signifies
+that it's the specialization of the general `AggregateOperation` to
+exactly one input stream. In Hazelcast Jet you can also perform a
+[co-grouping](Build_Your_Computation_Pipeline#page_coGroup)
+operation, aggregating several input streams together. Since the number
+of input types is variable, the general `AggregateOperation` type cannot
+statically capture them and we need separate subtypes. We decided to
+statically support up to three input types; if you need more, you'll
+have to resort to the less typesafe, general `AggregateOperation`.
+
+Let us now study a use case that calls for co-grouping. We are 
+interested in the behavior of users in an online shop application and
+want to gather the following statistics for each user:
 
 1. total load time of the visited product pages
 2. quantity of items added to the shopping cart
-3. amount payed for bought items
+3. amount paid for bought items
 
 This data is dispersed among separate datasets: `PageVisit`, `AddToCart`
 and `Payment`. Note that in each case we're dealing with a simple `sum`
@@ -218,8 +211,10 @@ type. When we use it as an argument to a co-group transform, the
 compiler will ensure that the `ComputeStage`s we attach it to have the
 correct type and are in the correct order.
 
-On the other hand, if you use the co-group builder object, you'll
-construct the aggregate operation by calling `andAccumulate(tag, accFn)`
-with all the tags you got from the co-group builder, and the static type
-will be just `AggregateOperation`. The compiler won't be able to match
-up the inputs to their treatment in the aggregate operation.
+On the other hand, if you use the
+[co-group builder](Build_Your_Computation_Pipeline#page_coGroup+Builder)
+object, you'll construct the aggregate operation by calling
+`andAccumulate(tag, accFn)` with all the tags you got from the
+co-group builder, and the static type will be just `AggregateOperation`.
+The compiler won't be able to match up the inputs to their treatment in
+the aggregate operation.

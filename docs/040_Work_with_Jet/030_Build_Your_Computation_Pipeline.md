@@ -96,7 +96,9 @@ the quintessential finite stream transform. It groups the data items by
 a key computed for each item and performs an aggregate operation over
 all the items in a group. The output of this transform is one
 aggregation result per distinct grouping key. We saw this one used in
-the introductory Hello World code with a word count pipeline:
+the introductory
+[Hello World](/Get_Started#page_Verify+Your+Setup)
+code with a word count pipeline:
 
 ```java
 Pipeline p = Pipeline.create();
@@ -115,11 +117,17 @@ is a static method in our
 utility class, which provides you with some predefined aggregate
 operations. You can also implement your own aggregate operations; please
 refer to the section
-[dedicated to this](Implement_Your_Aggregate_Function).
+[dedicated to this](Implement_Your_Aggregate_Operation).
+
+If you don't need grouping and want to aggregate the full data set
+into a single result, you can supply a constant function to compute the
+grouping key: `DistributedFunctions.constantKey()`. It always returns
+the string `"ALL"`.
 
 A more complex variety of pipeline transforms are those that merge
 several input stages into a single resulting stage. In Hazelcast Jet
-there are two such transforms of special interest: `coGroup` and `hashJoin`.
+there are two such transforms of special interest: `coGroup` and
+`hashJoin`. We discuss these next.
 
 ### coGroup
 
@@ -147,7 +155,8 @@ These are the arguments:
 3. `wholeItem()`: the key extractor function for `src2` items
 4. `counting2()`: the aggregate operation
 
-`counting2()` is a factory method returning a 2-way aggregate operation
+`counting2()` is a factory method returning a 2-way 
+[aggregate operation](Implement_Your_Aggregate_Operation)
 which may be defined as follows:
 
 ```java
@@ -203,6 +212,15 @@ ComputeStage<Tuple2<Long, long[]>> coGrouped = b.build(AggregateOperation
                                  .toArray())
 );
 ```
+
+Note the interaction between the co-group building code and the
+aggregate operation-building code: the co-group builder gives you type
+tags that you then pass to the aggregate operation builder. This
+establishes the connection between the streams contributing to the
+co-group transform and the aggregate operation processing them. Refer
+to the 
+[section on `AggregateOperation`](Implement_Your_Aggregate_Operation)
+to learn more about it.
 
 ### hashJoin
 
