@@ -37,7 +37,7 @@ it, follow these steps:
 
 * Write your `main()` method and your Jet code the usual way, except
 for calling
-[`JetBootstrap.getInstance()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/server/JetBootstrap.html)
+[`JetBootstrap.getInstance()`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/server/JetBootstrap.html)
 to acquire a Jet client instance (instead of `Jet.newJetClient()`).
 * Create a runnable JAR which declares its `Main-Class` in
 * `MANIFEST.MF`.

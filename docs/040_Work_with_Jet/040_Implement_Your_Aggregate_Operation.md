@@ -6,9 +6,9 @@ integer numbers, but the result can also be a complex value, for example
 a list of all the input items.
 
 Jet's library contains a range of
-[predefined aggregate functions](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperations.html),
+[predefined aggregate functions](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/aggregate/AggregateOperations.html),
 but it also exposes an abstraction, called
-[`AggregateOperation`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html),
+[`AggregateOperation`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html),
 that allows you to plug in your own. Since Jet does the aggregation in a
 parallelized and distributed way, you can't simply supply a piece of
 Java code that does it; we need you to break it down into several
@@ -71,9 +71,9 @@ computation performed on it. This means that you just need one
 accumulator class per the kind of structure that holds the accumulated
 data, as opposed to one per each aggregate operation. Jet's library
 offers in the
-[`com.hazelcast.jet.accumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/package-summary.html)
+[`com.hazelcast.jet.accumulator`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/accumulator/package-summary.html)
 package several such classes, one of them being
-[`LongLongAccumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/LongLongAccumulator.html),
+[`LongLongAccumulator`](http://docs.hazelcast.org/docs/jet/0.5/javadoc/com/hazelcast/jet/accumulator/LongLongAccumulator.html),
 which is a match for our `average` function. You'll just have to supply
 the logic on top of it.
 
