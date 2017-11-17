@@ -191,19 +191,32 @@ applied to a field in the input item. We can perform a co-group
 transform with the following aggregate operation:
 
 ```java
+Pipeline p = Pipeline.create();
+ComputeStage<PageVisit> pageVisit = p.drawFrom(Sources.list("pageVisit"));
+ComputeStage<AddToCart> addToCart = p.drawFrom(Sources.list("addToCart"));
+ComputeStage<Payment> payment = p.drawFrom(Sources.list("payment"));
+
 AggregateOperation3<PageVisit, AddToCart, Payment, LongAccumulator[], long[]> aggrOp =
-    AggregateOperation
-        .withCreate(() -> Stream.generate(LongAccumulator::new)
-                                .limit(3)
-                                .toArray(LongAccumulator[]::new))
-        .<PageVisit>andAccumulate0((accs, pv) -> accs[0].add(pv.loadTime()))
-        .<AddToCart>andAccumulate1((accs, atc) -> accs[1].add(atc.quantity()))
-        .<Payment>andAccumulate2((accs, pm) -> accs[2].add(pm.amount()))
-        .andCombine((accs1, accs2) -> IntStream.range(0, 2)
-                                               .forEach(i -> accs1[i].add(accs2[i])))
-        .andFinish(accs -> Stream.of(accs)
-                                 .mapToLong(LongAccumulator::get)
-                                 .toArray());
+        AggregateOperation
+                .withCreate(() -> new LongAccumulator[] {
+                        new LongAccumulator(),
+                        new LongAccumulator(),
+                        new LongAccumulator()
+                })
+                .<PageVisit>andAccumulate0((accs, pv) -> accs[0].add(pv.loadTime()))
+                .<AddToCart>andAccumulate1((accs, atc) -> accs[1].add(atc.quantity()))
+                .<Payment>andAccumulate2((accs, pm) -> accs[2].add(pm.amount()))
+                .andCombine((accs1, accs2) -> IntStream.range(0, 2)
+                                                       .forEach(i -> accs1[i].add(accs2[i])))
+                .andFinish(accs -> new long[] { 
+                        accs[0].get(), 
+                        accs[1].get(), 
+                        accs[2].get() 
+                });
+ComputeStage<Entry<Long, long[]>> coGrouped = pageVisit.coGroup(PageVisit::userId,
+        addToCart, AddToCart::userId,
+        payment, Payment::userId,
+        aggrOp);
 ```
 
 Note how we got an `AggregateOperation3` and how it captured each input
