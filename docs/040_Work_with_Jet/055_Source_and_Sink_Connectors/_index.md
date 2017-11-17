@@ -85,6 +85,11 @@ stored on it.
 
 ## Overview of Sources and Sinks
 
+The table below gives you a high-level overview of all the source and
+sink connectors we deliver with Jet. There are links to Javadoc and
+code samples. The sections following this one present each connector in
+more detail.
+
 <table>
   <tr>
     <th>Resource</th>

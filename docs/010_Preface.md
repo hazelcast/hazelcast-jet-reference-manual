@@ -19,10 +19,13 @@ trademarks in this manual are held by their respective owners.
 
 ## Getting Help
 
-Support for Hazelcast Jet is provided via 
-[GitHub](https://github.com/hazelcast/hazelcast-jet), [Hazelcast Jet 
-mailing list ](https://groups.google.com/forum/#!forum/hazelcast-jet) 
-and [Stack Overflow](https://stackoverflow.com/questions/tagged/hazelcast-jet).
+The Jet team provides support to its community via these channels:
+1. [Stack Overflow](https://stackoverflow.com/questions/tagged/hazelcast-jet)
+ (ask a question on how to use Jet properly and troubleshoot your setup)
+2. [Hazelcast Jet mailing list](https://groups.google.com/forum/#!forum/hazelcast-jet)
+(propose features and discuss your ideas with the team)
+3. [GitHub's issue tracking](https://github.com/hazelcast/hazelcast-jet/isses)
+(report your confirmed issues)
 
 For information on the commercial support for Hazelcast Jet, please see
-[hazelcast.com](https://hazelcast.com/pricing/hazelcast-jet-annual-subscription-plans).
+[this page on hazelcast.com](https://hazelcast.com/pricing/hazelcast-jet-annual-subscription-plans).

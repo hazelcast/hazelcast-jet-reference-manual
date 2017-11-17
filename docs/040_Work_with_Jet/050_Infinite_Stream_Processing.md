@@ -41,12 +41,13 @@ on the other hand, delivers information about the reality as it is
 unfolding, in near-real time, and the computation itself must deal with
 time explicitly.
 
-Furthermore, in a batch it is obvious when to stop aggregating and emit
-the results: when we have exhausted the whole dataset. However, with
-infinite streams we need a policy on how to select finite chunks whose
-aggregate results we are interested in. This is called _windowing_. We
-imagine the window as a time interval laid over the time axis. A given
-window contains only the events that belong to that interval.
+Another point: in a batch it is obvious when to stop aggregating and
+emit the results: when we have exhausted the whole dataset. However,
+with infinite streams we need a policy on how to select finite chunks
+whose aggregate results we are interested in. This is called
+_windowing_. We imagine the window as a time interval laid over the time
+axis. A given window contains only the events that belong to that
+interval.
 
 A very basic type of window is the _tumbling window_, which can be
 imagined to advance by tumbling over each time. There is no overlap
@@ -79,8 +80,8 @@ This disorder in the event stream makes it more difficult to formally
 specify a rule that tells us at which point all the data for a given
 window has been gathered, allowing us to emit the aggregated result.
 
-To approach these challenges we use the concept of the 
-[_watermark_](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Watermark.html). 
+To approach these challenges we use the concept of the
+[_watermark_](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Watermark.html).
 It is a timestamped item inserted into the stream that tells us "from
 this point on there will be no more items with timestamp less than
 this". Unfortunately, we almost never know for sure when such a
@@ -135,16 +136,16 @@ this is the "exactly-once processing guarantee".
 
 ### Snapshotting the State of Computation
 
-To achieve fault tolerance, Jet takes snapshots of the entire state of 
-the computation at regular intervals. The snapshot is coordinated across 
-the cluster and synchronized with a checkpoint on the data source. The 
-source must ensure that, in the case of a restart, it will be able to 
-replay all the data it emitted after the last checkpoint. Every other 
-component in the computation must ensure it will be able to restore its 
-processing state to exactly what it was at the last snapshot. If a 
-cluster member goes away, Jet will restart the job on the remaining 
-members, rewind the sources to the last checkpoint, restore the state of 
-processing from the last snapshot, and then seamlessly continue from 
+To achieve fault tolerance, Jet takes snapshots of the entire state of
+the computation at regular intervals. The snapshot is coordinated across
+the cluster and synchronized with a checkpoint on the data source. The
+source must ensure that, in the case of a restart, it will be able to
+replay all the data it emitted after the last checkpoint. Every other
+component in the computation must ensure it will be able to restore its
+processing state to exactly what it was at the last snapshot. If a
+cluster member goes away, Jet will restart the job on the remaining
+members, rewind the sources to the last checkpoint, restore the state of
+processing from the last snapshot, and then seamlessly continue from
 that point.
 
 ### Exactly-Once
@@ -228,7 +229,7 @@ fully-functioning Jet clusters where there was supposed to be one. Each
 one will recover and restart the same Jet job, making a mess in our
 application.
 
-Hazelcast Jet offers a mechanism to fight off this hazard: 
+Hazelcast Jet offers a mechanism to fight off this hazard:
 [_split-brain protection_](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JobConfig.html#setSplitBrainProtection-boolean-).
 It works by ensuring that a job cannot be restarted in a
 cluster whose size isn't more than half of what it was before the job

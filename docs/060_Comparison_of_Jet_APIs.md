@@ -11,12 +11,12 @@ A secondary choice is Jet's implementation of the
 [java.util.stream API](/Distributed_Implementation_of_java.util.stream_API),
 which some users already familiar with the JDK implementation may find
 appealing. However, it is less expressive and also suffers from a
-paradigm mismatch: it promises to deliver the job's result in the
-return value, which is a cumbersome way to interact with a distributed
-computation system. The return value's scope is restricted to the scope
-of the Java variable that holds it, but the actual results remain in
-the Jet cluster, leading to possible memory leaks if not handled with
-care.
+paradigm mismatch: its contract forces us to deliver the job's result in 
+the return value, which is a cumbersome way to interact with a 
+distributed computation system. The return value's scope is restricted to 
+the scope of the Java variable that holds it, but the actual results 
+remain in the Jet cluster, leading to possible memory leaks if not 
+handled with care.
 
 The most fundamental API is the Core API. All the other APIs are
 different front ends to it. It establishes strong low-level abstractions
@@ -42,10 +42,10 @@ This chart summarizes the main differences between the APIs.
 		    IMap and IList.</td>
 		<td>Expert-level API to:
 		<ul>
+			<li>fine-tune a performance-critical computation</li>
+			<li>build a new high-level API or DSL</li>
 			<li>implement a custom source or sink</li>
 			<li>integrate with other libraries or frameworks</li>
-			<li>fine-tune performance</li>
-			<li>build a new high-level API or DSL</li>
 		</ul>
 		</td>
 	</tr>

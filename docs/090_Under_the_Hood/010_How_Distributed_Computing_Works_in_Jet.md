@@ -8,7 +8,7 @@ describe it in the [Jet Pipeline API](https://github.com/hazelcast/hazelcast-jet
 ```java
 Pattern delimiter = Pattern.compile("\\W+");
 Pipeline p = Pipeline.create();
-p.drawFrom(Sources.<Long, String>readMap(BOOK_LINES))
+p.drawFrom(Sources.<Long, String>map(BOOK_LINES))
  .flatMap(e -> traverseArray(delimiter.split(e.getValue().toLowerCase())))
  .filter(word -> !word.isEmpty())
  .groupBy(wholeItem(), counting())
@@ -102,7 +102,7 @@ for (String line : receive()) {
         }
     }
 }
-```    
+```
 ```java
 // Accumulator thread
 Map<String, Long> counts = new HashMap<>();
@@ -112,7 +112,7 @@ for (String word : receive()) {
 // finally, when done receiving:
 for (Entry<String, Long> wordAndCount : counts.entrySet()) {
     emit(wordAndCount);
-}    
+}
 ```
 
 The source loop feeds the tokenizer loop over a concurrent queue, the
@@ -212,7 +212,7 @@ for (Entry<String, Long> wordAndCount : receive()) {
 // finally, when done receiving:
 for (Entry<String, Long> wordAndCount : combined.entrySet()) {
     emit(wordAndCount);
-}    
+}
 ```
 
 As noted above, such a scheme takes more memory due to more hashtable

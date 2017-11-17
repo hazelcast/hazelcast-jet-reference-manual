@@ -10,7 +10,7 @@ API follows this pattern. For example,
 
 ```java
 Pipeline p = Pipeline.create();
-p.drawFrom(Sources.<String>readList("input"))
+p.drawFrom(Sources.<String>list("input"))
  .map(String::toUpperCase)
  .drainTo(Sinks.writeList("result");
 ```
@@ -26,8 +26,8 @@ transformation such as co-grouping:
 
 ```java
 Pipeline p = Pipeline.create();
-ComputeStage<String> src1 = p.drawFrom(Sources.readList("src1"));
-ComputeStage<String> src2 = p.drawFrom(Sources.readList("src2"));
+ComputeStage<String> src1 = p.drawFrom(Sources.list("src1"));
+ComputeStage<String> src2 = p.drawFrom(Sources.list("src2"));
 src1.coGroup(wholeItem(), src2, wholeItem(), counting2())
     .drainTo(Sinks.writeMap("result"));
 ```
@@ -40,7 +40,7 @@ destination:
 
 ```java
 Pipeline p = Pipeline.create();
-ComputeStage<String> src = p.drawFrom(Sources.readList("src"));
+ComputeStage<String> src = p.drawFrom(Sources.list("src"));
 src.map(String::toUpperCase)
    .drainTo(Sinks.writeList("uppercase"));
 src.map(String::toLowerCase)
@@ -102,9 +102,10 @@ code with a word count pipeline:
 
 ```java
 Pipeline p = Pipeline.create();
-p.drawFrom(Sources.<String>readList("text"))
- .flatMap(word -> traverseArray(word.split("\\W+")))
- .groupBy(wholeItem(), counting());
+p.drawFrom(Sources.<String>list("text"))
+ .flatMap(word -> traverseArray(word.toLowerCase().split("\\W+")))
+ .filter(word -> !word.isEmpty())
+ .groupBy(wholeItem(), counting())
 ```
 
 Let's take a moment to analyze the last line. The `groupBy()` method
@@ -142,8 +143,8 @@ Here is the example we already used earlier on this page:
 
 ```java
 Pipeline p = Pipeline.create();
-ComputeStage<String> src1 = p.drawFrom(Sources.readList("src1"));
-ComputeStage<String> src2 = p.drawFrom(Sources.readList("src2"));
+ComputeStage<String> src1 = p.drawFrom(Sources.list("src1"));
+ComputeStage<String> src2 = p.drawFrom(Sources.list("src2"));
 ComputeStage<Tuple2<String, Long>> coGrouped =
         src1.coGroup(wholeItem(), src2, wholeItem(), counting2());
 ```
@@ -186,10 +187,10 @@ calculates statistics per category for each user:
 
 ```java
 Pipeline p = Pipeline.create();
-ComputeStage<PageVisit> pageVisit = p.drawFrom(readList("pageVisit"));
-ComputeStage<AddToCart> addToCart = p.drawFrom(readList("addToCart"));
-ComputeStage<Payment> payment = p.drawFrom(readList("payment"));
-ComputeStage<Delivery> delivery = p.drawFrom(readList("delivery"));
+ComputeStage<PageVisit> pageVisit = p.drawFrom(Sources.list("pageVisit"));
+ComputeStage<AddToCart> addToCart = p.drawFrom(Sources.list("addToCart"));
+ComputeStage<Payment> payment = p.drawFrom(Sources.list("payment"));
+ComputeStage<Delivery> delivery = p.drawFrom(Sources.list("delivery"));
 
 CoGroupBuilder<Long, PageVisit> b = pageVisit.coGroupBuilder(PageVisit::userId);
 Tag<PageVisit> pvTag = b.tag0();
@@ -198,18 +199,28 @@ Tag<Payment> pmtTag = b.add(payment, Payment::userId);
 Tag<Delivery> delTag = b.add(delivery, Delivery::userId);
 
 ComputeStage<Tuple2<Long, long[]>> coGrouped = b.build(AggregateOperation
-        .withCreate(() -> Stream.generate(LongAccumulator::new)
-                                .limit(4)
-                                .toArray(LongAccumulator[]::new))
+        .withCreate(() -> new LongAccumulator[] {
+                new LongAccumulator(),
+                new LongAccumulator(),
+                new LongAccumulator(),
+                new LongAccumulator()
+        })
         .andAccumulate(pvTag, (accs, pv) -> accs[0].add(pv.loadTime()))
         .andAccumulate(atcTag, (accs, atc) -> accs[1].add(atc.quantity()))
         .andAccumulate(pmtTag, (accs, pm) -> accs[2].add(pm.amount()))
         .andAccumulate(delTag, (accs, d) -> accs[3].add(d.days()))
-        .andCombine((accs1, accs2) -> IntStream.range(0, 3)
-                                               .forEach(i -> accs1[i].add(accs2[i])))
-        .andFinish(accs -> Stream.of(accs)
-                                 .mapToLong(LongAccumulator::get)
-                                 .toArray())
+        .andCombine((accs1, accs2) -> {
+                    accs1[0].add(accs2[0]);
+                    accs1[1].add(accs2[1]);
+                    accs1[2].add(accs2[2]);
+                    accs1[3].add(accs2[3]);
+                })
+        .andFinish(accs -> new long[] {
+                accs[0].get(),
+                accs[1].get(),
+                accs[2].get(),
+                accs[3].get()
+        })
 );
 ```
 
@@ -229,7 +240,7 @@ is a specialization of a general "join" operation, optimized for the use
 case of _data enrichment_. In this scenario there is a single,
 potentially infinite data stream (the _primary_ stream), that goes
 through a mapping transformation which attaches to each item some more
-items it found by hashtable lookup. The hashtables have been populated
+items found by hashtable lookup. The hashtables have been populated
 from all the other streams (the _enriching_ streams) before the
 consumption of the primary stream started.
 
@@ -244,13 +255,13 @@ _products_ and _brokers_.
 Pipeline p = Pipeline.create();
 
 // The primary stream: trades
-ComputeStage<Trade> trades = p.drawFrom(Sources.<Trade>readList("trades"));
+ComputeStage<Trade> trades = p.drawFrom(Sources.<Trade>list("trades"));
 
 // The enriching streams: products and brokers
 ComputeStage<Entry<Integer, Product>> prodEntries =
-        p.drawFrom(Sources.<Integer, Product>readMap("products"));
+        p.drawFrom(Sources.<Integer, Product>map("products"));
 ComputeStage<Entry<Integer, Broker>> brokEntries =
-        p.drawFrom(Sources.<Integer, Broker>readMap("brokers"));
+        p.drawFrom(Sources.<Integer, Broker>map("brokers"));
 
 // Join the trade stream with the product and broker streams
 ComputeStage<Tuple3<Trade, Product, Broker>> joined = trades.hashJoin(
@@ -294,15 +305,15 @@ broker, and market:
 Pipeline p = Pipeline.create();
 
 // The primary stream: trades
-ComputeStage<Trade> trades = p.drawFrom(Sources.<Trade>readList("trades"));
+ComputeStage<Trade> trades = p.drawFrom(Sources.<Trade>list("trades"));
 
 // The enriching streams: products and brokers
 ComputeStage<Entry<Integer, Product>> prodEntries =
-        p.drawFrom(Sources.<Integer, Product>readMap("products"));
+        p.drawFrom(Sources.<Integer, Product>map("products"));
 ComputeStage<Entry<Integer, Broker>> brokEntries =
-        p.drawFrom(Sources.<Integer, Broker>readMap("brokers"));
+        p.drawFrom(Sources.<Integer, Broker>map("brokers"));
 ComputeStage<Entry<Integer, Market>> marketEntries =
-        p.drawFrom(Sources.<Integer, Market>readMap("markets"));
+        p.drawFrom(Sources.<Integer, Market>map("markets"));
 
 HashJoinBuilder<Trade> b = trades.hashJoinBuilder();
 Tag<Product> prodTag = b.add(prodEntries, joinMapEntries(Trade::productId));
