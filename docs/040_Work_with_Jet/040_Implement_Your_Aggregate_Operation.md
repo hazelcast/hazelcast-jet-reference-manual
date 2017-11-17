@@ -43,17 +43,17 @@ progress. For the `average` example, it would be something like
 public class AvgAccumulator {
     private long sum;
     private long count;
-    
+
     public void accumulate(long value) {
         sum += value;
         count++;
     }
-    
+
     public void combine(AvgAccumulator that) {
         this.sum += that.sum;
         this.count += that.sum;
     }
-    
+
     public double finish() {
         return (double) sum / count;
     }
@@ -128,16 +128,16 @@ one, so:
 (left, right) -> {
     left.setValue1(left.getValue1() + right.getValue1());
     left.setValue2(left.getValue2() + right.getValue2());
-}    
+}
 ```
 
-Deducting must undo the effect of a previous `combine`: 
+Deducting must undo the effect of a previous `combine`:
 
 ```java
 (left, right) -> {
     left.setValue1(left.getValue1() - right.getValue1());
     left.setValue2(left.getValue2() - right.getValue2());
-}    
+}
 ```
 
 All put together, we can define our counting operation as follows:
@@ -177,7 +177,7 @@ statically capture them and we need separate subtypes. We decided to
 statically support up to three input types; if you need more, you'll
 have to resort to the less typesafe, general `AggregateOperation`.
 
-Let us now study a use case that calls for co-grouping. We are 
+Let us now study a use case that calls for co-grouping. We are
 interested in the behavior of users in an online shop application and
 want to gather the following statistics for each user:
 
@@ -206,12 +206,15 @@ AggregateOperation3<PageVisit, AddToCart, Payment, LongAccumulator[], long[]> ag
                 .<PageVisit>andAccumulate0((accs, pv) -> accs[0].add(pv.loadTime()))
                 .<AddToCart>andAccumulate1((accs, atc) -> accs[1].add(atc.quantity()))
                 .<Payment>andAccumulate2((accs, pm) -> accs[2].add(pm.amount()))
-                .andCombine((accs1, accs2) -> IntStream.range(0, 2)
-                                                       .forEach(i -> accs1[i].add(accs2[i])))
-                .andFinish(accs -> new long[] { 
-                        accs[0].get(), 
-                        accs[1].get(), 
-                        accs[2].get() 
+                .andCombine((accs1, accs2) -> {
+                    accs1[0].add(accs2[0]);
+                    accs1[1].add(accs2[1]);
+                    accs1[2].add(accs2[2]);
+                })
+                .andFinish(accs -> new long[] {
+                        accs[0].get(),
+                        accs[1].get(),
+                        accs[2].get()
                 });
 ComputeStage<Entry<Long, long[]>> coGrouped = pageVisit.coGroup(PageVisit::userId,
         addToCart, AddToCart::userId,
