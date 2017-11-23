@@ -45,14 +45,14 @@ of.
 
 ### ProcessorMetaSupplier
 
-Instances of this type are serialized and transferred as a part of each
-`Vertex` instance in a `DAG`. The **coordinator** member deserializes it
-to retrieve `ProcessorSupplier`s. Before being asked for
-`ProcessorSupplier`s, the meta-supplier is given access to the Hazelcast
-instance so it can find out the parameters of the cluster the job will
-run on. Most typically, the meta-supplier in the source vertex will use
-the cluster size to control the assignment of data partitions to each
-member.
+An instance of this type is serialized and transferred as a part of each 
+`Vertex` instance in the `DAG`. The **coordinator** member deserializes 
+the instance and uses it to create `ProcessorSupplier`s by calling the 
+`ProcessorMetaSupplier.get()` method. Before that, the `init()` method 
+is called with a context object that can be used to get useful 
+information. The `get()` method takes `List<Address>` as a parameter, 
+which should be used to determine cluster members that will run the job, 
+if needed.
 
 ### ProcessorSupplier
 
