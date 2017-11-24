@@ -45,21 +45,24 @@ of.
 
 ### ProcessorMetaSupplier
 
-Instances of this type are serialized and transferred as a part of each
-`Vertex` instance in a `DAG`. The **coordinator** member deserializes it
-to retrieve `ProcessorSupplier`s. Before being asked for
-`ProcessorSupplier`s, the meta-supplier is given access to the Hazelcast
-instance so it can find out the parameters of the cluster the job will
-run on. Most typically, the meta-supplier in the source vertex will use
-the cluster size to control the assignment of data partitions to each
-member.
+The client serializes an instance of `ProcessorMetaSupplier` as part of 
+each `Vertex` in the `DAG`. The **coordinator** member deserializes the 
+instance and uses it to create `ProcessorSupplier`s by calling the 
+`ProcessorMetaSupplier.get()` method. Before that, coordinator calls the 
+`init()` method with a context object that you can use to get useful 
+information. The `get()` method takes `List<Address>` as a parameter, 
+which you should use to determine cluster members that will run the job, 
+if needed.
 
 ### ProcessorSupplier
 
-Usually this type will be custom-implemented in the same cases where its
-meta-supplier is custom-implemented and complete the logic of a
-distributed data source's partition assignment. It supplies instances of
+Usually this type will be custom-implemented in the same cases where the 
+meta-supplier is custom-implemented and will complete the logic of a 
+distributed data source's partition assignment. It creates instances of 
 `Processor` ready to start executing the vertex's logic.
+
+Another use is to open and close external resources, such as files or 
+connections. We provide `CloseableProcessorSupplier` for this.
 
 ## Example - Distributed Integer Generator
 
