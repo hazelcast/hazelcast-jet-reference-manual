@@ -71,7 +71,7 @@ and
 [HDFS](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSources.html)
 connectors are in their separate modules.
 
-There's a [dedicated section](Source_and_Sink_Connectors) that discusses
+There's a [dedicated section](055_Source_and_Sink_Connectors) that discusses
 the topic of data sources and sinks in more detail.
 
 ## Compose the Pipeline Transforms
