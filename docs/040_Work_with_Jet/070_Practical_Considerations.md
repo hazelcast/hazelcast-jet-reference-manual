@@ -24,6 +24,27 @@ class JetExample {
 }
 ```
 
+If you forget to do this, or don't add all the classes involved, you
+may get a quite confusing exception:
+
+```text
+java.lang.ClassCastException:
+cannot assign instance of java.lang.invoke.SerializedLambda
+to field com.hazelcast.jet.core.ProcessorMetaSupplier$1.val$addressToSupplier
+of type com.hazelcast.jet.function.DistributedFunction
+in instance of com.hazelcast.jet.core.ProcessorMetaSupplier$1
+```
+
+`SerializedLambda` actually declares `readResolve()`, which would
+normally transform it into an instance of the correct functional
+interface type. If this method throws an exception, Java doesn't report
+it but keeps the `SerializedLambda` instance and continues the
+deserialization. Later in the process it will try to assign it to
+a field whose type is the target type of the lambda
+(`DistributedFunction` in the example above) and at that point it will
+fail with the `ClassCastException`. So, if you see this kind of error,
+double-check the list of classes you have added to the Jet job.
+
 For more complex jobs it will become more practical to first package the
 job in a JAR and then use a command-line utility to submit it, as
 explained next.
