@@ -71,5 +71,5 @@ with large volumes of data, and should strictly be used in a
 non-production environment.
 
 For more information about logging when using the Core API, see the
-[Best Practices](The_Core_API/Best_Practices#page_Inspecting+Processor+Input+and+Output)
+[Best Practices](Expert_Zone_--_The_Core_API/Best_Practices#page_Inspecting+Processor+Input+and+Output)
 section.

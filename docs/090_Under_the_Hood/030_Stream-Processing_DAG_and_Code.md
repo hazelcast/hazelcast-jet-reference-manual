@@ -82,7 +82,7 @@ would take more code and coordination.
 
 The major novelty is the watermark-inserting vertex. It must be added
 in front of the windowing vertex and will insert watermark items
-according to the configured [policy](/The_Core_API/WatermarkPolicy).
+according to the configured [policy](/Expert_Zone_--_The_Core_API/WatermarkPolicy).
 In this case we use the simplest one, `withFixedLag`, which will make
 the watermark lag behind the top observed event timestamp by a fixed
 amount. Emission of watermarks is additionally throttled, so that only
