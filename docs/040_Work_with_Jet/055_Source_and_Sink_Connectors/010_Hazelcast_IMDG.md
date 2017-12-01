@@ -6,9 +6,8 @@ Hazelcast IMDG's `IMap` and `ICache` are very similar in the way Jet
 uses them and largely interchangeable. `IMap` has a bit more features.
 The simplest way to use them is as finite sources of their contents, but
 if you enable the Event Journal on a map/cache, you'll be able to use
-it as a source of an
-[infinite stream](#page_Receive+an+Infinite+Stream+of+Update+Events)
-of update events.
+it as a source of an infinite stream of update events
+([see below](#page_Receive+an+Infinite+Stream+of+Update+Events)).
 
 The most basic usage is very simple, here are snippets to use `IMap`
 and `ICache` as a source and a sink:
