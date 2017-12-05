@@ -29,6 +29,116 @@ stage.drainTo(Sinks.cache("myCache"));
 In these snippets we draw from and drain to the same kind of structure,
 but you can use any combination.
 
+### Updating the IMap via Update/Merge Functions and Entry Processor
+
+Hazelcast IMap supports using [Entry Processors](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#entry-processor)
+to execute your code on a map entry in an atomic way.
+
+To support this feature in Jet, we introduced three new Sinks;
+
+- **Updating Map Sink**
+
+  Updating map sink can be used to update map entries via an update function
+  that is executed on the IMap entry.
+  The update function that accepts the old value of the key in the IMap and
+  the incoming item from pipeline as parameter and should return the new value of the key.
+  A key-extracting function should also be provided to the sink that
+  extracts the IMap key from the incoming item from pipeline. 
+
+  An example can be seen below, which concatanates map contents with the new value
+  from pipeline :
+
+  ```java
+  Pipeline pipeline = Pipeline.create();
+  pipeline.drawFrom(Sources.map("mymap"))
+          .drainTo(
+                  Sinks.updatingMap(
+                          "mymap",
+                          item -> item.getKey(),
+                          (oldValue, item) -> oldValue + item.getValue()
+                  )
+          );
+  ```
+
+- **Merging Map Sink**
+
+  Merging map sink can be used to merge map values via a merge function
+  that is executed on the IMap values.
+  The merge function that accepts the old value of the key from IMap and
+  the new value of key from pipeline as parameter and should return the new
+  value of the key.
+  If the map already contains the key, it applies the given merge function 
+  to resolve the existing and the proposed value into the value to use. 
+  If the value comes out as `null`, it removes the key from the map.
+  A key and value extractor functions should also be provided to the sink that
+  extracts the IMap key/value from the incoming item from pipeline.
+  An example can be seen below, which merges the map value with the new value
+  from pipeline by summing them :
+
+  ```java
+  Pipeline pipeline = Pipeline.create();
+  pipeline.drawFrom(Sources.map("mymap"))
+          .drainTo(
+                  Sinks.mergingMap(
+                          "mymap",
+                          item -> item.getKey(),
+                          item -> item.getValue(),
+                          (oldValue, newValue) -> oldValue + newValue
+                  )
+          );
+  ```
+
+- **Entry Processor Sink**
+
+  Entry processor sink can be used execute your entry processors as a
+  sink in the pipeline to execute your code on the IMap entry.
+
+  As opposed to merging and updating sink,this sink does not use batching
+  and submits a separate entry processor for each received item. For use cases 
+  that are efficiently solvable using those sinks, this one will 
+  perform worse. Its main advantage is that it can update large
+  map values in a data-local manner, without having to retrieve them first.
+ 
+  If your entry processors take a long time to update a value, consider
+  using entry processors that implement `Offloadable`. This will
+  avoid blocking the Hazelcast partition thread during large update
+  operations.
+
+  An example can be seen below, which will take the values of the map and
+  apply entry processor to increment the values by 5 :
+
+  ```java
+  Pipeline pipeline = Pipeline.create();
+  pipeline.drawFrom(Sources.map("mymap"))
+          .drainTo(
+                  Sinks.updatingMap(
+                          "mymap",
+                          item -> item.getKey(),
+                          item -> new IncrementEntryProcessor(5)
+                  )
+          );
+
+  static class IncrementEntryProcessor implements EntryProcessor<Integer, Integer> {
+
+      private int incrementBy;
+
+      public IncrementEntryProcessor(int incrementBy) {
+          this.incrementBy = incrementBy;
+      }
+
+      @Override
+      public Object process(Entry<Integer, Integer> entry) {
+          return entry.setValue(entry.getValue() + incrementBy);
+      }
+
+      @Override
+      public EntryBackupProcessor<Integer, Integer> getBackupProcessor() {
+          return null;
+      }
+  }
+
+  ```
+
 ### Access an External Cluster
 
 To access a Hazelcast IMDG cluster separate from the Jet cluster, you
