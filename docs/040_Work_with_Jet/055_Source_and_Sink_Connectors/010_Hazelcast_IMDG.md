@@ -29,115 +29,94 @@ stage.drainTo(Sinks.cache("myCache"));
 In these snippets we draw from and drain to the same kind of structure,
 but you can use any combination.
 
-### Updating the IMap via Update/Merge Functions and Entry Processor
+### Update Entries in IMap
 
-Hazelcast IMap supports using [Entry Processors](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#entry-processor)
-to execute your code on a map entry in an atomic way.
+When you use an `IMap` as a sink, instead of just pushing the data into
+it you may have to merge the new with the existing data or delete the
+existing data. Hazelcast Jet supports this with map-updating sinks which
+rely on Hazelcast IMDG's
+[Entry Processor](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#entry-processor)
+feature. An entry processor allows you to atomically execute a piece of
+code against a map entry, in a data-local manner.
 
-To support this feature in Jet, we introduced three new Sinks;
+The updating sinks come in three variants:
 
-- **Updating Map Sink**
+1. [`mapWithMerging`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithMerging-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBinaryOperator-),
+where you provide a a function that computes the map value from the
+stream item and a merging function that gets called if a value already
+exists in the map. Here's an example that concatenates string values:
 
-  Updating map sink can be used to update map entries via an update function
-  that is executed on the IMap entry.
-  The update function that accepts the old value of the key in the IMap and
-  the incoming item from pipeline as parameter and should return the new value of the key.
-  A key-extracting function should also be provided to the sink that
-  extracts the IMap key from the incoming item from pipeline. 
+    ```java
+    Pipeline pipeline = Pipeline.create();
+    pipeline.drawFrom(Sources.map("mymap"))
+            .drainTo(
+                    Sinks.mapWithMerging(
+                            "mymap",
+                            item -> item.getKey(),
+                            item -> item.getValue(),
+                            (oldValue, newValue) -> oldValue + newValue
+                    )
+            );
+    ```
 
-  An example can be seen below, which concatanates map contents with the new value
-  from pipeline :
+2. [`mapWithUpdating`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithUpdating-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBiFunction-),
+where you provide a single updating function that combines the roles of
+the two functions in `mapWithMerging`. It will be called on the stream
+item and the existing value, if any. Here's an example that concatenates
+string values:
 
-  ```java
-  Pipeline pipeline = Pipeline.create();
-  pipeline.drawFrom(Sources.map("mymap"))
-          .drainTo(
-                  Sinks.updatingMap(
-                          "mymap",
-                          item -> item.getKey(),
-                          (oldValue, item) -> oldValue + item.getValue()
-                  )
-          );
-  ```
+    ```java
+    Pipeline pipeline = Pipeline.create();
+    pipeline.drawFrom(Sources.map("mymap"))
+            .drainTo(
+                    Sinks.mapWithUpdating(
+                            "mymap",
+                            item -> item.getKey(),
+                            (oldValue, item) -> (oldValue != null ? oldValue : "")
+                                                 + item.getValue()
+                    )
+            );
+    ```
 
-- **Merging Map Sink**
+3. [`mapWithEntryProcessor`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithEntryProcessor-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-),
+where you provide a function that returns a full-blown `EntryProcessor`
+instance that will be submitted to the map. This is the most general
+variant, but can't use batching that the other variants do and thus has
+a higher cost per item. You should use it only if you need a specialized
+entry processor that can't be expressed in terms of the other variants.
+This example takes the values of the map and submits an entry processor
+that increments the values by 5 :
 
-  Merging map sink can be used to merge map values via a merge function
-  that is executed on the IMap values.
-  The merge function that accepts the old value of the key from IMap and
-  the new value of key from pipeline as parameter and should return the new
-  value of the key.
-  If the map already contains the key, it applies the given merge function 
-  to resolve the existing and the proposed value into the value to use. 
-  If the value comes out as `null`, it removes the key from the map.
-  A key and value extractor functions should also be provided to the sink that
-  extracts the IMap key/value from the incoming item from pipeline.
-  An example can be seen below, which merges the map value with the new value
-  from pipeline by summing them :
+    ```java
+    Pipeline pipeline = Pipeline.create();
+    pipeline.drawFrom(Sources.map("mymap"))
+            .drainTo(
+                    Sinks.mapWithEntryProcessor(
+                            "mymap",
+                            item -> item.getKey(),
+                            item -> new IncrementEntryProcessor(5)
+                    )
+            );
 
-  ```java
-  Pipeline pipeline = Pipeline.create();
-  pipeline.drawFrom(Sources.map("mymap"))
-          .drainTo(
-                  Sinks.mergingMap(
-                          "mymap",
-                          item -> item.getKey(),
-                          item -> item.getValue(),
-                          (oldValue, newValue) -> oldValue + newValue
-                  )
-          );
-  ```
+    static class IncrementEntryProcessor implements EntryProcessor<Integer, Integer> {
 
-- **Entry Processor Sink**
+        private int incrementBy;
 
-  Entry processor sink can be used execute your entry processors as a
-  sink in the pipeline to execute your code on the IMap entry.
+        public IncrementEntryProcessor(int incrementBy) {
+                this.incrementBy = incrementBy;
+        }
 
-  As opposed to merging and updating sink,this sink does not use batching
-  and submits a separate entry processor for each received item. For use cases 
-  that are efficiently solvable using those sinks, this one will 
-  perform worse. Its main advantage is that it can update large
-  map values in a data-local manner, without having to retrieve them first.
- 
-  If your entry processors take a long time to update a value, consider
-  using entry processors that implement `Offloadable`. This will
-  avoid blocking the Hazelcast partition thread during large update
-  operations.
+        @Override
+        public Object process(Entry<Integer, Integer> entry) {
+                return entry.setValue(entry.getValue() + incrementBy);
+        }
 
-  An example can be seen below, which will take the values of the map and
-  apply entry processor to increment the values by 5 :
-
-  ```java
-  Pipeline pipeline = Pipeline.create();
-  pipeline.drawFrom(Sources.map("mymap"))
-          .drainTo(
-                  Sinks.updatingMap(
-                          "mymap",
-                          item -> item.getKey(),
-                          item -> new IncrementEntryProcessor(5)
-                  )
-          );
-
-  static class IncrementEntryProcessor implements EntryProcessor<Integer, Integer> {
-
-      private int incrementBy;
-
-      public IncrementEntryProcessor(int incrementBy) {
-          this.incrementBy = incrementBy;
-      }
-
-      @Override
-      public Object process(Entry<Integer, Integer> entry) {
-          return entry.setValue(entry.getValue() + incrementBy);
-      }
-
-      @Override
-      public EntryBackupProcessor<Integer, Integer> getBackupProcessor() {
-          return null;
-      }
-  }
-
-  ```
+        @Override
+        public EntryBackupProcessor<Integer, Integer> getBackupProcessor() {
+                return null;
+        }
+    }
+    ```
 
 ### Access an External Cluster
 
@@ -166,7 +145,7 @@ to the
 [Hazelcast IMDG documentation](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#configuring-java-client)
 on this topic.
 
-### Optimize Data Traffic
+### Optimize Data Traffic at the Source
 
 If your use case calls for some filtering and/or transformation of the
 data you retrieve, you can optimize the traffic volume by providing a
@@ -294,9 +273,17 @@ ComputeStage<EventJournalCacheEvent<String, Long>> fromRemoteCache = p.drawFrom(
 
 ## IList
 
-Whereas `IMap` and `ICache` are the recommended choice of data sources and sinks in Jet jobs, Jet supports `IList` purely for convenience during prototyping, unit testing and similar non-production situations. It is not a partitioned and distributed data structure and only one cluster member has all the contents. In a distributed Jet job all the members will compete for access to the single member holding it.
+Whereas `IMap` and `ICache` are the recommended choice of data sources
+and sinks in Jet jobs, Jet supports `IList` purely for convenience
+during prototyping, unit testing and similar non-production situations.
+It is not a partitioned and distributed data structure and only one
+cluster member has all the contents. In a distributed Jet job all the
+members will compete for access to the single member holding it.
 
-With that said, `IList` is very simple to use. Here's an example how to fill it with test data, consume it in a Jet job, dump its results into another list, and fetch the results (we assume you already have a Jet instance in the variable `jet`):
+With that said, `IList` is very simple to use. Here's an example how to
+fill it with test data, consume it in a Jet job, dump its results into
+another list, and fetch the results (we assume you already have a Jet
+instance in the variable `jet`):
 
 ```java
 IList<Integer> inputList = jet.getList("inputList");
@@ -315,7 +302,8 @@ IList<String> resultList = jet.getList("resultList");
 System.out.println("Results: " + new ArrayList<>(resultList));
 ```
 
-You can access a list in an external cluster as well, by providing a `ClientConfig` object:
+You can access a list in an external cluster as well, by providing a
+ `ClientConfig` object:
 
 ```java
 ClientConfig clientConfig = new ClientConfig();
