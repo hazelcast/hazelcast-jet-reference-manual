@@ -29,6 +29,95 @@ stage.drainTo(Sinks.cache("myCache"));
 In these snippets we draw from and drain to the same kind of structure,
 but you can use any combination.
 
+### Update Entries in IMap
+
+When you use an `IMap` as a sink, instead of just pushing the data into
+it you may have to merge the new with the existing data or delete the
+existing data. Hazelcast Jet supports this with map-updating sinks which
+rely on Hazelcast IMDG's
+[Entry Processor](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#entry-processor)
+feature. An entry processor allows you to atomically execute a piece of
+code against a map entry, in a data-local manner.
+
+The updating sinks come in three variants:
+
+1. [`mapWithMerging`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithMerging-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBinaryOperator-),
+where you provide a a function that computes the map value from the
+stream item and a merging function that gets called if a value already
+exists in the map. Here's an example that concatenates string values:
+
+    ```java
+    Pipeline pipeline = Pipeline.create();
+    pipeline.drawFrom(Sources.map("mymap"))
+            .drainTo(
+                    Sinks.mapWithMerging(
+                            "mymap",
+                            item -> item.getKey(),
+                            item -> item.getValue(),
+                            (oldValue, newValue) -> oldValue + newValue
+                    )
+            );
+    ```
+
+2. [`mapWithUpdating`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithUpdating-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBiFunction-),
+where you provide a single updating function that combines the roles of
+the two functions in `mapWithMerging`. It will be called on the stream
+item and the existing value, if any. Here's an example that concatenates
+string values:
+
+    ```java
+    Pipeline pipeline = Pipeline.create();
+    pipeline.drawFrom(Sources.map("mymap"))
+            .drainTo(
+                    Sinks.mapWithUpdating(
+                            "mymap",
+                            item -> item.getKey(),
+                            (oldValue, item) -> (oldValue != null ? oldValue : "")
+                                                 + item.getValue()
+                    )
+            );
+    ```
+
+3. [`mapWithEntryProcessor`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithEntryProcessor-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-),
+where you provide a function that returns a full-blown `EntryProcessor`
+instance that will be submitted to the map. This is the most general
+variant, but can't use batching that the other variants do and thus has
+a higher cost per item. You should use it only if you need a specialized
+entry processor that can't be expressed in terms of the other variants.
+This example takes the values of the map and submits an entry processor
+that increments the values by 5 :
+
+    ```java
+    Pipeline pipeline = Pipeline.create();
+    pipeline.drawFrom(Sources.map("mymap"))
+            .drainTo(
+                    Sinks.mapWithEntryProcessor(
+                            "mymap",
+                            item -> item.getKey(),
+                            item -> new IncrementEntryProcessor(5)
+                    )
+            );
+
+    static class IncrementEntryProcessor implements EntryProcessor<Integer, Integer> {
+
+        private int incrementBy;
+
+        public IncrementEntryProcessor(int incrementBy) {
+                this.incrementBy = incrementBy;
+        }
+
+        @Override
+        public Object process(Entry<Integer, Integer> entry) {
+                return entry.setValue(entry.getValue() + incrementBy);
+        }
+
+        @Override
+        public EntryBackupProcessor<Integer, Integer> getBackupProcessor() {
+                return null;
+        }
+    }
+    ```
+
 ### Access an External Cluster
 
 To access a Hazelcast IMDG cluster separate from the Jet cluster, you
@@ -56,7 +145,7 @@ to the
 [Hazelcast IMDG documentation](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#configuring-java-client)
 on this topic.
 
-### Optimize Data Traffic
+### Optimize Data Traffic at the Source
 
 If your use case calls for some filtering and/or transformation of the
 data you retrieve, you can optimize the traffic volume by providing a
@@ -184,9 +273,17 @@ ComputeStage<EventJournalCacheEvent<String, Long>> fromRemoteCache = p.drawFrom(
 
 ## IList
 
-Whereas `IMap` and `ICache` are the recommended choice of data sources and sinks in Jet jobs, Jet supports `IList` purely for convenience during prototyping, unit testing and similar non-production situations. It is not a partitioned and distributed data structure and only one cluster member has all the contents. In a distributed Jet job all the members will compete for access to the single member holding it.
+Whereas `IMap` and `ICache` are the recommended choice of data sources
+and sinks in Jet jobs, Jet supports `IList` purely for convenience
+during prototyping, unit testing and similar non-production situations.
+It is not a partitioned and distributed data structure and only one
+cluster member has all the contents. In a distributed Jet job all the
+members will compete for access to the single member holding it.
 
-With that said, `IList` is very simple to use. Here's an example how to fill it with test data, consume it in a Jet job, dump its results into another list, and fetch the results (we assume you already have a Jet instance in the variable `jet`):
+With that said, `IList` is very simple to use. Here's an example how to
+fill it with test data, consume it in a Jet job, dump its results into
+another list, and fetch the results (we assume you already have a Jet
+instance in the variable `jet`):
 
 ```java
 IList<Integer> inputList = jet.getList("inputList");
@@ -205,7 +302,8 @@ IList<String> resultList = jet.getList("resultList");
 System.out.println("Results: " + new ArrayList<>(resultList));
 ```
 
-You can access a list in an external cluster as well, by providing a `ClientConfig` object:
+You can access a list in an external cluster as well, by providing a
+ `ClientConfig` object:
 
 ```java
 ClientConfig clientConfig = new ClientConfig();
