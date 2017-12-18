@@ -222,16 +222,31 @@ cfg.getHazelcastConfig()
 Once properly configured, you use Event Journal sources like this:
 
 ```java
-Pipeline p = p.create();
-ComputeStage<EventJournalMapEvent<String, Long>> fromMap =
-        p.drawFrom(Sources.<String, Long>mapJournal("inputMap", true));
-ComputeStage<EventJournalCacheEvent<String, Long>> fromCache =
-        p.drawFrom(Sources.<String, Long>cacheJournal("inputCache", true));
+Pipeline p = Pipeline.create();
+ComputeStage<Entry<String, Long>> fromMap =
+        p.drawFrom(Sources.<String, Long>mapJournal("inputMap", START_FROM_CURRENT));
+ComputeStage<Entry<String, Long>> fromCache =
+        p.drawFrom(Sources.<String, Long>cacheJournal("inputCache", START_FROM_CURRENT));
 ```
 
-`IMap` and `ICache` are on an equal footing here. The second argument,
-`true` here, means "start receiving from the latest update event". If
-you specify `false`, you'll get all the events still on record.
+`IMap` and `ICache` are on an equal footing here. The second argument, 
+`START_FROM_CURRENT` here, means "start receiving from events that occur 
+after the processing starts". If you specify `START_FROM_OLDEST`, you'll 
+get all the events still on record.
+
+This version of methods will only emit `ADDED` and `UPDATED` event 
+types. Also, it will map the event object to simple `Map.Entry` with the 
+key and new value. If you want to receive all types of events, use the 
+second version of methods:
+
+```java
+ComputeStage<EventJournalMapEvent<String, Long>> allFromMap =
+        p.drawFrom(Sources.<String, Long, EventJournalMapEvent<String, Long>>mapJournal("inputMap",
+                alwaysTrue(), identity(), START_FROM_CURRENT));
+ComputeStage<EventJournalCacheEvent<String, Long>> allFromCache =
+        p.drawFrom(Sources.<String, Long, EventJournalCacheEvent<String, Long>>cacheJournal("inputCache",
+                alwaysTrue(), identity(), START_FROM_CURRENT));
+```
 
 Note the type of the stream element: `EventJournalMapEvent` and
 `EventJournalCacheEvent`. These are almost the same and have these
@@ -245,30 +260,17 @@ methods:
 The only difference is the return type of `getType()` which is specific
 to each kind of structure and gives detailed insight into what kind of
 event it reports. _Add_, _remove_ and _update_ are the basic ones, but
-there are also _evict_, _clear_, _expire_ and some others. When you use
-the Event Journal as a stream source, most often you'll care just about
-the basic event types and just the key and the new value. You can supply
-the appropriate filtering and mapping functions to the source:
+there are also _evict_, _clear_, _expire_ and some others. 
 
-```java
-EnumSet<EntryEventType> evTypesToAccept =
-        EnumSet.of(ADDED, REMOVED, UPDATED);
-ComputeStage<Entry<String, Long>> stage = p.drawFrom(
-        Sources.<String, Long, Entry<String, Long>>mapJournal("inputMap",
-                e -> evTypesToAccept.contains(e.getType()),
-                e -> entry(e.getKey(), e.getNewValue()),
-                true));
-```
-
-Finally, you can get all of the above from a map/cache in another
-cluster, you just have to prepend `remote` to the source names and add
+Finally, you can get all of the above from a map/cache in another 
+cluster, you just have to prepend `remote` to the source names and add a 
 `ClientConfig`, for example:
 
 ```java
-ComputeStage<EventJournalMapEvent<String, Long>> fromRemoteMap = p.drawFrom(
-        Sources.<String, Long>remoteMapJournal("inputMap", clientConfig(), true));
-ComputeStage<EventJournalCacheEvent<String, Long>> fromRemoteCache = p.drawFrom(
-        Sources.<String, Long>remoteCacheJournal("inputCache", clientConfig(), true));
+ComputeStage<Entry<String, Long>> fromRemoteMap = p.drawFrom(
+        Sources.<String, Long>remoteMapJournal("inputMap", clientConfig(), START_FROM_CURRENT));
+ComputeStage<Entry<String, Long>> fromRemoteCache = p.drawFrom(
+        Sources.<String, Long>remoteCacheJournal("inputCache", clientConfig(), START_FROM_CURRENT));
 ```
 
 ## IList
