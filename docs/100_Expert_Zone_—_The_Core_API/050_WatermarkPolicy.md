@@ -111,3 +111,27 @@ there is
 [`emitByMinStep()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkEmissionPolicy.html#emitByMinStep-long-)
 which suppresses watermark items until the watermark has advanced at least
 `minStep` ahead of the previously emitted one.
+
+### Maximum watermark retention on substream merge
+
+When two input streams are merged into one for downstream processing, 
+Jet waits for the watermark to advance in all substreams in order to 
+advance the overall watermark. The process that does this is called 
+_watermark coalescing_ and it results in increased latency of the output 
+with respect to the input and possibly also increased memory usage due 
+to the retention of all the pending data.
+
+The skew between two distributed streams is defined as the difference in 
+their watermark values. There is always some skew in the system and it's 
+acceptable, but it can grow very large due to various causes such as a 
+hiccup on one of the cluster members (a long GC pause, for example), 
+external source hiccup, non-balanced partitions and so on.
+
+An option to limit the watermark retention is available using 
+[`JobConfig.setMaxWatermarkRetainMillis()
+`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JobConfig.html#setMaxWatermarkRetainMillis-int-).
+The option sets the maximum time to retain the watermarks while 
+coalescing them. A negative value disables the limit and Jet will retain 
+the watermark as long as needed. With this setting you choose a 
+trade-off between latency and correctness that arises when dealing with 
+stream skew.
