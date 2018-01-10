@@ -60,7 +60,7 @@ public class AvgAccumulator {
 }
 ```
 
-This object will also have to be serializable, and preferrably with
+This object will also have to be serializable, and preferably with
 Hazelcast's serialization instead of Java's because in a group-by
 operation there's one accumulator per each key and all of them have to
 be sent across the network to be combined and finished.
