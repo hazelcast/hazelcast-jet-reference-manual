@@ -175,7 +175,7 @@ operation, aggregating several input streams together. Since the number
 of input types is variable, the general `AggregateOperation` type cannot
 statically capture them and we need separate subtypes. We decided to
 statically support up to three input types; if you need more, you'll
-have to resort to the less typesafe, general `AggregateOperation`.
+have to resort to the less type-safe, general `AggregateOperation`.
 
 Let us now study a use case that calls for co-grouping. We are
 interested in the behavior of users in an online shop application and

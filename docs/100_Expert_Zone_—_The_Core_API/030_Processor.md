@@ -41,7 +41,8 @@ The processor sends its output items to its
 which has a separate bucket for each outbound edge. The buckets have
 limited capacity and will refuse an item when full. A cooperative
 processor should be implemented such that when the outbox refuses its
-item, it saves its processing state and returns from the processing method. The execution engine will then drain the outbox buckets.
+item, it saves its processing state and returns from the processing
+method. The execution engine will then drain the outbox buckets.
 
 ## Data Processing Callbacks
 
@@ -49,19 +50,33 @@ item, it saves its processing state and returns from the processing method. The 
 
 Jet passes the items received over a given edge to the processor by
 calling
-[`process(ordinal, inbox)`.](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#process-int-com.hazelcast.jet.core.Inbox-)
+[`process(ordinal, inbox)`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#process-int-com.hazelcast.jet.core.Inbox-).
 All items received since the last `process()` call are in the inbox, but
 also all the items the processor hasn't removed in a previous
 `process()` call. There is a separate instance of `Inbox` for each
 inbound edge, so any given `process()` call involves items from only one
 edge.
 
-The processor must not remove an item from the inbox until it has fully processed it. This is important with respect to the cooperative
+The processor must not remove an item from the inbox until it has fully
+processed it. This is important with respect to the cooperative
 behavior: the processor may not be allowed to emit all items
 corresponding to a given input item and may need to return from the
 `process()` call early, saving its state. In such a case the item should
 stay in the inbox so Jet knows the processor has more work to do even if
 no new items are received.
+
+### tryProcessWatermark(watermark)
+
+When new highest watermark is received from all input edges and all 
+input processor instances, the 
+[`tryProcessWatermark(watermark)`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#tryProcessWatermark-com.hazelcast.jet.core.Watermark-)
+method is called. The watermark value is always greater than in the 
+previous call.
+
+The implementation may choose to process only partially and return 
+`false`, in which case it will be called again later with the same 
+timestamp before any other processing method is called. When the method 
+returns `true`, the watermark is forwarded to the downstream processors.
 
 ### tryProcess()
 
@@ -142,37 +157,11 @@ Jet will call
 The processor may use it to initialize some transient state from the
 restored state.
 
-## Rules of Watermark Propagation
-
-Jet's internal class
-[`ConcurrentInboundEdgeStream`](https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/ConcurrentInboundEdgeStream.java)
-(CIES for short) manages a processor's input streams belonging to a
-single edge. As it receives watermark items from each of them, its duty
-is to sort out when to present the watermark item to the processor. 
-
-Let's start our analysis from the vertex upstream to CIES. There are N
-parallel processors determining each its own watermark value and
-emitting a watermark item when the value advances. All these items
-travel downstream to M processors of the next vertex, but if they were
-all let through, the downstream processors would experience a wildly
-erratic watermark value. This is why CIES contains logic that coalesces
-the watermark items before letting its processor observe them. These are
-the rules:
-
-* The value of the watermark a processor emits must be strictly
-  increasing. CIES will throw an exception if it detects a
-  non-increasing watermark in any input stream.
-
-* The watermark item is always broadcast, regardless of the edge type.
-  This means that all N upstream processors send their watermark to all
-  M downstream processors.
-
-* The processor will observe a watermark value only once CIES has
-  received a value at least that high from all upstream processors.
-
-
 ## Best Practice: Document At-Least-Once Behavior
 
-As we discuss in the
-[Under the Hood](/Under_the_Hood/How_Infinite_Stream_Processing_Works_In_Jet#page_The+Pitfalls+of+At-Least-Once+Processing)
-chapter, the behavior of a processor under _at-least-once_ semantics can deviate from correctness in extremely non-trivial and unexpected ways. Therefore the processor should always document its possible behaviors for that case.
+As we discuss in the [Under the 
+Hood](/Under_the_Hood/How_Infinite_Stream_Processing_Works_In_Jet#page_The+Pitfalls+of+At-Least-Once+Processing)
+ chapter, the behavior of a processor under _at-least-once_ semantics 
+can deviate from correctness in extremely non-trivial and unexpected 
+ways. Therefore the processor should always document its possible 
+behaviors for that case.
