@@ -246,6 +246,51 @@ computation job stops and restarts, this state will be restored from the
 snapshot and then the source will replay `x1` and `x2`. The processor
 will think it got two new items.
 
+## Rules of Watermark Propagation
+
+Watermark objects are sent interleaved with other stream items, but are
+handled specially:
+
+* The value of the watermark a processor emits must be strictly
+  increasing. Jet will throw an exception if it detects a non-increasing
+  watermark.
+
+* When a processor receives and handles a watermark, it is automatically
+  emitted to the outbox. Therefore there should be only one processor
+  emitting watermarks in the pipeline.
+
+* The watermark item is always broadcast, regardless of the edge type.
+  This means that all N upstream processors send their watermark to all
+  M downstream processors.
+
+* The processor will observe only the highest watermark received from
+  all upstream processors and from all upstream edges. This is called
+  _watermark coalescing_.
+
+Jet's internal class
+[`WatermarkCoalescer`](https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/WatermarkCoalescer.java)
+ manages watermarks received from multiple inputs. As it receives
+watermark items from them, its duty is to decide when to forward the
+watermark downstream. This happens at two levels:
+* between multiple queues backing single edge
+* between multiple input edges to single processor
+
+### Idle inputs
+
+A special object called _idle message_ can be emitted from source
+processor when the processor sees no events for configured _idle
+timeout_. This can happen in real life when some external partitions
+have no events while others do.
+
+When an _idle message_ is received from an input, that input will be
+excluded from watermark coalescing. This means that we will not wait to
+receive watermark from idle input. It will cause that other active
+inputs can be processed without any delay. When idle timeout is disabled
+and some processor doesn't emit any watermarks (because it sees no
+events), the processing will stall indefinitely (unless
+[maximum retention](Expert_Zone_—_The_Core_API/WatermarkPolicy#page_Maximum+watermark+retention+on+substream+merge)
+is configured).
+
 ## The Pitfalls of At-Least-Once Processing
 
 In some cases _at-least-once_ semantics can have consequences of quite
@@ -281,5 +326,5 @@ invariant that the watermark value always increases. However, in
 _at-least-once_ the post-barrier watermark items will advance the
 processor's watermark value. After the job restarts and the state gets
 restored to the snapshotted point, the watermark will appear to have
-gone back, breaking the invariant. This can again lead to apparent data loss.
-
+gone back, breaking the invariant. This can again lead to apparent data
+loss.
