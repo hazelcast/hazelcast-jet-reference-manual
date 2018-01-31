@@ -51,9 +51,9 @@ explained next.
 
 ### Submit a Job from the Command Line
 
-Jet comes with the `submit-job` script, which allows you to submit a Jet
-job packaged in a JAR file. You can find it in the Jet distribution
-zipfile, in the `bin` directory. On Windows use `submit-jet.bat`. To use
+Jet comes with the `jet-submit.sh` script, which allows you to submit a 
+Jet job packaged in a JAR file. You can find it in the Jet distribution 
+zipfile, in the `bin` directory. On Windows use `jet-submit.bat`. To use 
 it, follow these steps:
 
 * Write your `main()` method and your Jet code the usual way, except
@@ -63,7 +63,7 @@ to acquire a Jet client instance (instead of `Jet.newJetClient()`).
 * Create a runnable JAR which declares its `Main-Class` in
 * `MANIFEST.MF`.
 
-* Run your JAR, but instead of `java -jar jetjob.jar` use `submit-jet.sh
+* Run your JAR, but instead of `java -jar jetjob.jar` use `jet-submit.sh
 jetjob.jar`.
 
 * The script will create a Jet client and configure it from
@@ -88,7 +88,7 @@ public class CustomJetJob {
 After building the JAR, submit the job:
 
 ```
-$ submit-jet.sh jetjob.jar
+$ jet-submit.sh jetjob.jar
 ```
 
 ## Watch out for Capturing Lambdas

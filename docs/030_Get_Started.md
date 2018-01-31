@@ -42,11 +42,11 @@ and add the `hazelcast-jet-<version>.jar` file to your classpath.
 The distribution package contains the following scripts to help you get
 started with Hazelcast Jet:
 
-* `bin/start-jet.sh` and `bin/start-jet.bat` start a new Jet member in
+* `bin/jet-start.sh` and `bin/jet-start.bat` start a new Jet member in
 the current directory.
-* `bin/stop-jet.sh` and `bin/stop-jet.bat` stop the member started in 
+* `bin/jet-stop.sh` and `bin/jet-stop.bat` stop the member started in 
 the current directory.
-* `bin/submit-jet.sh` and `bin/submit-jet.bat` submit a Jet computation 
+* `bin/jet-submit.sh` and `bin/jet-submit.bat` submit a Jet computation 
 job that was packaged in a self-contained JAR file.
 * `bin/cluster.sh` provides basic functionality for Hazelcast cluster
 manager, such as changing the cluster state, shutting down the cluster
