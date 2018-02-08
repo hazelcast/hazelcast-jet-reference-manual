@@ -59,9 +59,51 @@ jet.newJob(dag).join();
 Code samples with
 [the pipeline](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountRefMan.java)
 and
-[the Core API DAG](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java) 
+[the Core API DAG](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java)
 are available at our Code Samples repo.
 
+## JobConfig
+
+To gain more control over how Jet will run your job, you can pass in
+a `JobConfig` instance. For example, you can give your job a human-
+readable name:
+
+```java
+JobConfig cfg = new JobConfig();
+cfg.setName("my job");
+jet.newJob(pipeline, cfg);
+```
+
 In the [Practical Considerations](Practical_Considerations) section
-we'll deepen this story and explain what it takes to submit a job to a
-real-life Jet cluster.
+we'll deepen this story and explain how to use the `JobConfig` to
+to submit a job to a Jet cluster in production.
+
+## Manage a Submitted Job
+
+`jet.newJob()` returns a `Job` object, which you can use to monitor the
+job and change its status. You can get the job's name, configuration, and
+submission time via `job.getName()`, `job.getConfig()`, and
+`job.getSubmissionTime()` methods. `job.getStatus()` will give you the
+current status of the job (running, failed, completed etc.). You can also
+call `Job.getFuture()` to block until the job completes and then get its
+final outcome (either success or failure).
+
+Jet does not support canceling the job with `future.cancel()`, instead
+you must call `job.cancel()`. This is due to the mismatch in the
+semantics between `future.cancel()` on one side and `job.cancel()` plus
+`job.getStatus()` on the other: the future immediately transitions to
+"completed by cancellation", but it will take some time until the actual
+job in the cluster changes to that state. Not to confuse the users with
+these differences we decided to make `future.cancel()` fail with an
+exception.
+
+## Get a List of all Submitted Jobs
+
+Jet keeps an inventory of all the jobs submitted to it, including those
+that have already completed. Access the full list with `jet.getJobs()`.
+You can use any `Job` instance from that list to monitor and manage a
+job, whether it was you or some other client that submitted it.
+
+To get a more focused list of jobs, you can call `jet.getJobs(name)` to
+get all the jobs with that name that were submitted since Jet started,
+or `jet.getJob(name)` to get just the latest such job.
