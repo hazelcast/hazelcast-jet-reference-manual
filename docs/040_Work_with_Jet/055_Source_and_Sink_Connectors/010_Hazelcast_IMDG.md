@@ -58,6 +58,7 @@ exists in the map. Here's an example that concatenates string values:
                     )
             );
     ```
+    **Note:** This operation is <em>NOT</em> lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the update function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
 
 2. [`mapWithUpdating`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithUpdating-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBiFunction-),
 where you provide a single updating function that combines the roles of
@@ -77,6 +78,7 @@ string values:
                     )
             );
     ```
+    **Note:** This operation is <em>NOT</em> lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the merge function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
 
 3. [`mapWithEntryProcessor`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithEntryProcessor-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-),
 where you provide a function that returns a full-blown `EntryProcessor`
@@ -229,14 +231,14 @@ ComputeStage<Entry<String, Long>> fromCache =
         p.drawFrom(Sources.<String, Long>cacheJournal("inputCache", START_FROM_CURRENT));
 ```
 
-`IMap` and `ICache` are on an equal footing here. The second argument, 
-`START_FROM_CURRENT` here, means "start receiving from events that occur 
-after the processing starts". If you specify `START_FROM_OLDEST`, you'll 
+`IMap` and `ICache` are on an equal footing here. The second argument,
+`START_FROM_CURRENT` here, means "start receiving from events that occur
+after the processing starts". If you specify `START_FROM_OLDEST`, you'll
 get all the events still on record.
 
-This version of methods will only emit `ADDED` and `UPDATED` event 
-types. Also, it will map the event object to simple `Map.Entry` with the 
-key and new value. If you want to receive all types of events, use the 
+This version of methods will only emit `ADDED` and `UPDATED` event
+types. Also, it will map the event object to simple `Map.Entry` with the
+key and new value. If you want to receive all types of events, use the
 second version of methods:
 
 ```java
@@ -260,10 +262,10 @@ methods:
 The only difference is the return type of `getType()` which is specific
 to each kind of structure and gives detailed insight into what kind of
 event it reports. _Add_, _remove_ and _update_ are the basic ones, but
-there are also _evict_, _clear_, _expire_ and some others. 
+there are also _evict_, _clear_, _expire_ and some others.
 
-Finally, you can get all of the above from a map/cache in another 
-cluster, you just have to prepend `remote` to the source names and add a 
+Finally, you can get all of the above from a map/cache in another
+cluster, you just have to prepend `remote` to the source names and add a
 `ClientConfig`, for example:
 
 ```java
