@@ -101,31 +101,11 @@ Jet comes with some predefined policies which you can tune with a few
 configurable parameters. You can also write your own policy from
 scratch.
 
-## Note for Hazelcast Jet version 0.5
-
-Hazelcast Jet's version 0.5 was released with the Pipeline API still
-under construction. We started from the simple case of batch jobs and we
-support the major batch operation of (co)group-and-aggregate, but still
-lack the API to define the windowing and watermark policies. Other,
-non-aggregating operations aren't sensitive to the difference between
-finite and infinite streams and are ready to use. The major example here
-is data enrichment
-([hash join](Build_Your_Computation_Pipeline#page_hashJoin)),
-which is essentially a mapping stream transformation. The next release
-of Jet will feature a fully developed API that supports windowed
-aggregation of infinite streams and we also plan to add more batch
-transforms (`sort` and `distinct` for example).
-
-On the other hand, Jet's core has had full-fledged support for all of the
-windows described above since version 0.4. You can refer to the
-[Under the Hood](Under_the_Hood) chapter for details on how to create a
-Core API DAG that does infinite stream aggregation.
-
 ## Fault Tolerance and Processing Guarantees
 
 One less-than-obvious consequence of stepping up from finite to infinite
 streams is the difficulty of forever maintaining the continuity of the
-output, even in the face of changing cluster topology. A member may
+output, even in the face of changing cluster topology. A Jet node may
 leave the cluster due to an internal error, loss of networking, or
 deliberate shutdown for maintenance. This will cause the computation job
 to be suspended. Except for the obvious problem of new data pouring in
@@ -134,19 +114,50 @@ computation in a differently laid-out cluster exactly where it left off
 and neither miss anything nor process it twice. The technical term for
 this is the "exactly-once processing guarantee".
 
+Hazelcast Jet transparently coordinates the execution of submitted jobs.
+One member is assigned the role of the _coordinator_. It tells other
+members what to do and they report to it any status changes. The
+coordinator may fail and the cluster will automatically re-elect another
+one. If any other member fails, the coordinator restarts the job on the
+remaining members.
+
+In Jet, job submission works on the fire-and-forget principle: once you
+have submitted it, you can disconnect with no effect on the job. Any
+other client or Jet member can request a local `Job` instance which
+allows it to monitor and manage the job.
+
 ### Snapshotting the State of Computation
 
-To achieve fault tolerance, Jet takes snapshots of the entire state of
-the computation at regular intervals. The snapshot is coordinated across
-the cluster and synchronized with a checkpoint on the data source. The
-source must ensure that, in the case of a restart, it will be able to
-replay all the data it emitted after the last checkpoint. Every other
-component in the computation must ensure it will be able to restore its
+To be able to tolerate failures, Jet takes snapshots of the entire state
+of the computation at regular intervals. The snapshot is coordinated
+across the cluster and synchronized with a checkpoint on the data
+source. The source must ensure that, in the case of a restart, it will
+be able to replay all the data it emitted after the last checkpoint.
+Each of the other components must ensure it will be able to restore its
 processing state to exactly what it was at the last snapshot. If a
 cluster member goes away, Jet will restart the job on the remaining
 members, rewind the sources to the last checkpoint, restore the state of
-processing from the last snapshot, and then seamlessly continue from
-that point.
+processing from the last snapshot, and then seamlessly
+continue from that point.
+
+### Level of Safety
+
+Jet stores job metadata and snapshot data in Hazelcast `IMap`s, which
+means that you don't have to install any other system for fault
+tolerance. However, the fault tolerance mechanism is at most as safe as
+the `IMap` itself. Therefore, it is important to configure level of
+safety for the `IMap`. `IMap` is a replicated in-memory data structure,
+storing each key-value pair on a configurable number of cluster members.
+By default it will store one primary copy plus one backup copy,
+resulting in a system that tolerates the failure of a single member at a
+time. You can tweak this setting when starting Jet, for example increase
+the backup count to two:
+
+```java
+JetConfig config = new JetConfig();
+config.getInstanceConfig().setBackupCount(2);
+JetInstance = Jet.newJetInstance(config);
+```
 
 ### Exactly-Once
 
@@ -181,7 +192,7 @@ but use Kafka as the sink, after a job restart you may get duplicates in
 the output. As opposed to duplicating an input item, this is much more
 benign because it just means getting the exact same result twice.
 
-### Enable Fault Tolerance
+### Enabling Snapshotting
 
 Fault tolerance is off by default. To activate it for a job, create a
 `JobConfig` object and set the
@@ -199,24 +210,6 @@ Using less frequent snapshots, more data will have to be replayed
 and the temporary spike in the latency of the output will be greater.
 More frequent snapshots will reduce the throughput and introduce more
 latency variation during regular processing.
-
-### Level of Safety
-
-Jet stores the snapshots into Hazelcast `IMap`s, which means that you
-don't have to install any other system for it to work. It also means
-that the mechanism is at most as safe as the `IMap` itself so it is
-important to configure its level of safety. `IMap` is a replicated
-in-memory data structure, storing each key-value pair on a configurable
-number of cluster members. By default it will store one master value
-plus one backup, resulting in a system that tolerates the failure of a
-single member at a time. You can tweak this setting when starting Jet,
-for example increase the backup count to two:
-
-```java
-JetConfig config = new JetConfig();
-config.getInstanceConfig().setBackupCount(2);
-JetInstance = Jet.newJetInstance(config);
-```
 
 ### Split-Brain Protection
 
@@ -244,3 +237,33 @@ add more members to any of the sub-clusters and have them both grow to
 more than half the previous size. Since the job will keep trying to
 restart itself and by definition one cluster has no idea of the other's
 existence, it will restart as soon as the quorum value is reached.
+
+## Scaling up Jobs
+
+After a job is submitted to the cluster, new nodes can be started and
+the job can be scaled up. Hazelcast Jet 0.6 introduces a new method into
+the `Job` interface for this purpose. When `Job.restart()` is invoked,
+ongoing execution of the job is interrupted and a new execution is 
+scheduled. If the snapshotting mechanism enabled, the job is restarted
+from the last successful snapshot. Therefore, the restart procedure 
+respects to the configured processing guarantee.
+
+## Note for Hazelcast Jet version 0.5
+
+Hazelcast Jet's version 0.5 was released with the Pipeline API still
+under construction. We started from the simple case of batch jobs and we
+support the major batch operation of (co)group-and-aggregate, but still
+lack the API to define the windowing and watermark policies. Other,
+non-aggregating operations aren't sensitive to the difference between
+finite and infinite streams and are ready to use. The major example here
+is data enrichment
+([hash join](Build_Your_Computation_Pipeline#page_hashJoin)),
+which is essentially a mapping stream transformation. The next release
+of Jet will feature a fully developed API that supports windowed
+aggregation of infinite streams and we also plan to add more batch
+transforms (`sort` and `distinct` for example).
+
+On the other hand, Jet's core has had full-fledged support for all of the
+windows described above since version 0.4. You can refer to the
+[Under the Hood](Under_the_Hood) chapter for details on how to create a
+Core API DAG that does infinite stream aggregation.
