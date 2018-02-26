@@ -1,0 +1,69 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
+        classpath 'org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.10.1'
+        classpath 'org.asciidoctor:asciidoctorj-epub3:1.5.0-alpha.5.1'
+    }
+}
+
+apply plugin: 'org.asciidoctor.convert'
+import org.asciidoctor.gradle.AsciidoctorTask
+
+// common Asciidoctor settings
+tasks.withType(AsciidoctorTask) { docTask ->
+    sourceDir "$sources"
+    outputDir "$output"
+    sources {
+      include 'book.adoc'
+    }
+    options = [
+        logDocuments: true,
+        doctype: 'book',
+        icons: 'font',
+    ]
+    attributes = [
+        'source-highlighter': 'coderay',
+        //experimental: true,
+        //'source-highlighter': 'highlightjs',
+        //'highlightjs-theme' : 'tomorrow',
+        toc                 : 'left',
+        idprefix            : '',
+        idseparator         : '-',
+	imagesdir	    : './images',
+	sectanchors         : true,
+	sectlinks           : true,
+ //       stylesheet	    : './asciidoctor-stylesheet-factory/stylesheets/foundation.css',
+
+    ]
+}
+
+// HTML specific settings
+task generateMulti (type: AsciidoctorTask, group: 'Documentation') {
+    requires file('./multipage-html5-converter.rb')
+    backends = ['multipage_html5']
+}
+
+task generateSingle (type: AsciidoctorTask, group: 'Documentation') {
+    backends = ['html5']
+}
+
+// PDF specific settings
+task generatePdf (type: AsciidoctorTask, description: 'Generates PDF documentation.', group: 'Documentation') {
+    backends = ['pdf']
+}
+
+// epub3 specific settings
+task generateEpub (type: AsciidoctorTask, description: 'Generates PDF documentation.', group: 'Documentation') {
+    backends = ['epub3']
+}
+
+task cleanup(type: Delete) {
+  delete "$output"
+}
+
+task html (dependsOn: [cleanup, generateMulti, generateSingle], description: 'Generates single and multiple HTML documentation.')
+task generateAll (dependsOn: [cleanup, html, generatePdf, generateEpub])

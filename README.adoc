@@ -1,0 +1,10 @@
+== An Upgraded Approach To Reference Manual
+
+This repository includes the actual work performed for the new generation Hazelcast Reference Manual.
+
+.Build The Documentation
+----
+./gradlew clean asciidoctor
+----
+
+Result can be found in `target\html5` folder.
