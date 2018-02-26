@@ -1,13 +1,16 @@
+[[introduction-to-jet]]
+== Introduction
+
 Hazelcast Jet is a distributed data processing engine, built for
 high-performance batch and stream processing. It reuses some features
-and services of [Hazelcast In-Memory Data
-Grid](http://www.hazelcast.org) (IMDG), but is otherwise a separate
+and services of (http://www.hazelcast.org)[Hazelcast In-Memory Data
+Grid] (IMDG), but is otherwise a separate
 product with features not available in the IMDG.
 
 In addition to its own
-[Pipeline API](/Work_with_Jet/Build_Your_Computation_Pipeline),
+<<pipeline-api, Pipeline API>>, 
 Jet also offers a distributed implementation of
-[`java.util.stream`](https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html).
+https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html)[java.util.stream].
 You can express your computation over any data source Jet supports using
 the familiar API from the JDK 8.
 
@@ -26,17 +29,20 @@ results of a computation or as a cache for datasets to be used during
 the computation. Extremely low end-to-end latencies can be achieved this
 way.
 
-It is extremely simple to use -- in particular, Jet can be fully
+It is extremely simple to use - in particular, Jet can be fully
 embedded for OEMs and for Microservices – making it is easier for
 manufacturers to build and maintain next generation systems. Also,
 Jet uses Hazelcast discovery for finding the members in the cluster,
 which can be used in both on-premise and cloud environments.
 
-## Architecture Overview
+[[architecture-overview]]
+=== Architecture Overview
 
-<img src="./images/architecture-overview.png" width="100%"/>
+image::architecture-overview.png[Architecture]
 
-## The Data Processing Model
+
+[[data-processing-model]]
+=== The Data Processing Model
 
 Hazelcast Jet provides high performance in-memory data processing by
 modeling the computation as a _Directed Acyclic Graph (DAG)_ where
@@ -60,15 +66,17 @@ Edges determine how the data is routed from individual source processors
 to individual destination processors. Different edge properties offer
 precise control over the flow of data.
 
-## Clustering and Discovery
+[[clustering-and-discovery]]
+=== Clustering and Discovery
 
 Hazelcast Jet typically runs on several machines that form a cluster but
 it may also run on a single JVM for testing purposes.
 There are several ways to configure the members for discovery, explained
-in detail in the [Hazelcast IMDG Reference
-Manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#setting-up-clusters).
+in detail in the http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#setting-up-clusters[Hazelcast IMDG Reference
+Manual].
 
-## Members and Clients
+[[members-and-clients]]
+=== Members and Clients
 
 A Hazelcast Jet _instance_ is a unit where the processing takes place.
 There can be multiple instances per JVM, however this only makes sense
@@ -80,12 +88,13 @@ cluster is available locally.
 On the other hand, a _client instance_ is just an accessor to a cluster
 and no processing takes place in it.
 
-## Relationship with Hazelcast IMDG
+[[relationship-with-imdg]]
+=== Relationship with Hazelcast IMDG
 
-Hazelcast Jet leans on [Hazelcast IMDG](http://www.hazelcast.org) for
+Hazelcast Jet leans on http://www.hazelcast.org[Hazelcast IMDG] for
 cluster formation and maintenance, data partitioning, and networking.
-For more information on Hazelcast IMDG, see the [latest Hazelcast
-Reference Manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html).
+For more information on Hazelcast IMDG, see the http://docs.hazelcast.org/docs/latest/manual/html-single/index.html[latest Hazelcast
+Reference Manual].
 
 As Jet is built on top of the Hazelcast platform, there is a tight
 integration between Jet and IMDG. A Jet job is implemented as a
@@ -95,7 +104,8 @@ that can be performed on a job. Jet can also be used with the Hazelcast
 Client, which uses the Hazelcast Open Binary Protocol to communicate
 different actions to the server instance.
 
-### Reading from and Writing to Hazelcast Distributed Data Structures
+[[read-write-imdg-dds]]
+==== Reading from and Writing to Hazelcast Distributed Data Structures
 
 Jet embeds Hazelcast IMDG. Therefore, Jet can use Hazelcast IMDG maps,
 caches and lists on the embedded cluster as sources and sinks of data
@@ -113,7 +123,8 @@ partition.
 Jet can also use any remote Hazelcast IMDG instance via Hazelcast IMDG
 connector.
 
-## High Availability and Fault Tolerance
+[[high-availability-and-fault-tolerance]]
+=== High Availability and Fault Tolerance
 
 Jet provides highly available and fault tolerant distributed computation.
 If one of the cluster members fails and leaves the cluster during job
@@ -135,7 +146,8 @@ restore its internal state from the snapshot and tell the source to start
 sending data from the last "committed" position (where the snapshot was
 taken).
 
-## Elasticity
+[[elasticity]]
+=== Elasticity
 
 Hazelcast Jet supports the scenario where a new member joins the cluster
 while a job is running. Currently the ongoing job will not be re-planned

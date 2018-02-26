@@ -1,13 +1,19 @@
+
+[[get-started]]
+== Get Started
+
 In this section we'll get you started using Hazelcast Jet. We'll
 show you how to set up a Java project with the proper dependencies and a
 quick Hello World example to verify your setup. 
 
-## Requirements
+[[requirements]]
+=== Requirements
 
 In the good tradition of Hazelcast products, Jet is distributed as a JAR
 with no other dependencies. It requires JRE version 8 or higher to run.
 
-## Using Maven and Gradle
+[[maven-gradle]]
+=== Using Maven and Gradle
 
 The easiest way to start using Hazelcast Jet is to add it as a
 dependency to your project.
@@ -15,7 +21,8 @@ dependency to your project.
 Hazelcast Jet is published on the Maven repositories. Add the following
 lines to your `pom.xml`:
 
-```xml
+[source,xml]
+----
 <dependencies>
   <dependency>
     <groupId>com.hazelcast.jet</groupId>
@@ -23,21 +30,25 @@ lines to your `pom.xml`:
     <version>0.5</version>
   </dependency>
 </dependencies>
-```
+----
 
 If you prefer to use Gradle, execute the following command:
 
-```groovy
+[source,groovy]
+----
 compile 'com.hazelcast.jet:hazelcast-jet:0.5'
-```
+----
 
-## Downloading
 
-Alternatively you can download the latest [distribution package of
-Hazelcast Jet](http://jet.hazelcast.org/download/)
+[[downloading]]
+=== Downloading
+
+Alternatively you can download the latest http://jet.hazelcast.org/download[distribution package of
+Hazelcast Jet]
 and add the `hazelcast-jet-<version>.jar` file to your classpath.
 
-### Distribution Package
+[[distribution-package]]
+==== Distribution Package
 
 The distribution package contains the following scripts to help you get
 started with Hazelcast Jet:
@@ -52,7 +63,8 @@ job that was packaged in a self-contained JAR file.
 manager, such as changing the cluster state, shutting down the cluster
 or forcing the cluster to clean its persisted data.
 
-## Verify Your Setup
+[[verify]]
+=== Verify Your Setup
 
 You can verify your setup by running this simple program. It processes
 the contents of a Hazelcast `IList` that contains lines of text, finds 
@@ -62,7 +74,8 @@ output cannot be simple in-memory structures like a Java `List`; they
 must reside in the cluster so any member can access them. This is why we 
 use Hazelcast structures.
 
-```java
+[source,java]
+----
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.Pipeline;
@@ -106,12 +119,12 @@ public class HelloWorld {
         }
     }
 }
-```
+----
 
 You should expect to see a lot of logging output from Jet (sent to
 `stderr`) and two lines on `stdout`:
 
-```text
+```
 Count of hello: 4
 Count of world: 5
 ```

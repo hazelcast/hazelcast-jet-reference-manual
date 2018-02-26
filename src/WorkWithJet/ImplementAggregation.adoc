@@ -1,3 +1,7 @@
+
+[[implement-your-aggregate-operation]]
+=== Implement Your Aggregate Operation
+
 The single most important kind of processing Jet does is aggregation. In
 general it is a transformation of a set of input values into a single
 output value. The function that does this transformation is called the
@@ -6,9 +10,9 @@ integer numbers, but the result can also be a complex value, for example
 a list of all the input items.
 
 Jet's library contains a range of
-[predefined aggregate functions](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperations.html),
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperations.html[predefined aggregate functions],
 but it also exposes an abstraction, called
-[`AggregateOperation`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html),
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html[`AggregateOperation`],
 that allows you to plug in your own. Since Jet does the aggregation in a
 parallelized and distributed way, you can't simply supply a piece of
 Java code that does it; we need you to break it down into several
@@ -71,9 +75,9 @@ computation performed on it. This means that you just need one
 accumulator class per the kind of structure that holds the accumulated
 data, as opposed to one per each aggregate operation. Jet's library
 offers in the
-[`com.hazelcast.jet.accumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/package-summary.html)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/package-summary.html[`com.hazelcast.jet.accumulator`]
 package several such classes, one of them being
-[`LongLongAccumulator`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/LongLongAccumulator.html),
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/LongLongAccumulator.html[`LongLongAccumulator`],
 which is a match for our `average` function. You'll just have to supply
 the logic on top of it.
 
@@ -97,7 +101,7 @@ of the previous calculations.
 
 If you happen to have a deeper familiarity with JDK's java.util.stream
 API, you'll find `AggregateOperation` quite similar to
-[`Collector`](https://docs.oracle.com/javase/9/docs/api/java/util/stream/Collector.html),
+https://docs.oracle.com/javase/9/docs/api/java/util/stream/Collector.html[`Collector`],
 which is also a holder of several functional primitives. Jet's
 definitions are slightly different, though, and there's also the
 additional `deduct` primitive.
@@ -170,7 +174,7 @@ parameters are:
 Specifically note the `1` at the end of the type's name: it signifies
 that it's the specialization of the general `AggregateOperation` to
 exactly one input stream. In Hazelcast Jet you can also perform a
-[co-grouping](Build_Your_Computation_Pipeline#page_coGroup)
+<<cogroup, co-grouping>>
 operation, aggregating several input streams together. Since the number
 of input types is variable, the general `AggregateOperation` type cannot
 statically capture them and we need separate subtypes. We decided to
@@ -228,7 +232,7 @@ compiler will ensure that the `ComputeStage`s we attach it to have the
 correct type and are in the correct order.
 
 On the other hand, if you use the
-[co-group builder](Build_Your_Computation_Pipeline#page_coGroup+Builder)
+<<cogroup-builder, co-group builder>>
 object, you'll construct the aggregate operation by calling
 `andAccumulate(tag, accFn)` with all the tags you got from the
 co-group builder, and the static type will be just `AggregateOperation`.
