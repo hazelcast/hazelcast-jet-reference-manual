@@ -1,9 +1,15 @@
-[TOC]
+
+[[under-the-hood]]
+== Under the Hood
+
+
+=== How Distributed Computing Works in Jet
+
 
 In this section we'll take a deep dive into the fundamentals of
 distributed computing and Jet's specific take on it. We'll do this by
 dissecting one specific problem: the Word Count. This is how you'd
-describe it in the [Jet Pipeline API](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount/src/main/java/WordCount.java):
+describe it in the https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount/src/main/java/WordCount.java[Jet Pipeline API]:
 
 ```java
 Pattern delimiter = Pattern.compile("\\W+");
@@ -69,7 +75,7 @@ and present in full before the job starts. Later on we'll present a
 _streaming_ job that keeps processing an infinite stream forever,
 transforming it into another infinite stream.
 
-## Modeling Word Count in terms of a DAG
+==== Modeling Word Count in terms of a DAG
 
 We can represent the steps outlined above as a DAG:
 
@@ -233,7 +239,7 @@ following diagram:
      src="../images/wordcount-distributed.png"
      height="420"/>
 
-## Implementing the DAG in Jet's Core API
+==== Implementing the DAG in Jet's Core API
 
 Now that we've come up with a good DAG design, we can use Jet's Core API
 to implement it. We start by instantiating the DAG class and adding the
@@ -372,4 +378,4 @@ be safe as well because all of `String`, `Long`, and `Map.Entry` have
 the hash function specified in their Javadoc.
 
 You can acces a full, self-contained Java program with the above DAG code at the
-[Hazelcast Jet code samples repository](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java).
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java[Hazelcast Jet code samples repository].

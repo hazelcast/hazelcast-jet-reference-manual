@@ -1,10 +1,14 @@
+
+[[jus]]
+== Distributed Implementation of java.util.stream API
+
 Hazelcast Jet adds distributed `java.util.stream` support for Hazelcast
 IMap, ICache and IList data structures.
 
 For extensive information about `java.util.stream` API please refer to
-the official [javadocs](https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html).
+the official https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html[javadocs].
 
-## Simple Example
+=== Simple Example
 
 ```java
 JetInstance jet = Jet.newJetInstance();
@@ -39,12 +43,12 @@ converts the expression into a Core API DAG and submits it for
 execution.
 
 
-## Distributed Collectors
+=== Distributed Collectors
 
 Like with the functional interfaces, Jet also includes distributed
 versions of the classes found in `java.util.stream.Collectors`. These
 can be reached from the
-[`DistributedCollectors`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/stream/DistributedCollectors.html)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/stream/DistributedCollectors.html[`DistributedCollectors`]
 utility class. However, keep in mind that the collectors such as
 `toMap()`, `toCollection()`, `toList()`, and `toArray()` create a
 local data structure and load all the results into it. This works fine
@@ -85,10 +89,10 @@ a data item inside a larger collection, a further consequence being that
 a `Reducer` is inappropriate as a downstream collector; that's where
 the JDK-standard collectors make sense.
 
-## Word Count
+=== Word Count
 
 The word count example that was described in the
-[Get Started](Get_Started) section can be rewritten using the `java.util.stream` API as follows:
+<<get-started, Get Started>> section can be rewritten using the `java.util.stream` API as follows:
 
 ```java
 IMap<String, Long> counts = lines
