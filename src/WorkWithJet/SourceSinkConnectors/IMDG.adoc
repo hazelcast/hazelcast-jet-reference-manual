@@ -1,13 +1,17 @@
-[TOC]
 
-## IMap and ICache
+
+==== Hazelcast IMDG
+
+
+
+===== IMap and ICache
 
 Hazelcast IMDG's `IMap` and `ICache` are very similar in the way Jet
 uses them and largely interchangeable. `IMap` has a bit more features.
 The simplest way to use them is as finite sources of their contents, but
 if you enable the Event Journal on a map/cache, you'll be able to use
 it as a source of an infinite stream of update events
-([see below](#page_Receive+an+Infinite+Stream+of+Update+Events)).
+(<<receive, see below>>).
 
 The most basic usage is very simple, here are snippets to use `IMap`
 and `ICache` as a source and a sink:
@@ -29,19 +33,19 @@ stage.drainTo(Sinks.cache("myCache"));
 In these snippets we draw from and drain to the same kind of structure,
 but you can use any combination.
 
-### Update Entries in IMap
+====== Update Entries in IMap
 
 When you use an `IMap` as a sink, instead of just pushing the data into
 it you may have to merge the new with the existing data or delete the
 existing data. Hazelcast Jet supports this with map-updating sinks which
 rely on Hazelcast IMDG's
-[Entry Processor](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#entry-processor)
+http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#entry-processor[Entry Processor]
 feature. An entry processor allows you to atomically execute a piece of
 code against a map entry, in a data-local manner.
 
 The updating sinks come in three variants:
 
-1. [`mapWithMerging`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithMerging-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBinaryOperator-),
+1. http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithMerging-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBinaryOperator-[`mapWithMerging`],
 where you provide a a function that computes the map value from the
 stream item and a merging function that gets called if a value already
 exists in the map. Here's an example that concatenates string values:
@@ -58,9 +62,9 @@ exists in the map. Here's an example that concatenates string values:
                     )
             );
     ```
-    **Note:** This operation is <em>NOT</em> lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the update function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
+    **Note:** This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the update function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
 
-2. [`mapWithUpdating`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithUpdating-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBiFunction-),
+2. http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithUpdating-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBiFunction-[`mapWithUpdating`],
 where you provide a single updating function that combines the roles of
 the two functions in `mapWithMerging`. It will be called on the stream
 item and the existing value, if any. Here's an example that concatenates
@@ -78,9 +82,9 @@ string values:
                     )
             );
     ```
-    **Note:** This operation is <em>NOT</em> lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the merge function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
+    **Note:** This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the merge function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
 
-3. [`mapWithEntryProcessor`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithEntryProcessor-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-),
+3. http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithEntryProcessor-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-[`mapWithEntryProcessor`],
 where you provide a function that returns a full-blown `EntryProcessor`
 instance that will be submitted to the map. This is the most general
 variant, but can't use batching that the other variants do and thus has
@@ -120,7 +124,7 @@ that increments the values by 5 :
     }
     ```
 
-### Access an External Cluster
+====== Access an External Cluster
 
 To access a Hazelcast IMDG cluster separate from the Jet cluster, you
 have to provide Hazelcast client configuration for the connection. In
@@ -144,10 +148,10 @@ fromCache.drainTo(Sinks.remoteMap("outputMap", cfg));
 
 For a full discussion on how to configure your client connection, refer
 to the
-[Hazelcast IMDG documentation](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#configuring-java-client)
+http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#configuring-java-client[Hazelcast IMDG documentation]
 on this topic.
 
-### Optimize Data Traffic at the Source
+====== Optimize Data Traffic at the Source
 
 If your use case calls for some filtering and/or transformation of the
 data you retrieve, you can optimize the traffic volume by providing a
@@ -167,27 +171,28 @@ The same optimization works on a local `IMap`, too, but has less impact.
 However, Hazelcast IMDG goes a step further in optimizing your filtering
 and mapping to a degree that matters even locally. If you don't need
 fully general functions, but can express your predicate via
-[`Predicates`](http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/query/Predicates.html)
+http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/query/Predicates.html[`Predicates`]
 or
-[`PredicateBuilder`](http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/query/PredicateBuilder.html),
+http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/query/PredicateBuilder.html[`PredicateBuilder`],
 they will create a specialized predicate instance that can test the
 object without deserializing it. Similarly, if the mapping you need is
 of a constrained kind where you just extract one or more object fields
 (attributes), you can specify a _projection_ instead of a general
 mapping lambda:
-[`Projections.singleAttribute()`](http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/projection/Projections.html#singleAttribute-java.lang.String-)
-or [
-`Projections.multiAttribute()`](http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/projection/Projections.html#multiAttribute-java.lang.String...-).
+http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/projection/Projections.html#singleAttribute-java.lang.String-[`Projections.singleAttribute()`]
+or http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/projection/Projections.html#multiAttribute-java.lang.String...-[
+`Projections.multiAttribute()`].
 These will extract the listed attributes without deserializing the whole
 object. For these optimizations to work, however, your objects must
-employ Hazelcast's [portable serialization](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#implementing-portable-serialization).
+employ Hazelcast's http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#implementing-portable-serialization[portable serialization].
 They are especially relevant if the volume of data you need in the Jet
 job is significantly less than the volume of the stored data.
 
 Note that the above feature is not available on `ICache`. It is,
 however, available on `ICache`'s event journal, which we introduce next.
 
-### Receive an Infinite Stream of Update Events
+[[receive]]
+====== Receive an Infinite Stream of Update Events
 
 You can use `IMap`/`ICache` as sources of infinite event streams. For
 this to work you have to enable the Event Journal on your data
@@ -275,7 +280,7 @@ ComputeStage<Entry<String, Long>> fromRemoteCache = p.drawFrom(
         Sources.<String, Long>remoteCacheJournal("inputCache", clientConfig(), START_FROM_CURRENT));
 ```
 
-## IList
+===== IList
 
 Whereas `IMap` and `ICache` are the recommended choice of data sources
 and sinks in Jet jobs, Jet supports `IList` purely for convenience

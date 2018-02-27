@@ -1,14 +1,18 @@
+
+[[comparison-of-fet-apis]]
+== Comparison of Jet APIs
+
 Hazelcast Jet defines several kinds of API, each of which can be used to
 build computation jobs. However, there are significant differences
 between them.
 
-[Pipeline API](/Work_with_Jet/Build_Your_Computation_Pipeline) is the
+<<build-your-computational-pipeline, Pipeline API>> is the
 one you should use unless you have a specific reason to look at others. 
 It is "the Jet API". Powerful and expressive, yet quite simple to grasp
 and become  productive in. 
 
 A secondary choice is Jet's implementation of the
-[java.util.stream API](/Distributed_Implementation_of_java.util.stream_API),
+<<jus, java.util.stream API]>>,
 which some users already familiar with the JDK implementation may find
 appealing. However, it is less expressive and also suffers from a
 paradigm mismatch: its contract forces us to deliver the job's result in 

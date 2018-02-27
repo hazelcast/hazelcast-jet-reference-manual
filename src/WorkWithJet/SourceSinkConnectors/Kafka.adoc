@@ -1,3 +1,6 @@
+
+==== Kafka
+
 Apache Kafka is a production-worthy choice of both source and sink
 for infinite stream processing jobs. It supports fault tolerance and
 snapshotting. The basic paradigm is that of a distributed
@@ -20,7 +23,7 @@ p.drawFrom(KafkaSources.kafka(props, "t1", "t2"))
  .drainTo(KafkaSinks.kafka(props, "t3"));
 ```
 
-### Using Kafka as a Source
+===== Using Kafka as a Source
 
 The Kafka source emits entries of type `Map.Entry<Key,Value>` which
 can be transformed using an optional mapping function. It never
@@ -42,7 +45,7 @@ If any new partitions are added while the job is running, Jet will
 automatically assign them to the existing processors and consume
 them from the beginning.
 
-### Processing Guarantees
+===== Processing Guarantees
 
 The Kafka source supports snapshots. Upon each snapshot it saves the
 current offset for each partition. When the job is restarted from a
@@ -53,7 +56,7 @@ last record it read to the Kafka cluster. Since the fact that the
 source read an item doesn't mean that the whole Jet pipeline
 processed it, this doesn't guarantee against data loss.
 
-### Using Kafka as a Sink
+===== Using Kafka as a Sink
 
 The Kafka sink creates one `KafkaProducer` per cluster member and
 shares it among all the sink processors on that member. You can
