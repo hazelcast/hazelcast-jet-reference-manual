@@ -93,7 +93,7 @@ accepts it.
 
 An important use case for this method is the emission of watermark
 items. A job that processes an infinite data stream may experience
-occasional lulls &mdash; periods with no items arriving. On the other
+occasional lulls - periods with no items arriving. On the other
 hand, a windowing processor is not allowed to act upon each item
 immediately due to event skew; it must wait for a watermark item to
 arrive. During a stream lull this becomes problematic because the

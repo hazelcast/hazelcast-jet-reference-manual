@@ -23,7 +23,7 @@ In batch jobs the data we process represents a point-in-time snapshot of
 our state of knowledge (for example, warehouse inventory where
 individual data items represent items on stock). We can recapitulate
 each business day by setting up regular snapshots and batch jobs.
-However, there is more value hiding in the freshest data &mdash; our
+However, there is more value hiding in the freshest data - our
 business can win by reacting to minute-old or even second-old updates.
 To get there we must make a shift from the finite to the infinite: from
 the snapshot to a continuous influx of events that update our state of
