@@ -342,6 +342,7 @@ complete until the prioritized edges have been consumed. The result
 would be just that there are many more items processed twice after the
 restart.
 
+[[fine-tuning-edges]]
 ==== Fine-Tuning Edges
 
 Edges can be configured with an

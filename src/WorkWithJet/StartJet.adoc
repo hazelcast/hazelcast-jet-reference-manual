@@ -1,7 +1,9 @@
 
+[[work-with-jet]]
 == Work with Jet
 
 
+[[start-jet]]
 === Start Jet and Submit Jobs to It
 
 To create a Jet cluster, we simply start some Jet instances. Normally
@@ -64,7 +66,7 @@ jet.newJob(dag).join();
 ```
 
 Code samples with
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountRefMan.java)[the pipeline]
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountRefMan.java[the pipeline]
 and
 https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java[the Core API DAG]
 are available at our Code Samples repo.

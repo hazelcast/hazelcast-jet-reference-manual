@@ -13,7 +13,7 @@ it with the same means, but we also face some new challenges.
 ==== Stream Skew
 
 We
-<<time-ordering-and-the-watermark, already introduced>>
+<<time-ordering, already introduced>>
 the concept of the watermark and how it imposes
 order onto a disordered data stream. Items arriving out of order aren't
 our only challenge; modern stream sources like Kafka are partitioned and
@@ -84,9 +84,8 @@ belongs to).
 window, yielding the final result: the number of events that occurred 
 within the window's timespan.
 
-<img alt="Grouping disordered events by frame and then to sliding window" 
-    src="../images/windowing-frames.png"
-    width="800"/>
+image::windowing-frames.png[Grouping disordered events by frame and then to sliding window,800,800]
+
 
 This would be a useful interpretation of the results: "At the time 1:30,
 the 30-second running average was 8/30 = 0.27 events per second. Over
@@ -105,9 +104,7 @@ second stage, which combines the frames with the same timestamp. After
 having combined all the partial frames from members, it combines the
 results along the event time axis into the sliding window.
 
-<img alt="Combining partial frames in two-stage aggregation" 
-    src="../images/combining-frames.png"
-    width="800"/>
+image::combining-frames.png[Combining partial frames in two-stage aggregation,800,800]
 
 ==== Session Window
 
@@ -123,31 +120,26 @@ of the _event interval_: the range
 Initially an event causes a new session window to be created, covering
 exactly the event interval. 
 
-<img alt="Session window: single event" 
-    src="../images/session-window-1.png"
-    width="200"/>
+image::session-window-1.png[Session window: single event,250,200]
+
 
 A following event under the same key belongs to this window iff its
 interval overlaps it. The window is extended to cover the entire
 interval of the new event. 
 
-<img alt="Session window: extend with another event" 
-    src="../images/session-window-2.png"
-    width="110"/>
+image::session-window-2.png[Session window: extend with another event,150,120]
     
 If the event intervals don't overlap, a new session window is created
 for the new event.
 
-<img alt="Session window: create a new window after session timeout" 
-    src="../images/session-window-3.png"
+image::session-window-3.png[Session window: create a new window after session timeout,300,110]
     width="240"/>
 
 An event may happen to belong to two existing windows if its interval
 bridges the gap between them; in that case they are combined into one.
 
-<img alt="Session window: an event may merge two existing windows" 
-    src="../images/session-window-4.png"
-    width="240"/>
+image::session-window-4.png[Session window: an event may merge two existing windows,300,110]
+
 
 Once the watermark has passed the closing time of a session window, Jet
 can close it and emit the result of its aggregation.
@@ -179,32 +171,18 @@ With _exactly-once_ configured, as soon as the processor gets a barrier
 item in any input stream (from any upstream processor), it must stop
 consuming it until it gets the same barrier item in all the streams:
 
-<img alt="Exactly-once processing: received one barrier" 
-    src="../images/exactly-once-1.png"
-    width="350"/>
+image::exactly-once-1.png[Exactly-once processing: received one barrier,300,110]
 
 1. At the barrier in stream X, but not Y. Must not accept any more X items.
-
-<br>
-<br>
-
-<img alt="Exactly-once processing: received both barriers" 
-    src="../images/exactly-once-2.png"
-    width="350"/>
-
++
+image::exactly-once-2.png[Exactly-once processing: received both barriers,300,110]
++
 2. At the barrier in both streams, taking a snapshot.
-
-<br>
-<br>
-
-<img alt="Exactly-once processing: forward the barrier" 
-    src="../images/exactly-once-3.png"
-    width="350"/>
-
++
+image::exactly-once-3.png[Exactly-once processing: forward the barrier,300,110]
++
 3. Snapshot done, barrier forwarded. Can resume consuming all streams.
 
-<br>
-<br>
 
 
 ===== At-Least-Once Snapshotting
@@ -214,32 +192,18 @@ the streams until it gets all the barriers, at which point it will stop
 to take the snapshot:
 
 
-<img alt="At-Least-once processing: received one barrier" 
-    src="../images/at-least-once-1.png"
-    width="370"/>
+image::at-least-once-1.png[At-Least-once processing: received one barrier,300,110]
 
 1. At the barrier in stream X, but not Y. Carry on consuming all streams.
-
-<br>
-<br>
-
-<img alt="At-Least-once processing: received both barriers" 
-    src="../images/at-least-once-2.png"
-    width="370"/>
-
++
+image::at-least-once-2.png[At-Least-once processing: received both barriers,300,110]
++
 2. At the barrier in both streams, already consumed `x1` and `x2`. Taking a snapshot.
-
-<br>
-<br>
-
-<img alt="At-Least-once processing: forward the barrier" 
-    src="../images/at-least-once-3.png"
-    width="370"/>
-
++
+image::at-least-once-3.png[At-Least-once processing: forward the barrier,300,110]
++
 3. Snapshot done, barrier forwarded.
 
-<br>
-<br>
 
 Even though `x1` and `x2` occur after the barrier, the processor
 consumed and processed them, updating its state accordingly. If the
@@ -289,7 +253,7 @@ receive watermark from idle input. It will cause that other active
 inputs can be processed without any delay. When idle timeout is disabled
 and some processor doesn't emit any watermarks (because it sees no
 events), the processing will stall indefinitely (unless
-[maximum retention](Expert_Zone_—_The_Core_API/WatermarkPolicy#page_Maximum+watermark+retention+on+substream+merge)
+<<max-watermark-retention, maximum retention>>
 is configured).
 
 [[pitfalls-alo]]

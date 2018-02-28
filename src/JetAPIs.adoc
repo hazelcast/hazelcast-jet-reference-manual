@@ -1,12 +1,12 @@
 
-[[comparison-of-fet-apis]]
+[[comparison-of-jet-apis]]
 == Comparison of Jet APIs
 
 Hazelcast Jet defines several kinds of API, each of which can be used to
 build computation jobs. However, there are significant differences
 between them.
 
-<<build-your-computational-pipeline, Pipeline API>> is the
+<<pipeline-api, Pipeline API>> is the
 one you should use unless you have a specific reason to look at others. 
 It is "the Jet API". Powerful and expressive, yet quite simple to grasp
 and become  productive in. 
@@ -31,75 +31,70 @@ to set them up and many wrong ones.
 
 This chart summarizes the main differences between the APIs.
 
-<table>
-	<tr>
-		<th style="width: 25%"></th>
-		<th style="width: 25%">Pipeline API</th>
-		<th style="width: 20%">java.util.stream</th>
-		<th style="width: 30%">Core API (DAG)</th>
-	</tr>
-	<tr>
-		<td>When to Use</td>
-		<td>First choice to use Jet. Build rich data pipelines on a 
-		    variety of sources and sinks.</td>
-		<td>Entry-level usage, simple transform-aggregate operations on 
-		    IMap and IList.</td>
-		<td>Expert-level API to:
-		<ul>
-			<li>fine-tune a performance-critical computation</li>
-			<li>build a new high-level API or DSL</li>
-			<li>implement a custom source or sink</li>
-			<li>integrate with other libraries or frameworks</li>
-		</ul>
-		</td>
-	</tr>
-	<tr>
-		<td>Expressiveness</td>
-		<td style="text-align: center">High</td>
-		<td style="text-align: center">Medium</td>
-		<td style="text-align: center">Low</td>
-	</tr>
-	<tr>
-		<td>Works with all sources and sinks</td>
-		<td style="text-align: center">✅</td>
-		<td style="text-align: center">❌(*)</td>
-		<td style="text-align: center">✅</td>
-	</tr>
-	<tr>
-		<td>Transforms (map, flat map, filter)</td>
-		<td style="text-align: center">✅</td>
-		<td style="text-align: center">✅</td>
-		<td style="text-align: center">✅</td>
-	</tr>
-	<tr>
-		<td>Aggregations</td>
-		<td style="text-align: center">✅</td>
-		<td style="text-align: center">✅(**)</td>
-		<td style="text-align: center">✅</td>
-	</tr>
-	<tr>
-		<td>Joins and forks</td>
-		<td style="text-align: center">✅</td>
-		<td style="text-align: center">❌</td>
-		<td style="text-align: center">✅</td>
-	</tr>
-	<tr>
-		<td>Processing bounded data (batch)</td>
-		<td style="text-align: center">✅</td>
-		<td style="text-align: center">✅</td>
-		<td style="text-align: center">✅</td>
-	</tr>
-	<tr>
-		<td>Processing unbounded data (streaming)</td>
-		<td style="text-align: center">✅ (***)</td>
-		<td style="text-align: center">❌</td>
-		<td style="text-align: center">✅</td>
-	</tr>
-</table>
+
+.Differences between the APIs
+|===
+| |Pipeline API|java.util.stream|Core API (DAG)
+
+|When to Use
+|First choice to use Jet. Build rich data pipelines on a variety of sources and sinks.
+|Entry-level usage, simple transform-aggregate operations on IMap and IList.
+|Expert-level API to:
+
+* fine-tune a performance-critical computation
+* build a new high-level API or DSL
+* implement a custom source or sink
+* integrate with other libraries or frameworks
+
+|Expressiveness
+|High
+|Medium
+|Low
+
+|Works with all sources and sinks
+|✅
+|❌(*)
+|✅
+
+|Transforms (map, flat map, filter)
+|✅
+|✅
+|✅
+
+|Aggregations
+|✅
+|✅(**)
+|✅
+
+|Joins and forks
+|✅
+|❌
+|✅
+
+|Processing bounded data (batch)
+|✅
+|✅
+|✅
+
+|Processing unbounded data (streaming)
+|✅(***)
+|❌
+|✅
+
+
+
+|===
+
+
+
+
 
 *: Any source can be used with j.u.stream, but only `IMap` and `IList`
-sinks are supported.<br/>
+sinks are supported.
+
 **: `j.u.stream` only supports grouping on one input, co-grouping is not
 supported. Furthermore, aggregation is a terminal operation and
-additional transforms can't be applied to aggregation results.<br/>
+additional transforms can't be applied to aggregation results.
+
 ***: Windowing support will be added in 0.6.
+

@@ -79,9 +79,8 @@ transforming it into another infinite stream.
 
 We can represent the steps outlined above as a DAG:
 
-<img alt="Word-counting DAG"
-     src="../images/wordcount-dag.png"
-     height="200"/>
+image::wordcount-dag.png[Word-counting DAG,600,170]
+
 
 The simplest, single-threaded code (shown above) deals with each item as
 it is produced: the outer loop reads the lines, the inner loop that runs
@@ -126,9 +125,8 @@ tokenizer feeds the accumulator loop, and after the accumulator is done
 receiving, it emits its results to the sink. Diagrammatically it looks
 like this:
 
-<img alt="Word-counting DAG with concurrent queues shown"
-     src="../images/wordcount-dag-queue.png"
-     height="200"/>
+image::wordcount-dag-queue.png[Word-counting DAG with concurrent queues shown,600,170]
+
 
 This transformation brought us a _pipelined_ architecture: while the
 tokenizer is busy with the regex work, the accumulator is updating the
@@ -149,9 +147,8 @@ between the notions of _vertex_ and _processor_: there can be several
 processors doing the work of a single vertex. Let's add another
 tokenizing processor:
 
-<img alt="Word-counting DAG with tokenizer vertex parallelized"
-     src="../images/wordcount-tokenizer.png"
-     height="300"/>
+image::wordcount-tokenizer.png[Word-counting DAG with tokenizer vertex parallelized,600,170]
+
 
 The input processor can now use all the available tokenizers as a pool
 and submit to any one whose queue has some room.
@@ -165,9 +162,8 @@ to ensure that all occurrences of the same word go to the same
 processor. This is called "data partitioning" and in Jet we'll use a
 _partitioned edge_ between the tokenizer and the accumulator:
 
-<img alt="Word-counting DAG with tokenizer and accumulator parallelized"
-     src="../images/wordcount-partitioned.png"
-     height="300"/>
+image::wordcount-partitioned.png[Word-counting DAG with tokenizer and accumulator parallelized,600,170]
+
 
 As a word is emitted from the tokenizer, it goes through a "switchboard"
 stage where it's routed to the correct downstream processor. To
@@ -235,9 +231,8 @@ _distributed partitioned_ edge for `accumulate`->`combine`. With this
 move we've finalized our DAG design, which can be illustrated by the
 following diagram:
 
-<img alt="Word-counting DAG parallelized and distributed"
-     src="../images/wordcount-distributed.png"
-     height="420"/>
+image::wordcount-distributed.png[Word-counting DAG parallelized and distributed,600,170]
+
 
 ==== Implementing the DAG in Jet's Core API
 

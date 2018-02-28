@@ -18,7 +18,7 @@ associated cost in terms of complexity and overall performance. Hazelcast
 Jet takes a simple approach and strictly triages stream items into
 "still on time" and "late", discarding the latter.
 
-[`WatermarkPolicy`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicy.html)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicy.html[`WatermarkPolicy`]
 is the abstraction that computes the value of the watermark for a
 (sub)stream of disordered data items. It takes as input the timestamp of
 each observed item and outputs the current watermark value.
@@ -116,6 +116,7 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Wat
 which suppresses watermark items until the watermark has advanced at least
 `minStep` ahead of the previously emitted one.
 
+[[max-watermark-retention]]
 ==== Maximum watermark retention on substream merge
 
 When two input streams are merged into one for downstream processing, 

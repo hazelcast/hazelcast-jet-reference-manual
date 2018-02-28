@@ -1,4 +1,5 @@
 
+[[pipeline-api]]
 === Build Your Computation Pipeline
 
 ==== The Shape of a Pipeline
@@ -33,8 +34,8 @@ src1.coGroup(wholeItem(), src2, wholeItem(), counting2())
     .drainTo(Sinks.writeMap("result"));
 ```
 
-For further details on `coGroup` please refer to the [dedicated
-section](#page_coGroup) below.
+For further details on `coGroup` please refer to the <<cogroup, dedicated
+section>> below.
 
 Symmetrically, the output of a stage can be sent to more than one
 destination:
@@ -72,7 +73,7 @@ and
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSources.html[HDFS]
 connectors are in their separate modules.
 
-There's a <<source-and-sink-connectors, dedicated section>> that discusses
+There's a <<source-sink-connectors, dedicated section>> that discusses
 the topic of data sources and sinks in more detail.
 
 ==== Compose the Pipeline Transforms
@@ -158,7 +159,7 @@ These are the arguments:
 4. `counting2()`: the aggregate operation
 
 `counting2()` is a factory method returning a 2-way 
-<<<<implement-your-aggregate-operation, aggregate operation>>
+<<implement-your-aggregate-operation, aggregate operation>>
 which may be defined as follows:
 
 ```java

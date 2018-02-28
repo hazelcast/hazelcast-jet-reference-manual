@@ -86,7 +86,8 @@ Also note the limitation of this technique: a phrase is treated as just
 the sum of its parts; a document may contain the exact phrase and this
 will not affect its score.
 
-===== Building the Inverted Index with Java Streams
+[[building-inverted-index]]
+==== Building the Inverted Index with Java Streams
 
 To warm us up, let's see what it takes to build the inverted index with
 just thread parallelism and without the ability to scale out across
@@ -183,9 +184,8 @@ understood as a "backbone" (cascade of vertices) starting from a source
 and ending in a sink with several more vertices attached on the side.
 This is just the backbone:
 
-<img alt="Backbone of the TF-IDF DAG"
-     src="../images/tf-idf-backbone.png"
-     width="240"/>
+image::tf-idf-backbone.png[Backbone of the TF-IDF DAG,250,750]
+
 
 1. The data source is a Hazelcast `IMap` which holds a mapping from
 document ID to its filename. The source vertex will emit all the map's
@@ -216,10 +216,7 @@ item to the `tokenize` vertex. We also add a vertex that takes the data
 from `doc-source` and simply counts its items; this is the total
 document count used in the TF-IDF formula. We end up with this DAG:
 
-<img alt="The TF-IDF DAG"
-     src="../images/tf-idf-full.png"
-     width="520"/>
-
+image::tf-idf-full.png[The TF-IDF DAG,500,750]
 
 The choice of edge types into and out of `doc-count` may look
 surprising, so let's examine it. We start with the `doc-source` vertex,

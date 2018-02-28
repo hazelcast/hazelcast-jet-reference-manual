@@ -188,7 +188,7 @@ lower latency than exactly-once, and some kinds of data processing can
 gracefully tolerate it. In some other cases, however, duplicate
 processing of data items can have quite surprising consequences. There
 is more information about this in our
-<<pitfalls-at-least-once, Under the Hood>>
+<<pitfalls-alo, Under the Hood>>
 chapter.
 
 We also have an in-between case: if you configure Jet for exactly-once

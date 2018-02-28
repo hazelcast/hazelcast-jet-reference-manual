@@ -2,235 +2,176 @@
 
 == Glossary
 
-<table><tr><th>
-Term
-</th><th>
-Definition
-</th></tr><tr><td><b>
+|===
+|Term|Definition
 
-Accumulation
-</b></td><td>
-The act of building up an intermediate result inside a mutable object
+|Accumulation
+|The act of building up an intermediate result inside a mutable object
 (called the _accumulator_) as a part of performing an aggregate
 operation. After all accumulation is done, a _finishing_ function is
 applied to the object to produce the result of the operation.
-</td></tr><tr><td><b>
 
-Aggregate Operation
-</b></td><td>
-A set of functional primitives that instructs Jet how to calculate some
+|Aggregate Operation
+|A set of functional primitives that instructs Jet how to calculate some
 aggregate function over one or more data sets. Used in the group-by,
 co-group and windowing transforms.
-</td></tr><tr><td><b>
 
-Aggregation
-</b></td><td>
-The act of applying an _aggregate function_ to a stream of items. The
+|Aggregation
+|The act of applying an _aggregate function_ to a stream of items. The
 result of the function can be simple, like a sum or average, or complex,
 like a collection of all aggregated items.
-</td></tr><tr><td><b>
 
-At-Least-Once Processing Guarantee
-</b></td><td>
-The system guarantees to process each item of the input stream(s), but
+|At-Least-Once Processing Guarantee
+|The system guarantees to process each item of the input stream(s), but
 doesn't guarantee it will process it just once.
-</td></tr><tr><td><b>
 
-Batch Processing
-</b></td><td>
-The act of processing a finite dataset, such as one stored in Hazelcast
+|Batch Processing
+|The act of processing a finite dataset, such as one stored in Hazelcast
 IMDG or HDFS.
-</td></tr><tr><td><b>
 
-Client Server Topology
-</b></td><td>Hazelcast topology where members run outside the user
+|Client Server Topology
+|Hazelcast topology where members run outside the user
 application and are connected to clients using client libraries. The
 client library is installed in the user application.
-</td></tr><tr><td><b>
 
-Co-Grouping
-</b></td><td>
-An operation that is a mix of an SQL JOIN and GROUP BY with specific
+|Co-Grouping
+|An operation that is a mix of an SQL JOIN and GROUP BY with specific
 restrictions. Sometimes called a "stream join". Each item of each stream
 that is being joined must be mapped to its grouping key. All items with
 the same grouping key (from all streams) are aggregated together into a
 single result. However, the result can be structured and preserve all 
 input items separated by their stream of origin. In that form the
 operation effectively becomes a pure JOIN with no aggregation.
-</td></tr><tr><td><b>
 
-DAG
-</b></td><td>
-Directed Acyclic Graph which Hazelcast Jet uses to model the
+|DAG
+|Directed Acyclic Graph which Hazelcast Jet uses to model the
 relationships between individual steps of the data processing.
-</td></tr><tr><td><b>
 
-Edge
-</b></td><td>
-A DAG element which holds the logic on how to route the data from one
+|Edge
+|A DAG element which holds the logic on how to route the data from one
 vertex's processing units to the next one's.
-</td></tr><tr><td><b>
 
-Embedded Topology
-</b></td><td>
-Hazelcast topology where the members are in-process with the user
+|Embedded Topology
+|Hazelcast topology where the members are in-process with the user
 application and act as both client and server.
-</td></tr><tr><td><b>
 
-Event time
-</b></td><td>
-A data item in an infinite stream typically contains a timestamp data
+|Event time
+|A data item in an infinite stream typically contains a timestamp data
 field. This is its _event time_. As the stream items go by, the event
 time passes as the items' timestamps increase. A typical distributed
 stream has a certain amount of event time disorder (items aren't
 strictly ordered by their timestamp) so the "passage of event time" is a
 somewhat fuzzy concept. Jet uses the _watermark_ to superimpose order
 over the disordered stream.
-</td></tr><tr><td><b>
 
-Exactly-Once Processing Guarantee
-</b></td><td>
-The system guarantees that it will process each item of the input
+|Exactly-Once Processing Guarantee
+|The system guarantees that it will process each item of the input
 stream(s) and will never process an item more than once.
-</td></tr><tr><td><b>
 
-Fault Tolerance
-</b></td><td>
-The property of a distributed computation system that gives it
+|Fault Tolerance
+|The property of a distributed computation system that gives it
 resilience to changes in the topology of the cluster running the
 computation. If a member leaves the cluster, the system adapts to the
 change and resumes the computation without loss.
-</td></tr><tr><td><b>
 
-Hash-Join
-</b></td><td>
-A special-purpose stream join optimized for the use case of data
+|Hash-Join
+|A special-purpose stream join optimized for the use case of data
 enrichment. Each item of the _primary_ stream is joined with one item
 from each of the _enriching_ streams. Items are matched by the join key.
 The name "hash-join" stems from the fact that the contents of the
 enriching streams are held in hashtables for fast lookup. Hashtables are
 replicated on each cluster member, which is why this operation is also
 known as a "replicated join".
-</td></tr><tr><td><b>
 
-Hazelcast IMDG
-</b></td><td>
-An In-Memory Data grid (IMDG) is a data structure that resides entirely
+|Hazelcast IMDG
+|An In-Memory Data grid (IMDG) is a data structure that resides entirely
 in memory, and is distributed among many machines in a single location
 (and possibly replicated across different locations). IMDGs can support
 millions of in-memory data updates per second, and they can be clustered
 and scaled in ways that support large quantities of data. Hazelcast IMDG
 is the in-memory data grid offered by Hazelcast.
-</td></tr><tr><td><b>
 
-HDFS
-</b></td><td>
-Hadoop Distributed File System. Hazelcast Jet can use it both as a data
+|HDFS
+|Hadoop Distributed File System. Hazelcast Jet can use it both as a data
 source and a sink.
-</td></tr><tr><td><b>
 
-Jet Job
-</b></td><td>
-A unit of distributed computation that Jet executes. One job has one DAG
+|Jet Job
+|A unit of distributed computation that Jet executes. One job has one DAG
 specifying what to do. A distributed array of Jet processors performs
 the computation.
-</td></tr><tr><td><b>
 
-Kafka
-</b></td><td>
-Apache Kafka is a product that offers a distributed publish-subscribe
+|Kafka
+|Apache Kafka is a product that offers a distributed publish-subscribe
 message queue with guarantees of delivery and message persistence. The
 most commonly used component over which heterogenous distributed
 systems exchange data.
-</td></tr><tr><td><b>
 
-Latency
-</b></td><td>
-The time that passes from the occurrence of an event that triggers some
+|Latency
+|The time that passes from the occurrence of an event that triggers some
 response to the occurrence of the response. In the case of Hazelcast
 Jet's stream processing, latency refers to the time that passes from the
 point in time the last item that belongs to a window enters the system
 to the point where the result for that window appears in the output.
-</td></tr><tr><td><b>
 
-Member
-</b></td><td>
-A Hazelcast Jet instance (node) that is a member of a cluster. A single
+|Member
+|A Hazelcast Jet instance (node) that is a member of a cluster. A single
 JVM can host one or more Jet members, but in production there should be
 one member per physical machine.
-</td></tr><tr><td><b>
 
-Partition (Data)
-</b></td><td>
-To guarantee that all items with the same grouping key are processed by
+|Partition (Data)
+|To guarantee that all items with the same grouping key are processed by
 the same processor, Hazelcast Jet uses a total surjective function to
 map each data item to the ID of its partition and assigns to each
 processor its unique subset of all partition IDs. A partitioned edge
 then routes all items with the same partition ID to the same processor.
-</td></tr><tr><td><b>
 
-Partition (Network)
-</b></td><td>
-A malfunction in network connectivity that splits the cluster into two
+|Partition (Network)
+|A malfunction in network connectivity that splits the cluster into two
 or more parts that are mutually unreachable, but the connections among
 nodes within each part remain intact. May cause each of the parts to
 behave as if it was "the" cluster that lost the other members. Also
 known as "split brain".
-</td></tr><tr><td><b>
 
-Pipeline
-</b></td><td>
-Hazelcast Jet's name for the high-level description of a computation job
+|Pipeline
+|Hazelcast Jet's name for the high-level description of a computation job
 constructed using the Pipeline API. Topologically it is a DAG, but the
 vertices have different semantics than the Core API vertices and are
 called _pipeline stages_. Edges are implicit and not expressed in the
 API. Each stage (except for source/sink stages) has an associated
 _transform_ that it performs on its input data.
-</td></tr><tr><td><b>
 
-Processor
-</b></td><td>
-The unit which contains the code of the computation to be performed by a
+|Processor
+|The unit which contains the code of the computation to be performed by a
 vertex. Each vertex’s computation is implemented by a processor. On each
 Jet cluster member there are one or more instances of the processor
 running in parallel for a single vertex.
-</td></tr><tr><td><b>
 
-Session Window
-</b></td><td>
-A window that groups an infinite stream's items by their timestamp. It
+|Session Window
+|A window that groups an infinite stream's items by their timestamp. It
 groups together bursts of events closely spaced in time (by less than
 the configured session timeout).
-</td></tr><tr><td><b>
 
-Sliding Window
-</b></td><td>
-A window that groups an infinite stream's items by their timestamp. It
+|Sliding Window
+|A window that groups an infinite stream's items by their timestamp. It
 groups together events that belong to a segment of fixed size on the
 timeline. As the time passes, the segment slides along, always extending
 from the present into the recent past. In Jet, the window doesn't
 literally slide, but hops in steps of user-defined size. ("Time" here
 refers to the stream's own notion of time, i.e., _event time_.)
-</td></tr><tr><td><b>
 
-Source
-</b></td><td>
-A resource present in a Jet job's environment that delivers a data
+|Source
+|A resource present in a Jet job's environment that delivers a data
 stream to it. Hazelcast Jet uses a _source connector_ to access the
 resource. Alternatively, _source_ may refer to the DAG vertex that hosts
 the connector.
-</td></tr><tr><td><b>
 
-Sink
-</b></td><td>
-A resource present in a Jet job's environment that accepts its output
+|Sink
+|A resource present in a Jet job's environment that accepts its output
 data. Hazelcast Jet uses a _sink connector_ to access the resource.
 Alternatively, _sink_ may refer to the vertex that hosts the connector.
-</td></tr><tr><td><b>
 
-Skew
-</b></td><td>
-A generalization of the term "clock skew" applied to distributed stream
+|Skew
+|A generalization of the term "clock skew" applied to distributed stream
 processing. In this context it refers to the deviation in _event time_
 as opposed to wall-clock time in the classical usage. Several substreams
 of a distributed stream may at the same time emit events with timestamps
@@ -238,63 +179,48 @@ differing by some delta, due to various lags that accumulate in the
 delivery pipeline for each substream. This is called _stream skew_.
 _Event skew_ refers to the disorder within a substream, where data items
 appear out of order with respect to their timestamps.
-</td></tr><tr><td><b>
 
-Split Brain
-</b></td><td>
-A popular name for a _network partition_, which see above.
-</td></tr><tr><td><b>
+|Split Brain
+|A popular name for a _network partition_, which see above.
 
-Stream Processing
-</b></td><td>
-The act of processing an infinite stream of data, typically implying
+
+|Stream Processing
+|The act of processing an infinite stream of data, typically implying
 that the data is processed as soon as it appears. Such a processing job
 must explicitly deal with the notion of time in order to make sense of
 the data. It achieves this with the concept of _windowing_.
-</td></tr><tr><td><b>
 
-Throughput
-</b></td><td>
-A measure for the volume of data a system is capable of processing per
+|Throughput
+|A measure for the volume of data a system is capable of processing per
 unit of time. Typical ways to express it for Hazelcast Jet are in terms
 of events per second and megabytes per second.
-</td></tr><tr><td><b>
 
-Tumbling Window
-</b></td><td>
-A window that groups an infinite stream's items by their timestamp. It
+|Tumbling Window
+|A window that groups an infinite stream's items by their timestamp. It
 groups together events that belong to a segment of fixed size on the
 timeline. As the time passes, the segment "tumbles" along, never
 covering the same point in time twice. This means that each event
 belongs to just one tumbling window position. ("Time" here refers to the
 stream's own notion of time, i.e., _event time_.)
-</td></tr><tr><td><b>
 
-Vertex
-</b></td><td>
-The DAG element that performs a step in the overall computation. It
+|Vertex
+|The DAG element that performs a step in the overall computation. It
 receives data from its inbound edges and sends the results of its
 computation to its outbound edges. There are three kinds of vertices:
 source (has only outbound edges), sink (has only inbound edges) and
 computational (has both kinds of edges).
-</td></tr><tr><td><b>
 
-Watermark
-</b></td><td>
-A concept that superimposes order over a disordered underlying data
+|Watermark
+|A concept that superimposes order over a disordered underlying data
 stream. An infinite data stream's items represent timestamped events,
 but they don't occur in the stream ordered by the timestamp. The value
 of the watermark at a certain location in the processing pipeline
 denotes the lowest value of the timestamp that is expected to occur in
 the upcoming items. Items that don't meet this criterion are discarded
 because they arrived too late to be processed.
-</td></tr><tr><td><b>
 
-Windowing
-</b></td><td>
-The act of splitting an infinite stream's data into _windows_ according
+|Windowing
+|The act of splitting an infinite stream's data into _windows_ according
 to some rule, most typically one that involves the item's timestamps.
 Each window becomes the target of an aggregate function, which outputs
 one data item per window (and per grouping key).
-</td></tr>
-</table>

@@ -552,14 +552,14 @@ table.CodeRay td.code>pre{padding:0}
 </li>
 <li><a href="#work-with-jet">3. Work with Jet</a>
 <ul class="sectlevel2">
-<li><a href="#start-jet-and-submit-jobs-to-it">3.1. Start Jet and Submit Jobs to It</a>
+<li><a href="#start-jet">3.1. Start Jet and Submit Jobs to It</a>
 <ul class="sectlevel3">
 <li><a href="#jobconfig">3.1.1. JobConfig</a></li>
 <li><a href="#manage-a-submitted-job">3.1.2. Manage a Submitted Job</a></li>
 <li><a href="#get-a-list-of-all-submitted-jobs">3.1.3. Get a List of all Submitted Jobs</a></li>
 </ul>
 </li>
-<li><a href="#build-your-computation-pipeline">3.2. Build Your Computation Pipeline</a>
+<li><a href="#pipeline-api">3.2. Build Your Computation Pipeline</a>
 <ul class="sectlevel3">
 <li><a href="#the-shape-of-a-pipeline">3.2.1. The Shape of a Pipeline</a></li>
 <li><a href="#choose-your-data-sources-and-sinks">3.2.2. Choose Your Data Sources and Sinks</a></li>
@@ -603,7 +603,7 @@ table.CodeRay td.code>pre{padding:0}
 </li>
 </ul>
 </li>
-<li><a href="#comparison-of-fet-apis">4. Comparison of Jet APIs</a></li>
+<li><a href="#comparison-of-jet-apis">4. Comparison of Jet APIs</a></li>
 <li><a href="#configuration">5. Configuration</a>
 <ul class="sectlevel2">
 <li><a href="#programmatic-configuration">5.1. Programmatic Configuration</a></li>
@@ -693,7 +693,7 @@ table.CodeRay td.code>pre{padding:0}
 <ul class="sectlevel3">
 <li><a href="#predefined-watermark-policies">8.6.1. Predefined watermark policies</a></li>
 <li><a href="#watermark-throttling">8.6.2. Watermark Throttling</a></li>
-<li><a href="#maximum-watermark-retention-on-substream-merge">8.6.3. Maximum watermark retention on substream merge</a></li>
+<li><a href="#max-watermark-retention">8.6.3. Maximum watermark retention on substream merge</a></li>
 </ul>
 </li>
 <li><a href="#vertices">8.7. Vertices in the Library</a></li>
@@ -701,10 +701,38 @@ table.CodeRay td.code>pre{padding:0}
 <ul class="sectlevel3">
 <li><a href="#how-jet-creates-and-initializes-a-job">8.8.1. How Jet Creates and Initializes a Job</a></li>
 <li><a href="#example-distributed-integer-generator">8.8.2. Example - Distributed Integer Generator</a></li>
+<li><a href="#sinks">8.8.3. Sinks</a></li>
+<li><a href="#example-file-writer">8.8.4. Example - File Writer</a></li>
+</ul>
+</li>
+<li><a href="#core-best-practices">8.9. Best Practices</a>
+<ul class="sectlevel3">
+<li><a href="#inspecting-processor-input-and-output">8.9.1. Inspecting Processor Input and Output</a></li>
+<li><a href="#how-to-unit-test-a-processor">8.9.2. How to Unit-Test a Processor</a></li>
+</ul>
+</li>
+<li><a href="#tf-idf">8.10. Custom DAG - Inverted TF-IDF Index</a>
+<ul class="sectlevel3">
+<li><a href="#building-inverted-index">8.10.1. Building the Inverted Index with Java Streams</a></li>
+<li><a href="#translating-to-jet-dag">8.10.2. Translating to Jet DAG</a></li>
+<li><a href="#implementation-code">8.10.3. Implementation Code</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li><a href="#misc">9. Miscellaneous</a>
+<ul class="sectlevel2">
+<li><a href="#phone-homes">9.1. Phone Homes</a></li>
+<li><a href="#license-questions">9.2. License Questions</a>
+<ul class="sectlevel3">
+<li><a href="#embedded-dependencies">9.2.1. Embedded Dependencies</a></li>
+</ul>
+</li>
+<li><a href="#faq">9.3. FAQ</a></li>
+<li><a href="#common-exceptions">9.4. Common Exceptions</a></li>
+</ul>
+</li>
+<li><a href="#glossary">10. Glossary</a></li>
 </ul>
 </div>
 </div>
@@ -795,7 +823,7 @@ trademarks in this manual are held by their respective owners.</p>
 <div class="paragraph">
 <p>Hazelcast Jet is a distributed data processing engine, built for
 high-performance batch and stream processing. It reuses some features
-and services of (<a href="http://www.hazelcast.org)">Hazelcast In-Memory Data
+and services of <a href="http://www.hazelcast.org">Hazelcast In-Memory Data
 Grid</a> (IMDG), but is otherwise a separate
 product with features not available in the IMDG.</p>
 </div>
@@ -803,7 +831,7 @@ product with features not available in the IMDG.</p>
 <p>In addition to its own
 <a href="#pipeline-api">Pipeline API</a>,
 Jet also offers a distributed implementation of
-<a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html)">java.util.stream</a>.
+<a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html">java.util.stream</a>.
 You can express your computation over any data source Jet supports using
 the familiar API from the JDK 8.</p>
 </div>
@@ -1131,7 +1159,7 @@ Count of world: 5</code></pre>
 <h2 id="work-with-jet"><a class="anchor" href="#work-with-jet"></a>3. Work with Jet</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="start-jet-and-submit-jobs-to-it"><a class="anchor" href="#start-jet-and-submit-jobs-to-it"></a>3.1. Start Jet and Submit Jobs to It</h3>
+<h3 id="start-jet"><a class="anchor" href="#start-jet"></a>3.1. Start Jet and Submit Jobs to It</h3>
 <div class="paragraph">
 <p>To create a Jet cluster, we simply start some Jet instances. Normally
 these would be started on separate machines, but for simple practice
@@ -1202,7 +1230,7 @@ remain alive after the <code>main()</code> method completes:</p>
 </div>
 <div class="paragraph">
 <p>Code samples with
-<a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountRefMan.java)">the pipeline</a>
+<a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountRefMan.java">the pipeline</a>
 and
 <a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java">the Core API DAG</a>
 are available at our Code Samples repo.</p>
@@ -1265,7 +1293,7 @@ or <code>jet.getJob(name)</code> to get just the latest such job.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="build-your-computation-pipeline"><a class="anchor" href="#build-your-computation-pipeline"></a>3.2. Build Your Computation Pipeline</h3>
+<h3 id="pipeline-api"><a class="anchor" href="#pipeline-api"></a>3.2. Build Your Computation Pipeline</h3>
 <div class="sect3">
 <h4 id="the-shape-of-a-pipeline"><a class="anchor" href="#the-shape-of-a-pipeline"></a>3.2.1. The Shape of a Pipeline</h4>
 <div class="paragraph">
@@ -1304,8 +1332,8 @@ src1.coGroup(wholeItem(), src2, wholeItem(), counting2())
 </div>
 </div>
 <div class="paragraph">
-<p>For further details on <code>coGroup</code> please refer to the [dedicated
-section](#page_coGroup) below.</p>
+<p>For further details on <code>coGroup</code> please refer to the <a href="#cogroup">dedicated
+section</a> below.</p>
 </div>
 <div class="paragraph">
 <p>Symmetrically, the output of a stage can be sent to more than one
@@ -1363,7 +1391,7 @@ and
 connectors are in their separate modules.</p>
 </div>
 <div class="paragraph">
-<p>There&#8217;s a <a href="#source-and-sink-connectors">dedicated section</a> that discusses
+<p>There&#8217;s a <a href="#source-sink-connectors">dedicated section</a> that discusses
 the topic of data sources and sinks in more detail.</p>
 </div>
 </div>
@@ -1473,7 +1501,7 @@ ComputeStage&lt;Tuple2&lt;<span class="predefined-type">String</span>, <span cla
 </div>
 <div class="paragraph">
 <p><code>counting2()</code> is a factory method returning a 2-way
-&lt;&lt;<a href="#implement-your-aggregate-operation">aggregate operation</a>
+<a href="#implement-your-aggregate-operation">aggregate operation</a>
 which may be defined as follows:</p>
 </div>
 <div class="listingblock">
@@ -2190,7 +2218,7 @@ lower latency than exactly-once, and some kinds of data processing can
 gracefully tolerate it. In some other cases, however, duplicate
 processing of data items can have quite surprising consequences. There
 is more information about this in our
-<a href="#pitfalls-at-least-once">Under the Hood</a>
+<a href="#pitfalls-alo">Under the Hood</a>
 chapter.</p>
 </div>
 <div class="paragraph">
@@ -2297,7 +2325,7 @@ Core API DAG that does infinite stream aggregation.</p>
 <div class="sect3">
 <h4 id="overview"><a class="anchor" href="#overview"></a>3.5.1. Overview</h4>
 <div class="paragraph">
-<p>In an <a href="#build-your-computation-pipeline">earlier section</a> we briefly
+<p>In an <a href="#pipeline-api">earlier section</a> we briefly
 listed the resources you can use as sources and sinks of a Jet job&#8217;s
 data and where they fit in the general outline of a pipeline. Now let&#8217;s
 revisit this topic in more detail.</p>
@@ -2404,235 +2432,206 @@ sink connectors we deliver with Jet. There are links to Javadoc and
 code samples. The sections following this one present each connector in
 more detail.</p>
 </div>
-<div class="paragraph">
-<p>&lt;table&gt;
-  &lt;tr&gt;
-    &lt;th&gt;Resource&lt;/th&gt;
-    &lt;th&gt;Javadoc&lt;/th&gt;
-    &lt;th&gt;Sample&lt;/th&gt;
-    &lt;th&gt;Infinite?&lt;/th&gt;
-    &lt;th&gt;Replayable?&lt;/th&gt;
-    &lt;th&gt;Checkpointing?&lt;/th&gt;
-    &lt;th&gt;Distributed?&lt;/th&gt;
-    &lt;th&gt;Data Locality?&lt;/th&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;IMap&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#map-java.lang.String-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-"&gt;Source&lt;/a&gt;
-        &lt;br/&gt;
-        &lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#map-java.lang.String-"&gt;Sink&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;&lt;a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/MapSourceAndSink.java"&gt;Sample&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;Src ✅ &lt;br/&gt; Sink ❌&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;ICache&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#cache-java.lang.String-"&gt;Source&lt;/a&gt;
-        &lt;br/&gt;
-        &lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#cache-java.lang.String-"&gt;Sink&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;&lt;a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/CacheSourceAndSink.java"&gt;Sample&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;Src ✅ &lt;br/&gt; Sink ❌&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;IMap in another cluster&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-"&gt;Source&lt;/a&gt;
-        &lt;br/&gt;
-        &lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-"&gt;Sink&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;&lt;a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/RemoteMapSourceAndSink.java"&gt;Sample&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;ICache in another cluster&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-"&gt;Source&lt;/a&gt;
-        &lt;br/&gt;
-        &lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-"&gt;Sink&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;IMap&#8217;s Event Journal&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#mapJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-"&gt;Source&lt;/a&gt;
-        &lt;br/&gt;
-    &lt;/td&gt;
-    &lt;td&gt;&lt;a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/map-journal-source/src/main/java/MapJournalSource.java"&gt;Sample&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;ICache&#8217;s Event Journal&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#cacheJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-"&gt;Source&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;Event Journal of IMap in another cluster&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteMapJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-"&gt;Source&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;&lt;a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/map-journal-source/src/main/java/RemoteMapJournalSource.java"&gt;Sample&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;Event Journal of ICache in another cluster&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteCacheJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-"&gt;Source&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;IList&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#list-java.lang.String-"&gt;Source&lt;/a&gt;
-        &lt;br/&gt;
-        &lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#list-java.lang.String-"&gt;Sink&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;&lt;a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/ListSourceAndSink.java"&gt;Sample&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;IList in another cluster&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-"&gt;Source&lt;/a&gt;
-        &lt;br/&gt;
-        &lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-"&gt;Sink&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;HDFS&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSources.html"&gt;Source&lt;/a&gt;
-        &lt;br/&gt;
-        &lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSinks.html"&gt;Sink&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;&lt;a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-hadoop/src/main/java/HadoopWordCount.java"&gt;Sample&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;Kafka&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/KafkaSources.html"&gt;Source&lt;/a&gt;
-        &lt;br/&gt;
-        &lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/KafkaSinks.html"&gt;Sink&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;&lt;a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/kafka-source/src/main/java/KafkaSource.java"&gt;Source&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;Files&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-"&gt;Source&lt;/a&gt;
-        &lt;br/&gt;
-        &lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-"&gt;Sink&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;&lt;a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/access-log-analyzer/src/main/java/AccessLogAnalyzer.java"&gt;Sample&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;File Watcher&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-"&gt;Source&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;&lt;a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/access-stream-analyzer/src/main/java/AccessStreamAnalyzer.java"&gt;Sample (Core API)&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;TCP Socket&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#socket-java.lang.String-int-java.nio.charset.Charset-"&gt;Source&lt;/a&gt;
-        &lt;br/&gt;
-        &lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#socket-java.lang.String-int-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-"&gt;Sink&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;&lt;a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/socket-connector/src/main/java/StreamTextSocket.java"&gt;Source&lt;/a&gt;
-        &lt;br/&gt;
-        &lt;a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/socket-connector/src/main/java/WriteTextSocket.java"&gt;Sink&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-    &lt;td&gt;Application Log&lt;/td&gt;
-    &lt;td&gt;&lt;a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#writeLogger-com.hazelcast.jet.function.DistributedFunction-"&gt;Sink&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td&gt;&lt;a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/enrichment/src/main/java/Enrichment.java"&gt;Sink&lt;/a&gt;
-    &lt;/td&gt;
-    &lt;td style="text-align: center"&gt;N/A&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;N/A&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-    &lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-  &lt;/tr&gt;
-&lt;/table&gt;</p>
-</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Table 1. Sources and Sinks</caption>
+<colgroup>
+<col style="width: 12%;">
+<col style="width: 12%;">
+<col style="width: 12%;">
+<col style="width: 12%;">
+<col style="width: 12%;">
+<col style="width: 12%;">
+<col style="width: 12%;">
+<col style="width: 12%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Resource</th>
+<th class="tableblock halign-left valign-top">Javadoc</th>
+<th class="tableblock halign-left valign-top">Sample</th>
+<th class="tableblock halign-left valign-top">Infinite?</th>
+<th class="tableblock halign-left valign-top">Replayable?</th>
+<th class="tableblock halign-left valign-top">Checkpointing?</th>
+<th class="tableblock halign-left valign-top">Distributed?</th>
+<th class="tableblock halign-left valign-top">Data Locality</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IMap</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#map-java.lang.String-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-">Source</a>
+</p><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#map-java.lang.String-">Sink</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/MapSourceAndSink.java">Sample</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Src ✅
+</p><p class="tableblock">Sink ❌</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ICache</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#cache-java.lang.String-">Source</a>
+</p><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#cache-java.lang.String-">Sink</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/CacheSourceAndSink.java">Sample</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Src ✅
+</p><p class="tableblock">Sink ❌</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IMap in another cluster</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-">Source</a>
+</p><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-">Sink</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/RemoteMapSourceAndSink.java">Sample</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ICache in another cluster</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-">Source</a>
+</p><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-">Sink</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IMap&#8217;s Event Journal</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#mapJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/map-journal-source/src/main/java/MapJournalSource.java">Sample</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ICache&#8217;s Event Journal</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#cacheJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Event Journal of IMap in another cluster</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteMapJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/map-journal-source/src/main/java/RemoteMapJournalSource.java">Sample</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Event Journal of ICache in another cluster</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteCacheJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-">Source</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IList</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#list-java.lang.String-">Source</a>
+</p><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#list-java.lang.String-">Sink</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/ListSourceAndSink.java">Sample</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IList in another cluster</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-">Source</a>
+</p><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-">Sink</a></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HDFS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSources.html">Source</a>
+</p><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSinks.html">Sink</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-hadoop/src/main/java/HadoopWordCount.java">Sample</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kafka</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/KafkaSources.html">Source</a>
+</p><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/KafkaSinks.html">Sink</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/kafka-source/src/main/java/KafkaSource.java">Source</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Files</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-">Source</a>
+</p><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-">Sink</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/access-log-analyzer/src/main/java/AccessLogAnalyzer.java">Sample</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">File Watcher</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-">Source</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/access-stream-analyzer/src/main/java/AccessStreamAnalyzer.java">Sample (Core API)</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TCP Socket</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#socket-java.lang.String-int-java.nio.charset.Charset-">Source</a>
+</p><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#socket-java.lang.String-int-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-">Sink</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/socket-connector/src/main/java/StreamTextSocket.java">Source</a>
+</p><p class="tableblock"><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/socket-connector/src/main/java/WriteTextSocket.java">Sink</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Application Log</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#writeLogger-com.hazelcast.jet.function.DistributedFunction-">Sink</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/enrichment/src/main/java/Enrichment.java">Sink</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">N/A</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">N/A</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect3">
@@ -2692,22 +2691,31 @@ code against a map entry, in a data-local manner.</p>
 where you provide a a function that computes the map value from the
 stream item and a merging function that gets called if a value already
 exists in the map. Here&#8217;s an example that concatenates string values:</p>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>```java
-Pipeline pipeline = Pipeline.create();
-pipeline.drawFrom(Sources.map("mymap"))
-        .drainTo(
-                Sinks.mapWithMerging(
-                        "mymap",
-                        item -&gt; item.getKey(),
-                        item -&gt; item.getValue(),
-                        (oldValue, newValue) -&gt; oldValue + newValue
-                )
-        );
-```
-**Note:** This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the update function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.</pre>
+<pre class="CodeRay highlight"><code data-lang="java">    Pipeline pipeline = Pipeline.create();
+    pipeline.drawFrom(Sources.map(<span class="string"><span class="delimiter">&quot;</span><span class="content">mymap</span><span class="delimiter">&quot;</span></span>))
+            .drainTo(
+                    Sinks.mapWithMerging(
+                            <span class="string"><span class="delimiter">&quot;</span><span class="content">mymap</span><span class="delimiter">&quot;</span></span>,
+                            item -&gt; item.getKey(),
+                            item -&gt; item.getValue(),
+                            (oldValue, newValue) -&gt; oldValue + newValue
+                    )
+            );</code></pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This operation is <strong>NOT</strong> lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the update function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use <code>mapWithEntryProcessor</code> if you need locking behavior which respects the locks on entries.
+</td>
+</tr>
+</table>
 </div>
 </li>
 <li>
@@ -2716,22 +2724,31 @@ where you provide a single updating function that combines the roles of
 the two functions in <code>mapWithMerging</code>. It will be called on the stream
 item and the existing value, if any. Here&#8217;s an example that concatenates
 string values:</p>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>```java
-Pipeline pipeline = Pipeline.create();
-pipeline.drawFrom(Sources.map("mymap"))
-        .drainTo(
-                Sinks.mapWithUpdating(
-                        "mymap",
-                        item -&gt; item.getKey(),
-                        (oldValue, item) -&gt; (oldValue != null ? oldValue : "")
-                                             + item.getValue()
-                )
-        );
-```
-**Note:** This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the merge function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.</pre>
+<pre class="CodeRay highlight"><code data-lang="java">    Pipeline pipeline = Pipeline.create();
+    pipeline.drawFrom(Sources.map(<span class="string"><span class="delimiter">&quot;</span><span class="content">mymap</span><span class="delimiter">&quot;</span></span>))
+            .drainTo(
+                    Sinks.mapWithUpdating(
+                            <span class="string"><span class="delimiter">&quot;</span><span class="content">mymap</span><span class="delimiter">&quot;</span></span>,
+                            item -&gt; item.getKey(),
+                            (oldValue, item) -&gt; (oldValue != <span class="predefined-constant">null</span> ? oldValue : <span class="string"><span class="delimiter">&quot;</span><span class="delimiter">&quot;</span></span>)
+                                                 + item.getValue()
+                    )
+            );</code></pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This operation is <strong>NOT</strong> lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the merge function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use <code>mapWithEntryProcessor</code> if you need locking behavior which respects the locks on entries.
+</td>
+</tr>
+</table>
 </div>
 </li>
 <li>
@@ -2743,57 +2760,40 @@ a higher cost per item. You should use it only if you need a specialized
 entry processor that can&#8217;t be expressed in terms of the other variants.
 This example takes the values of the map and submits an entry processor
 that increments the values by 5 :</p>
-<div class="literalblock">
-<div class="content">
-<pre>```java
-Pipeline pipeline = Pipeline.create();
-pipeline.drawFrom(Sources.map("mymap"))
-        .drainTo(
-                Sinks.mapWithEntryProcessor(
-                        "mymap",
-                        item -&gt; item.getKey(),
-                        item -&gt; new IncrementEntryProcessor(5)
-                )
-        );</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>static class IncrementEntryProcessor implements EntryProcessor&lt;Integer, Integer&gt; {</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>private int incrementBy;</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>public IncrementEntryProcessor(int incrementBy) {
-        this.incrementBy = incrementBy;
-}</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>@Override
-public Object process(Entry&lt;Integer, Integer&gt; entry) {
-        return entry.setValue(entry.getValue() + incrementBy);
-}</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>    @Override
-    public EntryBackupProcessor&lt;Integer, Integer&gt; getBackupProcessor() {
-            return null;
-    }
-}
-```</pre>
-</div>
-</div>
 </li>
 </ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">    Pipeline pipeline = Pipeline.create();
+    pipeline.drawFrom(Sources.map(<span class="string"><span class="delimiter">&quot;</span><span class="content">mymap</span><span class="delimiter">&quot;</span></span>))
+            .drainTo(
+                    Sinks.mapWithEntryProcessor(
+                            <span class="string"><span class="delimiter">&quot;</span><span class="content">mymap</span><span class="delimiter">&quot;</span></span>,
+                            item -&gt; item.getKey(),
+                            item -&gt; <span class="keyword">new</span> IncrementEntryProcessor(<span class="integer">5</span>)
+                    )
+            );
+
+    <span class="directive">static</span> <span class="type">class</span> <span class="class">IncrementEntryProcessor</span> <span class="directive">implements</span> EntryProcessor&lt;<span class="predefined-type">Integer</span>, <span class="predefined-type">Integer</span>&gt; {
+
+        <span class="directive">private</span> <span class="type">int</span> incrementBy;
+
+        <span class="directive">public</span> IncrementEntryProcessor(<span class="type">int</span> incrementBy) {
+                <span class="local-variable">this</span>.incrementBy = incrementBy;
+        }
+
+        <span class="annotation">@Override</span>
+        <span class="directive">public</span> <span class="predefined-type">Object</span> process(Entry&lt;<span class="predefined-type">Integer</span>, <span class="predefined-type">Integer</span>&gt; entry) {
+                <span class="keyword">return</span> entry.setValue(entry.getValue() + incrementBy);
+        }
+
+        <span class="annotation">@Override</span>
+        <span class="directive">public</span> EntryBackupProcessor&lt;<span class="predefined-type">Integer</span>, <span class="predefined-type">Integer</span>&gt; getBackupProcessor() {
+                <span class="keyword">return</span> <span class="predefined-constant">null</span>;
+        }
+    }</code></pre>
+</div>
 </div>
 </div>
 <div class="sect5">
@@ -3662,7 +3662,7 @@ config.getHazelcastConfig().setProperty( <span class="string"><span class="delim
 <div class="paragraph">
 <p>For more detailed information about how to configure logging, please
 refer to the
-<a href="http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#logging-configuration)">IMDG reference manual</a>.</p>
+<a href="http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#logging-configuration">IMDG reference manual</a>.</p>
 </div>
 </div>
 <div class="sect3">
@@ -3729,7 +3729,7 @@ section.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="comparison-of-fet-apis"><a class="anchor" href="#comparison-of-fet-apis"></a>4. Comparison of Jet APIs</h2>
+<h2 id="comparison-of-jet-apis"><a class="anchor" href="#comparison-of-jet-apis"></a>4. Comparison of Jet APIs</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Hazelcast Jet defines several kinds of API, each of which can be used to
@@ -3737,7 +3737,7 @@ build computation jobs. However, there are significant differences
 between them.</p>
 </div>
 <div class="paragraph">
-<p><a href="#build-your-computational-pipeline">Pipeline API</a> is the
+<p><a href="#pipeline-api">Pipeline API</a> is the
 one you should use unless you have a specific reason to look at others.
 It is "the Jet API". Powerful and expressive, yet quite simple to grasp
 and become  productive in.</p>
@@ -3765,80 +3765,88 @@ to set them up and many wrong ones.</p>
 <div class="paragraph">
 <p>This chart summarizes the main differences between the APIs.</p>
 </div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Table 2. Differences between the APIs</caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top">Pipeline API</th>
+<th class="tableblock halign-left valign-top">java.util.stream</th>
+<th class="tableblock halign-left valign-top">Core API (DAG)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When to Use</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">First choice to use Jet. Build rich data pipelines on a variety of sources and sinks.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entry-level usage, simple transform-aggregate operations on IMap and IList.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Expert-level API to:
+</p><p class="tableblock">* fine-tune a performance-critical computation
+* build a new high-level API or DSL
+* implement a custom source or sink
+* integrate with other libraries or frameworks</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Expressiveness</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">High</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Medium</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Low</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Works with all sources and sinks</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌(*)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Transforms (map, flat map, filter)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aggregations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅(**)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Joins and forks</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Processing bounded data (batch)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Processing unbounded data (streaming)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅(<strong>*</strong>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+</tbody>
+</table>
 <div class="paragraph">
-<p>&lt;table&gt;
-	&lt;tr&gt;
-		&lt;th style="width: 25%"&gt;&lt;/th&gt;
-		&lt;th style="width: 25%"&gt;Pipeline API&lt;/th&gt;
-		&lt;th style="width: 20%"&gt;java.util.stream&lt;/th&gt;
-		&lt;th style="width: 30%"&gt;Core API (DAG)&lt;/th&gt;
-	&lt;/tr&gt;
-	&lt;tr&gt;
-		&lt;td&gt;When to Use&lt;/td&gt;
-		&lt;td&gt;First choice to use Jet. Build rich data pipelines on a
-		    variety of sources and sinks.&lt;/td&gt;
-		&lt;td&gt;Entry-level usage, simple transform-aggregate operations on
-		    IMap and IList.&lt;/td&gt;
-		&lt;td&gt;Expert-level API to:
-		&lt;ul&gt;
-			&lt;li&gt;fine-tune a performance-critical computation&lt;/li&gt;
-			&lt;li&gt;build a new high-level API or DSL&lt;/li&gt;
-			&lt;li&gt;implement a custom source or sink&lt;/li&gt;
-			&lt;li&gt;integrate with other libraries or frameworks&lt;/li&gt;
-		&lt;/ul&gt;
-		&lt;/td&gt;
-	&lt;/tr&gt;
-	&lt;tr&gt;
-		&lt;td&gt;Expressiveness&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;High&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;Medium&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;Low&lt;/td&gt;
-	&lt;/tr&gt;
-	&lt;tr&gt;
-		&lt;td&gt;Works with all sources and sinks&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;❌(<strong>)&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-	&lt;/tr&gt;
-	&lt;tr&gt;
-		&lt;td&gt;Transforms (map, flat map, filter)&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-	&lt;/tr&gt;
-	&lt;tr&gt;
-		&lt;td&gt;Aggregations&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅(<strong>)&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-	&lt;/tr&gt;
-	&lt;tr&gt;
-		&lt;td&gt;Joins and forks&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-	&lt;/tr&gt;
-	&lt;tr&gt;
-		&lt;td&gt;Processing bounded data (batch)&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-	&lt;/tr&gt;
-	&lt;tr&gt;
-		&lt;td&gt;Processing unbounded data (streaming)&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅ (</strong></strong>)&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;❌&lt;/td&gt;
-		&lt;td style="text-align: center"&gt;✅&lt;/td&gt;
-	&lt;/tr&gt;
-&lt;/table&gt;</p>
+<p>*: Any source can be used with j.u.stream, but only <code>IMap</code> and <code>IList</code>
+sinks are supported.</p>
 </div>
 <div class="paragraph">
-<p><strong>: Any source can be used with j.u.stream, but only <code>IMap</code> and <code>IList</code>
-sinks are supported.&lt;br/&gt;
-<strong>: <code>j.u.stream</code> only supports grouping on one input, co-grouping is not
+<p>**: <code>j.u.stream</code> only supports grouping on one input, co-grouping is not
 supported. Furthermore, aggregation is a terminal operation and
-additional transforms can&#8217;t be applied to aggregation results.&lt;br/&gt;
-</strong></strong>: Windowing support will be added in 0.6.</p>
+additional transforms can&#8217;t be applied to aggregation results.</p>
+</div>
+<div class="paragraph">
+<p><strong>*</strong>: Windowing support will be added in 0.6.</p>
 </div>
 </div>
 </div>
@@ -3927,16 +3935,26 @@ configuration that&#8217;s packaged in the Jet JAR file.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The following table lists the configuration elements for Hazelcast Jet:</p>
+<p>The following are the configuration elements for Hazelcast Jet:</p>
 </div>
-<div class="paragraph">
-<p>|Name|Description|Default Value
-|-|-|
-|Cooperative Thread Count|Maximum number of cooperative threads to be used for execution of jobs.|<code>Runtime.getRuntime().availableProcessors()</code>
-|Temp Directory| Directory where temporary files will be placed, such as JAR files submitted by clients.|Jet will create a temp directory, which will be deleted on exit.
-|Flow Control Period| While executing a Jet job there is the issue of regulating the rate at which one member of the cluster sends data to another member. The receiver will regularly report to each sender how much more data it is allowed to send over a given DAG edge. This option sets the length (in milliseconds) of the interval between flow-control packets.|100ms
-|Backup Count|Sets the number of synchronous backups for storing job metadata and snapshots. Maximum allowed value is 6.|1|
-|Edge Defaults|The default values to be used for all edges.|Please see the section on [Tuning Edges](/Expert_Zone_—_The_Core_API/DAG#page_Fine-Tuning+Edges).</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Cooperative Thread Count: Maximum number of cooperative threads to be used for execution of jobs. Its default value is <code>Runtime.getRuntime().availableProcessors()</code></p>
+</li>
+<li>
+<p>Temp Directory: Directory where temporary files will be placed, such as JAR files submitted by clients. Jet will create a temp directory, which will be deleted on exit.</p>
+</li>
+<li>
+<p>Flow Control Period: While executing a Jet job there is the issue of regulating the rate at which one member of the cluster sends data to another member. The receiver will regularly report to each sender how much more data it is allowed to send over a given DAG edge. This option sets the length (in milliseconds) of the interval between flow-control packets. Its default value is 100ms.</p>
+</li>
+<li>
+<p>Backup Count: Sets the number of synchronous backups for storing job metadata and snapshots. Maximum allowed value is 6. Its default value is 1.</p>
+</li>
+<li>
+<p>Edge Defaults: The default values to be used for all edges. Please see the section on <a href="#fine-tuning-edges">Tuning Edges</a>.</p>
+</li>
+</ul>
 </div>
 </div>
 <div class="sect2">
@@ -4209,10 +4227,10 @@ transforming it into another infinite stream.</p>
 <div class="paragraph">
 <p>We can represent the steps outlined above as a DAG:</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Word-counting DAG"
-     src="../images/wordcount-dag.png"
-     height="200"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/wordcount-dag.png" alt="Word-counting DAG" width="600" height="170">
+</div>
 </div>
 <div class="paragraph">
 <p>The simplest, single-threaded code (shown above) deals with each item as
@@ -4265,10 +4283,10 @@ tokenizer feeds the accumulator loop, and after the accumulator is done
 receiving, it emits its results to the sink. Diagrammatically it looks
 like this:</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Word-counting DAG with concurrent queues shown"
-     src="../images/wordcount-dag-queue.png"
-     height="200"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/wordcount-dag-queue.png" alt="Word-counting DAG with concurrent queues shown" width="600" height="170">
+</div>
 </div>
 <div class="paragraph">
 <p>This transformation brought us a <em>pipelined</em> architecture: while the
@@ -4291,10 +4309,10 @@ between the notions of <em>vertex</em> and <em>processor</em>: there can be seve
 processors doing the work of a single vertex. Let&#8217;s add another
 tokenizing processor:</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Word-counting DAG with tokenizer vertex parallelized"
-     src="../images/wordcount-tokenizer.png"
-     height="300"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/wordcount-tokenizer.png" alt="Word-counting DAG with tokenizer vertex parallelized" width="600" height="170">
+</div>
 </div>
 <div class="paragraph">
 <p>The input processor can now use all the available tokenizers as a pool
@@ -4310,10 +4328,10 @@ to ensure that all occurrences of the same word go to the same
 processor. This is called "data partitioning" and in Jet we&#8217;ll use a
 <em>partitioned edge</em> between the tokenizer and the accumulator:</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Word-counting DAG with tokenizer and accumulator parallelized"
-     src="../images/wordcount-partitioned.png"
-     height="300"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/wordcount-partitioned.png" alt="Word-counting DAG with tokenizer and accumulator parallelized" width="600" height="170">
+</div>
 </div>
 <div class="paragraph">
 <p>As a word is emitted from the tokenizer, it goes through a "switchboard"
@@ -4389,10 +4407,10 @@ a <em>local partitioned</em> edge for <code>tokenize</code>&#8594;`accumulate` a
 move we&#8217;ve finalized our DAG design, which can be illustrated by the
 following diagram:</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Word-counting DAG parallelized and distributed"
-     src="../images/wordcount-distributed.png"
-     height="420"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/wordcount-distributed.png" alt="Word-counting DAG parallelized and distributed" width="600" height="170">
+</div>
 </div>
 </div>
 <div class="sect3">
@@ -4578,7 +4596,7 @@ it with the same means, but we also face some new challenges.</p>
 <h4 id="stream-skew"><a class="anchor" href="#stream-skew"></a>7.2.1. Stream Skew</h4>
 <div class="paragraph">
 <p>We
-<a href="#time-ordering-and-the-watermark">already introduced</a>
+<a href="#time-ordering">already introduced</a>
 the concept of the watermark and how it imposes
 order onto a disordered data stream. Items arriving out of order aren&#8217;t
 our only challenge; modern stream sources like Kafka are partitioned and
@@ -4666,10 +4684,10 @@ within the window&#8217;s timespan.</p>
 </li>
 </ol>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Grouping disordered events by frame and then to sliding window"
-    src="../images/windowing-frames.png"
-    width="800"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/windowing-frames.png" alt="Grouping disordered events by frame and then to sliding window" width="800" height="800">
+</div>
 </div>
 <div class="paragraph">
 <p>This would be a useful interpretation of the results: "At the time 1:30,
@@ -4692,10 +4710,10 @@ second stage, which combines the frames with the same timestamp. After
 having combined all the partial frames from members, it combines the
 results along the event time axis into the sliding window.</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Combining partial frames in two-stage aggregation"
-    src="../images/combining-frames.png"
-    width="800"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/combining-frames.png" alt="Combining partial frames in two-stage aggregation" width="800" height="800">
+</div>
 </div>
 </div>
 </div>
@@ -4715,38 +4733,43 @@ of the <em>event interval</em>: the range
 Initially an event causes a new session window to be created, covering
 exactly the event interval.</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Session window: single event"
-    src="../images/session-window-1.png"
-    width="200"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/session-window-1.png" alt="Session window: single event" width="250" height="200">
+</div>
 </div>
 <div class="paragraph">
 <p>A following event under the same key belongs to this window iff its
 interval overlaps it. The window is extended to cover the entire
 interval of the new event.</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Session window: extend with another event"
-    src="../images/session-window-2.png"
-    width="110"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/session-window-2.png" alt="Session window: extend with another event" width="150" height="120">
+</div>
 </div>
 <div class="paragraph">
 <p>If the event intervals don&#8217;t overlap, a new session window is created
 for the new event.</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Session window: create a new window after session timeout"
-    src="../images/session-window-3.png"
-    width="240"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/session-window-3.png" alt="Session window: create a new window after session timeout" width="300" height="110">
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>width="240"/&gt;</pre>
+</div>
 </div>
 <div class="paragraph">
 <p>An event may happen to belong to two existing windows if its interval
 bridges the gap between them; in that case they are combined into one.</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Session window: an event may merge two existing windows"
-    src="../images/session-window-4.png"
-    width="240"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/session-window-4.png" alt="Session window: an event may merge two existing windows" width="300" height="110">
+</div>
 </div>
 <div class="paragraph">
 <p>Once the watermark has passed the closing time of a session window, Jet
@@ -4784,53 +4807,33 @@ below.</p>
 item in any input stream (from any upstream processor), it must stop
 consuming it until it gets the same barrier item in all the streams:</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Exactly-once processing: received one barrier"
-    src="../images/exactly-once-1.png"
-    width="350"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/exactly-once-1.png" alt="Exactly-once processing: received one barrier" width="300" height="110">
+</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
 <p>At the barrier in stream X, but not Y. Must not accept any more X items.</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/exactly-once-2.png" alt="Exactly-once processing: received both barriers" width="300" height="110">
+</div>
+</div>
 </li>
-</ol>
-</div>
-<div class="paragraph">
-<p>&lt;br&gt;
-&lt;br&gt;</p>
-</div>
-<div class="paragraph">
-<p>&lt;img alt="Exactly-once processing: received both barriers"
-    src="../images/exactly-once-2.png"
-    width="350"/&gt;</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
 <li>
 <p>At the barrier in both streams, taking a snapshot.</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/exactly-once-3.png" alt="Exactly-once processing: forward the barrier" width="300" height="110">
+</div>
+</div>
 </li>
-</ol>
-</div>
-<div class="paragraph">
-<p>&lt;br&gt;
-&lt;br&gt;</p>
-</div>
-<div class="paragraph">
-<p>&lt;img alt="Exactly-once processing: forward the barrier"
-    src="../images/exactly-once-3.png"
-    width="350"/&gt;</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
 <li>
 <p>Snapshot done, barrier forwarded. Can resume consuming all streams.</p>
 </li>
 </ol>
-</div>
-<div class="paragraph">
-<p>&lt;br&gt;
-&lt;br&gt;</p>
 </div>
 </div>
 <div class="sect4">
@@ -4840,53 +4843,33 @@ consuming it until it gets the same barrier item in all the streams:</p>
 the streams until it gets all the barriers, at which point it will stop
 to take the snapshot:</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="At-Least-once processing: received one barrier"
-    src="../images/at-least-once-1.png"
-    width="370"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/at-least-once-1.png" alt="At-Least-once processing: received one barrier" width="300" height="110">
+</div>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
 <p>At the barrier in stream X, but not Y. Carry on consuming all streams.</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/at-least-once-2.png" alt="At-Least-once processing: received both barriers" width="300" height="110">
+</div>
+</div>
 </li>
-</ol>
-</div>
-<div class="paragraph">
-<p>&lt;br&gt;
-&lt;br&gt;</p>
-</div>
-<div class="paragraph">
-<p>&lt;img alt="At-Least-once processing: received both barriers"
-    src="../images/at-least-once-2.png"
-    width="370"/&gt;</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
 <li>
 <p>At the barrier in both streams, already consumed <code>x1</code> and <code>x2</code>. Taking a snapshot.</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/at-least-once-3.png" alt="At-Least-once processing: forward the barrier" width="300" height="110">
+</div>
+</div>
 </li>
-</ol>
-</div>
-<div class="paragraph">
-<p>&lt;br&gt;
-&lt;br&gt;</p>
-</div>
-<div class="paragraph">
-<p>&lt;img alt="At-Least-once processing: forward the barrier"
-    src="../images/at-least-once-3.png"
-    width="370"/&gt;</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
 <li>
 <p>Snapshot done, barrier forwarded.</p>
 </li>
 </ol>
-</div>
-<div class="paragraph">
-<p>&lt;br&gt;
-&lt;br&gt;</p>
 </div>
 <div class="paragraph">
 <p>Even though <code>x1</code> and <code>x2</code> occur after the barrier, the processor
@@ -4951,7 +4934,7 @@ receive watermark from idle input. It will cause that other active
 inputs can be processed without any delay. When idle timeout is disabled
 and some processor doesn&#8217;t emit any watermarks (because it sees no
 events), the processing will stall indefinitely (unless
-[maximum retention](Expert_Zone_—_The_Core_API/WatermarkPolicy#page_Maximum+watermark+retention+on+substream+merge)
+<a href="#max-watermark-retention">maximum retention</a>
 is configured).</p>
 </div>
 </div>
@@ -5012,10 +4995,10 @@ reports the number of trades per time unit (the time window). In terms
 of DAG design, not much changes going from batch to streaming. This is
 how it looks:</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Trade monitoring DAG"
-     src="../images/stock-exchange-dag.png"
-     width="300"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/stock-exchange-dag.png" alt="Trade monitoring DAG" width="300" height="900">
+</div>
 </div>
 <div class="paragraph">
 <p>We have the same cascade of source, two-stage aggregation, and sink. The
@@ -5301,10 +5284,10 @@ parallelism of 8 running on 4 members would have a total of 32 tasklets
 running at the same time. Each member has the same number of tasklets
 running.</p>
 </div>
-<div class="paragraph">
-<p>&lt;img alt="Tasklet execution model"
-     src="../images/parallelism-model.png"
-     width="800"/&gt;</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/parallelism-model.png" alt="Tasklet execution model" width="800" height="400">
+</div>
 </div>
 <div class="paragraph">
 <p>When you make a request to execute a Job, the corresponding DAG and
@@ -6019,7 +6002,7 @@ data.</p>
 <div class="paragraph">
 <p>After it has delivered all the snapshot data to <code>restoreFromSnapshot()</code>,
 Jet will call
-[<code>finishSnapshotRestore()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#finishSnapshotRestore--" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#finishSnapshotRestore--</a>).
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#finishSnapshotRestore--"><code>finishSnapshotRestore()</code></a>.
 The processor may use it to initialize some transient state from the
 restored state.</p>
 </div>
@@ -6189,7 +6172,7 @@ Jet takes a simple approach and strictly triages stream items into
 "still on time" and "late", discarding the latter.</p>
 </div>
 <div class="paragraph">
-<p>[<code>WatermarkPolicy</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicy.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicy.html</a>)
+<p><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicy.html"><code>WatermarkPolicy</code></a>
 is the abstraction that computes the value of the watermark for a
 (sub)stream of disordered data items. It takes as input the timestamp of
 each observed item and outputs the current watermark value.</p>
@@ -6301,7 +6284,7 @@ which suppresses watermark items until the watermark has advanced at least
 </div>
 </div>
 <div class="sect3">
-<h4 id="maximum-watermark-retention-on-substream-merge"><a class="anchor" href="#maximum-watermark-retention-on-substream-merge"></a>8.6.3. Maximum watermark retention on substream merge</h4>
+<h4 id="max-watermark-retention"><a class="anchor" href="#max-watermark-retention"></a>8.6.3. Maximum watermark retention on substream merge</h4>
 <div class="paragraph">
 <p>When two input streams are merged into one for downstream processing,
 Jet waits for the watermark to advance in all substreams in order to
@@ -6623,1243 +6606,1539 @@ DAG dag = <span class="keyword">new</span> DAG();
 ...</code></pre>
 </div>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre>Running after this change we'll see that both members are generating the
-same set of numbers. This is because `ProcessorSupplier` is instantiated
+<div class="paragraph">
+<p>Running after this change we&#8217;ll see that both members are generating the
+same set of numbers. This is because <code>ProcessorSupplier</code> is instantiated
 independently for each member and asked for the same number of
 processors, resulting in identical processors on all members. We have to
 solve the same problem as we just did, but at the higher level of
-cluster-wide parallelism. For that we'll need the
-`ProcessorMetaSupplier`: an interface which acts as a factory of
+cluster-wide parallelism. For that we&#8217;ll need the
+<code>ProcessorMetaSupplier</code>: an interface which acts as a factory of
 `ProcessorSupplier`s, one for each cluster member. Under the hood it is
-actually always the meta-supplier that's created by the DAG-building
+actually always the meta-supplier that&#8217;s created by the DAG-building
 code; the above examples are just implicit about it for the sake of
 convenience. They result in a simple meta-supplier that reuses the
-provided suppliers everywhere.
-
-The meta-supplier is a bit trickier to implement because its method
+provided suppliers everywhere.</p>
+</div>
+<div class="paragraph">
+<p>The meta-supplier is a bit trickier to implement because its method
 takes a list of Jet member addresses instead of a simple count, and the
-return value is a function from address to `ProcessorSupplier`. In our
-case we'll treat the address as just an opaque ID and we'll build a map
-from address to a properly configured `ProcessorSupplier`. Then we can
-simply return `map::get` as our function.
+return value is a function from address to <code>ProcessorSupplier</code>. In our
+case we&#8217;ll treat the address as just an opaque ID and we&#8217;ll build a map
+from address to a properly configured <code>ProcessorSupplier</code>. Then we can
+simply return <code>map::get</code> as our function.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="type">class</span> <span class="class">GenerateNumbersPMetaSupplier</span> <span class="directive">implements</span> ProcessorMetaSupplier {
 
+    <span class="directive">private</span> <span class="directive">final</span> <span class="type">int</span> upperBound;
 
-```java
-class GenerateNumbersPMetaSupplier implements ProcessorMetaSupplier {
+    <span class="directive">private</span> <span class="directive">transient</span> <span class="type">int</span> totalParallelism;
+    <span class="directive">private</span> <span class="directive">transient</span> <span class="type">int</span> localParallelism;
 
-    private final int upperBound;
-
-    private transient int totalParallelism;
-    private transient int localParallelism;
-
-    GenerateNumbersPMetaSupplier(int upperBound) {
-        this.upperBound = upperBound;
+    GenerateNumbersPMetaSupplier(<span class="type">int</span> upperBound) {
+        <span class="local-variable">this</span>.upperBound = upperBound;
     }
 
-    @Override
-    public void init(@Nonnull Context context) {
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> init(<span class="annotation">@Nonnull</span> <span class="predefined-type">Context</span> context) {
         totalParallelism = context.totalParallelism();
         localParallelism = context.localParallelism();
     }
 
-    @Override @Nonnull
-    public Function&lt;Address, ProcessorSupplier&gt; get(@Nonnull List&lt;Address&gt; addresses) {
-        Map&lt;Address, ProcessorSupplier&gt; map = new HashMap&lt;&gt;();
-        for (int i = 0; i &lt; addresses.size(); i++) {
-            // We'll calculate the global index of each processor in the cluster:
-            int globalIndexBase = localParallelism * i;
-            // Capture the value of the transient field for the lambdas below:
-            int divisor = totalParallelism;
-            // processorCount will be equal to localParallelism:
+    <span class="annotation">@Override</span> <span class="annotation">@Nonnull</span>
+    <span class="directive">public</span> Function&lt;Address, ProcessorSupplier&gt; get(<span class="annotation">@Nonnull</span> <span class="predefined-type">List</span>&lt;Address&gt; addresses) {
+        <span class="predefined-type">Map</span>&lt;Address, ProcessorSupplier&gt; map = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="integer">0</span>; i &lt; addresses.size(); i++) {
+            <span class="comment">// We'll calculate the global index of each processor in the cluster:</span>
+            <span class="type">int</span> globalIndexBase = localParallelism * i;
+            <span class="comment">// Capture the value of the transient field for the lambdas below:</span>
+            <span class="type">int</span> divisor = totalParallelism;
+            <span class="comment">// processorCount will be equal to localParallelism:</span>
             ProcessorSupplier supplier = processorCount -&gt;
                     range(globalIndexBase, globalIndexBase + processorCount)
                             .mapToObj(globalIndex -&gt;
-                                new GenerateNumbersP(upperBound, divisor, globalIndex)
+                                <span class="keyword">new</span> GenerateNumbersP(upperBound, divisor, globalIndex)
                             ).collect(toList());
             map.put(addresses.get(i), supplier);
         }
-        return map::get;
+        <span class="keyword">return</span> map::get;
     }
 
-}
-```
-
-We change our DAG-building code to use the meta-supplier:
-
-```java
-DAG dag = new DAG();
-Vertex generateNumbers = dag.newVertex("generate-numbers",
-        new GenerateNumbersPMetaSupplier(upperBound));
-Vertex logInput = dag.newVertex("log-input",
-        DiagnosticProcessors.writeLogger(i -&gt; "Received number: " + i));
-dag.edge(Edge.between(generateNumbers, logInput));
-```
-
-After re-running with two Jet members, we should once again see each
-number generated just once.
-
-==== Sinks
-
-Like a source, a sink is just another kind of processor. It accepts
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We change our DAG-building code to use the meta-supplier:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">DAG dag = <span class="keyword">new</span> DAG();
+Vertex generateNumbers = dag.newVertex(<span class="string"><span class="delimiter">&quot;</span><span class="content">generate-numbers</span><span class="delimiter">&quot;</span></span>,
+        <span class="keyword">new</span> GenerateNumbersPMetaSupplier(upperBound));
+Vertex logInput = dag.newVertex(<span class="string"><span class="delimiter">&quot;</span><span class="content">log-input</span><span class="delimiter">&quot;</span></span>,
+        DiagnosticProcessors.writeLogger(i -&gt; <span class="string"><span class="delimiter">&quot;</span><span class="content">Received number: </span><span class="delimiter">&quot;</span></span> + i));
+dag.edge(Edge.between(generateNumbers, logInput));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After re-running with two Jet members, we should once again see each
+number generated just once.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="sinks"><a class="anchor" href="#sinks"></a>8.8.3. Sinks</h4>
+<div class="paragraph">
+<p>Like a source, a sink is just another kind of processor. It accepts
 items from the inbox and pushes them into some system external to the
 Jet job (Hazelcast IMap, files, databases, distributed queues, etc.). A
 simple way to implement it is to extend
-&lt;&lt;abstract-processor, `AbstractProcessor`&gt;&gt;
-and override `tryProcess`, which deals with items one at a time.
+<a href="#abstract-processor"><code>AbstractProcessor</code></a>
+and override <code>tryProcess</code>, which deals with items one at a time.
 However, sink processors must often explicitly deal with batching. In
-this case directly implementing `Processor` is better because its
-`process()` method gets the entire `Inbox` which can be drained to a
-buffer and flushed out.
-
-==== Example - File Writer
-
-In this example we'll implement a vertex that writes the received items
+this case directly implementing <code>Processor</code> is better because its
+<code>process()</code> method gets the entire <code>Inbox</code> which can be drained to a
+buffer and flushed out.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="example-file-writer"><a class="anchor" href="#example-file-writer"></a>8.8.4. Example - File Writer</h4>
+<div class="paragraph">
+<p>In this example we&#8217;ll implement a vertex that writes the received items
 to files. To avoid contention and conflicts, each processor must write
-to its own file. Since we'll be using a `BufferedWriter` which takes
+to its own file. Since we&#8217;ll be using a <code>BufferedWriter</code> which takes
 care of the buffering/batching concern, we can use the simpler approach
-of extending `AbstractProcessor`:
+of extending <code>AbstractProcessor</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="type">class</span> <span class="class">WriteFileP</span> <span class="directive">extends</span> AbstractProcessor <span class="directive">implements</span> <span class="predefined-type">Closeable</span> {
 
-```java
-class WriteFileP extends AbstractProcessor implements Closeable {
+    <span class="directive">private</span> <span class="directive">final</span> <span class="predefined-type">String</span> path;
 
-    private final String path;
+    <span class="directive">private</span> <span class="directive">transient</span> <span class="predefined-type">BufferedWriter</span> writer;
 
-    private transient BufferedWriter writer;
-
-    WriteFileP(String path) {
-        setCooperative(false);
-        this.path = path;
+    WriteFileP(<span class="predefined-type">String</span> path) {
+        setCooperative(<span class="predefined-constant">false</span>);
+        <span class="local-variable">this</span>.path = path;
     }
 
-    @Override
-    protected void init(@Nonnull Context context) throws Exception {
-        Path path = Paths.get(this.path, context.jetInstance().getName()
-                + '-' + context.globalProcessorIndex());
+    <span class="annotation">@Override</span>
+    <span class="directive">protected</span> <span class="type">void</span> init(<span class="annotation">@Nonnull</span> <span class="predefined-type">Context</span> context) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        Path path = Paths.get(<span class="local-variable">this</span>.path, context.jetInstance().getName()
+                + <span class="string"><span class="delimiter">'</span><span class="content">-</span><span class="delimiter">'</span></span> + context.globalProcessorIndex());
         writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
     }
 
-    @Override
-    protected boolean tryProcess(int ordinal, Object item) throws Exception {
+    <span class="annotation">@Override</span>
+    <span class="directive">protected</span> <span class="type">boolean</span> tryProcess(<span class="type">int</span> ordinal, <span class="predefined-type">Object</span> item) <span class="directive">throws</span> <span class="exception">Exception</span> {
         writer.append(item.toString());
         writer.newLine();
-        return true;
+        <span class="keyword">return</span> <span class="predefined-constant">true</span>;
     }
 
-    @Override
-    public void close() throws IOException {
-        if (writer != null) {
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> close() <span class="directive">throws</span> <span class="exception">IOException</span> {
+        <span class="keyword">if</span> (writer != <span class="predefined-constant">null</span>) {
             writer.close();
         }
     }
-}
-```
-
-Some comments:
-
-* The constructor declares the processor
-&lt;&lt;cooperativeness, non-cooperative&gt;&gt; because it will perform blocking IO operations.
-* `init()` method finds a unique filename for each processor by relying
-on the information reachable from the `Context` object.
-* Note the careful implementation of `close()`: it first checks if
-writer is null, which can happen if `newBufferedWriter()` fails in
-`init()`. This would make `init()` fail as well, which would make the
-whole job fail and then our `ProcessorSupplier` would call `close()`
-to clean up.
-
-Cleaning up on completion/failure is actually the only concern that we
-need `ProcessorSupplier` for: the other typical concern, specializing
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Some comments:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The constructor declares the processor
+<a href="#cooperativeness">non-cooperative</a> because it will perform blocking IO operations.</p>
+</li>
+<li>
+<p><code>init()</code> method finds a unique filename for each processor by relying
+on the information reachable from the <code>Context</code> object.</p>
+</li>
+<li>
+<p>Note the careful implementation of <code>close()</code>: it first checks if
+writer is null, which can happen if <code>newBufferedWriter()</code> fails in
+<code>init()</code>. This would make <code>init()</code> fail as well, which would make the
+whole job fail and then our <code>ProcessorSupplier</code> would call <code>close()</code>
+to clean up.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Cleaning up on completion/failure is actually the only concern that we
+need <code>ProcessorSupplier</code> for: the other typical concern, specializing
 processors to achieve data partitioning, was achieved directly from the
-processor's code. This is the supplier's code:
+processor&#8217;s code. This is the supplier&#8217;s code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="type">class</span> <span class="class">WriteFilePSupplier</span> <span class="directive">implements</span> ProcessorSupplier {
 
-```java
-class WriteFilePSupplier implements ProcessorSupplier {
+    <span class="directive">private</span> <span class="directive">final</span> <span class="predefined-type">String</span> path;
 
-    private final String path;
+    <span class="directive">private</span> <span class="directive">transient</span> <span class="predefined-type">List</span>&lt;WriteFileP&gt; processors;
 
-    private transient List&lt;WriteFileP&gt; processors;
-
-    WriteFilePSupplier(String path) {
-        this.path = path;
+    WriteFilePSupplier(<span class="predefined-type">String</span> path) {
+        <span class="local-variable">this</span>.path = path;
     }
 
-    @Override
-    public void init(@Nonnull Context context) {
-        File homeDir = new File(path);
-        boolean success = homeDir.isDirectory() || homeDir.mkdirs();
-        if (!success) {
-            throw new JetException("Failed to create " + homeDir);
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> init(<span class="annotation">@Nonnull</span> <span class="predefined-type">Context</span> context) {
+        <span class="predefined-type">File</span> homeDir = <span class="keyword">new</span> <span class="predefined-type">File</span>(path);
+        <span class="type">boolean</span> success = homeDir.isDirectory() || homeDir.mkdirs();
+        <span class="keyword">if</span> (!success) {
+            <span class="keyword">throw</span> <span class="keyword">new</span> JetException(<span class="string"><span class="delimiter">&quot;</span><span class="content">Failed to create </span><span class="delimiter">&quot;</span></span> + homeDir);
         }
     }
 
-    @Override @Nonnull
-    public List&lt;WriteFileP&gt; get(int count) {
-        processors = Stream.generate(() -&gt; new WriteFileP(path))
+    <span class="annotation">@Override</span> <span class="annotation">@Nonnull</span>
+    <span class="directive">public</span> <span class="predefined-type">List</span>&lt;WriteFileP&gt; get(<span class="type">int</span> count) {
+        processors = Stream.generate(() -&gt; <span class="keyword">new</span> WriteFileP(path))
                            .limit(count)
                            .collect(Collectors.toList());
-        return processors;
+        <span class="keyword">return</span> processors;
     }
 
-    @Override
-    public void complete(Throwable error) {
-        for (WriteFileP p : processors) {
-            try {
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> complete(<span class="predefined-type">Throwable</span> error) {
+        <span class="keyword">for</span> (WriteFileP p : processors) {
+            <span class="keyword">try</span> {
                 p.close();
-            } catch (IOException e) {
-                throw new JetException(e);
+            } <span class="keyword">catch</span> (<span class="exception">IOException</span> e) {
+                <span class="keyword">throw</span> <span class="keyword">new</span> JetException(e);
             }
         }
     }
-}
-```
-
-[[core-best-practices]]
-=== Best Practices
-
-
-==== Inspecting Processor Input and Output
-
-The structure of the DAG model is a very poor match for Java's type
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="core-best-practices"><a class="anchor" href="#core-best-practices"></a>8.9. Best Practices</h3>
+<div class="sect3">
+<h4 id="inspecting-processor-input-and-output"><a class="anchor" href="#inspecting-processor-input-and-output"></a>8.9.1. Inspecting Processor Input and Output</h4>
+<div class="paragraph">
+<p>The structure of the DAG model is a very poor match for Java&#8217;s type
 system, which results in the lack of compile-time type safety between
 connected vertices. Developing a type-correct DAG therefore usually
 requires some trial and error. To facilitate this process, but also to
-allow many more kinds of diagnostics and debugging, Jet's library offers
-ways to capture the input/output of a vertex and inspect it.
-
-===== Peeking with Processor Wrappers
-
-The first approach is to decorate a vertex declaration with a layer that
+allow many more kinds of diagnostics and debugging, Jet&#8217;s library offers
+ways to capture the input/output of a vertex and inspect it.</p>
+</div>
+<div class="sect4">
+<h5 id="peeking-with-processor-wrappers"><a class="anchor" href="#peeking-with-processor-wrappers"></a>Peeking with Processor Wrappers</h5>
+<div class="paragraph">
+<p>The first approach is to decorate a vertex declaration with a layer that
 will log all the data traffic going through it. This support is present
 in the
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/DiagnosticProcessors.html[`DiagnosticProcessors`]
-factory class, which contains the following methods:
-
-* `peekInput()`: logs items received at any edge ordinal.
-
-* `peekOutput()`: logs items emitted to any ordinal. An item emitted to
-  several ordinals is logged just once.
-
-These methods take two optional parameters:
-
-* `toStringF` returns the string representation of an item. The default
-  is to use `Object.toString()`.
-* `shouldLogF` is a filtering function so you can focus your log output
-  only on some specific items. The default is to log all items.
-
-====== Example Usage
-
-Suppose we have declared the second-stage vertex in a two-stage
-aggregation setup:
-
-```java
-Vertex combine = dag.newVertex("combine",
-    combineByKey(counting()));
-```
-
-We'd like to see what exactly we're getting from the first stage, so
-we'll wrap the processor supplier with `peekInput()`:
-
-```java
-Vertex combine = dag.newVertex("combine",
-    peekInput(combineByKey(counting())));
-```
-
-Keep in mind that logging happens on the machine running hosting the
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/DiagnosticProcessors.html"><code>DiagnosticProcessors</code></a>
+factory class, which contains the following methods:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>peekInput()</code>: logs items received at any edge ordinal.</p>
+</li>
+<li>
+<p><code>peekOutput()</code>: logs items emitted to any ordinal. An item emitted to
+several ordinals is logged just once.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These methods take two optional parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>toStringF</code> returns the string representation of an item. The default
+is to use <code>Object.toString()</code>.</p>
+</li>
+<li>
+<p><code>shouldLogF</code> is a filtering function so you can focus your log output
+only on some specific items. The default is to log all items.</p>
+</li>
+</ul>
+</div>
+<div class="sect5">
+<h6 id="example-usage"><a class="anchor" href="#example-usage"></a>Example Usage</h6>
+<div class="paragraph">
+<p>Suppose we have declared the second-stage vertex in a two-stage
+aggregation setup:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">Vertex combine = dag.newVertex(<span class="string"><span class="delimiter">&quot;</span><span class="content">combine</span><span class="delimiter">&quot;</span></span>,
+    combineByKey(counting()));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We&#8217;d like to see what exactly we&#8217;re getting from the first stage, so
+we&#8217;ll wrap the processor supplier with <code>peekInput()</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">Vertex combine = dag.newVertex(<span class="string"><span class="delimiter">&quot;</span><span class="content">combine</span><span class="delimiter">&quot;</span></span>,
+    peekInput(combineByKey(counting())));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Keep in mind that logging happens on the machine running hosting the
 processor, so this technique is primarily targeted to Jet jobs the
-developer runs locally in his development environment.
-
-===== Attaching a Sink Vertex
-
-Since most vertices are implemented to emit the same data stream to all
+developer runs locally in his development environment.</p>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="attaching-a-sink-vertex"><a class="anchor" href="#attaching-a-sink-vertex"></a>Attaching a Sink Vertex</h5>
+<div class="paragraph">
+<p>Since most vertices are implemented to emit the same data stream to all
 attached edges, it is usually possible to attach a diagnostic sink to
-any vertex. For example, Jet's standard
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/SinkProcessors.html#writeFileP-java.lang.String-[`writeFileP()`]
-sink vertex can be very useful here.
-
-====== Example Usage
-
-In the example from the Word Count tutorial we can add the following
-declarations:
-
-```java
-Vertex diagnose = dag.newVertex("diagnose",
-        Sinks.writeFile("tokenize-output"))
-        .localParallelism(1);
-dag.edge(from(tokenize, 1).to(diagnose));
-```
-
-This will create the directory `tokenize-output` which will contain one
+any vertex. For example, Jet&#8217;s standard
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/SinkProcessors.html#writeFileP-java.lang.String-"><code>writeFileP()</code></a>
+sink vertex can be very useful here.</p>
+</div>
+<div class="sect5">
+<h6 id="example-usage-2"><a class="anchor" href="#example-usage-2"></a>Example Usage</h6>
+<div class="paragraph">
+<p>In the example from the Word Count tutorial we can add the following
+declarations:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">Vertex diagnose = dag.newVertex(<span class="string"><span class="delimiter">&quot;</span><span class="content">diagnose</span><span class="delimiter">&quot;</span></span>,
+        Sinks.writeFile(<span class="string"><span class="delimiter">&quot;</span><span class="content">tokenize-output</span><span class="delimiter">&quot;</span></span>))
+        .localParallelism(<span class="integer">1</span>);
+dag.edge(from(tokenize, <span class="integer">1</span>).to(diagnose));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will create the directory <code>tokenize-output</code> which will contain one
 file per processor instance running on the machine. When running in a
 cluster, you can inspect on each member the input seen on that member.
-By specifying the `allToOne()` routing policy you can also have the
+By specifying the <code>allToOne()</code> routing policy you can also have the
 output of all the processors on all the members saved on a single member
-(although the choice of exactly which member will be arbitrary).
-
-==== How to Unit-Test a Processor
-
-We provide some utility classes to simplify writing unit tests for your custom processors. You can find them in the
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/package-summary.html[`com.hazelcast.jet.core.test`]
+(although the choice of exactly which member will be arbitrary).</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="how-to-unit-test-a-processor"><a class="anchor" href="#how-to-unit-test-a-processor"></a>8.9.2. How to Unit-Test a Processor</h4>
+<div class="paragraph">
+<p>We provide some utility classes to simplify writing unit tests for your custom processors. You can find them in the
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/package-summary.html"><code>com.hazelcast.jet.core.test</code></a>
 package. Using these utility classes you can unit test your processor by
-passing it some input items and asserting the expected output.
-
-Start by calling
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/TestSupport.html#verifyProcessor-com.hazelcast.jet.core.ProcessorSupplier-[`TestSupport.verifyProcessor()`]
-by passing it a processor supplier or a processor instance.
-
-The test process does the following:
-
-* initialize the processor by calling `Processor.init()`
-* do a snapshot+restore (optional, see below)
-* call `Processor.process(0, inbox)`. The inbox always contains one
-  item from the `input` parameter
-* every time the inbox gets empty, do a snapshot+restore
-* call `Processor.complete()` until it returns `true` (optional)
-* do a final snapshot+restore after `complete()` is done
-
-The optional snapshot+restore test procedure:
-
-* call `saveToSnapshot()`
-* create a new processor instance and use it instead of the existing one
-* restore the snapshot using `restoreFromSnapshot()`
-* call `finishSnapshotRestore()`
-
-The test optionally asserts that the processor made progress on each call to any processing method. To be judged as having made progress, the callback method must do at least one of these:
-
-* take something from the inbox
-* put something to the outbox
-* return `true` (applies only to `boolean`-returning methods)
-
-====== Cooperative Processors
-
-The test will provide a 1-capacity outbox to cooperative processors. The
-outbox will already be full on every other call to `process()`. This
-tests the edge case: `process()` may be called even when the outbox is
+passing it some input items and asserting the expected output.</p>
+</div>
+<div class="paragraph">
+<p>Start by calling
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/TestSupport.html#verifyProcessor-com.hazelcast.jet.core.ProcessorSupplier-"><code>TestSupport.verifyProcessor()</code></a>
+by passing it a processor supplier or a processor instance.</p>
+</div>
+<div class="paragraph">
+<p>The test process does the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>initialize the processor by calling <code>Processor.init()</code></p>
+</li>
+<li>
+<p>do a snapshot+restore (optional, see below)</p>
+</li>
+<li>
+<p>call <code>Processor.process(0, inbox)</code>. The inbox always contains one
+item from the <code>input</code> parameter</p>
+</li>
+<li>
+<p>every time the inbox gets empty, do a snapshot+restore</p>
+</li>
+<li>
+<p>call <code>Processor.complete()</code> until it returns <code>true</code> (optional)</p>
+</li>
+<li>
+<p>do a final snapshot+restore after <code>complete()</code> is done</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The optional snapshot+restore test procedure:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>call <code>saveToSnapshot()</code></p>
+</li>
+<li>
+<p>create a new processor instance and use it instead of the existing one</p>
+</li>
+<li>
+<p>restore the snapshot using <code>restoreFromSnapshot()</code></p>
+</li>
+<li>
+<p>call <code>finishSnapshotRestore()</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The test optionally asserts that the processor made progress on each call to any processing method. To be judged as having made progress, the callback method must do at least one of these:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>take something from the inbox</p>
+</li>
+<li>
+<p>put something to the outbox</p>
+</li>
+<li>
+<p>return <code>true</code> (applies only to <code>boolean</code>-returning methods)</p>
+</li>
+</ul>
+</div>
+<div class="sect5">
+<h6 id="cooperative-processors"><a class="anchor" href="#cooperative-processors"></a>Cooperative Processors</h6>
+<div class="paragraph">
+<p>The test will provide a 1-capacity outbox to cooperative processors. The
+outbox will already be full on every other call to <code>process()</code>. This
+tests the edge case: <code>process()</code> may be called even when the outbox is
 full, giving the processor a chance to process the inbox without
-emitting anything.
-
-The test will also assert that the processor doesn't spend more time in
-any callback than the limit specified in `cooperativeTimeout(long)`.
-
-====== Cases Not Covered
-
-This class does not cover these cases:
-
-* testing of processors which distinguish input or output edges by
-  ordinal
-* checking that the state of a stateful processor is empty at the end
-  (you can do that yourself afterwards with the last instance returned
-  from your supplier)
-* it never calls `Processor.tryProcess()`
-
-====== Example Usage
-
-This will test one of the jet-provided processors:
-
-```java
-TestSupport.verifyProcessor(Processors.map((String s) -&gt; s.toUpperCase()))
-           .disableCompleteCall()             // enabled by default
-           .disableLogging()                  // enabled by default
-           .disableProgressAssertion()        // enabled by default
-           .disableSnapshots()                // enabled by default
-           .cooperativeTimeout(&lt;timeoutInMs&gt;) // default is 1000
-           .outputChecker(&lt;function&gt;)         // default is `Objects::equal`
-           .input(asList("foo", "bar"))       // default is `emptyList()`
-           .expectOutput(asList("FOO", "BAR"));
-```
-
-===== Other Utility Classes
-
-`com.hazelcast.jet.test` contains these classes that you can use as
-implementations of Jet interfaces in tests:
-
-* `TestInbox`
-* `TestOutbox`
-* `TestProcessorContext`
-* `TestProcessorSupplierContext`
-* `TestProcessorMetaSupplierContext`
-
-The class `JetAssert` contains a few of the `assertX()` methods normally
-found in JUnit's `Assert` class. We had to reimplement them to avoid a
-dependency on JUnit from our production code.
-
-[[tf-idf]]
-=== Custom DAG - Inverted TF-IDF Index
-
-In this tutorial we'll explore what the Core API DAG model offers beyond
+emitting anything.</p>
+</div>
+<div class="paragraph">
+<p>The test will also assert that the processor doesn&#8217;t spend more time in
+any callback than the limit specified in <code>cooperativeTimeout(long)</code>.</p>
+</div>
+</div>
+<div class="sect5">
+<h6 id="cases-not-covered"><a class="anchor" href="#cases-not-covered"></a>Cases Not Covered</h6>
+<div class="paragraph">
+<p>This class does not cover these cases:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>testing of processors which distinguish input or output edges by
+ordinal</p>
+</li>
+<li>
+<p>checking that the state of a stateful processor is empty at the end
+(you can do that yourself afterwards with the last instance returned
+from your supplier)</p>
+</li>
+<li>
+<p>it never calls <code>Processor.tryProcess()</code></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect5">
+<h6 id="example-usage-3"><a class="anchor" href="#example-usage-3"></a>Example Usage</h6>
+<div class="paragraph">
+<p>This will test one of the jet-provided processors:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">TestSupport.verifyProcessor(Processors.map((<span class="predefined-type">String</span> s) -&gt; s.toUpperCase()))
+           .disableCompleteCall()             <span class="comment">// enabled by default</span>
+           .disableLogging()                  <span class="comment">// enabled by default</span>
+           .disableProgressAssertion()        <span class="comment">// enabled by default</span>
+           .disableSnapshots()                <span class="comment">// enabled by default</span>
+           .cooperativeTimeout(&lt;timeoutInMs&gt;) <span class="comment">// default is 1000</span>
+           .outputChecker(&lt;function&gt;)         <span class="comment">// default is `Objects::equal`</span>
+           .input(asList(<span class="string"><span class="delimiter">&quot;</span><span class="content">foo</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">bar</span><span class="delimiter">&quot;</span></span>))       <span class="comment">// default is `emptyList()`</span>
+           .expectOutput(asList(<span class="string"><span class="delimiter">&quot;</span><span class="content">FOO</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">BAR</span><span class="delimiter">&quot;</span></span>));</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="other-utility-classes"><a class="anchor" href="#other-utility-classes"></a>Other Utility Classes</h5>
+<div class="paragraph">
+<p><code>com.hazelcast.jet.test</code> contains these classes that you can use as
+implementations of Jet interfaces in tests:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>TestInbox</code></p>
+</li>
+<li>
+<p><code>TestOutbox</code></p>
+</li>
+<li>
+<p><code>TestProcessorContext</code></p>
+</li>
+<li>
+<p><code>TestProcessorSupplierContext</code></p>
+</li>
+<li>
+<p><code>TestProcessorMetaSupplierContext</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The class <code>JetAssert</code> contains a few of the <code>assertX()</code> methods normally
+found in JUnit&#8217;s <code>Assert</code> class. We had to reimplement them to avoid a
+dependency on JUnit from our production code.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="tf-idf"><a class="anchor" href="#tf-idf"></a>8.10. Custom DAG - Inverted TF-IDF Index</h3>
+<div class="paragraph">
+<p>In this tutorial we&#8217;ll explore what the Core API DAG model offers beyond
 the capabilities of the Pipeline API. Our DAG will feature splits,
-joins, broadcast, and prioritized edges. We'll access data from the file
+joins, broadcast, and prioritized edges. We&#8217;ll access data from the file
 system and show a simple technique to distribute file reading across Jet
-members. Several vertices we use can't be implemented in terms of
-out-of-the-box processors, so we'll also show you how to implement your
-own with minimum boilerplate.
-
-The full code is available at the `hazelcast-jet-code-samples`
-repository:
-
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[TfIdfJdkStreams.java]
-
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java[TfIdf.java]
-
-Let us first introduce the problem. The inverted index is a basic data
+members. Several vertices we use can&#8217;t be implemented in terms of
+out-of-the-box processors, so we&#8217;ll also show you how to implement your
+own with minimum boilerplate.</p>
+</div>
+<div class="paragraph">
+<p>The full code is available at the <code>hazelcast-jet-code-samples</code>
+repository:</p>
+</div>
+<div class="paragraph">
+<p><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java">TfIdfJdkStreams.java</a></p>
+</div>
+<div class="paragraph">
+<p><a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java">TfIdf.java</a></p>
+</div>
+<div class="paragraph">
+<p>Let us first introduce the problem. The inverted index is a basic data
 structure in the domain of full-text search. First used in the 1950s, it
 is still at the core of modern information retrieval systems such as
 Lucene. The goal is to be able to quickly find the documents that
 contain a given set of search terms, and to sort them by relevance. To
-understand it we'll need to throw in some terminology.
-
-- A _document_ is treated as a list of words that has a unique ID. It is
-useful to define the notion of a _document index_ which maps each
-document ID to the list of words it contains. We won't build this index;
-it's just for the sake of explanation.
-- The _inverted index_ is the inverse of the document index: it maps
+understand it we&#8217;ll need to throw in some terminology.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A <em>document</em> is treated as a list of words that has a unique ID. It is
+useful to define the notion of a <em>document index</em> which maps each
+document ID to the list of words it contains. We won&#8217;t build this index;
+it&#8217;s just for the sake of explanation.</p>
+</li>
+<li>
+<p>The <em>inverted index</em> is the inverse of the document index: it maps
 each word to the list of documents that contain it. This is the
 fundamental building block in our search algorithm: it will allow us to
-find in O(1) time all documents relevant to a search term.
-- In the inverted index, each entry in the list is assigned a _TF-IDF
-score_ which quantifies how relevant the document is to the search
-request.
-    - Let DF (_document frequency_) be the length of the list: the
-    number of documents that contain the word.
-    - Let D be the total number of documents that were indexed.
-    - IDF (_inverse document frequency_) is equal to `log(D/DF)`.
-    - TF (_term frequency_) is the number of occurrences of the word in
-    the document.
-    - TF-IDF score is simply the product of `TF * IDF`.
-
-Note that IDF is a property of the word itself: it quantifies the
+find in O(1) time all documents relevant to a search term.</p>
+</li>
+<li>
+<p>In the inverted index, each entry in the list is assigned a <em>TF-IDF
+score</em> which quantifies how relevant the document is to the search
+request.</p>
+</li>
+<li>
+<p>Let DF (<em>document frequency</em>) be the length of the list: the
+number of documents that contain the word.</p>
+</li>
+<li>
+<p>Let D be the total number of documents that were indexed.</p>
+</li>
+<li>
+<p>IDF (<em>inverse document frequency</em>) is equal to <code>log(D/DF)</code>.</p>
+</li>
+<li>
+<p>TF (<em>term frequency</em>) is the number of occurrences of the word in
+the document.</p>
+</li>
+<li>
+<p>TF-IDF score is simply the product of <code>TF * IDF</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Note that IDF is a property of the word itself: it quantifies the
 relevance of each entered word to the search request as a whole. The
 list of entered words can be perceived as a list of filtering functions
 that we apply to the full set of documents. A more relevant word will
 apply a stronger filter. Specifically, common words like "the", "it",
 "on" act as pure "pass-through" filters and consequently have an IDF of
-zero, making them completely irrelevant to the search.
-
-TF, on the other hand, is the property of the combination of word and
+zero, making them completely irrelevant to the search.</p>
+</div>
+<div class="paragraph">
+<p>TF, on the other hand, is the property of the combination of word and
 document, and tells us how relevant the document is to the word,
-regardless of the relevance of the word itself.
-
-When the user enters a search phrase:
-
-1. each individual term from the phrase is looked up in the inverted
-index;
-2. an intersection is found of all the lists, resulting in the list of
-documents that contain all the words;
-3. each document is scored by summing the TF-IDF contributions of each
-word;
-4. the result list is sorted by score (descending) and presented to the
-user.
-
-Let's have a look at a specific search phrase:
-
-```text
-the man in the black suit murdered the king
-```
-
-The list of documents that contain all the above words is quite long...
+regardless of the relevance of the word itself.</p>
+</div>
+<div class="paragraph">
+<p>When the user enters a search phrase:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>each individual term from the phrase is looked up in the inverted
+index;</p>
+</li>
+<li>
+<p>an intersection is found of all the lists, resulting in the list of
+documents that contain all the words;</p>
+</li>
+<li>
+<p>each document is scored by summing the TF-IDF contributions of each
+word;</p>
+</li>
+<li>
+<p>the result list is sorted by score (descending) and presented to the
+user.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s have a look at a specific search phrase:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="text">the man in the black suit murdered the king</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The list of documents that contain all the above words is quite long&#8230;&#8203;
 how do we decide which are the most relevant? The TF-IDF logic will make
 those stand out that have an above-average occurrence of words that are
 generally rare across all documents. For example, "murdered" occurs in
-far fewer documents than "black"... so given two documents where one has
+far fewer documents than "black"&#8230;&#8203; so given two documents where one has
 the same number of "murdered" as the other one has of "black", the one
 with "murdered" wins because its word is more salient in general. On the
 other hand, "suit" and "king" might have a similar IDF, so the document
-that simply contains more of both wins.
-
-Also note the limitation of this technique: a phrase is treated as just
+that simply contains more of both wins.</p>
+</div>
+<div class="paragraph">
+<p>Also note the limitation of this technique: a phrase is treated as just
 the sum of its parts; a document may contain the exact phrase and this
-will not affect its score.
-
-===== Building the Inverted Index with Java Streams
-
-To warm us up, let's see what it takes to build the inverted index with
+will not affect its score.</p>
+</div>
+<div class="sect3">
+<h4 id="building-inverted-index"><a class="anchor" href="#building-inverted-index"></a>8.10.1. Building the Inverted Index with Java Streams</h4>
+<div class="paragraph">
+<p>To warm us up, let&#8217;s see what it takes to build the inverted index with
 just thread parallelism and without the ability to scale out across
 many machines. It is expressible in Java Streams API without too much
-work. The full code is https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[here].
-
-We'll start by preparing a `Stream&lt;Entry&lt;Long, String&gt;&gt; docWords`: a
-stream of all the words found in all the documents. We use `Map.Entry` as
+work. The full code is <a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java">here</a>.</p>
+</div>
+<div class="paragraph">
+<p>We&#8217;ll start by preparing a <code>Stream&lt;Entry&lt;Long, String&gt;&gt; docWords</code>: a
+stream of all the words found in all the documents. We use <code>Map.Entry</code> as
 a holder of a pair of values (a 2-tuple) and here we have a pair of
-`Long docId` and `String word`:
-
-
-```java
-Stream&lt;Entry&lt;Long, String&gt;&gt; docWords = docId2Name
+<code>Long docId</code> and <code>String word</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">Stream&lt;Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">String</span>&gt;&gt; docWords = docId2Name
         .entrySet()
         .parallelStream()
         .flatMap(TfIdfJdkStreams::docLines)
-        .flatMap(this::tokenize);
-```
-
-We know the number of all documents so we can compute `double
-logDocCount`, the logarithm of the document count:
-
-```java
-double logDocCount = Math.log(docId2Name.size());
-```
-
-Calculating TF is very easy, just count the number of occurrences of
-each distinct pair and save the result in a `Map&lt;Entry&lt;Long, String&gt;,
-Long&gt;`:
-
-```java
-// TF map: (docId, word) -&gt; count
-final Map&lt;Entry&lt;Long, String&gt;, Long&gt; tfMap = docWords
+        .flatMap(<span class="local-variable">this</span>::tokenize);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We know the number of all documents so we can compute <code>double
+logDocCount</code>, the logarithm of the document count:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="type">double</span> logDocCount = <span class="predefined-type">Math</span>.log(docId2Name.size());</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Calculating TF is very easy, just count the number of occurrences of
+each distinct pair and save the result in a <code>Map&lt;Entry&lt;Long, String&gt;,
+Long&gt;</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="comment">// TF map: (docId, word) -&gt; count</span>
+<span class="directive">final</span> <span class="predefined-type">Map</span>&lt;Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">String</span>&gt;, <span class="predefined-type">Long</span>&gt; tfMap = docWords
         .parallel()
-        .collect(groupingBy(identity(), counting()));
-```
-
-And now we build the inverted index. We start from `tfMap`, group by
+        .collect(groupingBy(identity(), counting()));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And now we build the inverted index. We start from <code>tfMap</code>, group by
 word, and the list under each word already matches our final product:
 the list of all the documents containing the word. We finish off by
-applying a transformation to the list: currently it's just the raw
-entries from the `tf` map, but we need pairs `(docId, tfIDfScore)`.
-
-```java
-invertedIndex = tfMap
-    .entrySet() // set of ((docId, word), count)
+applying a transformation to the list: currently it&#8217;s just the raw
+entries from the <code>tf</code> map, but we need pairs <code>(docId, tfIDfScore)</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">invertedIndex = tfMap
+    .entrySet() <span class="comment">// set of ((docId, word), count)</span>
     .parallelStream()
     .collect(groupingBy(
         e -&gt; e.getKey().getValue(),
         collectingAndThen(
             toList(),
             entries -&gt; {
-                double idf = logDocCount - Math.log(entries.size());
-                return entries.stream()
+                <span class="type">double</span> idf = logDocCount - <span class="predefined-type">Math</span>.log(entries.size());
+                <span class="keyword">return</span> entries.stream()
                               .map(e -&gt; tfidfEntry(e, idf))
                               .collect(toList());
             }
         )
     ));
 
-// ((docId, word), count) -&gt; (docId, tfIdf)
-private static Entry&lt;Long, Double&gt; tfidfEntry(
-        Entry&lt;Entry&lt;Long, String&gt;, Long&gt; tfEntry, Double idf
+<span class="comment">// ((docId, word), count) -&gt; (docId, tfIdf)</span>
+<span class="directive">private</span> <span class="directive">static</span> Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">Double</span>&gt; tfidfEntry(
+        Entry&lt;Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">String</span>&gt;, <span class="predefined-type">Long</span>&gt; tfEntry, <span class="predefined-type">Double</span> idf
 ) {
-    final Long tf = tfEntry.getValue();
-    return entry(tfEntry.getKey().getKey(), tf * idf);
-}
-```
-
-The search function can be implemented with another Streams expression,
+    <span class="directive">final</span> <span class="predefined-type">Long</span> tf = tfEntry.getValue();
+    <span class="keyword">return</span> entry(tfEntry.getKey().getKey(), tf * idf);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The search function can be implemented with another Streams expression,
 which you can review in the
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/SearchGui.java[SearchGui]
+<a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/SearchGui.java">SearchGui</a>
 class. You can also run the
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[TfIdfJdkStreams]
-class and take the inverted index for a spin, making actual searches.
-
-There is one last concept in this model that we haven't mentioned yet:
-the _stopword set_. It contains those words that are known in advance to
+<a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java">TfIdfJdkStreams</a>
+class and take the inverted index for a spin, making actual searches.</p>
+</div>
+<div class="paragraph">
+<p>There is one last concept in this model that we haven&#8217;t mentioned yet:
+the <em>stopword set</em>. It contains those words that are known in advance to
 be common enough to occur in every document. Without treatment, these
 words are the worst case for the inverted index: the document list under
 each such word is the longest possible, and the score of all documents
-is zero due to zero IDF. They raise the index's memory footprint without
-providing any value. The cure is to prepare a file, `stopwords.txt`,
-which is read in advance into a `Set&lt;String&gt;` and used to filter out the
+is zero due to zero IDF. They raise the index&#8217;s memory footprint without
+providing any value. The cure is to prepare a file, <code>stopwords.txt</code>,
+which is read in advance into a <code>Set&lt;String&gt;</code> and used to filter out the
 words in the tokenization phase. The same set is used to cross out words
-from the user's search phrase, as if they weren't entered. We'll add this
-feature to our DAG based model in the following section.
-
-==== Translating to Jet DAG
-
-Our DAG as a whole will look relatively complex, but it can be
+from the user&#8217;s search phrase, as if they weren&#8217;t entered. We&#8217;ll add this
+feature to our DAG based model in the following section.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="translating-to-jet-dag"><a class="anchor" href="#translating-to-jet-dag"></a>8.10.2. Translating to Jet DAG</h4>
+<div class="paragraph">
+<p>Our DAG as a whole will look relatively complex, but it can be
 understood as a "backbone" (cascade of vertices) starting from a source
 and ending in a sink with several more vertices attached on the side.
-This is just the backbone:
-
-&lt;img alt="Backbone of the TF-IDF DAG"
-     src="../images/tf-idf-backbone.png"
-     width="240"/&gt;
-
-1. The data source is a Hazelcast `IMap` which holds a mapping from
-document ID to its filename. The source vertex will emit all the map's
-entries, but only a subset on each cluster member.
-1. `doc-lines` opens each file named by the map entry and emits all its
-lines in the `(docId, line)` format.
-1. `tokenize` transforms each line into a sequence of its words, again
-paired with the document ID, so it emits `(docId, word)`.
-1. `tf` builds a set of all distinct pairs emitted from `tokenize` and maintains the count of each pair's occurrences (its TF score).
-1. `tf-idf` takes that set, groups the pairs by word, and calculates
+This is just the backbone:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/tf-idf-backbone.png" alt="Backbone of the TF-IDF DAG" width="250" height="750">
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The data source is a Hazelcast <code>IMap</code> which holds a mapping from
+document ID to its filename. The source vertex will emit all the map&#8217;s
+entries, but only a subset on each cluster member.</p>
+</li>
+<li>
+<p><code>doc-lines</code> opens each file named by the map entry and emits all its
+lines in the <code>(docId, line)</code> format.</p>
+</li>
+<li>
+<p><code>tokenize</code> transforms each line into a sequence of its words, again
+paired with the document ID, so it emits <code>(docId, word)</code>.</p>
+</li>
+<li>
+<p><code>tf</code> builds a set of all distinct pairs emitted from <code>tokenize</code> and maintains the count of each pair&#8217;s occurrences (its TF score).</p>
+</li>
+<li>
+<p><code>tf-idf</code> takes that set, groups the pairs by word, and calculates
 the TF-IDF scores. It emits the results to the sink, which saves them
-to a distributed `IMap`.
-
-Edge types follow the same pattern as in the word-counting job: after
+to a distributed <code>IMap</code>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Edge types follow the same pattern as in the word-counting job: after
 flatmapping there is first a local, then a distributed partitioned edge.
 The logic behind it is not the same, though: TF can actually compute the
 final TF scores by observing just the local data. This is because it
 treats each document separately (document ID is a part of the grouping
 key) and the source data is already partitioned by document ID. The
-TF-IDF vertex does something similar to word count's combining, but
-there's again a twist: it will group the TF entries by word, but instead
+TF-IDF vertex does something similar to word count&#8217;s combining, but
+there&#8217;s again a twist: it will group the TF entries by word, but instead
 of just merging them into a single result per word, it will keep them
-all in lists.
-
-To this cascade we add a `stopword-source` which reads the stopwords
-file, parses it into a `HashSet`, and sends the whole set as a single
-item to the `tokenize` vertex. We also add a vertex that takes the data
-from `doc-source` and simply counts its items; this is the total
-document count used in the TF-IDF formula. We end up with this DAG:
-
-&lt;img alt="The TF-IDF DAG"
-     src="../images/tf-idf-full.png"
-     width="520"/&gt;
-
-
-The choice of edge types into and out of `doc-count` may look
-surprising, so let's examine it. We start with the `doc-source` vertex,
+all in lists.</p>
+</div>
+<div class="paragraph">
+<p>To this cascade we add a <code>stopword-source</code> which reads the stopwords
+file, parses it into a <code>HashSet</code>, and sends the whole set as a single
+item to the <code>tokenize</code> vertex. We also add a vertex that takes the data
+from <code>doc-source</code> and simply counts its items; this is the total
+document count used in the TF-IDF formula. We end up with this DAG:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/tf-idf-full.png" alt="The TF-IDF DAG" width="500" height="750">
+</div>
+</div>
+<div class="paragraph">
+<p>The choice of edge types into and out of <code>doc-count</code> may look
+surprising, so let&#8217;s examine it. We start with the <code>doc-source</code> vertex,
 which emits one item per document, but its output is distributed across
 the cluster. To get the full document count on each member, each
-`doc-count` processor must get all the items, and that's just what the
-distributed broadcast edge will achieve. We'll configure `doc-count`
+<code>doc-count</code> processor must get all the items, and that&#8217;s just what the
+distributed broadcast edge will achieve. We&#8217;ll configure <code>doc-count</code>
 with local parallelism of 1, so there will be one processor on every
-member, each observing all the `doc-source` items. The output of
-`doc-count` must reach all `tf-idf` processors on the same member, so we
-use the local broadcast edge.
-
-Another thing to note are the two flat-mapping vertices: `doc-lines` and
-`tokenize`. From a purely semantic standpoint, composing flatmap with
-flatmap yields just another flatmap. As we'll see below, we're using
-custom code for these two processors... so why did we choose to separate
+member, each observing all the <code>doc-source</code> items. The output of
+<code>doc-count</code> must reach all <code>tf-idf</code> processors on the same member, so we
+use the local broadcast edge.</p>
+</div>
+<div class="paragraph">
+<p>Another thing to note are the two flat-mapping vertices: <code>doc-lines</code> and
+<code>tokenize</code>. From a purely semantic standpoint, composing flatmap with
+flatmap yields just another flatmap. As we&#8217;ll see below, we&#8217;re using
+custom code for these two processors&#8230;&#8203; so why did we choose to separate
 the logic this way? There are actually two good reasons. The first one
-has to do with Jet's cooperative multithreading model: `doc-lines` makes
-blocking file IO calls, so it must be declared _non-cooperative_;
-tokenization is pure computation so it can be in a _cooperative_
-processor. The second one is more general: the workload of `doc-lines`
+has to do with Jet&#8217;s cooperative multithreading model: <code>doc-lines</code> makes
+blocking file IO calls, so it must be declared <em>non-cooperative</em>;
+tokenization is pure computation so it can be in a <em>cooperative</em>
+processor. The second one is more general: the workload of <code>doc-lines</code>
 is very uneven. It consists of waiting, then suddenly coming up with a
 whole block of data. If we left tokenization there, performance would
-suffer because first the CPU would be forced to sit idle, then we'd be
+suffer because first the CPU would be forced to sit idle, then we&#8217;d be
 late in making the next IO call while tokenizing the input. The separate
-vertex can proceed at full speed all the time.
-
-==== Implementation Code
-
-As we announced, some of the processors in our DAG will need custom
-implementation code. Let's start from the source vertex. It is easy,
-just the standard `IMap` reader:
-
-```java
-dag.newVertex("doc-source", SourceProcessors.readMapP(DOCID_NAME));;
-```
-
-The stopwords-producing processor has custom code, but it's quite
-simple:
-
-```java
-dag.newVertex("stopword-source", StopwordsP::new);
-```
-
-```java
-private static class StopwordsP extends AbstractProcessor {
-    @Override
-    public boolean complete() {
-        return tryEmit(docLines("stopwords.txt").collect(toSet()));
+vertex can proceed at full speed all the time.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="implementation-code"><a class="anchor" href="#implementation-code"></a>8.10.3. Implementation Code</h4>
+<div class="paragraph">
+<p>As we announced, some of the processors in our DAG will need custom
+implementation code. Let&#8217;s start from the source vertex. It is easy,
+just the standard <code>IMap</code> reader:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">dag.newVertex(<span class="string"><span class="delimiter">&quot;</span><span class="content">doc-source</span><span class="delimiter">&quot;</span></span>, SourceProcessors.readMapP(DOCID_NAME));;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The stopwords-producing processor has custom code, but it&#8217;s quite
+simple:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">dag.newVertex(<span class="string"><span class="delimiter">&quot;</span><span class="content">stopword-source</span><span class="delimiter">&quot;</span></span>, StopwordsP::<span class="keyword">new</span>);</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">private</span> <span class="directive">static</span> <span class="type">class</span> <span class="class">StopwordsP</span> <span class="directive">extends</span> AbstractProcessor {
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">boolean</span> complete() {
+        <span class="keyword">return</span> tryEmit(docLines(<span class="string"><span class="delimiter">&quot;</span><span class="content">stopwords.txt</span><span class="delimiter">&quot;</span></span>).collect(toSet()));
     }
-}
-```
-
-Since this is a source processor, all its action happens in
-`complete()`. It emits a single item: the `HashSet` built directly from
-the text file's lines.
-
-The `doc-count` processor can be built from the primitives provided in
-Jet's library:
-
-```java
-dag.newVertex("doc-count", Processors.aggregateP(counting()));
-```
-
-The `doc-lines` processor is more of a mouthful, but still built from
-existing primitives:
-
-```java
-dag.newVertex("doc-lines",
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Since this is a source processor, all its action happens in
+<code>complete()</code>. It emits a single item: the <code>HashSet</code> built directly from
+the text file&#8217;s lines.</p>
+</div>
+<div class="paragraph">
+<p>The <code>doc-count</code> processor can be built from the primitives provided in
+Jet&#8217;s library:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">dag.newVertex(<span class="string"><span class="delimiter">&quot;</span><span class="content">doc-count</span><span class="delimiter">&quot;</span></span>, Processors.aggregateP(counting()));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>doc-lines</code> processor is more of a mouthful, but still built from
+existing primitives:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">dag.newVertex(<span class="string"><span class="delimiter">&quot;</span><span class="content">doc-lines</span><span class="delimiter">&quot;</span></span>,
     Processors.nonCooperativeP(
-        Processors.flatMapP((Entry&lt;Long, String&gt; e) -&gt;
-            traverseStream(docLines("books/" + e.getValue())
-                           .map(line -&gt; entry(e.getKey(), line))))));
-```
-
-Let's break down this expression... `Processors.flatMap` returns a
+        Processors.flatMapP((Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">String</span>&gt; e) -&gt;
+            traverseStream(docLines(<span class="string"><span class="delimiter">&quot;</span><span class="content">books/</span><span class="delimiter">&quot;</span></span> + e.getValue())
+                           .map(line -&gt; entry(e.getKey(), line))))));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s break down this expression&#8230;&#8203; <code>Processors.flatMap</code> returns a
 standard processor that emits an arbitrary number of items for each
 received item. We already saw one in the introductory Word Count
 example. There we created a traverser from an array, here we create it
-from a Java stream. We additionally apply the `nonCooperative()` wrapper
+from a Java stream. We additionally apply the <code>nonCooperative()</code> wrapper
 which will declare all the created processors non-cooperative. We
 already explained why we do this: this processor will make blocking I/O
-calls.
+calls.</p>
+</div>
+<div class="paragraph">
+<p><code>tokenizer</code> is another custom vertex:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">dag.newVertex(<span class="string"><span class="delimiter">&quot;</span><span class="content">tokenize</span><span class="delimiter">&quot;</span></span>, TokenizeP::<span class="keyword">new</span>);
 
-`tokenizer` is another custom vertex:
-
-```java
-dag.newVertex("tokenize", TokenizeP::new);
-
-private static class TokenizeP extends AbstractProcessor {
-    private Set&lt;String&gt; stopwords;
-    private final FlatMapper&lt;Entry&lt;Long, String&gt;, Entry&lt;Long, String&gt;&gt; flatMapper =
+<span class="directive">private</span> <span class="directive">static</span> <span class="type">class</span> <span class="class">TokenizeP</span> <span class="directive">extends</span> AbstractProcessor {
+    <span class="directive">private</span> <span class="predefined-type">Set</span>&lt;<span class="predefined-type">String</span>&gt; stopwords;
+    <span class="directive">private</span> <span class="directive">final</span> FlatMapper&lt;Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">String</span>&gt;, Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">String</span>&gt;&gt; flatMapper =
         flatMapper(e -&gt; traverseStream(
-                   Arrays.stream(DELIMITER.split(e.getValue()))
+                   <span class="predefined-type">Arrays</span>.stream(DELIMITER.split(e.getValue()))
                          .filter(word -&gt; !stopwords.contains(word))
                          .map(word -&gt; entry(e.getKey(), word))));
 
-    @Override
-    protected boolean tryProcess0(@Nonnull Object item) {
-        stopwords = (Set&lt;String&gt;) item;
-        return true;
+    <span class="annotation">@Override</span>
+    <span class="directive">protected</span> <span class="type">boolean</span> tryProcess0(<span class="annotation">@Nonnull</span> <span class="predefined-type">Object</span> item) {
+        stopwords = (<span class="predefined-type">Set</span>&lt;<span class="predefined-type">String</span>&gt;) item;
+        <span class="keyword">return</span> <span class="predefined-constant">true</span>;
     }
 
-    @Override
-    protected boolean tryProcess1(@Nonnull Object item) {
-        return flatMapper.tryProcess((Entry&lt;Long, String&gt;) item);
+    <span class="annotation">@Override</span>
+    <span class="directive">protected</span> <span class="type">boolean</span> tryProcess1(<span class="annotation">@Nonnull</span> <span class="predefined-type">Object</span> item) {
+        <span class="keyword">return</span> flatMapper.tryProcess((Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">String</span>&gt;) item);
     }
-}
-```
-
-This is a processor that must deal with two different inbound edges. It
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a processor that must deal with two different inbound edges. It
 receives the stopword set over edge 0 and then it does a flatmapping
 operation on edge 1. The logic presented here uses the same approach as
-the implementation of the provided `Processors.flatMap()` processor:
-there is a single instance of `FlatMapper` that holds the business logic
-of the transformation, and `tryProcess1()` directly delegates into it.
-If `FlatMapper` is done emitting the previous items, it will accept the
+the implementation of the provided <code>Processors.flatMap()</code> processor:
+there is a single instance of <code>FlatMapper</code> that holds the business logic
+of the transformation, and <code>tryProcess1()</code> directly delegates into it.
+If <code>FlatMapper</code> is done emitting the previous items, it will accept the
 new item, apply the user-provided transformation, and start emitting the
 output items. If the outbox refuses a pending item, it will return
-`false`, which will make the framework call the same `tryProcess1()`
-method later, with the same input item.
-
-Let's show the code that creates the `tokenize`'s two inbound edges:
-
-```java
-dag.edge(between(stopwordSource, tokenize).broadcast().priority(-1))
-   .edge(from(docLines).to(tokenize, 1));
-```
-
-Especially note the `.priority(-1)` part: this ensures that there will
-be no attempt to deliver any data coming from `docLines` before all the
-data from `stopwordSource` is already delivered. The processor would
+<code>false</code>, which will make the framework call the same <code>tryProcess1()</code>
+method later, with the same input item.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s show the code that creates the `tokenize&#8217;s two inbound edges:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">dag.edge(between(stopwordSource, tokenize).broadcast().priority(-<span class="integer">1</span>))
+   .edge(from(docLines).to(tokenize, <span class="integer">1</span>));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Especially note the <code>.priority(-1)</code> part: this ensures that there will
+be no attempt to deliver any data coming from <code>docLines</code> before all the
+data from <code>stopwordSource</code> is already delivered. The processor would
 fail if it had to tokenize a line before it has its stopword set in
-place.
+place.</p>
+</div>
+<div class="paragraph">
+<p><code>tf</code> is another simple vertex, built purely from the provided
+primitives:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">dag.newVertex(<span class="string"><span class="delimiter">&quot;</span><span class="content">tf</span><span class="delimiter">&quot;</span></span>, Processors.aggregateByKeyP(wholeItem(), counting()));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>tf-idf</code> is the most complex processor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">dag.newVertex(<span class="string"><span class="delimiter">&quot;</span><span class="content">tf-idf</span><span class="delimiter">&quot;</span></span>, TfIdfP::<span class="keyword">new</span>);
 
-`tf` is another simple vertex, built purely from the provided
-primitives:
+<span class="directive">private</span> <span class="directive">static</span> <span class="type">class</span> <span class="class">TfIdfP</span> <span class="directive">extends</span> AbstractProcessor {
+    <span class="directive">private</span> <span class="type">double</span> logDocCount;
 
-```java
-dag.newVertex("tf", Processors.aggregateByKeyP(wholeItem(), counting()));
-```
+    <span class="directive">private</span> <span class="directive">final</span> <span class="predefined-type">Map</span>&lt;<span class="predefined-type">String</span>, <span class="predefined-type">List</span>&lt;Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">Double</span>&gt;&gt;&gt; wordDocTf = <span class="keyword">new</span> <span class="predefined-type">HashMap</span>&lt;&gt;();
+    <span class="directive">private</span> <span class="directive">final</span> Traverser&lt;Entry&lt;<span class="predefined-type">String</span>, <span class="predefined-type">List</span>&lt;Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">Double</span>&gt;&gt;&gt;&gt; invertedIndexTraverser =
+            lazy(() -&gt; traverseIterable(wordDocTf.entrySet()).map(<span class="local-variable">this</span>::toInvertedIndexEntry));
 
-`tf-idf` is the most complex processor:
-
-```java
-dag.newVertex("tf-idf", TfIdfP::new);
-
-private static class TfIdfP extends AbstractProcessor {
-    private double logDocCount;
-
-    private final Map&lt;String, List&lt;Entry&lt;Long, Double&gt;&gt;&gt; wordDocTf = new HashMap&lt;&gt;();
-    private final Traverser&lt;Entry&lt;String, List&lt;Entry&lt;Long, Double&gt;&gt;&gt;&gt; invertedIndexTraverser =
-            lazy(() -&gt; traverseIterable(wordDocTf.entrySet()).map(this::toInvertedIndexEntry));
-
-    @Override
-    protected boolean tryProcess0(@Nonnull Object item) throws Exception {
-        logDocCount = Math.log((Long) item);
-        return true;
+    <span class="annotation">@Override</span>
+    <span class="directive">protected</span> <span class="type">boolean</span> tryProcess0(<span class="annotation">@Nonnull</span> <span class="predefined-type">Object</span> item) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        logDocCount = <span class="predefined-type">Math</span>.log((<span class="predefined-type">Long</span>) item);
+        <span class="keyword">return</span> <span class="predefined-constant">true</span>;
     }
 
-    @Override
-    protected boolean tryProcess1(@Nonnull Object item) throws Exception {
-        final Entry&lt;Entry&lt;Long, String&gt;, Long&gt; e = (Entry&lt;Entry&lt;Long, String&gt;, Long&gt;) item;
-        final long docId = e.getKey().getKey();
-        final String word = e.getKey().getValue();
-        final long tf = e.getValue();
-        wordDocTf.computeIfAbsent(word, w -&gt; new ArrayList&lt;&gt;())
-                 .add(entry(docId, (double) tf));
-        return true;
+    <span class="annotation">@Override</span>
+    <span class="directive">protected</span> <span class="type">boolean</span> tryProcess1(<span class="annotation">@Nonnull</span> <span class="predefined-type">Object</span> item) <span class="directive">throws</span> <span class="exception">Exception</span> {
+        <span class="directive">final</span> Entry&lt;Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">String</span>&gt;, <span class="predefined-type">Long</span>&gt; e = (Entry&lt;Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">String</span>&gt;, <span class="predefined-type">Long</span>&gt;) item;
+        <span class="directive">final</span> <span class="type">long</span> docId = e.getKey().getKey();
+        <span class="directive">final</span> <span class="predefined-type">String</span> word = e.getKey().getValue();
+        <span class="directive">final</span> <span class="type">long</span> tf = e.getValue();
+        wordDocTf.computeIfAbsent(word, w -&gt; <span class="keyword">new</span> <span class="predefined-type">ArrayList</span>&lt;&gt;())
+                 .add(entry(docId, (<span class="type">double</span>) tf));
+        <span class="keyword">return</span> <span class="predefined-constant">true</span>;
     }
 
-    @Override
-    public boolean complete() {
-        return emitFromTraverser(invertedIndexTraverser);
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">boolean</span> complete() {
+        <span class="keyword">return</span> emitFromTraverser(invertedIndexTraverser);
     }
 
-    private Entry&lt;String, List&lt;Entry&lt;Long, Double&gt;&gt;&gt; toInvertedIndexEntry(
-            Entry&lt;String, List&lt;Entry&lt;Long, Double&gt;&gt;&gt; wordDocTf
+    <span class="directive">private</span> Entry&lt;<span class="predefined-type">String</span>, <span class="predefined-type">List</span>&lt;Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">Double</span>&gt;&gt;&gt; toInvertedIndexEntry(
+            Entry&lt;<span class="predefined-type">String</span>, <span class="predefined-type">List</span>&lt;Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">Double</span>&gt;&gt;&gt; wordDocTf
     ) {
-        final String word = wordDocTf.getKey();
-        final List&lt;Entry&lt;Long, Double&gt;&gt; docidTfs = wordDocTf.getValue();
-        return entry(word, docScores(docidTfs));
+        <span class="directive">final</span> <span class="predefined-type">String</span> word = wordDocTf.getKey();
+        <span class="directive">final</span> <span class="predefined-type">List</span>&lt;Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">Double</span>&gt;&gt; docidTfs = wordDocTf.getValue();
+        <span class="keyword">return</span> entry(word, docScores(docidTfs));
     }
 
-    private List&lt;Entry&lt;Long, Double&gt;&gt; docScores(List&lt;Entry&lt;Long, Double&gt;&gt; docidTfs) {
-        final double logDf = Math.log(docidTfs.size());
-        return docidTfs.stream()
+    <span class="directive">private</span> <span class="predefined-type">List</span>&lt;Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">Double</span>&gt;&gt; docScores(<span class="predefined-type">List</span>&lt;Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">Double</span>&gt;&gt; docidTfs) {
+        <span class="directive">final</span> <span class="type">double</span> logDf = <span class="predefined-type">Math</span>.log(docidTfs.size());
+        <span class="keyword">return</span> docidTfs.stream()
                        .map(tfe -&gt; tfidfEntry(logDf, tfe))
                        .collect(toList());
     }
 
-    private Entry&lt;Long, Double&gt; tfidfEntry(double logDf, Entry&lt;Long, Double&gt; docidTf) {
-        final Long docId = docidTf.getKey();
-        final double tf = docidTf.getValue();
-        final double idf = logDocCount - logDf;
-        return entry(docId, tf * idf);
+    <span class="directive">private</span> Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">Double</span>&gt; tfidfEntry(<span class="type">double</span> logDf, Entry&lt;<span class="predefined-type">Long</span>, <span class="predefined-type">Double</span>&gt; docidTf) {
+        <span class="directive">final</span> <span class="predefined-type">Long</span> docId = docidTf.getKey();
+        <span class="directive">final</span> <span class="type">double</span> tf = docidTf.getValue();
+        <span class="directive">final</span> <span class="type">double</span> idf = logDocCount - logDf;
+        <span class="keyword">return</span> entry(docId, tf * idf);
     }
-}
-```
-
-This is quite a lot of code, but each of the three pieces is not too
-difficult to follow:
-
-1. `tryProcess0()` accepts a single item, the total document count.
-1. `tryProcess1()` performs a boilerplate `groupBy` operation,
-collecting a list of items under each key.
-1. `complete()` outputs the accumulated results, also applying the
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is quite a lot of code, but each of the three pieces is not too
+difficult to follow:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>tryProcess0()</code> accepts a single item, the total document count.</p>
+</li>
+<li>
+<p><code>tryProcess1()</code> performs a boilerplate <code>groupBy</code> operation,
+collecting a list of items under each key.</p>
+</li>
+<li>
+<p><code>complete()</code> outputs the accumulated results, also applying the
 final transformation on each one: replacing the TF score with the final
-TF-IDF score. It relies on a _lazy_ traverser, which holds a
-`Supplier&lt;Traverser&gt;` and will obtain the inner traverser from it the
-first time `next()` is called. This makes it very simple to write code
-that obtains a traverser from a map after it has been populated.
-
-Finally, our DAG is terminated by a sink vertex:
-
-```java
-dag.newVertex("sink", SinkProcessors.writeMapP(INVERTED_INDEX));
-```
-
-[[misc]]
-== Miscellaneous
-
-
-[[phone-homes]]
-=== Phone Homes
-
-Hazelcast uses phone home data to learn about the usage of Hazelcast Jet.
-
-Hazelcast Jet instances call our phone home server initially when they
+TF-IDF score. It relies on a <em>lazy</em> traverser, which holds a
+<code>Supplier&lt;Traverser&gt;</code> and will obtain the inner traverser from it the
+first time <code>next()</code> is called. This makes it very simple to write code
+that obtains a traverser from a map after it has been populated.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Finally, our DAG is terminated by a sink vertex:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">dag.newVertex(<span class="string"><span class="delimiter">&quot;</span><span class="content">sink</span><span class="delimiter">&quot;</span></span>, SinkProcessors.writeMapP(INVERTED_INDEX));</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="misc"><a class="anchor" href="#misc"></a>9. Miscellaneous</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="phone-homes"><a class="anchor" href="#phone-homes"></a>9.1. Phone Homes</h3>
+<div class="paragraph">
+<p>Hazelcast uses phone home data to learn about the usage of Hazelcast Jet.</p>
+</div>
+<div class="paragraph">
+<p>Hazelcast Jet instances call our phone home server initially when they
 are started and then every 24 hours. This applies to all the instances
-joined to the cluster.
-
-**What is sent in?**
-
-The following information is sent in a phone home:
-
-- Hazelcast Jet version
-- Local Hazelcast Jet member UUID
-- Download ID
-- A hash value of the cluster ID
-- Cluster size bands for 5, 10, 20, 40, 60, 100, 150, 300, 600 and &gt; 600
-- Number of connected clients bands of 5, 10, 20, 40, 60, 100, 150, 300, 600 and &gt; 600
-- Cluster uptime
-- Member uptime
-- Environment Information:
-	- Name of operating system
-	- Kernel architecture (32-bit or 64-bit)
-	- Version of operating system
-	- Version of installed Java
-	- Name of Java Virtual Machine
-- Hazelcast IMDG Enterprise specific:
-	- Number of clients by language (Java, C++, C#)
-	- Flag for Hazelcast Enterprise
-	- Hash value of license key
-	- Native memory usage
-
-**Phone Home Code**
-
-The phone home code itself is open source. Please see https://github.com/hazelcast/hazelcast/blob/master/hazelcast/src/main/java/com/hazelcast/util/PhoneHome.java[here].
-
-**Disabling Phone Homes**
-
-Set the `hazelcast.phone.home.enabled` system property to false either
-in the config or on the Java command line.
-
-Starting with Hazelcast Jet 0.5, you can also disable the phone home
-using the environment variable `HZ_PHONE_HOME_ENABLED`. Simply add the
-following line to your `.bash_profile`:
-
-```
-export HZ_PHONE_HOME_ENABLED=false
-```
-
-**Phone Home URL**
-
-The URL used for phone home requests is
-http://phonehome.hazelcast.com/ping
-
-=== License Questions
-
-Hazelcast Jet is distributed using the
-http://www.apache.org/licenses/LICENSE-2.0[Apache License 2],
+joined to the cluster.</p>
+</div>
+<div class="paragraph">
+<p><strong>What is sent in?</strong></p>
+</div>
+<div class="paragraph">
+<p>The following information is sent in a phone home:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Hazelcast Jet version</p>
+</li>
+<li>
+<p>Local Hazelcast Jet member UUID</p>
+</li>
+<li>
+<p>Download ID</p>
+</li>
+<li>
+<p>A hash value of the cluster ID</p>
+</li>
+<li>
+<p>Cluster size bands for 5, 10, 20, 40, 60, 100, 150, 300, 600 and &gt; 600</p>
+</li>
+<li>
+<p>Number of connected clients bands of 5, 10, 20, 40, 60, 100, 150, 300, 600 and &gt; 600</p>
+</li>
+<li>
+<p>Cluster uptime</p>
+</li>
+<li>
+<p>Member uptime</p>
+</li>
+<li>
+<p>Environment Information:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Name of operating system</p>
+</li>
+<li>
+<p>Kernel architecture (32-bit or 64-bit)</p>
+</li>
+<li>
+<p>Version of operating system</p>
+</li>
+<li>
+<p>Version of installed Java</p>
+</li>
+<li>
+<p>Name of Java Virtual Machine</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Hazelcast IMDG Enterprise specific:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Number of clients by language (Java, C++, C#)</p>
+</li>
+<li>
+<p>Flag for Hazelcast Enterprise</p>
+</li>
+<li>
+<p>Hash value of license key</p>
+</li>
+<li>
+<p>Native memory usage</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Phone Home Code</strong></p>
+</div>
+<div class="paragraph">
+<p>The phone home code itself is open source. Please see <a href="https://github.com/hazelcast/hazelcast/blob/master/hazelcast/src/main/java/com/hazelcast/util/PhoneHome.java">here</a>.</p>
+</div>
+<div class="paragraph">
+<p><strong>Disabling Phone Homes</strong></p>
+</div>
+<div class="paragraph">
+<p>Set the <code>hazelcast.phone.home.enabled</code> system property to false either
+in the config or on the Java command line.</p>
+</div>
+<div class="paragraph">
+<p>Starting with Hazelcast Jet 0.5, you can also disable the phone home
+using the environment variable <code>HZ_PHONE_HOME_ENABLED</code>. Simply add the
+following line to your <code>.bash_profile</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code>export HZ_PHONE_HOME_ENABLED=false</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Phone Home URL</strong></p>
+</div>
+<div class="paragraph">
+<p>The URL used for phone home requests is
+<a href="http://phonehome.hazelcast.com/ping" class="bare">http://phonehome.hazelcast.com/ping</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="license-questions"><a class="anchor" href="#license-questions"></a>9.2. License Questions</h3>
+<div class="paragraph">
+<p>Hazelcast Jet is distributed using the
+<a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License 2</a>,
 therefore permissions are granted to use, reproduce and distribute it
-along with any kind of open source and closed source applications.
-
-Depending on the used feature-set, Hazelcast Jet has certain runtime
+along with any kind of open source and closed source applications.</p>
+</div>
+<div class="paragraph">
+<p>Depending on the used feature-set, Hazelcast Jet has certain runtime
 dependencies which might have different licenses. Following are
-dependencies and their respective licenses.
-
-==== Embedded Dependencies
-
-Embedded dependencies are merged (shaded) with the Hazelcast Jet codebase
+dependencies and their respective licenses.</p>
+</div>
+<div class="sect3">
+<h4 id="embedded-dependencies"><a class="anchor" href="#embedded-dependencies"></a>9.2.1. Embedded Dependencies</h4>
+<div class="paragraph">
+<p>Embedded dependencies are merged (shaded) with the Hazelcast Jet codebase
 at compile-time. These dependencies become an integral part of the
-Hazelcast Jet distribution.
-
-For license files of embedded dependencies, please see the `license`
+Hazelcast Jet distribution.</p>
+</div>
+<div class="paragraph">
+<p>For license files of embedded dependencies, please see the <code>license</code>
 directory of the Hazelcast Jet distribution, available at our
-https://jet.hazelcast.org/download/[download page].
-
-===== minimal-json
-
-minimal-json is a JSON parsing and generation library which is a part of
+<a href="https://jet.hazelcast.org/download/">download page</a>.</p>
+</div>
+<div class="sect4">
+<h5 id="minimal-json"><a class="anchor" href="#minimal-json"></a>minimal-json</h5>
+<div class="paragraph">
+<p>minimal-json is a JSON parsing and generation library which is a part of
 the Hazelcast Jet distribution. It is used for communication
-between the Hazelcast Jet cluster and the Management Center.
-
-minimal-json is distributed under the http://opensource.org/licenses/MIT[MIT license] and offers the same rights to add, use,
-modify, and distribute the source code as the Apache License 2.0 that Hazelcast uses. However, some other restrictions might apply.
-
-===== Runtime Dependencies
-
-Depending on the used features, additional dependencies might be added
+between the Hazelcast Jet cluster and the Management Center.</p>
+</div>
+<div class="paragraph">
+<p>minimal-json is distributed under the <a href="http://opensource.org/licenses/MIT">MIT license</a> and offers the same rights to add, use,
+modify, and distribute the source code as the Apache License 2.0 that Hazelcast uses. However, some other restrictions might apply.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="runtime-dependencies"><a class="anchor" href="#runtime-dependencies"></a>Runtime Dependencies</h5>
+<div class="paragraph">
+<p>Depending on the used features, additional dependencies might be added
 to the dependency set. Those runtime dependencies might have
-other licenses. See the following list of additional runtime dependencies.
-
-===== Apache Hadoop
-
-Hazelcast integrates with Apache Hadoop and can use it as a data
+other licenses. See the following list of additional runtime dependencies.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="apache-hadoop"><a class="anchor" href="#apache-hadoop"></a>Apache Hadoop</h5>
+<div class="paragraph">
+<p>Hazelcast integrates with Apache Hadoop and can use it as a data
  sink or source. Jet has a dependency on the libraries required to
- read from and write to the Hadoop File System.
-
-Apache Hadoop is distributed under the terms of the http://www.apache.org/licenses/LICENSE-2.0[Apache License 2].
-
-===== Apache Kafka
-
-Hazelcast integrates with Apache Kafka and can make use of it as a
+ read from and write to the Hadoop File System.</p>
+</div>
+<div class="paragraph">
+<p>Apache Hadoop is distributed under the terms of the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License 2</a>.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="apache-kafka"><a class="anchor" href="#apache-kafka"></a>Apache Kafka</h5>
+<div class="paragraph">
+<p>Hazelcast integrates with Apache Kafka and can make use of it as a
 data sink or source. Hazelcast has a dependency on Kafka client
-libraries.
-
-Apache Kafka is distributed under the terms of the http://www.apache.org/licenses/LICENSE-2.0[Apache License 2].
-
-=== FAQ
-
-You can refer to the https://jet.hazelcast.org/faq/[FAQ] page to see the answers to frequently asked questions related to topics such as the relationship and differences between Hazelcast Jet and Hazelcast IMDG, Jet's APIs and roadmap.
-
-=== Common Exceptions
-
-You may see the following exceptions thrown when working with Jet:
-
-* http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/JetException.html[`JetException`]:
+libraries.</p>
+</div>
+<div class="paragraph">
+<p>Apache Kafka is distributed under the terms of the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License 2</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="faq"><a class="anchor" href="#faq"></a>9.3. FAQ</h3>
+<div class="paragraph">
+<p>You can refer to the <a href="https://jet.hazelcast.org/faq/">FAQ</a> page to see the answers to frequently asked questions related to topics such as the relationship and differences between Hazelcast Jet and Hazelcast IMDG, Jet&#8217;s APIs and roadmap.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="common-exceptions"><a class="anchor" href="#common-exceptions"></a>9.4. Common Exceptions</h3>
+<div class="paragraph">
+<p>You may see the following exceptions thrown when working with Jet:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/JetException.html"><code>JetException</code></a>:
 A general exception that will be thrown if a job failure occurs.
-It will have the original exception in the cause field.
-* http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/TopologyChangedException.html[`TopologyChangedException`]:
+It will have the original exception in the cause field.</p>
+</li>
+<li>
+<p><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/TopologyChangedException.html"><code>TopologyChangedException</code></a>:
 This exception is thrown when a member participating in a job leaves the
 cluster. The job will typically be restarted automatically without throwing
-the exception to the user if auto-restart is enabled.
-* http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/JobNotFoundException.html[`JobNotFoundException`]:
+the exception to the user if auto-restart is enabled.</p>
+</li>
+<li>
+<p><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/JobNotFoundException.html"><code>JobNotFoundException</code></a>:
 Thrown when the coordinator node is not able to find the metadata for a
-given job.
-
-Furthermore, there are several Hazelcast exceptions that might be thrown
-when interacting with `JetInstance`. For description of Hazelcast IMDG
-exceptions, please refer to the http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#common-exception-types[IMDG Reference manual].
-
-
-== Glossary
-
-&lt;table&gt;&lt;tr&gt;&lt;th&gt;
-Term
-&lt;/th&gt;&lt;th&gt;
-Definition
-&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Accumulation
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-The act of building up an intermediate result inside a mutable object
-(called the _accumulator_) as a part of performing an aggregate
-operation. After all accumulation is done, a _finishing_ function is
-applied to the object to produce the result of the operation.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Aggregate Operation
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A set of functional primitives that instructs Jet how to calculate some
+given job.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Furthermore, there are several Hazelcast exceptions that might be thrown
+when interacting with <code>JetInstance</code>. For description of Hazelcast IMDG
+exceptions, please refer to the <a href="http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#common-exception-types">IMDG Reference manual</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="glossary"><a class="anchor" href="#glossary"></a>10. Glossary</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all" style="width: 25%;">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Term</th>
+<th class="tableblock halign-left valign-top">Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Accumulation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The act of building up an intermediate result inside a mutable object
+(called the <em>accumulator</em>) as a part of performing an aggregate
+operation. After all accumulation is done, a <em>finishing</em> function is
+applied to the object to produce the result of the operation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aggregate Operation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A set of functional primitives that instructs Jet how to calculate some
 aggregate function over one or more data sets. Used in the group-by,
-co-group and windowing transforms.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Aggregation
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-The act of applying an _aggregate function_ to a stream of items. The
+co-group and windowing transforms.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aggregation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The act of applying an <em>aggregate function</em> to a stream of items. The
 result of the function can be simple, like a sum or average, or complex,
-like a collection of all aggregated items.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-At-Least-Once Processing Guarantee
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-The system guarantees to process each item of the input stream(s), but
-doesn't guarantee it will process it just once.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Batch Processing
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-The act of processing a finite dataset, such as one stored in Hazelcast
-IMDG or HDFS.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Client Server Topology
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;Hazelcast topology where members run outside the user
+like a collection of all aggregated items.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">At-Least-Once Processing Guarantee</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The system guarantees to process each item of the input stream(s), but
+doesn&#8217;t guarantee it will process it just once.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Batch Processing</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The act of processing a finite dataset, such as one stored in Hazelcast
+IMDG or HDFS.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Client Server Topology</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hazelcast topology where members run outside the user
 application and are connected to clients using client libraries. The
-client library is installed in the user application.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Co-Grouping
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-An operation that is a mix of an SQL JOIN and GROUP BY with specific
+client library is installed in the user application.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Co-Grouping</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">An operation that is a mix of an SQL JOIN and GROUP BY with specific
 restrictions. Sometimes called a "stream join". Each item of each stream
 that is being joined must be mapped to its grouping key. All items with
 the same grouping key (from all streams) are aggregated together into a
 single result. However, the result can be structured and preserve all
 input items separated by their stream of origin. In that form the
-operation effectively becomes a pure JOIN with no aggregation.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-DAG
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-Directed Acyclic Graph which Hazelcast Jet uses to model the
-relationships between individual steps of the data processing.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Edge
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A DAG element which holds the logic on how to route the data from one
-vertex's processing units to the next one's.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Embedded Topology
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-Hazelcast topology where the members are in-process with the user
-application and act as both client and server.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Event time
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A data item in an infinite stream typically contains a timestamp data
-field. This is its _event time_. As the stream items go by, the event
+operation effectively becomes a pure JOIN with no aggregation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DAG</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Directed Acyclic Graph which Hazelcast Jet uses to model the
+relationships between individual steps of the data processing.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Edge</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A DAG element which holds the logic on how to route the data from one
+vertex&#8217;s processing units to the next one&#8217;s.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Embedded Topology</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hazelcast topology where the members are in-process with the user
+application and act as both client and server.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Event time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A data item in an infinite stream typically contains a timestamp data
+field. This is its <em>event time</em>. As the stream items go by, the event
 time passes as the items' timestamps increase. A typical distributed
-stream has a certain amount of event time disorder (items aren't
+stream has a certain amount of event time disorder (items aren&#8217;t
 strictly ordered by their timestamp) so the "passage of event time" is a
-somewhat fuzzy concept. Jet uses the _watermark_ to superimpose order
-over the disordered stream.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Exactly-Once Processing Guarantee
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-The system guarantees that it will process each item of the input
-stream(s) and will never process an item more than once.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Fault Tolerance
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-The property of a distributed computation system that gives it
+somewhat fuzzy concept. Jet uses the <em>watermark</em> to superimpose order
+over the disordered stream.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exactly-Once Processing Guarantee</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The system guarantees that it will process each item of the input
+stream(s) and will never process an item more than once.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fault Tolerance</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The property of a distributed computation system that gives it
 resilience to changes in the topology of the cluster running the
 computation. If a member leaves the cluster, the system adapts to the
-change and resumes the computation without loss.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Hash-Join
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A special-purpose stream join optimized for the use case of data
-enrichment. Each item of the _primary_ stream is joined with one item
-from each of the _enriching_ streams. Items are matched by the join key.
+change and resumes the computation without loss.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hash-Join</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A special-purpose stream join optimized for the use case of data
+enrichment. Each item of the <em>primary</em> stream is joined with one item
+from each of the <em>enriching</em> streams. Items are matched by the join key.
 The name "hash-join" stems from the fact that the contents of the
 enriching streams are held in hashtables for fast lookup. Hashtables are
 replicated on each cluster member, which is why this operation is also
-known as a "replicated join".
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Hazelcast IMDG
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-An In-Memory Data grid (IMDG) is a data structure that resides entirely
+known as a "replicated join".</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hazelcast IMDG</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">An In-Memory Data grid (IMDG) is a data structure that resides entirely
 in memory, and is distributed among many machines in a single location
 (and possibly replicated across different locations). IMDGs can support
 millions of in-memory data updates per second, and they can be clustered
 and scaled in ways that support large quantities of data. Hazelcast IMDG
-is the in-memory data grid offered by Hazelcast.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-HDFS
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-Hadoop Distributed File System. Hazelcast Jet can use it both as a data
-source and a sink.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Jet Job
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A unit of distributed computation that Jet executes. One job has one DAG
+is the in-memory data grid offered by Hazelcast.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HDFS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hadoop Distributed File System. Hazelcast Jet can use it both as a data
+source and a sink.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Jet Job</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A unit of distributed computation that Jet executes. One job has one DAG
 specifying what to do. A distributed array of Jet processors performs
-the computation.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Kafka
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-Apache Kafka is a product that offers a distributed publish-subscribe
+the computation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kafka</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Apache Kafka is a product that offers a distributed publish-subscribe
 message queue with guarantees of delivery and message persistence. The
 most commonly used component over which heterogenous distributed
-systems exchange data.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Latency
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-The time that passes from the occurrence of an event that triggers some
+systems exchange data.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Latency</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The time that passes from the occurrence of an event that triggers some
 response to the occurrence of the response. In the case of Hazelcast
-Jet's stream processing, latency refers to the time that passes from the
+Jet&#8217;s stream processing, latency refers to the time that passes from the
 point in time the last item that belongs to a window enters the system
-to the point where the result for that window appears in the output.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Member
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A Hazelcast Jet instance (node) that is a member of a cluster. A single
+to the point where the result for that window appears in the output.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Member</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A Hazelcast Jet instance (node) that is a member of a cluster. A single
 JVM can host one or more Jet members, but in production there should be
-one member per physical machine.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Partition (Data)
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-To guarantee that all items with the same grouping key are processed by
+one member per physical machine.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Partition (Data)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">To guarantee that all items with the same grouping key are processed by
 the same processor, Hazelcast Jet uses a total surjective function to
 map each data item to the ID of its partition and assigns to each
 processor its unique subset of all partition IDs. A partitioned edge
-then routes all items with the same partition ID to the same processor.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Partition (Network)
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A malfunction in network connectivity that splits the cluster into two
+then routes all items with the same partition ID to the same processor.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Partition (Network)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A malfunction in network connectivity that splits the cluster into two
 or more parts that are mutually unreachable, but the connections among
 nodes within each part remain intact. May cause each of the parts to
 behave as if it was "the" cluster that lost the other members. Also
-known as "split brain".
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Pipeline
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-Hazelcast Jet's name for the high-level description of a computation job
+known as "split brain".</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pipeline</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hazelcast Jet&#8217;s name for the high-level description of a computation job
 constructed using the Pipeline API. Topologically it is a DAG, but the
 vertices have different semantics than the Core API vertices and are
-called _pipeline stages_. Edges are implicit and not expressed in the
+called <em>pipeline stages</em>. Edges are implicit and not expressed in the
 API. Each stage (except for source/sink stages) has an associated
-_transform_ that it performs on its input data.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Processor
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-The unit which contains the code of the computation to be performed by a
+<em>transform</em> that it performs on its input data.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Processor</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The unit which contains the code of the computation to be performed by a
 vertex. Each vertex’s computation is implemented by a processor. On each
 Jet cluster member there are one or more instances of the processor
-running in parallel for a single vertex.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Session Window
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A window that groups an infinite stream's items by their timestamp. It
+running in parallel for a single vertex.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Session Window</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A window that groups an infinite stream&#8217;s items by their timestamp. It
 groups together bursts of events closely spaced in time (by less than
-the configured session timeout).
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Sliding Window
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A window that groups an infinite stream's items by their timestamp. It
+the configured session timeout).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sliding Window</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A window that groups an infinite stream&#8217;s items by their timestamp. It
 groups together events that belong to a segment of fixed size on the
 timeline. As the time passes, the segment slides along, always extending
-from the present into the recent past. In Jet, the window doesn't
+from the present into the recent past. In Jet, the window doesn&#8217;t
 literally slide, but hops in steps of user-defined size. ("Time" here
-refers to the stream's own notion of time, i.e., _event time_.)
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Source
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A resource present in a Jet job's environment that delivers a data
-stream to it. Hazelcast Jet uses a _source connector_ to access the
-resource. Alternatively, _source_ may refer to the DAG vertex that hosts
-the connector.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Sink
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A resource present in a Jet job's environment that accepts its output
-data. Hazelcast Jet uses a _sink connector_ to access the resource.
-Alternatively, _sink_ may refer to the vertex that hosts the connector.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Skew
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A generalization of the term "clock skew" applied to distributed stream
-processing. In this context it refers to the deviation in _event time_
+refers to the stream&#8217;s own notion of time, i.e., <em>event time</em>.)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Source</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A resource present in a Jet job&#8217;s environment that delivers a data
+stream to it. Hazelcast Jet uses a <em>source connector</em> to access the
+resource. Alternatively, <em>source</em> may refer to the DAG vertex that hosts
+the connector.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sink</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A resource present in a Jet job&#8217;s environment that accepts its output
+data. Hazelcast Jet uses a <em>sink connector</em> to access the resource.
+Alternatively, <em>sink</em> may refer to the vertex that hosts the connector.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Skew</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A generalization of the term "clock skew" applied to distributed stream
+processing. In this context it refers to the deviation in <em>event time</em>
 as opposed to wall-clock time in the classical usage. Several substreams
 of a distributed stream may at the same time emit events with timestamps
 differing by some delta, due to various lags that accumulate in the
-delivery pipeline for each substream. This is called _stream skew_.
-_Event skew_ refers to the disorder within a substream, where data items
-appear out of order with respect to their timestamps.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Split Brain
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A popular name for a _network partition_, which see above.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Stream Processing
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-The act of processing an infinite stream of data, typically implying
+delivery pipeline for each substream. This is called <em>stream skew</em>.
+<em>Event skew</em> refers to the disorder within a substream, where data items
+appear out of order with respect to their timestamps.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Split Brain</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A popular name for a <em>network partition</em>, which see above.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Stream Processing</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The act of processing an infinite stream of data, typically implying
 that the data is processed as soon as it appears. Such a processing job
 must explicitly deal with the notion of time in order to make sense of
-the data. It achieves this with the concept of _windowing_.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Throughput
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A measure for the volume of data a system is capable of processing per
+the data. It achieves this with the concept of <em>windowing</em>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Throughput</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A measure for the volume of data a system is capable of processing per
 unit of time. Typical ways to express it for Hazelcast Jet are in terms
-of events per second and megabytes per second.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Tumbling Window
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A window that groups an infinite stream's items by their timestamp. It
+of events per second and megabytes per second.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tumbling Window</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A window that groups an infinite stream&#8217;s items by their timestamp. It
 groups together events that belong to a segment of fixed size on the
 timeline. As the time passes, the segment "tumbles" along, never
 covering the same point in time twice. This means that each event
 belongs to just one tumbling window position. ("Time" here refers to the
-stream's own notion of time, i.e., _event time_.)
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Vertex
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-The DAG element that performs a step in the overall computation. It
+stream&#8217;s own notion of time, i.e., <em>event time</em>.)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Vertex</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The DAG element that performs a step in the overall computation. It
 receives data from its inbound edges and sends the results of its
 computation to its outbound edges. There are three kinds of vertices:
 source (has only outbound edges), sink (has only inbound edges) and
-computational (has both kinds of edges).
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Watermark
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-A concept that superimposes order over a disordered underlying data
-stream. An infinite data stream's items represent timestamped events,
-but they don't occur in the stream ordered by the timestamp. The value
+computational (has both kinds of edges).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Watermark</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A concept that superimposes order over a disordered underlying data
+stream. An infinite data stream&#8217;s items represent timestamped events,
+but they don&#8217;t occur in the stream ordered by the timestamp. The value
 of the watermark at a certain location in the processing pipeline
 denotes the lowest value of the timestamp that is expected to occur in
-the upcoming items. Items that don't meet this criterion are discarded
-because they arrived too late to be processed.
-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;b&gt;
-
-Windowing
-&lt;/b&gt;&lt;/td&gt;&lt;td&gt;
-The act of splitting an infinite stream's data into _windows_ according
-to some rule, most typically one that involves the item's timestamps.
+the upcoming items. Items that don&#8217;t meet this criterion are discarded
+because they arrived too late to be processed.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Windowing</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The act of splitting an infinite stream&#8217;s data into <em>windows</em> according
+to some rule, most typically one that involves the item&#8217;s timestamps.
 Each window becomes the target of an aggregate function, which outputs
-one data item per window (and per grouping key).
-&lt;/td&gt;&lt;/tr&gt;
-&lt;/table&gt;</pre>
-</div>
-</div>
-</div>
-</div>
+one data item per window (and per grouping key).</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>

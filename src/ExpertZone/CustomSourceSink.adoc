@@ -193,8 +193,6 @@ DAG dag = new DAG();
 ...
 ```
 
-------------------------------------------------------------------------
-
 Running after this change we'll see that both members are generating the
 same set of numbers. This is because `ProcessorSupplier` is instantiated
 independently for each member and asked for the same number of

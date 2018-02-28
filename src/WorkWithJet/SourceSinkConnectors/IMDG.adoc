@@ -49,8 +49,9 @@ The updating sinks come in three variants:
 where you provide a a function that computes the map value from the
 stream item and a merging function that gets called if a value already
 exists in the map. Here's an example that concatenates string values:
-
-    ```java
++
+[source,java]
+----
     Pipeline pipeline = Pipeline.create();
     pipeline.drawFrom(Sources.map("mymap"))
             .drainTo(
@@ -61,16 +62,17 @@ exists in the map. Here's an example that concatenates string values:
                             (oldValue, newValue) -> oldValue + newValue
                     )
             );
-    ```
-    **Note:** This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the update function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
-
+----
++   
+NOTE: This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the update function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
 2. http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithUpdating-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBiFunction-[`mapWithUpdating`],
 where you provide a single updating function that combines the roles of
 the two functions in `mapWithMerging`. It will be called on the stream
 item and the existing value, if any. Here's an example that concatenates
 string values:
-
-    ```java
++
+[source,java]
+----
     Pipeline pipeline = Pipeline.create();
     pipeline.drawFrom(Sources.map("mymap"))
             .drainTo(
@@ -81,9 +83,9 @@ string values:
                                                  + item.getValue()
                     )
             );
-    ```
-    **Note:** This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the merge function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
-
+----
++
+NOTE: This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the merge function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
 3. http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithEntryProcessor-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-[`mapWithEntryProcessor`],
 where you provide a function that returns a full-blown `EntryProcessor`
 instance that will be submitted to the map. This is the most general
@@ -93,7 +95,8 @@ entry processor that can't be expressed in terms of the other variants.
 This example takes the values of the map and submits an entry processor
 that increments the values by 5 :
 
-    ```java
+[source,java]
+----
     Pipeline pipeline = Pipeline.create();
     pipeline.drawFrom(Sources.map("mymap"))
             .drainTo(
@@ -122,7 +125,7 @@ that increments the values by 5 :
                 return null;
         }
     }
-    ```
+----
 
 ====== Access an External Cluster
 

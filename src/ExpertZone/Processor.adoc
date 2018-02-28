@@ -157,7 +157,7 @@ data.
 
 After it has delivered all the snapshot data to `restoreFromSnapshot()`,
 Jet will call
-[`finishSnapshotRestore()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#finishSnapshotRestore--).
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#finishSnapshotRestore--[`finishSnapshotRestore()`].
 The processor may use it to initialize some transient state from the
 restored state.
 
