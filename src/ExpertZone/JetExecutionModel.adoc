@@ -1,15 +1,20 @@
+
+[[jet-execution-model]]
+=== Jet Execution Model
+
 At the heart of Jet is the 
-[`TaskletExecutionService`](https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/TaskletExecutionService.java).
+https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/TaskletExecutionService.java[`TaskletExecutionService`].
 It manages the threads that perform all the computation in a Jet job.
 Although this class is not formally a part of Jet's public API,
 understanding how it schedules code for execution is essential if you
 want to implement a cooperative processor.
 
-## Cooperative Multithreading
+[[cooperative-multithreading]]
+==== Cooperative Multithreading
 
 Cooperative multithreading is one of the core features of Jet and can be
 roughly compared to
-[green threads](https://en.wikipedia.org/wiki/Green_threads). 
+https://en.wikipedia.org/wiki/Green_threads[green threads]. 
 It is purely a library-level feature and does not involve any low-level
 system or JVM tricks; the `Processor` API is simply designed in such a
 way that the processor can do a small amount of work each time it is
@@ -27,11 +32,12 @@ longer periods, preserving the CPU cache lines.
 - The worker thread has direct knowledge of the ability of a processor
 to make progress (by inspecting its input/output buffers).
 
-## Tasklet
+[[tasklet]]
+==== Tasklet
 
 The execution service doesn't deal with processors directly; instead it
 deals with _tasklets_.
-[`Tasklet`](https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/Tasklet.java)
+https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/Tasklet.java[`Tasklet`]
 is a very simple functional interface derived from the standard Java
 `Callable<ProgressState>`. The execution service manages a pool of
 worker threads, each being responsible for a list of tasklets. The
@@ -43,14 +49,16 @@ The most important tasklet is the one driving a processor
 (`ProcessorTasklet`); there are a few others that deal with network
 sending/receiving and taking snapshots.
 
-## Work Stealing
+[[work-stealing]]
+==== Work Stealing
 
 When a tasklet is done, its worker will inspect all the other workers'
 tasklet lists to see if any of them has a longer tasklet list than its
 own. If it finds such a worker, it will "steal" one of its tasklets to
 even out the load per thread.
 
-## Exponential Backoff
+[[exponential-backoff]]
+==== Exponential Backoff
 
 If none of the worker's tasklets report having made progress, the worker
 will go to a short sleep. If this happens again after it wakes up, it
@@ -58,9 +66,10 @@ will sleep for twice as long. Once it reaches 1 ms sleep time, it will
 continue retrying once per millisecond to see if any tasklets can make
 progress.
 
-## ProcessorTasklet
+[[processor-tasklet]]
+==== ProcessorTasklet
 
-[`ProcessorTasklet`](https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/ProcessorTasklet.java)
+https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/ProcessorTasklet.java[`ProcessorTasklet`]
 is the one that drives a processor. It manages its inbox, outbox,
 inbound/outbound concurrent queues, and tracks the current processor
 state so it knows which of its callback methods to call.
@@ -69,7 +78,8 @@ During each `tasklet.call()`, `ProcessorTasklet` makes one call into
 one of its processor's callbacks. It determines the processor's progress
 status and reports it to the execution service.
 
-## Non-Cooperative Processor
+[[non-cooperative-processor]]
+==== Non-Cooperative Processor
 
 If a processor declares itself as non-cooperative, the execution service
 will start a dedicated Java thread for its tasklet to run on.
@@ -79,12 +89,13 @@ still make sure they don't run for longer than a second or so at a time.
 Otherwise the tasklet will never be able to initiate a snapshot on the
 processor.
 
-## Running a Jet job
+[[running-a-jet-job]]
+==== Running a Jet job
 
 When you submit a `Job` to it, Jet replicates the DAG to the whole Jet
 cluster and executes a copy of it on each member.
 
-![DAG Distribution](../images/dag-distribution.png)
+image::dag-distribution.png[DAG Distribution]
 
 Jet executes the job on a user-configurable number of threads which use
 work stealing to balance the amount of work being done on each thread.

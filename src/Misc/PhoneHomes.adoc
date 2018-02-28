@@ -1,3 +1,11 @@
+
+[[misc]]
+== Miscellaneous
+
+
+[[phone-homes]]
+=== Phone Homes
+
 Hazelcast uses phone home data to learn about the usage of Hazelcast Jet.
 
 Hazelcast Jet instances call our phone home server initially when they
@@ -30,9 +38,7 @@ The following information is sent in a phone home:
 
 **Phone Home Code**
 
-The phone home code itself is open source. Please see <a
-href="https://github.com/hazelcast/hazelcast/blob/master/hazelcast/src/main/java/com/hazelcast/util/PhoneHome.java"
-target="_blank">here</a>.
+The phone home code itself is open source. Please see https://github.com/hazelcast/hazelcast/blob/master/hazelcast/src/main/java/com/hazelcast/util/PhoneHome.java[here].
 
 **Disabling Phone Homes**
 
@@ -50,5 +56,4 @@ export HZ_PHONE_HOME_ENABLED=false
 **Phone Home URL**
 
 The URL used for phone home requests is
-<a href="http://phonehome.hazelcast.com/ping"
-target="_blank">http://phonehome.hazelcast.com/ping</a>.
+http://phonehome.hazelcast.com/ping

@@ -1,7 +1,10 @@
+
+== Expert Zone - The Core API
+
 This section covers the Core API, Jet's low-level API that directly
 exposes the computation engine's raw features. If you are looking for
 the API to build your computation pipeline, please refer to the
-[Work With Jet](./Work_with_Jet) section.
+<<work-with-jet, Work With Jet>> section.
 
 Creating a Core API DAG requires expert-level familiarity with concepts
 like partitioning schemes, vertex parallelism, distributed vs. local

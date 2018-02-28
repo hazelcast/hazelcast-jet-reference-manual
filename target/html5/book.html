@@ -572,7 +572,7 @@ table.CodeRay td.code>pre{padding:0}
 <li><a href="#finite-aka-batch-processing">3.4.1. Finite aka. Batch Processing</a></li>
 <li><a href="#the-importance-of-right-now">3.4.2. The Importance of "Right Now"</a></li>
 <li><a href="#windowing">3.4.3. Windowing</a></li>
-<li><a href="#time-ordering-and-the-watermark">3.4.4. Time Ordering and the Watermark</a></li>
+<li><a href="#time-ordering">3.4.4. Time Ordering and the Watermark</a></li>
 <li><a href="#fault-tolerance-and-processing-guarantees">3.4.5. Fault Tolerance and Processing Guarantees</a></li>
 <li><a href="#scaling-up-jobs">3.4.6. Scaling up Jobs</a></li>
 <li><a href="#note-for-hazelcast-jet-version-0-5">3.4.7. Note for Hazelcast Jet version 0.5</a></li>
@@ -603,112 +603,108 @@ table.CodeRay td.code>pre{padding:0}
 </li>
 </ul>
 </li>
-<li><a href="#programmatic-configuration">4. Programmatic Configuration</a></li>
-<li><a href="#declarative-configuration">5. Declarative Configuration</a></li>
-<li><a href="#configure-the-underlying-hazelcast-instance">6. Configure the Underlying Hazelcast Instance</a>
+<li><a href="#comparison-of-fet-apis">4. Comparison of Jet APIs</a></li>
+<li><a href="#configuration">5. Configuration</a>
 <ul class="sectlevel2">
-<li><a href="#programmatic">6.1. Programmatic</a></li>
-<li><a href="#declarative">6.2. Declarative</a></li>
-</ul>
-</li>
-<li><a href="#simple-example">7. Simple Example</a></li>
-<li><a href="#distributed-collectors">8. Distributed Collectors</a></li>
-<li><a href="#word-count">9. Word Count</a></li>
-<li><a href="#modeling-word-count-in-terms-of-a-dag">10. Modeling Word Count in terms of a DAG</a></li>
-<li><a href="#implementing-the-dag-in-jet-s-core-api">11. Implementing the DAG in Jet&#8217;s Core API</a></li>
-<li><a href="#stream-skew">12. Stream Skew</a></li>
-<li><a href="#sliding-and-tumbling-window">13. Sliding and Tumbling Window</a>
-<ul class="sectlevel2">
-<li><a href="#example-30-second-window-sliding-by-10-seconds">13.1. Example: 30-second Window Sliding by 10 Seconds</a></li>
-<li><a href="#two-stage-aggregation">13.2. Two-stage aggregation</a></li>
-</ul>
-</li>
-<li><a href="#session-window">14. Session Window</a></li>
-<li><a href="#distributed-snapshot">15. Distributed Snapshot</a>
-<ul class="sectlevel2">
-<li><a href="#exactly-once-snapshotting">15.1. Exactly-Once Snapshotting</a></li>
-<li><a href="#at-least-once-snapshotting">15.2. At-Least-Once Snapshotting</a></li>
-</ul>
-</li>
-<li><a href="#rules-of-watermark-propagation">16. Rules of Watermark Propagation</a>
-<ul class="sectlevel2">
-<li><a href="#idle-inputs">16.1. Idle inputs</a></li>
-</ul>
-</li>
-<li><a href="#the-pitfalls-of-at-least-once-processing">17. The Pitfalls of At-Least-Once Processing</a>
-<ul class="sectlevel2">
-<li><a href="#apparent-data-loss">17.1. Apparent Data Loss</a></li>
-<li><a href="#non-monotonic-watermark">17.2. Non-Monotonic Watermark</a></li>
-</ul>
-</li>
-<li><a href="#cooperative-multithreading">18. Cooperative Multithreading</a></li>
-<li><a href="#tasklet">19. Tasklet</a></li>
-<li><a href="#work-stealing">20. Work Stealing</a></li>
-<li><a href="#exponential-backoff">21. Exponential Backoff</a></li>
-<li><a href="#processortasklet">22. ProcessorTasklet</a></li>
-<li><a href="#non-cooperative-processor">23. Non-Cooperative Processor</a></li>
-<li><a href="#running-a-jet-job">24. Running a Jet job</a></li>
-<li><a href="#creating-a-vertex">25. Creating a Vertex</a></li>
-<li><a href="#local-and-global-parallelism-of-vertex">26. Local and Global Parallelism of Vertex</a></li>
-<li><a href="#edge-ordinal">27. Edge Ordinal</a></li>
-<li><a href="#local-and-distributed-edge">28. Local and Distributed Edge</a></li>
-<li><a href="#routing-policies">29. Routing Policies</a>
-<ul class="sectlevel2">
-<li><a href="#unicast">29.1. Unicast</a></li>
-<li><a href="#isolated">29.2. Isolated</a></li>
-<li><a href="#broadcast">29.3. Broadcast</a></li>
-<li><a href="#partitioned">29.4. Partitioned</a></li>
-<li><a href="#all-to-one">29.5. All-To-One</a></li>
-</ul>
-</li>
-<li><a href="#priority">30. Priority</a>
-<ul class="sectlevel2">
-<li><a href="#a-fault-tolerance-caveat">30.1. A Fault Tolerance Caveat</a></li>
-</ul>
-</li>
-<li><a href="#fine-tuning-edges">31. Fine-Tuning Edges</a></li>
-<li><a href="#deploy-your-resources">32. Deploy your Resources</a></li>
-<li><a href="#cooperativeness">33. Cooperativeness</a></li>
-<li><a href="#the-outbox">34. The Outbox</a></li>
-<li><a href="#data-processing-callbacks">35. Data Processing Callbacks</a>
-<ul class="sectlevel2">
-<li><a href="#process-ordinal-inbox">35.1. process(ordinal, inbox)</a></li>
-<li><a href="#tryprocesswatermark-watermark">35.2. tryProcessWatermark(watermark)</a></li>
-<li><a href="#tryprocess">35.3. tryProcess()</a></li>
-<li><a href="#complete">35.4. complete()</a></li>
-</ul>
-</li>
-<li><a href="#snapshotting-callbacks">36. Snapshotting Callbacks</a>
-<ul class="sectlevel2">
-<li><a href="#savetosnapshot">36.1. saveToSnapshot()</a></li>
-<li><a href="#restorefromsnapshot">36.2. restoreFromSnapshot()</a></li>
-<li><a href="#finishsnapshotrestore">36.3. finishSnapshotRestore()</a></li>
-</ul>
-</li>
-<li><a href="#best-practice-document-at-least-once-behavior">37. Best Practice: Document At-Least-Once Behavior</a></li>
-<li><a href="#receiving-items">38. Receiving items</a></li>
-<li><a href="#emitting-items">39. Emitting items</a></li>
-<li><a href="#traverser">40. Traverser</a>
-<ul class="sectlevel2">
-<li><a href="#predefined-watermark-policies">40.1. Predefined watermark policies</a>
+<li><a href="#programmatic-configuration">5.1. Programmatic Configuration</a></li>
+<li><a href="#declarative-configuration">5.2. Declarative Configuration</a></li>
+<li><a href="#configure-the-underlying-hazelcast-instance">5.3. Configure the Underlying Hazelcast Instance</a>
 <ul class="sectlevel3">
-<li><a href="#with-fixed-lag">40.1.1. "With Fixed Lag"</a></li>
-<li><a href="#limiting-lag-and-delay">40.1.2. "Limiting Lag and Delay"</a></li>
-<li><a href="#limiting-lag-and-lull">40.1.3. "Limiting Lag and Lull"</a></li>
-<li><a href="#limiting-timestamp-and-wall-clock-lag">40.1.4. "Limiting Timestamp and Wall-Clock Lag"</a></li>
+<li><a href="#programmatic">5.3.1. Programmatic</a></li>
+<li><a href="#declarative">5.3.2. Declarative</a></li>
 </ul>
 </li>
-<li><a href="#watermark-throttling">40.2. Watermark Throttling</a></li>
-<li><a href="#maximum-watermark-retention-on-substream-merge">40.3. Maximum watermark retention on substream merge</a></li>
 </ul>
 </li>
-<li><a href="#how-jet-creates-and-initializes-a-job">41. How Jet Creates and Initializes a Job</a>
+<li><a href="#jus">6. Distributed Implementation of java.util.stream API</a>
 <ul class="sectlevel2">
-<li><a href="#processormetasupplier">41.1. ProcessorMetaSupplier</a></li>
-<li><a href="#processorsupplier">41.2. ProcessorSupplier</a></li>
+<li><a href="#simple-example">6.1. Simple Example</a></li>
+<li><a href="#distributed-collectors">6.2. Distributed Collectors</a></li>
+<li><a href="#word-count">6.3. Word Count</a></li>
 </ul>
 </li>
-<li><a href="#example-distributed-integer-generator">42. Example - Distributed Integer Generator</a></li>
+<li><a href="#under-the-hood">7. Under the Hood</a>
+<ul class="sectlevel2">
+<li><a href="#how-distributed-computing-works-in-jet">7.1. How Distributed Computing Works in Jet</a>
+<ul class="sectlevel3">
+<li><a href="#modeling-word-count-in-terms-of-a-dag">7.1.1. Modeling Word Count in terms of a DAG</a></li>
+<li><a href="#implementing-the-dag-in-jet-s-core-api">7.1.2. Implementing the DAG in Jet&#8217;s Core API</a></li>
+</ul>
+</li>
+<li><a href="#how-infinite-stream-processing-works-in-jet">7.2. How Infinite Stream Processing Works In Jet</a>
+<ul class="sectlevel3">
+<li><a href="#stream-skew">7.2.1. Stream Skew</a></li>
+<li><a href="#sliding-and-tumbling-window">7.2.2. Sliding and Tumbling Window</a></li>
+<li><a href="#session-window">7.2.3. Session Window</a></li>
+<li><a href="#distributed-snapshot">7.2.4. Distributed Snapshot</a></li>
+<li><a href="#rules-of-watermark-propagation">7.2.5. Rules of Watermark Propagation</a></li>
+<li><a href="#pitfalls-alo">7.2.6. The Pitfalls of At-Least-Once Processing</a></li>
+</ul>
+</li>
+<li><a href="#stream-processing-dag-and-code">7.3. Stream-Processing DAG and Code</a></li>
+</ul>
+</li>
+<li><a href="#expert-zone-the-core-api">8. Expert Zone - The Core API</a>
+<ul class="sectlevel2">
+<li><a href="#jet-execution-model">8.1. Jet Execution Model</a>
+<ul class="sectlevel3">
+<li><a href="#cooperative-multithreading">8.1.1. Cooperative Multithreading</a></li>
+<li><a href="#tasklet">8.1.2. Tasklet</a></li>
+<li><a href="#work-stealing">8.1.3. Work Stealing</a></li>
+<li><a href="#exponential-backoff">8.1.4. Exponential Backoff</a></li>
+<li><a href="#processor-tasklet">8.1.5. ProcessorTasklet</a></li>
+<li><a href="#non-cooperative-processor">8.1.6. Non-Cooperative Processor</a></li>
+<li><a href="#running-a-jet-job">8.1.7. Running a Jet job</a></li>
+</ul>
+</li>
+<li><a href="#dag">8.2. DAG</a>
+<ul class="sectlevel3">
+<li><a href="#creating-a-vertex">8.2.1. Creating a Vertex</a></li>
+<li><a href="#local-and-global-parallelism-of-vertex">8.2.2. Local and Global Parallelism of Vertex</a></li>
+<li><a href="#edge-original">8.2.3. Edge Ordinal</a></li>
+<li><a href="#local-and-distributed-edge">8.2.4. Local and Distributed Edge</a></li>
+<li><a href="#routing-policies">8.2.5. Routing Policies</a></li>
+<li><a href="#priority">8.2.6. Priority</a></li>
+<li><a href="#fine-tuning-edges">8.2.7. Fine-Tuning Edges</a></li>
+</ul>
+</li>
+<li><a href="#job">8.3. Job</a>
+<ul class="sectlevel3">
+<li><a href="#deploy-your-resources">8.3.1. Deploy your Resources</a></li>
+</ul>
+</li>
+<li><a href="#processor">8.4. Processor</a>
+<ul class="sectlevel3">
+<li><a href="#cooperativeness">8.4.1. Cooperativeness</a></li>
+<li><a href="#the-outbox">8.4.2. The Outbox</a></li>
+<li><a href="#data-processing-callbacks">8.4.3. Data Processing Callbacks</a></li>
+<li><a href="#snapshotting-callbacks">8.4.4. Snapshotting Callbacks</a></li>
+<li><a href="#alo-behavior">8.4.5. Best Practice: Document At-Least-Once Behavior</a></li>
+</ul>
+</li>
+<li><a href="#abstract-processor">8.5. AbstractProcessor</a>
+<ul class="sectlevel3">
+<li><a href="#receiving-items">8.5.1. Receiving items</a></li>
+<li><a href="#emitting-items">8.5.2. Emitting items</a></li>
+<li><a href="#traverser">8.5.3. Traverser</a></li>
+</ul>
+</li>
+<li><a href="#watermark-policy">8.6. WatermarkPolicy</a>
+<ul class="sectlevel3">
+<li><a href="#predefined-watermark-policies">8.6.1. Predefined watermark policies</a></li>
+<li><a href="#watermark-throttling">8.6.2. Watermark Throttling</a></li>
+<li><a href="#maximum-watermark-retention-on-substream-merge">8.6.3. Maximum watermark retention on substream merge</a></li>
+</ul>
+</li>
+<li><a href="#vertices">8.7. Vertices in the Library</a></li>
+<li><a href="#custom-source-sink">8.8. Implement a Custom Source or Sink</a>
+<ul class="sectlevel3">
+<li><a href="#how-jet-creates-and-initializes-a-job">8.8.1. How Jet Creates and Initializes a Job</a></li>
+<li><a href="#example-distributed-integer-generator">8.8.2. Example - Distributed Integer Generator</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -2060,7 +2056,7 @@ with no further events.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="time-ordering-and-the-watermark"><a class="anchor" href="#time-ordering-and-the-watermark"></a>3.4.4. Time Ordering and the Watermark</h4>
+<h4 id="time-ordering"><a class="anchor" href="#time-ordering"></a>3.4.4. Time Ordering and the Watermark</h4>
 <div class="paragraph">
 <p>Usually the time of observing an event is explicitly written in the
 stream item. There is no guarantee that items will occur in the stream
@@ -3726,20 +3722,29 @@ non-production environment.</p>
 <div class="paragraph">
 <p>For more information about logging when using the Core API, see the
 <a href="#inspecting-processor-input-and-output">Best Practices</a>
-section.
-Hazelcast Jet defines several kinds of API, each of which can be used to
+section.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="comparison-of-fet-apis"><a class="anchor" href="#comparison-of-fet-apis"></a>4. Comparison of Jet APIs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Hazelcast Jet defines several kinds of API, each of which can be used to
 build computation jobs. However, there are significant differences
 between them.</p>
 </div>
 <div class="paragraph">
-<p>[Pipeline API](/Work_with_Jet/Build_Your_Computation_Pipeline) is the
+<p><a href="#build-your-computational-pipeline">Pipeline API</a> is the
 one you should use unless you have a specific reason to look at others.
 It is "the Jet API". Powerful and expressive, yet quite simple to grasp
 and become  productive in.</p>
 </div>
 <div class="paragraph">
 <p>A secondary choice is Jet&#8217;s implementation of the
-[java.util.stream API](/Distributed_Implementation_of_java.util.stream_API),
+<a href="#jus">java.util.stream API]</a>,
 which some users already familiar with the JDK implementation may find
 appealing. However, it is less expressive and also suffers from a
 paradigm mismatch: its contract forces us to deliver the job&#8217;s result in
@@ -3833,19 +3838,21 @@ sinks are supported.&lt;br/&gt;
 <strong>: <code>j.u.stream</code> only supports grouping on one input, co-grouping is not
 supported. Furthermore, aggregation is a terminal operation and
 additional transforms can&#8217;t be applied to aggregation results.&lt;br/&gt;
-</strong></strong>: Windowing support will be added in 0.6.
-You can configure Hazelcast Jet either programmatically or declaratively (XML).</p>
-</div>
-</div>
+</strong></strong>: Windowing support will be added in 0.6.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="programmatic-configuration"><a class="anchor" href="#programmatic-configuration"></a>4. Programmatic Configuration</h2>
+<h2 id="configuration"><a class="anchor" href="#configuration"></a>5. Configuration</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>You can configure Hazelcast Jet either programmatically or declaratively (XML).</p>
+</div>
+<div class="sect2">
+<h3 id="programmatic-configuration"><a class="anchor" href="#programmatic-configuration"></a>5.1. Programmatic Configuration</h3>
+<div class="paragraph">
 <p>Programmatic configuration is the simplest way to configure Jet. You instantiate a
-[<code>JetConfig</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JetConfig.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JetConfig.html</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JetConfig.html"><code>JetConfig</code></a>
 object and set the desired properties. For example, the following will
 configure Jet to use only two threads for cooperative execution:</p>
 </div>
@@ -3857,10 +3864,8 @@ JetInstance jet = Jet.newJetInstance(config);</code></pre>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="declarative-configuration"><a class="anchor" href="#declarative-configuration"></a>5. Declarative Configuration</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="declarative-configuration"><a class="anchor" href="#declarative-configuration"></a>5.2. Declarative Configuration</h3>
 <div class="paragraph">
 <p>If you don&#8217;t pass an explicit <code>JetConfig</code> object when constructing a Jet
 instance, it will look for an XML configuration file in the following
@@ -3934,17 +3939,15 @@ configuration that&#8217;s packaged in the Jet JAR file.</p>
 |Edge Defaults|The default values to be used for all edges.|Please see the section on [Tuning Edges](/Expert_Zone_—_The_Core_API/DAG#page_Fine-Tuning+Edges).</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="configure-the-underlying-hazelcast-instance"><a class="anchor" href="#configure-the-underlying-hazelcast-instance"></a>6. Configure the Underlying Hazelcast Instance</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="configure-the-underlying-hazelcast-instance"><a class="anchor" href="#configure-the-underlying-hazelcast-instance"></a>5.3. Configure the Underlying Hazelcast Instance</h3>
 <div class="paragraph">
 <p>Each Jet member or client has its underlying Hazelcast member or client. Please refer to the
-[Hazelcast Reference Manual](<a href="http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#understanding-configuration" class="bare">http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#understanding-configuration</a>)
+<a href="http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#understanding-configuration">Hazelcast Reference Manual</a>
 for specific configuration options for Hazelcast IMDG.</p>
 </div>
-<div class="sect2">
-<h3 id="programmatic"><a class="anchor" href="#programmatic"></a>6.1. Programmatic</h3>
+<div class="sect3">
+<h4 id="programmatic"><a class="anchor" href="#programmatic"></a>5.3.1. Programmatic</h4>
 <div class="paragraph">
 <p>The underlying Hazelcast IMDG member can be configured as follows:</p>
 </div>
@@ -3966,25 +3969,30 @@ JetInstance jet = Jet.newJetClient(clientConfig);
 </code>`</code></p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="declarative"><a class="anchor" href="#declarative"></a>6.2. Declarative</h3>
+<div class="sect3">
+<h4 id="declarative"><a class="anchor" href="#declarative"></a>5.3.2. Declarative</h4>
 <div class="paragraph">
 <p>Hazelcast IMDG can also be configured declaratively as well.
-Please refer to the [Hazelcast Reference Manual](<a href="http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#configuring-declaratively" class="bare">http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#configuring-declaratively</a>)
-for information on how to do this.
-Hazelcast Jet adds distributed <code>java.util.stream</code> support for Hazelcast
-IMap, ICache and IList data structures.</p>
+Please refer to the <a href="http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#configuring-declaratively">Hazelcast Reference Manual</a>
+for information on how to do this.</p>
 </div>
-<div class="paragraph">
-<p>For extensive information about <code>java.util.stream</code> API please refer to
-the official [javadocs](<a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html" class="bare">https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html</a>).</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="simple-example"><a class="anchor" href="#simple-example"></a>7. Simple Example</h2>
+<h2 id="jus"><a class="anchor" href="#jus"></a>6. Distributed Implementation of java.util.stream API</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Hazelcast Jet adds distributed <code>java.util.stream</code> support for Hazelcast
+IMap, ICache and IList data structures.</p>
+</div>
+<div class="paragraph">
+<p>For extensive information about <code>java.util.stream</code> API please refer to
+the official <a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html">javadocs</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="simple-example"><a class="anchor" href="#simple-example"></a>6.1. Simple Example</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">JetInstance jet = Jet.newJetInstance();
@@ -4024,15 +4032,13 @@ converts the expression into a Core API DAG and submits it for
 execution.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="distributed-collectors"><a class="anchor" href="#distributed-collectors"></a>8. Distributed Collectors</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="distributed-collectors"><a class="anchor" href="#distributed-collectors"></a>6.2. Distributed Collectors</h3>
 <div class="paragraph">
 <p>Like with the functional interfaces, Jet also includes distributed
 versions of the classes found in <code>java.util.stream.Collectors</code>. These
 can be reached from the
-[<code>DistributedCollectors</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/stream/DistributedCollectors.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/stream/DistributedCollectors.html</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/stream/DistributedCollectors.html"><code>DistributedCollectors</code></a>
 utility class. However, keep in mind that the collectors such as
 <code>toMap()</code>, <code>toCollection()</code>, <code>toList()</code>, and <code>toArray()</code> create a
 local data structure and load all the results into it. This works fine
@@ -4088,13 +4094,11 @@ a <code>Reducer</code> is inappropriate as a downstream collector; that&#8217;s 
 the JDK-standard collectors make sense.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="word-count"><a class="anchor" href="#word-count"></a>9. Word Count</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="word-count"><a class="anchor" href="#word-count"></a>6.3. Word Count</h3>
 <div class="paragraph">
 <p>The word count example that was described in the
-[Get Started](Get_Started) section can be rewritten using the <code>java.util.stream</code> API as follows:</p>
+<a href="#get-started">Get Started</a> section can be rewritten using the <code>java.util.stream</code> API as follows:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -4104,11 +4108,19 @@ the JDK-standard collectors make sense.</p>
                 .collect(DistributedCollectors.toIMap(w -&gt; w, w -&gt; <span class="integer">1L</span>, (left, right) -&gt; left + right));</code></pre>
 </div>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="under-the-hood"><a class="anchor" href="#under-the-hood"></a>7. Under the Hood</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="how-distributed-computing-works-in-jet"><a class="anchor" href="#how-distributed-computing-works-in-jet"></a>7.1. How Distributed Computing Works in Jet</h3>
 <div class="paragraph">
 <p>In this section we&#8217;ll take a deep dive into the fundamentals of
 distributed computing and Jet&#8217;s specific take on it. We&#8217;ll do this by
 dissecting one specific problem: the Word Count. This is how you&#8217;d
-describe it in the [Jet Pipeline API](<a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount/src/main/java/WordCount.java" class="bare">https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount/src/main/java/WordCount.java</a>):</p>
+describe it in the <a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount/src/main/java/WordCount.java">Jet Pipeline API</a>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -4192,11 +4204,8 @@ and present in full before the job starts. Later on we&#8217;ll present a
 <em>streaming</em> job that keeps processing an infinite stream forever,
 transforming it into another infinite stream.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="modeling-word-count-in-terms-of-a-dag"><a class="anchor" href="#modeling-word-count-in-terms-of-a-dag"></a>10. Modeling Word Count in terms of a DAG</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="modeling-word-count-in-terms-of-a-dag"><a class="anchor" href="#modeling-word-count-in-terms-of-a-dag"></a>7.1.1. Modeling Word Count in terms of a DAG</h4>
 <div class="paragraph">
 <p>We can represent the steps outlined above as a DAG:</p>
 </div>
@@ -4386,10 +4395,8 @@ following diagram:</p>
      height="420"/&gt;</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="implementing-the-dag-in-jet-s-core-api"><a class="anchor" href="#implementing-the-dag-in-jet-s-core-api"></a>11. Implementing the DAG in Jet&#8217;s Core API</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="implementing-the-dag-in-jet-s-core-api"><a class="anchor" href="#implementing-the-dag-in-jet-s-core-api"></a>7.1.2. Implementing the DAG in Jet&#8217;s Core API</h4>
 <div class="paragraph">
 <p>Now that we&#8217;ve come up with a good DAG design, we can use Jet&#8217;s Core API
 to implement it. We start by instantiating the DAG class and adding the
@@ -4551,8 +4558,12 @@ the hash function specified in their Javadoc.</p>
 </div>
 <div class="paragraph">
 <p>You can acces a full, self-contained Java program with the above DAG code at the
-[Hazelcast Jet code samples repository](<a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java" class="bare">https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java</a>).</p>
+<a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java">Hazelcast Jet code samples repository</a>.</p>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="how-infinite-stream-processing-works-in-jet"><a class="anchor" href="#how-infinite-stream-processing-works-in-jet"></a>7.2. How Infinite Stream Processing Works In Jet</h3>
 <div class="paragraph">
 <p>Continuing our deep dive into Jet&#8217;s fundamentals we shall now move on to
 infinite stream processing. The major challenge in batch jobs was
@@ -4563,14 +4574,11 @@ independently on any member, always yielding the same result. In the
 context of infinite stream processing we have the same concern and solve
 it with the same means, but we also face some new challenges.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="stream-skew"><a class="anchor" href="#stream-skew"></a>12. Stream Skew</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="stream-skew"><a class="anchor" href="#stream-skew"></a>7.2.1. Stream Skew</h4>
 <div class="paragraph">
 <p>We
-[already introduced](Work_with_Jet/Infinite_Stream_Processing#page_Time+Ordering+and+the+Watermark)
+<a href="#time-ordering-and-the-watermark">already introduced</a>
 the concept of the watermark and how it imposes
 order onto a disordered data stream. Items arriving out of order aren&#8217;t
 our only challenge; modern stream sources like Kafka are partitioned and
@@ -4584,10 +4592,8 @@ value, which is the least of watermarks received from the contributing
 substreams.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="sliding-and-tumbling-window"><a class="anchor" href="#sliding-and-tumbling-window"></a>13. Sliding and Tumbling Window</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="sliding-and-tumbling-window"><a class="anchor" href="#sliding-and-tumbling-window"></a>7.2.2. Sliding and Tumbling Window</h4>
 <div class="paragraph">
 <p>Many quantities, like "the current rate of change of a price" require you
 to aggregate your data over some time period. This is what makes the
@@ -4635,8 +4641,8 @@ scratch each time. After accumulating an item just once, the rest of the
 process has fixed cost regardless of input size. With <em>deduct</em>, the
 fixed cost approaches zero.</p>
 </div>
-<div class="sect2">
-<h3 id="example-30-second-window-sliding-by-10-seconds"><a class="anchor" href="#example-30-second-window-sliding-by-10-seconds"></a>13.1. Example: 30-second Window Sliding by 10 Seconds</h3>
+<div class="sect4">
+<h5 id="example-30-second-window-sliding-by-10-seconds"><a class="anchor" href="#example-30-second-window-sliding-by-10-seconds"></a>Example: 30-second Window Sliding by 10 Seconds</h5>
 <div class="paragraph">
 <p>We&#8217;ll now illustrate the above story with a specific example: we&#8217;ll
 construct a 30-second window which slides by 10 seconds (i.e., three
@@ -4676,8 +4682,8 @@ cluster member and for just one grouping key. The same process is going
 on simultaneously for all the keys on all the members.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="two-stage-aggregation"><a class="anchor" href="#two-stage-aggregation"></a>13.2. Two-stage aggregation</h3>
+<div class="sect4">
+<h5 id="two-stage-aggregation"><a class="anchor" href="#two-stage-aggregation"></a>Two-stage aggregation</h5>
 <div class="paragraph">
 <p>The concept of frame combining helps us implement two-stage aggregation
 as well. In the first stage the individual members come up with their
@@ -4693,10 +4699,8 @@ results along the event time axis into the sliding window.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="session-window"><a class="anchor" href="#session-window"></a>14. Session Window</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="session-window"><a class="anchor" href="#session-window"></a>7.2.3. Session Window</h4>
 <div class="paragraph">
 <p>In the abstract sense, the session window is a quite intuitive concept:
 it simply captures a burst of events. If no new events occur within the
@@ -4749,15 +4753,13 @@ bridges the gap between them; in that case they are combined into one.</p>
 can close it and emit the result of its aggregation.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="distributed-snapshot"><a class="anchor" href="#distributed-snapshot"></a>15. Distributed Snapshot</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="distributed-snapshot"><a class="anchor" href="#distributed-snapshot"></a>7.2.4. Distributed Snapshot</h4>
 <div class="paragraph">
 <p>The technique Jet uses to achieve
-[fault tolerance](Work_with_Jet/Infinite_Stream_Processing#page_Fault+Tolerance+and+Processing+Guarantees)
+<a href="#fault-tolerance-and-processing-guarantees">fault tolerance</a>
 is called a "distributed snapshot", described in a
-[paper by Chandy and Lamport](<a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/Determining-Global-States-of-a-Distributed-System.pdf" class="bare">https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/Determining-Global-States-of-a-Distributed-System.pdf</a>).
+<a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/Determining-Global-States-of-a-Distributed-System.pdf">paper by Chandy and Lamport</a>.
 At regular intervals, Jet raises a global flag that says "it&#8217;s time for
 another snapshot". All processors belonging to source vertices observe
 the flag, create a checkpoint on their source, and emit a barrier item
@@ -4775,8 +4777,8 @@ of them at separate times, but it must start taking a snapshot at a
 single point in time. There are two approaches it can take, as explained
 below.</p>
 </div>
-<div class="sect2">
-<h3 id="exactly-once-snapshotting"><a class="anchor" href="#exactly-once-snapshotting"></a>15.1. Exactly-Once Snapshotting</h3>
+<div class="sect4">
+<h5 id="exactly-once-snapshotting"><a class="anchor" href="#exactly-once-snapshotting"></a>Exactly-Once Snapshotting</h5>
 <div class="paragraph">
 <p>With <em>exactly-once</em> configured, as soon as the processor gets a barrier
 item in any input stream (from any upstream processor), it must stop
@@ -4831,8 +4833,8 @@ consuming it until it gets the same barrier item in all the streams:</p>
 &lt;br&gt;</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="at-least-once-snapshotting"><a class="anchor" href="#at-least-once-snapshotting"></a>15.2. At-Least-Once Snapshotting</h3>
+<div class="sect4">
+<h5 id="at-least-once-snapshotting"><a class="anchor" href="#at-least-once-snapshotting"></a>At-Least-Once Snapshotting</h5>
 <div class="paragraph">
 <p>With <em>at-least-once</em> configured, the processor can keep consuming all
 the streams until it gets all the barriers, at which point it will stop
@@ -4895,10 +4897,8 @@ will think it got two new items.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="rules-of-watermark-propagation"><a class="anchor" href="#rules-of-watermark-propagation"></a>16. Rules of Watermark Propagation</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="rules-of-watermark-propagation"><a class="anchor" href="#rules-of-watermark-propagation"></a>7.2.5. Rules of Watermark Propagation</h4>
 <div class="paragraph">
 <p>Watermark objects are sent interleaved with other stream items, but are
 handled specially:</p>
@@ -4929,15 +4929,15 @@ all upstream processors and from all upstream edges. This is called
 </div>
 <div class="paragraph">
 <p>Jet&#8217;s internal class
-[<code>WatermarkCoalescer</code>](<a href="https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/WatermarkCoalescer.java" class="bare">https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/WatermarkCoalescer.java</a>)
+<a href="https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/WatermarkCoalescer.java"><code>WatermarkCoalescer</code></a>
  manages watermarks received from multiple inputs. As it receives
 watermark items from them, its duty is to decide when to forward the
 watermark downstream. This happens at two levels:
 * between multiple queues backing single edge
 * between multiple input edges to single processor</p>
 </div>
-<div class="sect2">
-<h3 id="idle-inputs"><a class="anchor" href="#idle-inputs"></a>16.1. Idle inputs</h3>
+<div class="sect4">
+<h5 id="idle-inputs"><a class="anchor" href="#idle-inputs"></a>Idle inputs</h5>
 <div class="paragraph">
 <p>A special object called <em>idle message</em> can be emitted from source
 processor when the processor sees no events for configured <em>idle
@@ -4956,16 +4956,14 @@ is configured).</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="the-pitfalls-of-at-least-once-processing"><a class="anchor" href="#the-pitfalls-of-at-least-once-processing"></a>17. The Pitfalls of At-Least-Once Processing</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="pitfalls-alo"><a class="anchor" href="#pitfalls-alo"></a>7.2.6. The Pitfalls of At-Least-Once Processing</h4>
 <div class="paragraph">
 <p>In some cases <em>at-least-once</em> semantics can have consequences of quite
 an unexpected magnitude, as we discuss next.</p>
 </div>
-<div class="sect2">
-<h3 id="apparent-data-loss"><a class="anchor" href="#apparent-data-loss"></a>17.1. Apparent Data Loss</h3>
+<div class="sect4">
+<h5 id="apparent-data-loss"><a class="anchor" href="#apparent-data-loss"></a>Apparent Data Loss</h5>
 <div class="paragraph">
 <p>Imagine a very simple kind of processor: it matches up the items that
 belong to a <em>pair</em> based on some rule. If it receives item A first, it
@@ -4990,8 +4988,8 @@ it will behave as though it has never observed those pre-barrier items,
 resulting in behavior equivalent to data loss.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="non-monotonic-watermark"><a class="anchor" href="#non-monotonic-watermark"></a>17.2. Non-Monotonic Watermark</h3>
+<div class="sect4">
+<h5 id="non-monotonic-watermark"><a class="anchor" href="#non-monotonic-watermark"></a>Non-Monotonic Watermark</h5>
 <div class="paragraph">
 <p>One special case of the above story concerns watermark items. Thanks to
 watermark coalescing, processors are typically implemented against the
@@ -5000,8 +4998,15 @@ invariant that the watermark value always increases. However, in
 processor&#8217;s watermark value. After the job restarts and the state gets
 restored to the snapshotted point, the watermark will appear to have
 gone back, breaking the invariant. This can again lead to apparent data
-loss.
-For this example we&#8217;ll build a simple Jet job that monitors trading
+loss.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="stream-processing-dag-and-code"><a class="anchor" href="#stream-processing-dag-and-code"></a>7.3. Stream-Processing DAG and Code</h3>
+<div class="paragraph">
+<p>For this example we&#8217;ll build a simple Jet job that monitors trading
 events on a stock market, categorizes the events by stock ticker, and
 reports the number of trades per time unit (the time window). In terms
 of DAG design, not much changes going from batch to streaming. This is
@@ -5082,7 +5087,7 @@ generateTrades.localParallelism(<span class="integer">1</span>);
 <p>The source vertex reads a Hazelcast IMap, just like it did in the word
 counting example. Trade generating vertex uses a custom processor that
 generates mock trades. It can be reviewed
-[here](<a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/trade-generator/src/main/java/trades/tradegenerator/GenerateTradesP.java" class="bare">https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/trade-generator/src/main/java/trades/tradegenerator/GenerateTradesP.java</a>).
+<a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/trade-generator/src/main/java/trades/tradegenerator/GenerateTradesP.java">here</a>.
 The implementation of <code>complete()</code> is non-trivial, but most of the
 complexity just deals with precision timing of events. For simplicity&#8217;s
 sake the processor must be configured with a local parallelism of 1;
@@ -5092,7 +5097,7 @@ would take more code and coordination.</p>
 <div class="paragraph">
 <p>The major novelty is the watermark-inserting vertex. It must be added
 in front of the windowing vertex and will insert watermark items
-according to the configured [policy](/Expert_Zone_—_The_Core_API/WatermarkPolicy).
+according to the configured <a href="#watermark-policy">policy</a>.
 In this case we use the simplest one, <code>withFixedLag</code>, which will make
 the watermark lag behind the top observed event timestamp by a fixed
 amount. Emission of watermarks is additionally throttled, so that only
@@ -5127,15 +5132,22 @@ along with any aggregation results whose emission it triggers, to stage
 </div>
 <div class="paragraph">
 <p>The full code of this sample is in
-[StockExchange.java](
-<a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/stock-exchange/src/main/java/StockExchange.java" class="bare">https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/stock-exchange/src/main/java/StockExchange.java</a>)
+<a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/stock-exchange/src/main/java/StockExchange.java">StockExchange.java</a>
 and running it you&#8217;ll get an endless stream of data accumulating on the
 disk. To spare your filesystem we&#8217;ve limited the execution time to 10
-seconds.
-This section covers the Core API, Jet&#8217;s low-level API that directly
+seconds.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="expert-zone-the-core-api"><a class="anchor" href="#expert-zone-the-core-api"></a>8. Expert Zone - The Core API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section covers the Core API, Jet&#8217;s low-level API that directly
 exposes the computation engine&#8217;s raw features. If you are looking for
 the API to build your computation pipeline, please refer to the
-[Work With Jet](./Work_with_Jet) section.</p>
+<a href="#work-with-jet">Work With Jet</a> section.</p>
 </div>
 <div class="paragraph">
 <p>Creating a Core API DAG requires expert-level familiarity with concepts
@@ -5153,24 +5165,24 @@ building a DAG. Among other things, you have to be acquainted in detail
 with Jet&#8217;s concept of cooperative multithreading. While we provide as
 much convenience as we can for extending Jet with your custom
 processors, we cannot remove the dangers of using these facilities
-improperly.
-At the heart of Jet is the
-[<code>TaskletExecutionService</code>](<a href="https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/TaskletExecutionService.java" class="bare">https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/TaskletExecutionService.java</a>).
+improperly.</p>
+</div>
+<div class="sect2">
+<h3 id="jet-execution-model"><a class="anchor" href="#jet-execution-model"></a>8.1. Jet Execution Model</h3>
+<div class="paragraph">
+<p>At the heart of Jet is the
+<a href="https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/TaskletExecutionService.java"><code>TaskletExecutionService</code></a>.
 It manages the threads that perform all the computation in a Jet job.
 Although this class is not formally a part of Jet&#8217;s public API,
 understanding how it schedules code for execution is essential if you
 want to implement a cooperative processor.</p>
 </div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="cooperative-multithreading"><a class="anchor" href="#cooperative-multithreading"></a>18. Cooperative Multithreading</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="cooperative-multithreading"><a class="anchor" href="#cooperative-multithreading"></a>8.1.1. Cooperative Multithreading</h4>
 <div class="paragraph">
 <p>Cooperative multithreading is one of the core features of Jet and can be
 roughly compared to
-[green threads](<a href="https://en.wikipedia.org/wiki/Green_threads" class="bare">https://en.wikipedia.org/wiki/Green_threads</a>).
+<a href="https://en.wikipedia.org/wiki/Green_threads">green threads</a>.
 It is purely a library-level feature and does not involve any low-level
 system or JVM tricks; the <code>Processor</code> API is simply designed in such a
 way that the processor can do a small amount of work each time it is
@@ -5199,14 +5211,12 @@ to make progress (by inspecting its input/output buffers).</p>
 </ul>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="tasklet"><a class="anchor" href="#tasklet"></a>19. Tasklet</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="tasklet"><a class="anchor" href="#tasklet"></a>8.1.2. Tasklet</h4>
 <div class="paragraph">
 <p>The execution service doesn&#8217;t deal with processors directly; instead it
 deals with <em>tasklets</em>.
-[<code>Tasklet</code>](<a href="https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/Tasklet.java" class="bare">https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/Tasklet.java</a>)
+<a href="https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/Tasklet.java"><code>Tasklet</code></a>
 is a very simple functional interface derived from the standard Java
 <code>Callable&lt;ProgressState&gt;</code>. The execution service manages a pool of
 worker threads, each being responsible for a list of tasklets. The
@@ -5220,10 +5230,8 @@ made progress and whether it is now done.</p>
 sending/receiving and taking snapshots.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="work-stealing"><a class="anchor" href="#work-stealing"></a>20. Work Stealing</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="work-stealing"><a class="anchor" href="#work-stealing"></a>8.1.3. Work Stealing</h4>
 <div class="paragraph">
 <p>When a tasklet is done, its worker will inspect all the other workers'
 tasklet lists to see if any of them has a longer tasklet list than its
@@ -5231,10 +5239,8 @@ own. If it finds such a worker, it will "steal" one of its tasklets to
 even out the load per thread.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="exponential-backoff"><a class="anchor" href="#exponential-backoff"></a>21. Exponential Backoff</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="exponential-backoff"><a class="anchor" href="#exponential-backoff"></a>8.1.4. Exponential Backoff</h4>
 <div class="paragraph">
 <p>If none of the worker&#8217;s tasklets report having made progress, the worker
 will go to a short sleep. If this happens again after it wakes up, it
@@ -5243,12 +5249,10 @@ continue retrying once per millisecond to see if any tasklets can make
 progress.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="processortasklet"><a class="anchor" href="#processortasklet"></a>22. ProcessorTasklet</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="processor-tasklet"><a class="anchor" href="#processor-tasklet"></a>8.1.5. ProcessorTasklet</h4>
 <div class="paragraph">
-<p>[<code>ProcessorTasklet</code>](<a href="https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/ProcessorTasklet.java" class="bare">https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/ProcessorTasklet.java</a>)
+<p><a href="https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/ProcessorTasklet.java"><code>ProcessorTasklet</code></a>
 is the one that drives a processor. It manages its inbox, outbox,
 inbound/outbound concurrent queues, and tracks the current processor
 state so it knows which of its callback methods to call.</p>
@@ -5259,10 +5263,8 @@ one of its processor&#8217;s callbacks. It determines the processor&#8217;s prog
 status and reports it to the execution service.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="non-cooperative-processor"><a class="anchor" href="#non-cooperative-processor"></a>23. Non-Cooperative Processor</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="non-cooperative-processor"><a class="anchor" href="#non-cooperative-processor"></a>8.1.6. Non-Cooperative Processor</h4>
 <div class="paragraph">
 <p>If a processor declares itself as non-cooperative, the execution service
 will start a dedicated Java thread for its tasklet to run on.</p>
@@ -5274,16 +5276,16 @@ Otherwise the tasklet will never be able to initiate a snapshot on the
 processor.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="running-a-jet-job"><a class="anchor" href="#running-a-jet-job"></a>24. Running a Jet job</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="running-a-jet-job"><a class="anchor" href="#running-a-jet-job"></a>8.1.7. Running a Jet job</h4>
 <div class="paragraph">
 <p>When you submit a <code>Job</code> to it, Jet replicates the DAG to the whole Jet
 cluster and executes a copy of it on each member.</p>
 </div>
-<div class="paragraph">
-<p>![DAG Distribution](../images/dag-distribution.png)</p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/dag-distribution.png" alt="DAG Distribution">
+</div>
 </div>
 <div class="paragraph">
 <p>Jet executes the job on a user-configurable number of threads which use
@@ -5322,9 +5324,13 @@ to back off until it can enqueue the next item. When data is sent to
 another member over the network, there is no natural backpressure, so
 Jet uses explicit signaling in the form of adaptive receive windows.</p>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="dag"><a class="anchor" href="#dag"></a>8.2. DAG</h3>
 <div class="paragraph">
 <p>The DAG-building API is centered around the
-[<code>DAG</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/DAG.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/DAG.html</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/DAG.html"><code>DAG</code></a>
 class. This is a pure data class and can be instantiated on its own,
 without a Jet instance. This makes it simple to separate the
 job-describing code from the code that manages the lifecycle of Jet
@@ -5373,11 +5379,8 @@ dag.edge(between(source, transform));
 dag.edge(between(transform, sink));</code></pre>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="creating-a-vertex"><a class="anchor" href="#creating-a-vertex"></a>25. Creating a Vertex</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="creating-a-vertex"><a class="anchor" href="#creating-a-vertex"></a>8.2.1. Creating a Vertex</h4>
 <div class="paragraph">
 <p>The two mandatory elements of creating a vertex are its string
 identifier and the supplier of processors. The latter can be provided in
@@ -5387,20 +5390,20 @@ lifecycle management of the processors. From simple to complex they are:</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>[<code>DistributedSupplier&lt;Processor&gt;</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/function/DistributedSupplier.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/function/DistributedSupplier.html</a>)
+<p><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/function/DistributedSupplier.html"><code>DistributedSupplier&lt;Processor&gt;</code></a>
 directly returns processor instances from its <code>get()</code> method. It is
 expected to be stateless and return equivalent instances on each
 call. It doesn&#8217;t provide any initialization or cleanup code.</p>
 </li>
 <li>
-<p>[<code>ProcessorSupplier</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorSupplier.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorSupplier.html</a>)
+<p><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorSupplier.html"><code>ProcessorSupplier</code></a>
 returns in a single call all the processors that will run on a single
 cluster member. It may specialize each instance, for example to
 achieve local data partitioning. It is also in charge of the
 member-local lifecycle (initialization and destruction).</p>
 </li>
 <li>
-<p><strong>[<code>ProcessorMetaSupplier</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html</a>)</strong>
+<p><strong><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html"><code>ProcessorSupplier</code></a></strong>
 returns in a single call an object that will be in charge of creating
 all the processors for a vertex. Given a list of member addresses,
 the object it returns is a <code>Function&lt;Address, ProcessorSupplier&gt;</code>
@@ -5416,10 +5419,8 @@ the other and they will integrate the same way into your <code>newVertex()</code
 calls.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="local-and-global-parallelism-of-vertex"><a class="anchor" href="#local-and-global-parallelism-of-vertex"></a>26. Local and Global Parallelism of Vertex</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="local-and-global-parallelism-of-vertex"><a class="anchor" href="#local-and-global-parallelism-of-vertex"></a>8.2.2. Local and Global Parallelism of Vertex</h4>
 <div class="paragraph">
 <p>The vertex is implemented by one or more instances of <code>Processor</code> on
 each member. Each vertex can specify how many of its processors will run
@@ -5428,7 +5429,7 @@ will have the same number of processors. A new <code>Vertex</code> instance has
 this property set to <code>-1</code>, which requests to use the default value equal
 to the configured size of the cooperative thread pool. The latter
 defaults to <code>Runtime.availableProcessors()</code> and is configurable via
-[<code>InstanceConfig.setCooperativeThreadCount()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/InstanceConfig.html#setCooperativeThreadCount-int-" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/InstanceConfig.html#setCooperativeThreadCount-int-</a>).</p>
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/InstanceConfig.html#setCooperativeThreadCount-int-"><code>InstanceConfig.setCooperativeThreadCount()</code></a>.</p>
 </div>
 <div class="paragraph">
 <p>In most cases the only value of local parallelism that you&#8217;ll want to
@@ -5441,10 +5442,8 @@ especially in terms of the distribution of partitions among processors.
 It is equal to local parallelism multiplied by the cluster size.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="edge-ordinal"><a class="anchor" href="#edge-ordinal"></a>27. Edge Ordinal</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="edge-original"><a class="anchor" href="#edge-original"></a>8.2.3. Edge Ordinal</h4>
 <div class="paragraph">
 <p>An edge is connected to a vertex with a given <strong>ordinal</strong>, which
 identifies it to the vertex and its processors. When a processor
@@ -5456,10 +5455,10 @@ replication of a data stream across several edges.</p>
 </div>
 <div class="paragraph">
 <p>When you use the
-[<code>between()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#between-com.hazelcast.jet.core.Vertex-com.hazelcast.jet.core.Vertex-" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#between-com.hazelcast.jet.core.Vertex-com.hazelcast.jet.core.Vertex-</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#between-com.hazelcast.jet.core.Vertex-com.hazelcast.jet.core.Vertex-"><code>between()</code></a>
 edge factory, the edge will be connected at ordinal 0 at both ends. When
 you need a different ordinal, use the
-[<code>from(a, ord1).to(b, ord2)</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#from-com.hazelcast.jet.core.Vertex-int-" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#from-com.hazelcast.jet.core.Vertex-int-</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#from-com.hazelcast.jet.core.Vertex-int-"><code>from(a, ord1).to(b, ord2)</code></a>
 form. There must be no gaps in ordinal assignment, which means a vertex
 will have inbound edges with ordinals 0..N and outbound edges with
 ordinals 0..M.</p>
@@ -5481,17 +5480,15 @@ dag.edge(from(source, <span class="integer">1</span>).to(v2));</code></pre>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="local-and-distributed-edge"><a class="anchor" href="#local-and-distributed-edge"></a>28. Local and Distributed Edge</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="local-and-distributed-edge"><a class="anchor" href="#local-and-distributed-edge"></a>8.2.4. Local and Distributed Edge</h4>
 <div class="paragraph">
 <p>A major choice to make in terms of data routing is whether the candidate
 set of target processors is unconstrained, encompassing all processors
 across the cluster, or constrained to just those running on the same
 cluster member. This is controlled by the <code>distributed</code> property of the
 edge. By default the edge is local and calling the
-[<code>distributed()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#distributed--" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#distributed--</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#distributed--"><code>distributed()</code></a>
 method removes this restriction.</p>
 </div>
 <div class="paragraph">
@@ -5521,17 +5518,15 @@ Word Count tutorial:</p>
 <p>Note that only the edge from <code>accumulate</code> to <code>combine</code> is distributed.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="routing-policies"><a class="anchor" href="#routing-policies"></a>29. Routing Policies</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="routing-policies"><a class="anchor" href="#routing-policies"></a>8.2.5. Routing Policies</h4>
 <div class="paragraph">
-<p>The [routing policy](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.RoutingPolicy.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.RoutingPolicy.html</a>)
+<p>The <a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.RoutingPolicy.html">routing policy</a>
 decides which of the processors in the candidate set to route each
 particular item to.</p>
 </div>
-<div class="sect2">
-<h3 id="unicast"><a class="anchor" href="#unicast"></a>29.1. Unicast</h3>
+<div class="sect4">
+<h5 id="unicast"><a class="anchor" href="#unicast"></a>Unicast</h5>
 <div class="paragraph">
 <p>This is the default routing policy, the one you get when you write</p>
 </div>
@@ -5553,8 +5548,8 @@ usually implying a downstream vertex which can compute the result based
 on each item in isolation.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="isolated"><a class="anchor" href="#isolated"></a>29.2. Isolated</h3>
+<div class="sect4">
+<h5 id="isolated"><a class="anchor" href="#isolated"></a>Isolated</h5>
 <div class="paragraph">
 <p>This is a more restricted kind of unicast policy: any given downstream
 processor receives data from exactly one upstream processor. This is
@@ -5568,8 +5563,8 @@ upstream source processors. Activate this policy by calling
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="broadcast"><a class="anchor" href="#broadcast"></a>29.3. Broadcast</h3>
+<div class="sect4">
+<h5 id="broadcast"><a class="anchor" href="#broadcast"></a>Broadcast</h5>
 <div class="paragraph">
 <p>A broadcasting edge sends each item to all candidate receivers. This is
 useful when some small amount of data must be broadcast to all
@@ -5589,8 +5584,8 @@ member.</p>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="partitioned"><a class="anchor" href="#partitioned"></a>29.4. Partitioned</h3>
+<div class="sect4">
+<h5 id="partitioned"><a class="anchor" href="#partitioned"></a>Partitioned</h5>
 <div class="paragraph">
 <p>A partitioned edge sends each item to the one processor responsible for
 the item&#8217;s partition ID. On a distributed edge, this processor will be
@@ -5601,7 +5596,7 @@ its own processor for each partition ID.</p>
 <p>Multiple partitions can be assigned to each processor. The global number
 of partitions is controlled by the number of partitions in the
 underlying Hazelcast IMDG configuration. Please refer to the
-[Hazelcast Reference Manual](<a href="http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#data-partitioning" class="bare">http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#data-partitioning</a>)
+<a href="http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#data-partitioning">Hazelcast Reference Manual</a>
 for more information about Hazelcast IMDG partitioning.</p>
 </div>
 <div class="paragraph">
@@ -5668,8 +5663,8 @@ accumulator, the performance of the whole job is hardly affected by this
 choice.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="all-to-one"><a class="anchor" href="#all-to-one"></a>29.5. All-To-One</h3>
+<div class="sect4">
+<h5 id="all-to-one"><a class="anchor" href="#all-to-one"></a>All-To-One</h5>
 <div class="paragraph">
 <p>The all-to-one routing policy is a special case of the <code>partitioned</code>
 policy which assigns the same partition ID to all items. The partition
@@ -5696,10 +5691,8 @@ must see the complete picture, so an all-to-one edge is employed:</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="priority"><a class="anchor" href="#priority"></a>30. Priority</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="priority"><a class="anchor" href="#priority"></a>8.2.6. Priority</h4>
 <div class="paragraph">
 <p>By default the processor receives items from all inbound edges as they
 arrive. However, there are important cases where an edge must be
@@ -5718,7 +5711,7 @@ ordering (as the data arrives).</p>
 </div>
 <div class="paragraph">
 <p>We can see a prioritized edge in action in the
-[TF-IDF](<a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java" class="bare">https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java</a>)
+<a href="https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java">TF-IDF</a>
 example:</p>
 </div>
 <div class="listingblock">
@@ -5731,14 +5724,14 @@ example:</p>
 must receive the entire lookup table before beginning to process the
 data.</p>
 </div>
-<div class="sect2">
-<h3 id="a-fault-tolerance-caveat"><a class="anchor" href="#a-fault-tolerance-caveat"></a>30.1. A Fault Tolerance Caveat</h3>
+<div class="sect4">
+<h5 id="a-fault-tolerance-caveat"><a class="anchor" href="#a-fault-tolerance-caveat"></a>A Fault Tolerance Caveat</h5>
 <div class="paragraph">
 <p>As explained in the section on the
-[Processor](Expert_Zone_—<em>The_Core_API/Processor#page_Snapshotting+Callbacks)
+<a href="#snapshotting-callbacks">Processor</a>
 API, Jet takes regular snapshots of processor state when fault tolerance
 is enabled. A processor will get a special item in its input stream,
-called a _barrier</em>. When working in the <em>exactly once</em> mode, as soon as
+called a <em>barrier</em>. When working in the <em>exactly once</em> mode, as soon as
 it receives it, it must stop pulling the data from that stream, wait for
 the same barrier in all other streams, and then emit its state to the
 snapshot storage. This is in direct contradiction with the contract of
@@ -5759,13 +5752,11 @@ restart.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="fine-tuning-edges"><a class="anchor" href="#fine-tuning-edges"></a>31. Fine-Tuning Edges</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="fine-tuning-edges"><a class="anchor" href="#fine-tuning-edges"></a>8.2.7. Fine-Tuning Edges</h4>
 <div class="paragraph">
 <p>Edges can be configured with an
-[<code>EdgeConfig</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/EdgeConfig.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/EdgeConfig.html</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/EdgeConfig.html"><code>EdgeConfig</code></a>
 instance, which specifies additional fine-tuning parameters. For
 example,</p>
 </div>
@@ -5777,14 +5768,20 @@ example,</p>
 </div>
 <div class="paragraph">
 <p>Please refer to the Javadoc of
-[<code>EdgeConfig</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/EdgeConfig.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/EdgeConfig.html</a>)
-for details.
-A Job is the unit of work which is executed. A Job is described by a
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/EdgeConfig.html"><code>EdgeConfig</code></a>
+for details.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="job"><a class="anchor" href="#job"></a>8.3. Job</h3>
+<div class="paragraph">
+<p>A Job is the unit of work which is executed. A Job is described by a
 DAG, which describes the computation to be performed, and the inputs and
 outputs of the computation.</p>
 </div>
 <div class="paragraph">
-<p>[<code>Job</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Job.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Job.html</a>)
+<p><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Job.html"><code>Job</code></a>
 is a handle to the execution of a <code>DAG</code>. To create a job, supply the <code>DAG</code>
 to a previously created <code>JetInstance</code> as shown below:</p>
 </div>
@@ -5818,11 +5815,8 @@ storing of results via its <strong>sink</strong> vertices. Typically the results
 be in a Hazelcast map or another structure and have to be accessed by
 their own API after the job is done.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="deploy-your-resources"><a class="anchor" href="#deploy-your-resources"></a>32. Deploy your Resources</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="deploy-your-resources"><a class="anchor" href="#deploy-your-resources"></a>8.3.1. Deploy your Resources</h4>
 <div class="paragraph">
 <p>If the Jet cluster has not been started with all the job&#8217;s computation
 code already on the classpath, you have to deploy the code together
@@ -5840,14 +5834,18 @@ jet.newJob(dag, config).execute().get();</code></pre>
 keep in mind that the deployed code is available <strong>only</strong> within the
 scope of the executing Jet job.</p>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="processor"><a class="anchor" href="#processor"></a>8.4. Processor</h3>
 <div class="paragraph">
-<p>[<code>Processor</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html</a>)
+<p><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html"><code>Processor</code></a>
 is the main type whose implementation is up to the user of the Core API:
 it contains the code of the computation to be performed by a vertex.
 There are a number of Processor building blocks in the Core API which
 allow you to just specify the computation logic, while the provided code
 handles the processor&#8217;s cooperative behavior. Please refer to the
-[AbstractProcessor](AbstractProcessor) section.</p>
+<a href="#abstract-processor">AbstractProcessor</a> section.</p>
 </div>
 <div class="paragraph">
 <p>A processor&#8217;s work can be conceptually described as follows: "receive
@@ -5864,11 +5862,8 @@ be thread-safe because Jet guarantees to use the processor instances
 from one thread at a time, although not necessarily always the same
 thread.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="cooperativeness"><a class="anchor" href="#cooperativeness"></a>33. Cooperativeness</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="cooperativeness"><a class="anchor" href="#cooperativeness"></a>8.4.1. Cooperativeness</h4>
 <div class="paragraph">
 <p><code>Processor</code> instances are cooperative by default. The processor can opt
 out of cooperative multithreading by overriding <code>isCooperative()</code> to
@@ -5883,13 +5878,11 @@ these requirements. The major exception are sources and sinks because
 they often have no choice but calling into blocking I/O APIs.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="the-outbox"><a class="anchor" href="#the-outbox"></a>34. The Outbox</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="the-outbox"><a class="anchor" href="#the-outbox"></a>8.4.2. The Outbox</h4>
 <div class="paragraph">
 <p>The processor sends its output items to its
-[<code>Outbox</code>,](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Outbox.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Outbox.html</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Outbox.html"><code>Outbox</code></a>
 which has a separate bucket for each outbound edge. The buckets have
 limited capacity and will refuse an item when full. A cooperative
 processor should be implemented such that when the outbox refuses its
@@ -5897,16 +5890,14 @@ item, it saves its processing state and returns from the processing
 method. The execution engine will then drain the outbox buckets.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="data-processing-callbacks"><a class="anchor" href="#data-processing-callbacks"></a>35. Data Processing Callbacks</h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="process-ordinal-inbox"><a class="anchor" href="#process-ordinal-inbox"></a>35.1. process(ordinal, inbox)</h3>
+<div class="sect3">
+<h4 id="data-processing-callbacks"><a class="anchor" href="#data-processing-callbacks"></a>8.4.3. Data Processing Callbacks</h4>
+<div class="sect4">
+<h5 id="process-ordinal-inbox"><a class="anchor" href="#process-ordinal-inbox"></a>process(ordinal, inbox)</h5>
 <div class="paragraph">
 <p>Jet passes the items received over a given edge to the processor by
 calling
-[<code>process(ordinal, inbox)</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#process-int-com.hazelcast.jet.core.Inbox-" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#process-int-com.hazelcast.jet.core.Inbox-</a>).
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#process-int-com.hazelcast.jet.core.Inbox-"><code>process(ordinal, inbox)</code></a>.
 All items received since the last <code>process()</code> call are in the inbox, but
 also all the items the processor hasn&#8217;t removed in a previous
 <code>process()</code> call. There is a separate instance of <code>Inbox</code> for each
@@ -5923,12 +5914,12 @@ stay in the inbox so Jet knows the processor has more work to do even if
 no new items are received.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="tryprocesswatermark-watermark"><a class="anchor" href="#tryprocesswatermark-watermark"></a>35.2. tryProcessWatermark(watermark)</h3>
+<div class="sect4">
+<h5 id="tryprocesswatermark-watermark"><a class="anchor" href="#tryprocesswatermark-watermark"></a>tryProcessWatermark(watermark)</h5>
 <div class="paragraph">
 <p>When new highest watermark is received from all input edges and all
 input processor instances, the
-[<code>tryProcessWatermark(watermark)</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#tryProcessWatermark-com.hazelcast.jet.core.Watermark-" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#tryProcessWatermark-com.hazelcast.jet.core.Watermark-</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#tryProcessWatermark-com.hazelcast.jet.core.Watermark-"><code>tryProcessWatermark(watermark)</code></a>
 method is called. The watermark value is always greater than in the
 previous call.</p>
 </div>
@@ -5939,11 +5930,11 @@ timestamp before any other processing method is called. When the method
 returns <code>true</code>, the watermark is forwarded to the downstream processors.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="tryprocess"><a class="anchor" href="#tryprocess"></a>35.3. tryProcess()</h3>
+<div class="sect4">
+<h5 id="tryprocess"><a class="anchor" href="#tryprocess"></a>tryProcess()</h5>
 <div class="paragraph">
 <p>If a processor&#8217;s inbox is empty, Jet will call its
-[<code>tryProcess()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#tryProcess--" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#tryProcess--</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#tryProcess--"><code>tryProcess()</code></a>
 method instead. This allows the processor to perform work that is not
 input data-driven. The method has a <code>boolean</code> return value and if it
 returns <code>false</code>, it will be called again before any other methods are
@@ -5964,11 +5955,11 @@ on the passage of wall-clock time, and it can do it inside the
 <code>tryProcess()</code> method.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="complete"><a class="anchor" href="#complete"></a>35.4. complete()</h3>
+<div class="sect4">
+<h5 id="complete"><a class="anchor" href="#complete"></a>complete()</h5>
 <div class="paragraph">
 <p>Jet calls
-[<code>complete()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#complete--" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#complete--</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#complete--"><code>complete()</code></a>
 when all the input edges are exhausted. It is the last method to be
 invoked on the processor before disposing of it. Typically this is where
 a batch processor emits the results of an aggregating operation. If it
@@ -5977,10 +5968,8 @@ be called again later.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="snapshotting-callbacks"><a class="anchor" href="#snapshotting-callbacks"></a>36. Snapshotting Callbacks</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="snapshotting-callbacks"><a class="anchor" href="#snapshotting-callbacks"></a>8.4.4. Snapshotting Callbacks</h4>
 <div class="paragraph">
 <p>Hazelcast Jet supports fault-tolerant processing jobs by taking
 distributed snapshots. In regular time intervals each of the source
@@ -5994,11 +5983,11 @@ the barrier to its outbound edges, and so on towards the sinks.</p>
 <code>ProcessorTasklet</code> handles them internally and invokes the snapshotting
 callback methods described below.</p>
 </div>
-<div class="sect2">
-<h3 id="savetosnapshot"><a class="anchor" href="#savetosnapshot"></a>36.1. saveToSnapshot()</h3>
+<div class="sect4">
+<h5 id="savetosnapshot"><a class="anchor" href="#savetosnapshot"></a>saveToSnapshot()</h5>
 <div class="paragraph">
 <p>Jet will call
-[<code>saveToSnapshot()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#saveToSnapshot--" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#saveToSnapshot--</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#saveToSnapshot--"><code>saveToSnapshot()</code></a>
 when it determines it&#8217;s time for the processor to save its state to the
 current snapshot. Except for source vertices, this happens when the
 processor has received the barrier item from all its inbound streams and
@@ -6013,20 +6002,20 @@ been flushed.</p>
 barrier item to all the outbound edges.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="restorefromsnapshot"><a class="anchor" href="#restorefromsnapshot"></a>36.2. restoreFromSnapshot()</h3>
+<div class="sect4">
+<h5 id="restorefromsnapshot"><a class="anchor" href="#restorefromsnapshot"></a>restoreFromSnapshot()</h5>
 <div class="paragraph">
 <p>When a Jet job is restarting after having been suspended, it will first
 reload all the state from the last successful snapshot. Each processor
 will get its data through the invocations of
-[<code>restoreFromSnapshot()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#restoreFromSnapshot-com.hazelcast.jet.core.Inbox-" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#restoreFromSnapshot-com.hazelcast.jet.core.Inbox-</a>).
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#restoreFromSnapshot-com.hazelcast.jet.core.Inbox-"><code>restoreFromSnapshot()</code></a>.
 Its parameter is the <code>Inbox</code> filled with a batch of snapshot data. The
 method will be called repeatedly until it consumes all the snapshot
 data.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="finishsnapshotrestore"><a class="anchor" href="#finishsnapshotrestore"></a>36.3. finishSnapshotRestore()</h3>
+<div class="sect4">
+<h5 id="finishsnapshotrestore"><a class="anchor" href="#finishsnapshotrestore"></a>finishSnapshotRestore()</h5>
 <div class="paragraph">
 <p>After it has delivered all the snapshot data to <code>restoreFromSnapshot()</code>,
 Jet will call
@@ -6036,26 +6025,26 @@ restored state.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="best-practice-document-at-least-once-behavior"><a class="anchor" href="#best-practice-document-at-least-once-behavior"></a>37. Best Practice: Document At-Least-Once Behavior</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="alo-behavior"><a class="anchor" href="#alo-behavior"></a>8.4.5. Best Practice: Document At-Least-Once Behavior</h4>
 <div class="paragraph">
-<p>As we discuss in the [Under the
-Hood](/Under_the_Hood/How_Infinite_Stream_Processing_Works_In_Jet#page_The+Pitfalls+of+At-Least-Once+Processing)
- chapter, the behavior of a processor under <em>at-least-once</em> semantics
+<p>As we discuss in the <a href="#pitfalls-alo">Under the
+Hood</a> chapter, the behavior of a processor under <em>at-least-once</em> semantics
 can deviate from correctness in extremely non-trivial and unexpected
 ways. Therefore the processor should always document its possible
-behaviors for that case.
-[<code>AbstractProcessor</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/AbstractProcessor.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/AbstractProcessor.html</a>)
+behaviors for that case.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="abstract-processor"><a class="anchor" href="#abstract-processor"></a>8.5. AbstractProcessor</h3>
+<div class="paragraph">
+<p><a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/AbstractProcessor.html"><code>AbstractProcessor</code></a>
 is a convenience class designed to deal with most of the boilerplate in
 implementing the full <code>Processor</code> API.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="receiving-items"><a class="anchor" href="#receiving-items"></a>38. Receiving items</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="receiving-items"><a class="anchor" href="#receiving-items"></a>8.5.1. Receiving items</h4>
 <div class="paragraph">
 <p>On the reception side the first line of convenience are the
 <code>tryProcessN()</code> methods. While in the inbox the watermark and data items
@@ -6078,10 +6067,8 @@ practice.</p>
 <code>tryProcessWmN(wm)</code> methods that get just the watermark items.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="emitting-items"><a class="anchor" href="#emitting-items"></a>39. Emitting items</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="emitting-items"><a class="anchor" href="#emitting-items"></a>8.5.2. Emitting items</h4>
 <div class="paragraph">
 <p><code>AbstractProcessor</code> has a private reference to its outbox and lets you
 access all its functionality indirectly. The <code>tryEmit()</code> methods offer your items to the outbox. If you get a <code>false</code> return value, you must stop emitting items and return from the current callback method of the processor. For example, if you called <code>tryEmit()</code> from <code>tryProcess0()</code>,
@@ -6127,10 +6114,8 @@ of creating a new traverser when the previous one is exhausted and
 reusing the previous one until exhausted.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="traverser"><a class="anchor" href="#traverser"></a>40. Traverser</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="traverser"><a class="anchor" href="#traverser"></a>8.5.3. Traverser</h4>
 <div class="paragraph">
 <p><code>Traverser</code> is a very simple functional interface whose shape matches
 that of a <code>Supplier</code>, but with a contract specialized for the traversal
@@ -6173,10 +6158,15 @@ processor:</p>
 successor. If the outbox refuses an item, <code>flatMapper.tryProcess()</code>
 returns <code>false</code> and stays ready to resume the next time it is invoked.
 The fact that it returned <code>false</code> signals Jet to invoke
-<code>ItemAndSuccessorP.tryProcess()</code> again with the same arguments.
-As mentioned in the
-[Work_with_Jet](/Work_with_Jet/Infinite_Stream_Processing#page_Time+Ordering+and+the+Watermark)
-chapter, determining the watermark is somewhat of a black art; it&#8217;s
+<code>ItemAndSuccessorP.tryProcess()</code> again with the same arguments.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="watermark-policy"><a class="anchor" href="#watermark-policy"></a>8.6. WatermarkPolicy</h3>
+<div class="paragraph">
+<p>As mentioned in the
+<a href="#time-ordering">Work_with_Jet</a> chapter, determining the watermark is somewhat of a black art; it&#8217;s
 about superimposing order over a disordered stream of events. We must
 decide at which point it stops making sense to wait even longer for data
 about past events to arrive. There&#8217;s a tension between two opposing
@@ -6204,22 +6194,22 @@ is the abstraction that computes the value of the watermark for a
 (sub)stream of disordered data items. It takes as input the timestamp of
 each observed item and outputs the current watermark value.</p>
 </div>
-<div class="sect2">
-<h3 id="predefined-watermark-policies"><a class="anchor" href="#predefined-watermark-policies"></a>40.1. Predefined watermark policies</h3>
+<div class="sect3">
+<h4 id="predefined-watermark-policies"><a class="anchor" href="#predefined-watermark-policies"></a>8.6.1. Predefined watermark policies</h4>
 <div class="paragraph">
 <p>We provide some general, data-agnostic watermark policies in the
-[<code>WatermarkPolicies</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html"><code>WatermarkPolicies</code></a>
 class. They vary in how well they deal with advancing the watermark during
 a stream lull. The better they deal with it, the more assumptions they
 must make on the nature of the events' timestamp values and on the
 relationship between the timestamps and the locally observed wall-clock
 time.</p>
 </div>
-<div class="sect3">
-<h4 id="with-fixed-lag"><a class="anchor" href="#with-fixed-lag"></a>40.1.1. "With Fixed Lag"</h4>
+<div class="sect4">
+<h5 id="with-fixed-lag"><a class="anchor" href="#with-fixed-lag"></a>"With Fixed Lag"</h5>
 <div class="paragraph">
 <p>The
-[<code>withFixedLag()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#withFixedLag-long-" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#withFixedLag-long-</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#withFixedLag-long-"><code>withFixedLag()</code></a>
 policy will maintain a watermark that lags behind the highest observed
 event timestamp by a configured amount. In other words, each time an event
 with the highest timestamp so far is encountered, this policy advances the
@@ -6228,11 +6218,11 @@ between timestamps in the stream: all events whose timestamp is more than
 the configured <code>lag</code> behind the highest timestamp are considered late.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="limiting-lag-and-delay"><a class="anchor" href="#limiting-lag-and-delay"></a>40.1.2. "Limiting Lag and Delay"</h4>
+<div class="sect4">
+<h5 id="limiting-lag-and-delay"><a class="anchor" href="#limiting-lag-and-delay"></a>"Limiting Lag and Delay"</h5>
 <div class="paragraph">
 <p>The
-[<code>limitingLagAndDelay()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#limitingLagAndDelay-long-long-" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#limitingLagAndDelay-long-long-</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#limitingLagAndDelay-long-long-"><code>limitingLagAndDelay()</code></a>
 policy applies the same fixed-lag logic as above and adds another limit:
 maximum delay from observing an item and advancing the watermark to at
 least that item&#8217;s timestamp. A stream may experience a lull (no items
@@ -6248,11 +6238,11 @@ watermarks.</p>
 the unit of measurement used for event timestamps.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="limiting-lag-and-lull"><a class="anchor" href="#limiting-lag-and-lull"></a>40.1.3. "Limiting Lag and Lull"</h4>
+<div class="sect4">
+<h5 id="limiting-lag-and-lull"><a class="anchor" href="#limiting-lag-and-lull"></a>"Limiting Lag and Lull"</h5>
 <div class="paragraph">
 <p>The
-[<code>limitingLagAndLull()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#limitingLagAndLull-long-long-" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#limitingLagAndLull-long-long-</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#limitingLagAndLull-long-long-"><code>limitingLagAndLull()</code></a>
 policy is similar to <code>limitingLagAndDelay</code> in addressing the stream lull
 problem and goes a step further by addressing the issues of lull combined
 with skew. To achieve this it must introduce an assumption, though: that
@@ -6273,11 +6263,11 @@ cause the watermark sent to the downstream to forever lag behind all
 the actual data.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="limiting-timestamp-and-wall-clock-lag"><a class="anchor" href="#limiting-timestamp-and-wall-clock-lag"></a>40.1.4. "Limiting Timestamp and Wall-Clock Lag"</h4>
+<div class="sect4">
+<h5 id="limiting-timestamp-and-wall-clock-lag"><a class="anchor" href="#limiting-timestamp-and-wall-clock-lag"></a>"Limiting Timestamp and Wall-Clock Lag"</h5>
 <div class="paragraph">
 <p>The
-[<code>limitingTimestampAndWallClockLag()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#limitingTimestampAndWallClockLag-long-long-" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#limitingTimestampAndWallClockLag-long-long-</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#limitingTimestampAndWallClockLag-long-long-"><code>limitingTimestampAndWallClockLag()</code></a>
 policy makes a stronger assumption: that the event timestamps are in
 milliseconds since the Unix epoch and that they are synchronized with the
 local time on the processing machine. It puts a limit on how much the
@@ -6287,14 +6277,14 @@ subtle issue with <code>limitingLagAndLull()</code>.</p>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="watermark-throttling"><a class="anchor" href="#watermark-throttling"></a>40.2. Watermark Throttling</h3>
+<div class="sect3">
+<h4 id="watermark-throttling"><a class="anchor" href="#watermark-throttling"></a>8.6.2. Watermark Throttling</h4>
 <div class="paragraph">
 <p>The policy objects presented above will return the "ideal" watermark
 value according to their logic; however it would be too much overhead to
 insert a watermark item each time the ideal watermark advances
 (typically a thousand times per second).
-[<code>WatermarkEmissionPolicy</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkEmissionPolicy.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkEmissionPolicy.html</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkEmissionPolicy.html"><code>WatermarkEmissionPolicy</code></a>
 is the object that decides whether to emit a watermark item given the last
 emitted and the current value of the watermark. For the purpose of
 sliding windows there is an easy answer: suppress all watermark items
@@ -6302,16 +6292,16 @@ that belong to the same frame as the already emitted one. Such items
 would have no effect since the watermark must advance beyond a frame&#8217;s
 end for the aggregating vertex to consider the frame completed and act
 upon its results. The method
-[<code>emitByFrame()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkEmissionPolicy.html#emitByFrame-com.hazelcast.jet.core.WindowDefinition-" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkEmissionPolicy.html#emitByFrame-com.hazelcast.jet.core.WindowDefinition-</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkEmissionPolicy.html#emitByFrame-com.hazelcast.jet.core.WindowDefinition-"><code>emitByFrame()</code></a>
 will return a policy with this kind of throttling applied. For other cases
 there is
-[<code>emitByMinStep()</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkEmissionPolicy.html#emitByMinStep-long-" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkEmissionPolicy.html#emitByMinStep-long-</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkEmissionPolicy.html#emitByMinStep-long-"><code>emitByMinStep()</code></a>
 which suppresses watermark items until the watermark has advanced at least
 <code>minStep</code> ahead of the previously emitted one.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="maximum-watermark-retention-on-substream-merge"><a class="anchor" href="#maximum-watermark-retention-on-substream-merge"></a>40.3. Maximum watermark retention on substream merge</h3>
+<div class="sect3">
+<h4 id="maximum-watermark-retention-on-substream-merge"><a class="anchor" href="#maximum-watermark-retention-on-substream-merge"></a>8.6.3. Maximum watermark retention on substream merge</h4>
 <div class="paragraph">
 <p>When two input streams are merged into one for downstream processing,
 Jet waits for the watermark to advance in all substreams in order to
@@ -6329,14 +6319,20 @@ external source hiccup, non-balanced partitions and so on.</p>
 </div>
 <div class="paragraph">
 <p>An option to limit the watermark retention is available using
-[`JobConfig.setMaxWatermarkRetainMillis()
-`](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JobConfig.html#setMaxWatermarkRetainMillis-int-" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JobConfig.html#setMaxWatermarkRetainMillis-int-</a>).
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JobConfig.html#setMaxWatermarkRetainMillis-int-">`JobConfig.setMaxWatermarkRetainMillis()
+`</a>.
 The option sets the maximum time to retain the watermarks while
 coalescing them. A negative value disables the limit and Jet will retain
 the watermark as long as needed. With this setting you choose a
 trade-off between latency and correctness that arises when dealing with
-stream skew.
-While formally there&#8217;s only one kind of vertex in Jet, in practice
+stream skew.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="vertices"><a class="anchor" href="#vertices"></a>8.7. Vertices in the Library</h3>
+<div class="paragraph">
+<p>While formally there&#8217;s only one kind of vertex in Jet, in practice
 there is an important distinction between the following:</p>
 </div>
 <div class="ulist">
@@ -6389,8 +6385,13 @@ the inbox into the buffer and handling the general lifecycle).</p>
 <div class="paragraph">
 <p>Finally, the computational vertices are where the main action takes
 place. The main class with factories for built-in computational
-vertices is <code>Processors</code>.
-The Hazelcast Jet distribution contains vertices for the sources and
+vertices is <code>Processors</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="custom-source-sink"><a class="anchor" href="#custom-source-sink"></a>8.8. Implement a Custom Source or Sink</h3>
+<div class="paragraph">
+<p>The Hazelcast Jet distribution contains vertices for the sources and
 sinks exposed through the Pipeline API. You can extend Jet&#8217;s support for
 sources and sinks by writing your own vertex implementations.</p>
 </div>
@@ -6400,12 +6401,8 @@ data source is typically distributed across multiple machines and
 partitions, and the work needs to be distributed across multiple members
 and processors.</p>
 </div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="how-jet-creates-and-initializes-a-job"><a class="anchor" href="#how-jet-creates-and-initializes-a-job"></a>41. How Jet Creates and Initializes a Job</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="how-jet-creates-and-initializes-a-job"><a class="anchor" href="#how-jet-creates-and-initializes-a-job"></a>8.8.1. How Jet Creates and Initializes a Job</h4>
 <div class="paragraph">
 <p>These are the steps taken to create and initialize a Jet job:</p>
 </div>
@@ -6440,7 +6437,7 @@ execution.</p>
 </div>
 <div class="paragraph">
 <p>The most visible consequence of the above process is the
-[<code>ProcessorMetaSupplier</code>](<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html" class="bare">http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html</a>)
+<a href="http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html"><code>ProcessorMetaSupplier</code></a>
 type: one must be provided for each <code>Vertex</code>. In Step 3, the coordinator
 deserializes the meta-supplier as a constituent of the <code>DAG</code> and asks it
 to create <code>ProcessorSupplier</code> instances which go into the execution
@@ -6458,8 +6455,8 @@ driving a source vertex: typically each one will emit only a slice of
 the total data stream, as appropriate to the partitions it is in charge
 of.</p>
 </div>
-<div class="sect2">
-<h3 id="processormetasupplier"><a class="anchor" href="#processormetasupplier"></a>41.1. ProcessorMetaSupplier</h3>
+<div class="sect4">
+<h5 id="processormetasupplier"><a class="anchor" href="#processormetasupplier"></a>ProcessorMetaSupplier</h5>
 <div class="paragraph">
 <p>The client serializes an instance of <code>ProcessorMetaSupplier</code> as part of
 each <code>Vertex</code> in the <code>DAG</code>. The <strong>coordinator</strong> member deserializes the
@@ -6471,8 +6468,8 @@ which you should use to determine cluster members that will run the job,
 if needed.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="processorsupplier"><a class="anchor" href="#processorsupplier"></a>41.2. ProcessorSupplier</h3>
+<div class="sect4">
+<h5 id="processorsupplier"><a class="anchor" href="#processorsupplier"></a>ProcessorSupplier</h5>
 <div class="paragraph">
 <p>Usually this type will be custom-implemented in the same cases where the
 meta-supplier is custom-implemented and will complete the logic of a
@@ -6485,10 +6482,8 @@ connections. We provide <code>CloseableProcessorSupplier</code> for this.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="example-distributed-integer-generator"><a class="anchor" href="#example-distributed-integer-generator"></a>42. Example - Distributed Integer Generator</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="example-distributed-integer-generator"><a class="anchor" href="#example-distributed-integer-generator"></a>8.8.2. Example - Distributed Integer Generator</h4>
 <div class="paragraph">
 <p>Let&#8217;s say we want to write a simple source that will generate numbers
 from 0 to 1,000,000 (exclusive). It is trivial to write a single
@@ -6705,20 +6700,20 @@ dag.edge(Edge.between(generateNumbers, logInput));
 After re-running with two Jet members, we should once again see each
 number generated just once.
 
-## Sinks
+==== Sinks
 
 Like a source, a sink is just another kind of processor. It accepts
 items from the inbox and pushes them into some system external to the
 Jet job (Hazelcast IMap, files, databases, distributed queues, etc.). A
 simple way to implement it is to extend
-[`AbstractProcessor`](AbstractProcessor)
+&lt;&lt;abstract-processor, `AbstractProcessor`&gt;&gt;
 and override `tryProcess`, which deals with items one at a time.
 However, sink processors must often explicitly deal with batching. In
 this case directly implementing `Processor` is better because its
 `process()` method gets the entire `Inbox` which can be drained to a
 buffer and flushed out.
 
-## Example - File Writer
+==== Example - File Writer
 
 In this example we'll implement a vertex that writes the received items
 to files. To avoid contention and conflicts, each processor must write
@@ -6764,8 +6759,7 @@ class WriteFileP extends AbstractProcessor implements Closeable {
 Some comments:
 
 * The constructor declares the processor
-[non-cooperative](Processor#page_Cooperativeness)
-because it will perform blocking IO operations.
+&lt;&lt;cooperativeness, non-cooperative&gt;&gt; because it will perform blocking IO operations.
 * `init()` method finds a unique filename for each processor by relying
 on the information reachable from the `Context` object.
 * Note the careful implementation of `close()`: it first checks if
@@ -6819,9 +6813,12 @@ class WriteFilePSupplier implements ProcessorSupplier {
     }
 }
 ```
-[TOC]
 
-## Inspecting Processor Input and Output
+[[core-best-practices]]
+=== Best Practices
+
+
+==== Inspecting Processor Input and Output
 
 The structure of the DAG model is a very poor match for Java's type
 system, which results in the lack of compile-time type safety between
@@ -6830,12 +6827,12 @@ requires some trial and error. To facilitate this process, but also to
 allow many more kinds of diagnostics and debugging, Jet's library offers
 ways to capture the input/output of a vertex and inspect it.
 
-### Peeking with Processor Wrappers
+===== Peeking with Processor Wrappers
 
 The first approach is to decorate a vertex declaration with a layer that
 will log all the data traffic going through it. This support is present
 in the
-[`DiagnosticProcessors`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/DiagnosticProcessors.html)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/DiagnosticProcessors.html[`DiagnosticProcessors`]
 factory class, which contains the following methods:
 
 * `peekInput()`: logs items received at any edge ordinal.
@@ -6850,7 +6847,7 @@ These methods take two optional parameters:
 * `shouldLogF` is a filtering function so you can focus your log output
   only on some specific items. The default is to log all items.
 
-#### Example Usage
+====== Example Usage
 
 Suppose we have declared the second-stage vertex in a two-stage
 aggregation setup:
@@ -6872,15 +6869,15 @@ Keep in mind that logging happens on the machine running hosting the
 processor, so this technique is primarily targeted to Jet jobs the
 developer runs locally in his development environment.
 
-### Attaching a Sink Vertex
+===== Attaching a Sink Vertex
 
 Since most vertices are implemented to emit the same data stream to all
 attached edges, it is usually possible to attach a diagnostic sink to
 any vertex. For example, Jet's standard
-[`writeFileP()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/SinkProcessors.html#writeFileP-java.lang.String-)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/SinkProcessors.html#writeFileP-java.lang.String-[`writeFileP()`]
 sink vertex can be very useful here.
 
-#### Example Usage
+====== Example Usage
 
 In the example from the Word Count tutorial we can add the following
 declarations:
@@ -6899,15 +6896,15 @@ By specifying the `allToOne()` routing policy you can also have the
 output of all the processors on all the members saved on a single member
 (although the choice of exactly which member will be arbitrary).
 
-## How to Unit-Test a Processor
+==== How to Unit-Test a Processor
 
 We provide some utility classes to simplify writing unit tests for your custom processors. You can find them in the
-[`com.hazelcast.jet.core.test`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/package-summary.html)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/package-summary.html[`com.hazelcast.jet.core.test`]
 package. Using these utility classes you can unit test your processor by
 passing it some input items and asserting the expected output.
 
 Start by calling
-[`TestSupport.verifyProcessor()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/TestSupport.html#verifyProcessor-com.hazelcast.jet.core.ProcessorSupplier-)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/TestSupport.html#verifyProcessor-com.hazelcast.jet.core.ProcessorSupplier-[`TestSupport.verifyProcessor()`]
 by passing it a processor supplier or a processor instance.
 
 The test process does the following:
@@ -6933,7 +6930,7 @@ The test optionally asserts that the processor made progress on each call to any
 * put something to the outbox
 * return `true` (applies only to `boolean`-returning methods)
 
-#### Cooperative Processors
+====== Cooperative Processors
 
 The test will provide a 1-capacity outbox to cooperative processors. The
 outbox will already be full on every other call to `process()`. This
@@ -6944,7 +6941,7 @@ emitting anything.
 The test will also assert that the processor doesn't spend more time in
 any callback than the limit specified in `cooperativeTimeout(long)`.
 
-#### Cases Not Covered
+====== Cases Not Covered
 
 This class does not cover these cases:
 
@@ -6955,7 +6952,7 @@ This class does not cover these cases:
   from your supplier)
 * it never calls `Processor.tryProcess()`
 
-#### Example Usage
+====== Example Usage
 
 This will test one of the jet-provided processors:
 
@@ -6971,7 +6968,7 @@ TestSupport.verifyProcessor(Processors.map((String s) -&gt; s.toUpperCase()))
            .expectOutput(asList("FOO", "BAR"));
 ```
 
-### Other Utility Classes
+===== Other Utility Classes
 
 `com.hazelcast.jet.test` contains these classes that you can use as
 implementations of Jet interfaces in tests:
@@ -6985,6 +6982,10 @@ implementations of Jet interfaces in tests:
 The class `JetAssert` contains a few of the `assertX()` methods normally
 found in JUnit's `Assert` class. We had to reimplement them to avoid a
 dependency on JUnit from our production code.
+
+[[tf-idf]]
+=== Custom DAG - Inverted TF-IDF Index
+
 In this tutorial we'll explore what the Core API DAG model offers beyond
 the capabilities of the Pipeline API. Our DAG will feature splits,
 joins, broadcast, and prioritized edges. We'll access data from the file
@@ -6996,16 +6997,16 @@ own with minimum boilerplate.
 The full code is available at the `hazelcast-jet-code-samples`
 repository:
 
-[TfIdfJdkStreams.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[TfIdfJdkStreams.java]
 
-[TfIdf.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java)
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java[TfIdf.java]
 
 Let us first introduce the problem. The inverted index is a basic data
 structure in the domain of full-text search. First used in the 1950s, it
 is still at the core of modern information retrieval systems such as
 Lucene. The goal is to be able to quickly find the documents that
 contain a given set of search terms, and to sort them by relevance. To
-understand it we'll need to throw in some terminology...
+understand it we'll need to throw in some terminology.
 
 - A _document_ is treated as a list of words that has a unique ID. It is
 useful to define the notion of a _document index_ which maps each
@@ -7069,12 +7070,12 @@ Also note the limitation of this technique: a phrase is treated as just
 the sum of its parts; a document may contain the exact phrase and this
 will not affect its score.
 
-## Building the Inverted Index with Java Streams
+===== Building the Inverted Index with Java Streams
 
 To warm us up, let's see what it takes to build the inverted index with
 just thread parallelism and without the ability to scale out across
 many machines. It is expressible in Java Streams API without too much
-work. The full code is [here](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java).
+work. The full code is https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[here].
 
 We'll start by preparing a `Stream&lt;Entry&lt;Long, String&gt;&gt; docWords`: a
 stream of all the words found in all the documents. We use `Map.Entry` as
@@ -7142,9 +7143,9 @@ private static Entry&lt;Long, Double&gt; tfidfEntry(
 
 The search function can be implemented with another Streams expression,
 which you can review in the
-[SearchGui](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/SearchGui.java)
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/SearchGui.java[SearchGui]
 class. You can also run the
-[TfIdfJdkStreams](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[TfIdfJdkStreams]
 class and take the inverted index for a spin, making actual searches.
 
 There is one last concept in this model that we haven't mentioned yet:
@@ -7159,7 +7160,7 @@ words in the tokenization phase. The same set is used to cross out words
 from the user's search phrase, as if they weren't entered. We'll add this
 feature to our DAG based model in the following section.
 
-## Translating to Jet DAG
+==== Translating to Jet DAG
 
 Our DAG as a whole will look relatively complex, but it can be
 understood as a "backbone" (cascade of vertices) starting from a source
@@ -7230,7 +7231,7 @@ suffer because first the CPU would be forced to sit idle, then we'd be
 late in making the next IO call while tokenizing the input. The separate
 vertex can proceed at full speed all the time.
 
-## Implementation Code
+==== Implementation Code
 
 As we announced, some of the processors in our DAG will need custom
 implementation code. Let's start from the source vertex. It is easy,
@@ -7421,6 +7422,14 @@ Finally, our DAG is terminated by a sink vertex:
 ```java
 dag.newVertex("sink", SinkProcessors.writeMapP(INVERTED_INDEX));
 ```
+
+[[misc]]
+== Miscellaneous
+
+
+[[phone-homes]]
+=== Phone Homes
+
 Hazelcast uses phone home data to learn about the usage of Hazelcast Jet.
 
 Hazelcast Jet instances call our phone home server initially when they
@@ -7453,9 +7462,7 @@ The following information is sent in a phone home:
 
 **Phone Home Code**
 
-The phone home code itself is open source. Please see &lt;a
-href="https://github.com/hazelcast/hazelcast/blob/master/hazelcast/src/main/java/com/hazelcast/util/PhoneHome.java"
-target="_blank"&gt;here&lt;/a&gt;.
+The phone home code itself is open source. Please see https://github.com/hazelcast/hazelcast/blob/master/hazelcast/src/main/java/com/hazelcast/util/PhoneHome.java[here].
 
 **Disabling Phone Homes**
 
@@ -7473,11 +7480,12 @@ export HZ_PHONE_HOME_ENABLED=false
 **Phone Home URL**
 
 The URL used for phone home requests is
-&lt;a href="http://phonehome.hazelcast.com/ping"
-target="_blank"&gt;http://phonehome.hazelcast.com/ping&lt;/a&gt;.
+http://phonehome.hazelcast.com/ping
+
+=== License Questions
 
 Hazelcast Jet is distributed using the
-&lt;a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank"&gt;Apache License 2&lt;/a&gt;,
+http://www.apache.org/licenses/LICENSE-2.0[Apache License 2],
 therefore permissions are granted to use, reproduce and distribute it
 along with any kind of open source and closed source applications.
 
@@ -7485,7 +7493,7 @@ Depending on the used feature-set, Hazelcast Jet has certain runtime
 dependencies which might have different licenses. Following are
 dependencies and their respective licenses.
 
-## Embedded Dependencies
+==== Embedded Dependencies
 
 Embedded dependencies are merged (shaded) with the Hazelcast Jet codebase
 at compile-time. These dependencies become an integral part of the
@@ -7493,55 +7501,65 @@ Hazelcast Jet distribution.
 
 For license files of embedded dependencies, please see the `license`
 directory of the Hazelcast Jet distribution, available at our
-&lt;a href="https://jet.hazelcast.org/download/" target="_blank"&gt;download page&lt;/a&gt;.
+https://jet.hazelcast.org/download/[download page].
 
-### minimal-json
+===== minimal-json
 
 minimal-json is a JSON parsing and generation library which is a part of
 the Hazelcast Jet distribution. It is used for communication
 between the Hazelcast Jet cluster and the Management Center.
 
-minimal-json is distributed under the &lt;a href="http://opensource.org/licenses/MIT" target="_blank"&gt;MIT license&lt;/a&gt; and offers the same rights to add, use,
+minimal-json is distributed under the http://opensource.org/licenses/MIT[MIT license] and offers the same rights to add, use,
 modify, and distribute the source code as the Apache License 2.0 that Hazelcast uses. However, some other restrictions might apply.
 
-## Runtime Dependencies
+===== Runtime Dependencies
 
 Depending on the used features, additional dependencies might be added
 to the dependency set. Those runtime dependencies might have
 other licenses. See the following list of additional runtime dependencies.
 
-### Apache Hadoop
+===== Apache Hadoop
 
 Hazelcast integrates with Apache Hadoop and can use it as a data
  sink or source. Jet has a dependency on the libraries required to
  read from and write to the Hadoop File System.
 
-Apache Hadoop is distributed under the terms of the &lt;a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank"&gt;Apache License 2&lt;/a&gt;.
+Apache Hadoop is distributed under the terms of the http://www.apache.org/licenses/LICENSE-2.0[Apache License 2].
 
-### Apache Kafka
+===== Apache Kafka
 
 Hazelcast integrates with Apache Kafka and can make use of it as a
 data sink or source. Hazelcast has a dependency on Kafka client
 libraries.
 
-Apache Kafka is distributed under the terms of the &lt;a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank"&gt;Apache License 2&lt;/a&gt;.
-You can refer to the [FAQ](https://jet.hazelcast.org/faq/) page to see the answers to frequently asked questions related to topics such as the relationship and differences between Hazelcast Jet and Hazelcast IMDG, Jet's APIs and roadmap.
+Apache Kafka is distributed under the terms of the http://www.apache.org/licenses/LICENSE-2.0[Apache License 2].
+
+=== FAQ
+
+You can refer to the https://jet.hazelcast.org/faq/[FAQ] page to see the answers to frequently asked questions related to topics such as the relationship and differences between Hazelcast Jet and Hazelcast IMDG, Jet's APIs and roadmap.
+
+=== Common Exceptions
+
 You may see the following exceptions thrown when working with Jet:
 
-* [`JetException`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/JetException.html):
+* http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/JetException.html[`JetException`]:
 A general exception that will be thrown if a job failure occurs.
 It will have the original exception in the cause field.
-* [`TopologyChangedException`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/TopologyChangedException.html):
+* http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/TopologyChangedException.html[`TopologyChangedException`]:
 This exception is thrown when a member participating in a job leaves the
 cluster. The job will typically be restarted automatically without throwing
 the exception to the user if auto-restart is enabled.
-* [`JobNotFoundException`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/JobNotFoundException.html):
+* http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/JobNotFoundException.html[`JobNotFoundException`]:
 Thrown when the coordinator node is not able to find the metadata for a
 given job.
 
 Furthermore, there are several Hazelcast exceptions that might be thrown
 when interacting with `JetInstance`. For description of Hazelcast IMDG
-exceptions, please refer to the [IMDG Reference manual](http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#common-exception-types).
+exceptions, please refer to the http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#common-exception-types[IMDG Reference manual].
+
+
+== Glossary
+
 &lt;table&gt;&lt;tr&gt;&lt;th&gt;
 Term
 &lt;/th&gt;&lt;th&gt;
@@ -7838,6 +7856,8 @@ Each window becomes the target of an aggregate function, which outputs
 one data item per window (and per grouping key).
 &lt;/td&gt;&lt;/tr&gt;
 &lt;/table&gt;</pre>
+</div>
+</div>
 </div>
 </div>
 </div>

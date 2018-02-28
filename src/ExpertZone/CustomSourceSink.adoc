@@ -1,3 +1,7 @@
+
+[[custom-source-sink]]
+=== Implement a Custom Source or Sink
+
 The Hazelcast Jet distribution contains vertices for the sources and
 sinks exposed through the Pipeline API. You can extend Jet's support for
 sources and sinks by writing your own vertex implementations.
@@ -7,7 +11,7 @@ data source is typically distributed across multiple machines and
 partitions, and the work needs to be distributed across multiple members
 and processors.
 
-## How Jet Creates and Initializes a Job
+==== How Jet Creates and Initializes a Job
 
 These are the steps taken to create and initialize a Jet job:
 
@@ -26,7 +30,7 @@ These are the steps taken to create and initialize a Jet job:
    execution.
 
 The most visible consequence of the above process is the
-[`ProcessorMetaSupplier`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html[`ProcessorMetaSupplier`]
 type: one must be provided for each `Vertex`. In Step 3, the coordinator
 deserializes the meta-supplier as a constituent of the `DAG` and asks it
 to create `ProcessorSupplier` instances which go into the execution
@@ -43,7 +47,7 @@ driving a source vertex: typically each one will emit only a slice of
 the total data stream, as appropriate to the partitions it is in charge
 of.
 
-### ProcessorMetaSupplier
+===== ProcessorMetaSupplier
 
 The client serializes an instance of `ProcessorMetaSupplier` as part of 
 each `Vertex` in the `DAG`. The **coordinator** member deserializes the 
@@ -54,7 +58,7 @@ information. The `get()` method takes `List<Address>` as a parameter,
 which you should use to determine cluster members that will run the job, 
 if needed.
 
-### ProcessorSupplier
+===== ProcessorSupplier
 
 Usually this type will be custom-implemented in the same cases where the 
 meta-supplier is custom-implemented and will complete the logic of a 
@@ -64,7 +68,7 @@ distributed data source's partition assignment. It creates instances of
 Another use is to open and close external resources, such as files or 
 connections. We provide `CloseableProcessorSupplier` for this.
 
-## Example - Distributed Integer Generator
+==== Example - Distributed Integer Generator
 
 Let's say we want to write a simple source that will generate numbers
 from 0 to 1,000,000 (exclusive). It is trivial to write a single
@@ -266,20 +270,20 @@ dag.edge(Edge.between(generateNumbers, logInput));
 After re-running with two Jet members, we should once again see each
 number generated just once.
 
-## Sinks
+==== Sinks
 
 Like a source, a sink is just another kind of processor. It accepts
 items from the inbox and pushes them into some system external to the
 Jet job (Hazelcast IMap, files, databases, distributed queues, etc.). A
 simple way to implement it is to extend
-[`AbstractProcessor`](AbstractProcessor)
+<<abstract-processor, `AbstractProcessor`>>
 and override `tryProcess`, which deals with items one at a time.
 However, sink processors must often explicitly deal with batching. In
 this case directly implementing `Processor` is better because its
 `process()` method gets the entire `Inbox` which can be drained to a
 buffer and flushed out.
 
-## Example - File Writer
+==== Example - File Writer
 
 In this example we'll implement a vertex that writes the received items
 to files. To avoid contention and conflicts, each processor must write
@@ -325,8 +329,7 @@ class WriteFileP extends AbstractProcessor implements Closeable {
 Some comments:
 
 * The constructor declares the processor
-[non-cooperative](Processor#page_Cooperativeness)
-because it will perform blocking IO operations.
+<<cooperativeness, non-cooperative>> because it will perform blocking IO operations.
 * `init()` method finds a unique filename for each processor by relying
 on the information reachable from the `Context` object.
 * Note the careful implementation of `close()`: it first checks if

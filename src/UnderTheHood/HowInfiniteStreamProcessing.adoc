@@ -292,6 +292,7 @@ events), the processing will stall indefinitely (unless
 [maximum retention](Expert_Zone_—_The_Core_API/WatermarkPolicy#page_Maximum+watermark+retention+on+substream+merge)
 is configured).
 
+[[pitfalls-alo]]
 ==== The Pitfalls of At-Least-Once Processing
 
 In some cases _at-least-once_ semantics can have consequences of quite

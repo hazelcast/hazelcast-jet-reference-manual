@@ -1,6 +1,9 @@
-[TOC]
 
-## Inspecting Processor Input and Output
+[[core-best-practices]]
+=== Best Practices
+
+
+==== Inspecting Processor Input and Output
 
 The structure of the DAG model is a very poor match for Java's type
 system, which results in the lack of compile-time type safety between
@@ -9,12 +12,12 @@ requires some trial and error. To facilitate this process, but also to
 allow many more kinds of diagnostics and debugging, Jet's library offers
 ways to capture the input/output of a vertex and inspect it.
 
-### Peeking with Processor Wrappers
+===== Peeking with Processor Wrappers
 
 The first approach is to decorate a vertex declaration with a layer that
 will log all the data traffic going through it. This support is present
 in the
-[`DiagnosticProcessors`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/DiagnosticProcessors.html)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/DiagnosticProcessors.html[`DiagnosticProcessors`]
 factory class, which contains the following methods:
 
 * `peekInput()`: logs items received at any edge ordinal.
@@ -29,7 +32,7 @@ These methods take two optional parameters:
 * `shouldLogF` is a filtering function so you can focus your log output
   only on some specific items. The default is to log all items.
 
-#### Example Usage
+====== Example Usage
 
 Suppose we have declared the second-stage vertex in a two-stage
 aggregation setup:
@@ -51,15 +54,15 @@ Keep in mind that logging happens on the machine running hosting the
 processor, so this technique is primarily targeted to Jet jobs the
 developer runs locally in his development environment.
 
-### Attaching a Sink Vertex
+===== Attaching a Sink Vertex
 
 Since most vertices are implemented to emit the same data stream to all
 attached edges, it is usually possible to attach a diagnostic sink to
 any vertex. For example, Jet's standard
-[`writeFileP()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/SinkProcessors.html#writeFileP-java.lang.String-)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/SinkProcessors.html#writeFileP-java.lang.String-[`writeFileP()`]
 sink vertex can be very useful here.
 
-#### Example Usage
+====== Example Usage
 
 In the example from the Word Count tutorial we can add the following
 declarations:
@@ -78,15 +81,15 @@ By specifying the `allToOne()` routing policy you can also have the
 output of all the processors on all the members saved on a single member
 (although the choice of exactly which member will be arbitrary).
 
-## How to Unit-Test a Processor
+==== How to Unit-Test a Processor
 
 We provide some utility classes to simplify writing unit tests for your custom processors. You can find them in the
-[`com.hazelcast.jet.core.test`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/package-summary.html)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/package-summary.html[`com.hazelcast.jet.core.test`]
 package. Using these utility classes you can unit test your processor by
 passing it some input items and asserting the expected output.
 
 Start by calling
-[`TestSupport.verifyProcessor()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/TestSupport.html#verifyProcessor-com.hazelcast.jet.core.ProcessorSupplier-)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/TestSupport.html#verifyProcessor-com.hazelcast.jet.core.ProcessorSupplier-[`TestSupport.verifyProcessor()`]
 by passing it a processor supplier or a processor instance.
 
 The test process does the following:
@@ -112,7 +115,7 @@ The test optionally asserts that the processor made progress on each call to any
 * put something to the outbox
 * return `true` (applies only to `boolean`-returning methods)
 
-#### Cooperative Processors
+====== Cooperative Processors
 
 The test will provide a 1-capacity outbox to cooperative processors. The
 outbox will already be full on every other call to `process()`. This
@@ -123,7 +126,7 @@ emitting anything.
 The test will also assert that the processor doesn't spend more time in
 any callback than the limit specified in `cooperativeTimeout(long)`.
 
-#### Cases Not Covered
+====== Cases Not Covered
 
 This class does not cover these cases:
 
@@ -134,7 +137,7 @@ This class does not cover these cases:
   from your supplier)
 * it never calls `Processor.tryProcess()`
 
-#### Example Usage
+====== Example Usage
 
 This will test one of the jet-provided processors:
 
@@ -150,7 +153,7 @@ TestSupport.verifyProcessor(Processors.map((String s) -> s.toUpperCase()))
            .expectOutput(asList("FOO", "BAR"));
 ```
 
-### Other Utility Classes
+===== Other Utility Classes
 
 `com.hazelcast.jet.test` contains these classes that you can use as
 implementations of Jet interfaces in tests:

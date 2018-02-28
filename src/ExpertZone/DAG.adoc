@@ -1,7 +1,10 @@
-[TOC]
+
+
+[[dag]]
+=== DAG
 
 The DAG-building API is centered around the
-[`DAG`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/DAG.html)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/DAG.html[`DAG`]
 class. This is a pure data class and can be instantiated on its own,
 without a Jet instance. This makes it simple to separate the
 job-describing code from the code that manages the lifecycle of Jet
@@ -37,23 +40,24 @@ dag.edge(between(source, transform));
 dag.edge(between(transform, sink));
 ```
 
-## Creating a Vertex
+[[creating-a-vertex]]
+==== Creating a Vertex
 
 The two mandatory elements of creating a vertex are its string
 identifier and the supplier of processors. The latter can be provided in
 three variants, differing in the degree of explicit control over the
 lifecycle management of the processors. From simple to complex they are:
 
-1. [`DistributedSupplier<Processor>`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/function/DistributedSupplier.html)
+1. http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/function/DistributedSupplier.html[`DistributedSupplier<Processor>`]
    directly returns processor instances from its `get()` method. It is
    expected to be stateless and return equivalent instances on each
    call. It doesn't provide any initialization or cleanup code.
-2. [`ProcessorSupplier`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorSupplier.html)
+2. http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorSupplier.html[`ProcessorSupplier`]
    returns in a single call all the processors that will run on a single
    cluster member. It may specialize each instance, for example to
    achieve local data partitioning. It is also in charge of the
    member-local lifecycle (initialization and destruction).
-3. *[`ProcessorMetaSupplier`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html)*
+3. *http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html[`ProcessorSupplier`]*
    returns in a single call an object that will be in charge of creating
    all the processors for a vertex. Given a list of member addresses,
    the object it returns is a `Function<Address, ProcessorSupplier>`
@@ -65,7 +69,8 @@ used. You'll call a library-provided factory method that returns one or
 the other and they will integrate the same way into your `newVertex()`
 calls.
 
-## Local and Global Parallelism of Vertex
+[[local-and-global-parallelism-of-vertex]]
+==== Local and Global Parallelism of Vertex
 
 The vertex is implemented by one or more instances of `Processor` on
 each member. Each vertex can specify how many of its processors will run
@@ -74,7 +79,7 @@ will have the same number of processors. A new `Vertex` instance has
 this property set to `-1`, which requests to use the default value equal
 to the configured size of the cooperative thread pool. The latter
 defaults to `Runtime.availableProcessors()` and is configurable via
-[`InstanceConfig.setCooperativeThreadCount()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/InstanceConfig.html#setCooperativeThreadCount-int-).
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/InstanceConfig.html#setCooperativeThreadCount-int-[`InstanceConfig.setCooperativeThreadCount()`].
 
 In most cases the only value of local parallelism that you'll want to
 explicitly configure is `1` for the cases where no parallelism is
@@ -85,7 +90,8 @@ especially in terms of the distribution of partitions among processors.
 It is equal to local parallelism multiplied by the cluster size.
 
 
-## Edge Ordinal
+[[edge-original]]
+==== Edge Ordinal
 
 An edge is connected to a vertex with a given **ordinal**, which
 identifies it to the vertex and its processors. When a processor
@@ -96,10 +102,10 @@ to all ordinals. This is the most typical case and allows easy
 replication of a data stream across several edges.
 
 When you use the
-[`between()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#between-com.hazelcast.jet.core.Vertex-com.hazelcast.jet.core.Vertex-)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#between-com.hazelcast.jet.core.Vertex-com.hazelcast.jet.core.Vertex-[`between()`]
 edge factory, the edge will be connected at ordinal 0 at both ends. When
 you need a different ordinal, use the
-[`from(a, ord1).to(b, ord2)`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#from-com.hazelcast.jet.core.Vertex-int-)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#from-com.hazelcast.jet.core.Vertex-int-[`from(a, ord1).to(b, ord2)`]
 form. There must be no gaps in ordinal assignment, which means a vertex
 will have inbound edges with ordinals 0..N and outbound edges with
 ordinals 0..M.
@@ -118,14 +124,15 @@ dag.edge(between(source, v1));
 dag.edge(from(source, 1).to(v2));
 ```
 
-## Local and Distributed Edge
+[[local-and-distributed-edge]]
+==== Local and Distributed Edge
 
 A major choice to make in terms of data routing is whether the candidate
 set of target processors is unconstrained, encompassing all processors
 across the cluster, or constrained to just those running on the same
 cluster member. This is controlled by the `distributed` property of the
 edge. By default the edge is local and calling the
-[`distributed()`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#distributed--)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.html#distributed--[`distributed()`]
 method removes this restriction.
 
 With appropriate DAG design, network traffic can be minimized by
@@ -150,13 +157,14 @@ dag.edge(between(source, tokenizer))
 
 Note that only the edge from `accumulate` to `combine` is distributed.
 
-## Routing Policies
+[[routing-policies]]
+==== Routing Policies
 
-The [routing policy](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.RoutingPolicy.html)
+The http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.RoutingPolicy.html[routing policy]
 decides which of the processors in the candidate set to route each
 particular item to.
 
-### Unicast
+===== Unicast
 
 This is the default routing policy, the one you get when you write
 
@@ -174,7 +182,7 @@ This choice makes sense when the data does not have to be partitioned,
 usually implying a downstream vertex which can compute the result based
 on each item in isolation.
 
-### Isolated
+===== Isolated
 
 This is a more restricted kind of unicast policy: any given downstream
 processor receives data from exactly one upstream processor. This is
@@ -186,7 +194,7 @@ upstream source processors. Activate this policy by calling
 dag.edge(between(source, insertWatermarks).isolated());
 ```
 
-### Broadcast
+===== Broadcast
 
 A broadcasting edge sends each item to all candidate receivers. This is
 useful when some small amount of data must be broadcast to all
@@ -203,7 +211,7 @@ Activate this policy by calling `broadcast()` on the edge:
 dag.edge(between(source, count).broadcast());
 ```
 
-### Partitioned
+===== Partitioned
 
 A partitioned edge sends each item to the one processor responsible for
 the item's partition ID. On a distributed edge, this processor will be
@@ -213,7 +221,7 @@ its own processor for each partition ID.
 Multiple partitions can be assigned to each processor. The global number
 of partitions is controlled by the number of partitions in the
 underlying Hazelcast IMDG configuration. Please refer to the
-[Hazelcast Reference Manual](http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#data-partitioning)
+http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#data-partitioning[Hazelcast Reference Manual]
 for more information about Hazelcast IMDG partitioning.
 
 This is the default algorithm to determine the partition ID of an item:
@@ -261,7 +269,7 @@ Since much less data travels towards the combiner than towards the
 accumulator, the performance of the whole job is hardly affected by this
 choice.
 
-### All-To-One
+===== All-To-One
 
 The all-to-one routing policy is a special case of the `partitioned`
 policy which assigns the same partition ID to all items. The partition
@@ -283,7 +291,7 @@ must see the complete picture, so an all-to-one edge is employed:
 dag.edge(between(topNStage1, topNStage2).distributed().allToOne())
 ```
 
-## Priority
+==== Priority
 
 By default the processor receives items from all inbound edges as they
 arrive. However, there are important cases where an edge must be
@@ -300,7 +308,7 @@ order. Edges with the same priority are consumed without particular
 ordering (as the data arrives).
 
 We can see a prioritized edge in action in the
-[TF-IDF](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java)
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java[TF-IDF]
 example:
 
 ```java
@@ -311,10 +319,10 @@ The `tokenize` vertex performs lookup table-based filtering of words. It
 must receive the entire lookup table before beginning to process the
 data.
 
-### A Fault Tolerance Caveat
+===== A Fault Tolerance Caveat
 
 As explained in the section on the
-[Processor](Expert_Zone_—_The_Core_API/Processor#page_Snapshotting+Callbacks)
+<<snapshotting-callbacks, Processor>>
 API, Jet takes regular snapshots of processor state when fault tolerance
 is enabled. A processor will get a special item in its input stream,
 called a _barrier_. When working in the _exactly once_ mode, as soon as
@@ -334,10 +342,10 @@ complete until the prioritized edges have been consumed. The result
 would be just that there are many more items processed twice after the
 restart.
 
-## Fine-Tuning Edges
+==== Fine-Tuning Edges
 
 Edges can be configured with an
-[`EdgeConfig`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/EdgeConfig.html)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/EdgeConfig.html[`EdgeConfig`]
 instance, which specifies additional fine-tuning parameters. For
 example,
 
@@ -347,5 +355,5 @@ dag.edge(between(tickerSource, generateTrades)
 ```
 
 Please refer to the Javadoc of
-[`EdgeConfig`](http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/EdgeConfig.html)
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/EdgeConfig.html[`EdgeConfig`]
 for details.

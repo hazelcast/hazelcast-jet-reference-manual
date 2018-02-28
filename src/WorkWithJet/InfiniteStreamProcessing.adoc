@@ -70,6 +70,7 @@ time axis. In an analogy to a user's session with a web application,
 the session window "closes" when the specified session timeout elapses
 with no further events.
 
+[[time-ordering]]
 ==== Time Ordering and the Watermark
 
 Usually the time of observing an event is explicitly written in the

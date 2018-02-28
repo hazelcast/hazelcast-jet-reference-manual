@@ -1,3 +1,7 @@
+
+[[tf-idf]]
+=== Custom DAG - Inverted TF-IDF Index
+
 In this tutorial we'll explore what the Core API DAG model offers beyond
 the capabilities of the Pipeline API. Our DAG will feature splits,
 joins, broadcast, and prioritized edges. We'll access data from the file
@@ -9,16 +13,16 @@ own with minimum boilerplate.
 The full code is available at the `hazelcast-jet-code-samples`
 repository:
 
-[TfIdfJdkStreams.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[TfIdfJdkStreams.java]
 
-[TfIdf.java](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java)
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java[TfIdf.java]
 
 Let us first introduce the problem. The inverted index is a basic data
 structure in the domain of full-text search. First used in the 1950s, it
 is still at the core of modern information retrieval systems such as
 Lucene. The goal is to be able to quickly find the documents that
 contain a given set of search terms, and to sort them by relevance. To
-understand it we'll need to throw in some terminology...
+understand it we'll need to throw in some terminology.
 
 - A _document_ is treated as a list of words that has a unique ID. It is
 useful to define the notion of a _document index_ which maps each
@@ -82,12 +86,12 @@ Also note the limitation of this technique: a phrase is treated as just
 the sum of its parts; a document may contain the exact phrase and this
 will not affect its score.
 
-## Building the Inverted Index with Java Streams
+===== Building the Inverted Index with Java Streams
 
 To warm us up, let's see what it takes to build the inverted index with
 just thread parallelism and without the ability to scale out across
 many machines. It is expressible in Java Streams API without too much
-work. The full code is [here](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java).
+work. The full code is https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[here].
 
 We'll start by preparing a `Stream<Entry<Long, String>> docWords`: a
 stream of all the words found in all the documents. We use `Map.Entry` as
@@ -155,9 +159,9 @@ private static Entry<Long, Double> tfidfEntry(
 
 The search function can be implemented with another Streams expression,
 which you can review in the
-[SearchGui](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/SearchGui.java)
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/SearchGui.java[SearchGui]
 class. You can also run the
-[TfIdfJdkStreams](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java)
+https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[TfIdfJdkStreams]
 class and take the inverted index for a spin, making actual searches.
 
 There is one last concept in this model that we haven't mentioned yet:
@@ -172,7 +176,7 @@ words in the tokenization phase. The same set is used to cross out words
 from the user's search phrase, as if they weren't entered. We'll add this
 feature to our DAG based model in the following section.
 
-## Translating to Jet DAG
+==== Translating to Jet DAG
 
 Our DAG as a whole will look relatively complex, but it can be
 understood as a "backbone" (cascade of vertices) starting from a source
@@ -243,7 +247,7 @@ suffer because first the CPU would be forced to sit idle, then we'd be
 late in making the next IO call while tokenizing the input. The separate
 vertex can proceed at full speed all the time.
 
-## Implementation Code
+==== Implementation Code
 
 As we announced, some of the processors in our DAG will need custom
 implementation code. Let's start from the source vertex. It is easy,
