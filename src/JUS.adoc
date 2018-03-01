@@ -10,7 +10,8 @@ the official https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-
 
 === Simple Example
 
-```java
+[source,java]
+---
 JetInstance jet = Jet.newJetInstance();
 IStreamMap<String, Integer> map = jet.getMap("latitudes");
 map.put("London", 51);
@@ -21,10 +22,13 @@ map.put("Sao Paulo", -23);
 map.put("Jakarta", -6);
 
 map.stream().filter(e -> e.getValue() < 0).forEach(System.out::println);
-```
+---
+
 In addition to Hazelcast data structures any source processor
 can be used to create a distributed stream.
-```java
+
+[source,java]
+---
 JetInstance jet = Jet.newJetInstance();
 ProcessorSupplier processorSupplier = SourceProcessors.readFilesP("path", UTF_8, "*");
 
@@ -35,7 +39,7 @@ IList<String> sink = DistributedStream
 
 
 sink.forEach(System.out::println);
-```
+---
 
 Java specifies that a stream computation starts upon invoking the
 terminal operation on it (such as `forEach()`). At that point Jet
@@ -59,14 +63,15 @@ For example the following innocent-looking code can easily cause
 out-of-memory errors because the whole distributed map will need to be
 held in the memory at a single place:
 
-```java
+[source,java]
+---
 // get a distributed map with 5GB per member on a 10-member cluster
 IStreamMap<String, String> map = jet.getMap("large_map");
 // now try to build a HashMap of 50GB
 Map<String, String> result = map.stream()
                                 .map(e -> e.getKey() + e.getValue())
                                 .collect(toMap(v -> v, v -> v));
-```
+---
 
 This is why Jet distinguishes between the standard `java.util.stream`
 collectors and the Jet-specific `Reducer`s. A `Reducer` puts the data
@@ -94,10 +99,11 @@ the JDK-standard collectors make sense.
 The word count example that was described in the
 <<get-started, Get Started>> section can be rewritten using the `java.util.stream` API as follows:
 
-```java
+[source,java]
+---
 IMap<String, Long> counts = lines
                 .stream()
                 .flatMap(word -> Stream.of(word.split("\\W+")))
                 .collect(DistributedCollectors.toIMap(w -> w, w -> 1L, (left, right) -> left + right));
-```
+---
 

@@ -1,6 +1,6 @@
 
 [[practical-considerations]]
-=== Practical Considerations 
+=== Practical Considerations
 
 
 ==== Remember that a Jet Job is Distributed
@@ -16,7 +16,8 @@ classpath.
 Your custom code must be packaged with the Jet job. For simple examples
 you can have everything in a single class and use code like this:
 
-```java
+[source,java]
+---
 class JetExample {
     static Job createJob(JetInstance jet) {
         JobConfig jobConfig = new JobConfig();
@@ -25,18 +26,19 @@ class JetExample {
     }
     ...
 }
-```
+---
 
 If you forget to do this, or don't add all the classes involved, you
 may get a quite confusing exception:
 
-```text
+[source]
+---
 java.lang.ClassCastException:
 cannot assign instance of java.lang.invoke.SerializedLambda
 to field com.hazelcast.jet.core.ProcessorMetaSupplier$1.val$addressToSupplier
 of type com.hazelcast.jet.function.DistributedFunction
 in instance of com.hazelcast.jet.core.ProcessorMetaSupplier$1
-```
+---
 
 `SerializedLambda` actually declares `readResolve()`, which would
 normally transform it into an instance of the correct functional
@@ -54,9 +56,9 @@ explained next.
 
 ==== Submit a Job from the Command Line
 
-Jet comes with the `jet-submit.sh` script, which allows you to submit a 
-Jet job packaged in a JAR file. You can find it in the Jet distribution 
-zipfile, in the `bin` directory. On Windows use `jet-submit.bat`. To use 
+Jet comes with the `jet-submit.sh` script, which allows you to submit a
+Jet job packaged in a JAR file. You can find it in the Jet distribution
+zipfile, in the `bin` directory. On Windows use `jet-submit.bat`. To use
 it, follow these steps:
 
 * Write your `main()` method and your Jet code the usual way, except
@@ -75,7 +77,8 @@ distribution. Adjust that file to suit your needs.
 
 For example, write a class like this:
 
-```java
+[source,java]
+---
 public class CustomJetJob {
     public static void main(String[] args) {
         JetInstance jet = JetBootstrap.getInstance();
@@ -86,13 +89,13 @@ public class CustomJetJob {
         // ...
     }
 }
-```
+---
 
 After building the JAR, submit the job:
 
-```
+---
 $ jet-submit.sh jetjob.jar
-```
+---
 
 ==== Watch out for Capturing Lambdas
 
@@ -120,7 +123,8 @@ variable of the enclosing class, it implicitly captures `this` so the
 entire class will be serialized. For example, this will fail because
 `JetJob` doesn't implement `Serializable`:
 
-```java
+[source,java]
+---
 class JetJob {
     private String instanceVar;
 
@@ -133,12 +137,13 @@ class JetJob {
         return p;
     }
 }
-```
+---
 
 Just adding `implements Serializable` to `JetJob` would be a viable
 workaround here. However, consider something just a bit different:
 
-```java
+[source,java]
+---
 class JetJob {
     private String instanceVar;
     private OutputStream fileOut; // a non-serializable field
@@ -152,7 +157,7 @@ class JetJob {
         return p;
     }
 }
-```
+---
 
 Even though we never refer to `fileOut`, we are still capturing the
 entire `JetJob` instance. We might mark `fileOut` as `transient`, but
@@ -160,7 +165,8 @@ the sane approach is to avoid referring to instance variables of the
 surrounding class. This can be simply achieved by assigning to a local
 variable, then referring to that variable inside the lambda:
 
-```java
+[source,java]
+---
 class JetJob {
     private String instanceVar;
 
@@ -174,12 +180,13 @@ class JetJob {
         return p;
     }
 }
-```
+---
 
 Another common pitfall is capturing an instance of `DateTimeFormatter`
 or a similar non-serializable class:
 
-```java
+[source,java]
+---
 DateTimeFormatter formatter =
         DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
                          .withZone(ZoneId.systemDefault());
@@ -187,26 +194,28 @@ Pipeline p = Pipeline.create();
 ComputeStage<Long> src = p.drawFrom(readList("input"));
 // Captures the non-serializable formatter, so this fails
 src.map((Long tstamp) -> formatter.format(Instant.ofEpochMilli(tstamp)));
-```
+---
 
 Sometimes we can get away by using one of the preconfigured formatters
 available in the JDK:
 
-```java
+[source,java]
+---
 // Accesses the static final field ISO_LOCAL_TIME. Static fields are
 // not subject to lambda capture, they are dereferenced when the code
 // runs on the target machine.
 src.map((Long tstamp) ->
     DateTimeFormatter.ISO_LOCAL_TIME.format(
         Instant.ofEpochMilli(tstamp).atZone(ZoneId.systemDefault())));
-```
+---
 
 This refers to a `static final` field in the JDK, so the instance is
 available on any JVM. A similar approach is to declare our own `static
 final` field; however in that case we must add the declaring class as a
 job resource:
 
-```java
+[source,java]
+---
 class JetJob {
 
     // Our own static field
@@ -230,7 +239,7 @@ class JetJob {
         jet.newJob(buildPipeline(), c).join();
     }
 }
-```
+---
 
 ==== Standard Java Serialization is Slow
 
@@ -248,7 +257,8 @@ use it for stream data. In essence, you must implement a
 `StreamSerializer` for the objects you emit from your processors and
 register it in Jet configuration:
 
-```java
+[source,java]
+---
 SerializerConfig serializerConfig = new SerializerConfig()
         .setImplementation(new MyItemSerializer())
         .setTypeClass(MyItem.class);
@@ -256,7 +266,7 @@ JetConfig config = new JetConfig();
 config.getHazelcastConfig().getSerializationConfig()
       .addSerializerConfig(serializerConfig);
 JetInstance jet = Jet.newJetInstance(config);
-```
+---
 
 Consult the chapter on
 http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#custom-serialization[custom serialization]

@@ -157,11 +157,12 @@ resulting in a system that tolerates the failure of a single member at a
 time. You can tweak this setting when starting Jet, for example increase
 the backup count to two:
 
-```java
+[source,java]
+---
 JetConfig config = new JetConfig();
 config.getInstanceConfig().setBackupCount(2);
 JetInstance = Jet.newJetInstance(config);
-```
+---
 
 ===== Exactly-Once
 
@@ -204,11 +205,12 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/J
 You can also configure
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JobConfig.html#setSnapshotIntervalMillis-long-[_snapshot interval_].
 
-```java
+[source,java]
+---
 JobConfig jobConfig = new JobConfig();
 jobConfig.setProcessingGuarantee(ProcessingGuarantee.EXACTLY_ONCE);
 jobConfig.setSnapshotIntervalMillis(SECONDS.toMillis(10));
-```
+---
 
 Using less frequent snapshots, more data will have to be replayed
 and the temporary spike in the latency of the output will be greater.
@@ -232,9 +234,10 @@ It works by ensuring that a job cannot be restarted in a
 cluster whose size isn't more than half of what it was before the job
 was suspended. Enable split-brain protection like this:
 
-```java
+[source,java]
+---
 jobConfig.setSplitBrainProtection(true);
-```
+---
 
 A loophole here is that, after the split brain has occurred, you could
 add more members to any of the sub-clusters and have them both grow to
@@ -247,9 +250,9 @@ existence, it will restart as soon as the quorum value is reached.
 After a job is submitted to the cluster, new nodes can be started and
 the job can be scaled up. Hazelcast Jet 0.6 introduces a new method into
 the `Job` interface for this purpose. When `Job.restart()` is invoked,
-ongoing execution of the job is interrupted and a new execution is 
+ongoing execution of the job is interrupted and a new execution is
 scheduled. If the snapshotting mechanism enabled, the job is restarted
-from the last successful snapshot. Therefore, the restart procedure 
+from the last successful snapshot. Therefore, the restart procedure
 respects to the configured processing guarantee.
 
 ==== Note for Hazelcast Jet version 0.5

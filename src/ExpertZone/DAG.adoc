@@ -10,9 +10,10 @@ without a Jet instance. This makes it simple to separate the
 job-describing code from the code that manages the lifecycle of Jet
 instances. To start building a DAG, you just write
 
-```java
+[source,java]
+---
 DAG dag = new DAG();
-```
+---
 
 A good practice is to structure the DAG-building code into the following
 sections:
@@ -23,7 +24,8 @@ sections:
 
 Example:
 
-```java
+[source,java]
+---
 DAG dag = new DAG();
 
 // 1. Create vertices
@@ -38,7 +40,7 @@ source.localParallelism(1);
 // 3. Create edges
 dag.edge(between(source, transform));
 dag.edge(between(transform, sink));
-```
+---
 
 [[creating-a-vertex]]
 ==== Creating a Vertex
@@ -113,7 +115,8 @@ ordinals 0..M.
 This example shows the usage of `between()` and `from().to()` forms to
 build a DAG with one source feeding two computational vertices:
 
-```java
+[source,java]
+---
 DAG dag = new DAG();
 
 Vertex source = dag.newVertex("source", Sources.readFiles("."));
@@ -122,7 +125,7 @@ Vertex v2 = dag.newVertex("v2", ...);
 
 dag.edge(between(source, v1));
 dag.edge(from(source, 1).to(v2));
-```
+---
 
 [[local-and-distributed-edge]]
 ==== Local and Distributed Edge
@@ -145,7 +148,8 @@ The quintessential example of employing local-distributed edge combo
 is the two-stage aggregation. Here's a review of that setup from the
 Word Count tutorial:
 
-```java
+[source,java]
+---
 dag.edge(between(source, tokenizer))
    .edge(between(tokenizer, accumulate)
            .partitioned(DistributedFunctions.wholeItem(), Partitioner.HASH_CODE))
@@ -153,7 +157,7 @@ dag.edge(between(source, tokenizer))
            .distributed()
            .partitioned(DistributedFunctions.entryKey()))
    .edge(between(combine, sink));
-```
+---
 
 Note that only the edge from `accumulate` to `combine` is distributed.
 
@@ -168,9 +172,10 @@ particular item to.
 
 This is the default routing policy, the one you get when you write
 
-```java
+[source,java]
+---
 dag.edge(between(source, tokenizer))
-```
+---
 
 For each item it chooses a single destination processor with no further
 restrictions on the choice. The only guarantee given by this pattern is
@@ -190,9 +195,10 @@ needed in some DAG setups to apply selective backpressure to individual
 upstream source processors. Activate this policy by calling
 `isolated()` on the edge:
 
-```java
+[source,java]
+---
 dag.edge(between(source, insertWatermarks).isolated());
-```
+---
 
 ===== Broadcast
 
@@ -207,9 +213,10 @@ member.
 
 Activate this policy by calling `broadcast()` on the edge:
 
-```java
+[source,java]
+---
 dag.edge(between(source, count).broadcast());
-```
+---
 
 ===== Partitioned
 
@@ -251,13 +258,14 @@ control over the partitioning strategy.
 
 We use both partitioning strategies in the Word Count example:
 
-```java
+[source,java]
+---
 dag.edge(between(tokenizer, accumulate)
            .partitioned(wholeItem(), Partitioner.HASH_CODE))
    .edge(between(accumulate, combine)
            .distributed()
            .partitioned(entryKey()))
-```
+---
 
 The local-partitioned edge uses partitioning by hash code and the
 distributed edge uses the default Hazelcast partitioning, to ensure
@@ -287,9 +295,10 @@ In the `TopNStocks` example the stream-processing job must find the
 stocks with fastest-changing prices. To achieve this a single processor
 must see the complete picture, so an all-to-one edge is employed:
 
-```java
+[source,java]
+---
 dag.edge(between(topNStage1, topNStage2).distributed().allToOne())
-```
+---
 
 ==== Priority
 
@@ -311,9 +320,10 @@ We can see a prioritized edge in action in the
 https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java[TF-IDF]
 example:
 
-```java
+[source,java]
+---
 dag.edge(between(stopwordSource, tokenize).broadcast().priority(-1))
-```
+---
 
 The `tokenize` vertex performs lookup table-based filtering of words. It
 must receive the entire lookup table before beginning to process the
@@ -350,10 +360,11 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/E
 instance, which specifies additional fine-tuning parameters. For
 example,
 
-```java
+[source,java]
+---
 dag.edge(between(tickerSource, generateTrades)
         .setConfig(new EdgeConfig().setQueueSize(512)));
-```
+---
 
 Please refer to the Javadoc of
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/EdgeConfig.html[`EdgeConfig`]

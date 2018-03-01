@@ -28,7 +28,8 @@ present the much simpler code to do it in the Pipelines API.
 If you studied the DAG-building code for the Word Count job, this code
 should look generally familiar:
 
-```java
+[source,java]
+---
 WindowDefinition windowDef = WindowDefinition.slidingWindowDef(
         SLIDING_WINDOW_LENGTH_MILLIS, SLIDE_STEP_MILLIS);
 Vertex tickerSource = dag.newVertex("ticker-source",
@@ -70,7 +71,7 @@ return dag
                 .isolated())
         .edge(between(formatOutput, sink)
                 .isolated());
-```
+---
 
 The source vertex reads a Hazelcast IMap, just like it did in the word
 counting example. Trade generating vertex uses a custom processor that

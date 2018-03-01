@@ -10,7 +10,8 @@ Kafka topic and the sink publishes events to a Kafka topic.
 The following code will consume from topics `t1` and `t2` and then write to
 `t3`:
 
-```java
+[source,java]
+---
 Properties props = new Properties();
 props.setProperty("bootstrap.servers", "localhost:9092");
 props.setProperty("key.serializer", StringSerializer.class.getCanonicalName());
@@ -21,7 +22,7 @@ props.setProperty("auto.offset.reset", "earliest");
 
 p.drawFrom(KafkaSources.kafka(props, "t1", "t2"))
  .drainTo(KafkaSinks.kafka(props, "t3"));
-```
+---
 
 ===== Using Kafka as a Source
 

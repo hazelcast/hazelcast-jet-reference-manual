@@ -6,16 +6,17 @@
 
 The general shape of any data processing pipeline is `drawFromSource ->
 transform -> drainToSink` and the natural way to build it is from source
-to sink. The 
+to sink. The
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Pipeline.html[Pipeline]
 API follows this pattern. For example,
 
-```java
+[source,java]
+---
 Pipeline p = Pipeline.create();
 p.drawFrom(Sources.<String>list("input"))
  .map(String::toUpperCase)
  .drainTo(Sinks.writeList("result");
-```
+---
 
 In each step, such as `drawFrom` or `drainTo`, you create a pipeline
 _stage_. The stage resulting from a `drainTo` operation is called a
@@ -26,13 +27,14 @@ In a more complex scenario you'll have several sources, each starting
 its own pipeline branch. Then you can merge them in a multi-input
 transformation such as co-grouping:
 
-```java
+[source,java]
+---
 Pipeline p = Pipeline.create();
 ComputeStage<String> src1 = p.drawFrom(Sources.list("src1"));
 ComputeStage<String> src2 = p.drawFrom(Sources.list("src2"));
 src1.coGroup(wholeItem(), src2, wholeItem(), counting2())
     .drainTo(Sinks.writeMap("result"));
-```
+---
 
 For further details on `coGroup` please refer to the <<cogroup, dedicated
 section>> below.
@@ -40,14 +42,15 @@ section>> below.
 Symmetrically, the output of a stage can be sent to more than one
 destination:
 
-```java
+[source,java]
+---
 Pipeline p = Pipeline.create();
 ComputeStage<String> src = p.drawFrom(Sources.list("src"));
 src.map(String::toUpperCase)
    .drainTo(Sinks.writeList("uppercase"));
 src.map(String::toLowerCase)
    .drainTo(Sinks.writeList("lowercase"));
-```
+---
 
 
 ==== Choose Your Data Sources and Sinks
@@ -67,7 +70,7 @@ You can access most of them via the
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html[`Sources`]
 and
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html[`Sinks`]
-utility classes. 
+utility classes.
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/KafkaSources.html[Kafka]
 and
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSources.html[HDFS]
@@ -101,13 +104,14 @@ aggregation result per distinct grouping key. We saw this one used in
 the introductory
 <<verify, Hello World>> code with a word count pipeline:
 
-```java
+[source,java]
+---
 Pipeline p = Pipeline.create();
 p.drawFrom(Sources.<String>list("text"))
  .flatMap(word -> traverseArray(word.toLowerCase().split("\\W+")))
  .filter(word -> !word.isEmpty())
  .groupBy(wholeItem(), counting())
-```
+---
 
 Let's take a moment to analyze the last line. The `groupBy()` method
 takes two parameters: the function to compute the grouping key and the
@@ -143,13 +147,14 @@ condition is constrained to matching on the grouping key.
 
 Here is the example we already used earlier on this page:
 
-```java
+[source,java]
+---
 Pipeline p = Pipeline.create();
 ComputeStage<String> src1 = p.drawFrom(Sources.list("src1"));
 ComputeStage<String> src2 = p.drawFrom(Sources.list("src2"));
 ComputeStage<Tuple2<String, Long>> coGrouped =
         src1.coGroup(wholeItem(), src2, wholeItem(), counting2());
-```
+---
 
 These are the arguments:
 
@@ -158,11 +163,12 @@ These are the arguments:
 3. `wholeItem()`: the key extractor function for `src2` items
 4. `counting2()`: the aggregate operation
 
-`counting2()` is a factory method returning a 2-way 
+`counting2()` is a factory method returning a 2-way
 <<implement-your-aggregate-operation, aggregate operation>>
 which may be defined as follows:
 
-```java
+[source,java]
+---
 private static AggregateOperation2<Object, Object, LongAccumulator, Long> counting2() {
     return AggregateOperation
             .withCreate(LongAccumulator::new)
@@ -171,7 +177,7 @@ private static AggregateOperation2<Object, Object, LongAccumulator, Long> counti
             .andCombine(LongAccumulator::add)
             .andFinish(LongAccumulator::get);
 }
-```
+---
 
 This demonstrates the individual treatment of input streams: stream 1 is
 weighted so that each of its items is worth ten items from stream 0.
@@ -188,7 +194,8 @@ adding to shopping cart, payments, and deliveries. You want to correlate
 all the events associated with the same user. The example below
 calculates statistics per category for each user:
 
-```java
+[source,java]
+---
 Pipeline p = Pipeline.create();
 ComputeStage<PageVisit> pageVisit = p.drawFrom(Sources.list("pageVisit"));
 ComputeStage<AddToCart> addToCart = p.drawFrom(Sources.list("addToCart"));
@@ -225,15 +232,15 @@ ComputeStage<Tuple2<Long, long[]>> coGrouped = b.build(AggregateOperation
                 accs[3].get()
         })
 );
-```
+---
 
 Note the interaction between the co-group building code and the
 aggregate operation-building code: the co-group builder gives you type
 tags that you then pass to the aggregate operation builder. This
 establishes the connection between the streams contributing to the
 co-group transform and the aggregate operation processing them. Refer
-to the 
-<<implement-your-aggregate-operation, section on `AggregateOperation`>> 
+to the
+<<implement-your-aggregate-operation, section on `AggregateOperation`>>
 to learn more about it.
 
 [[hash-join]]
@@ -255,7 +262,8 @@ streams. The following example shows a three-way hash-join between the
 primary stream of stock trade events and two enriching streams:
 _products_ and _brokers_.
 
-```java
+[source,java]
+---
 Pipeline p = Pipeline.create();
 
 // The primary stream: trades
@@ -272,18 +280,18 @@ ComputeStage<Tuple3<Trade, Product, Broker>> joined = trades.hashJoin(
         prodEntries, joinMapEntries(Trade::productId),
         brokEntries, joinMapEntries(Trade::brokerId)
 );
-```
+---
 
 Products are joined on `Trade.productId` and brokers on
 `Trade.brokerId`. `joinMapEntries()` returns a `JoinClause`, which is a
-holder of the three functions that specify how to perform a join: 
+holder of the three functions that specify how to perform a join:
 
 1. the key extractor for the primary stream's item
 2. the key extractor for the enriching stream's item
 3. the projection function that transforms the enriching stream's item
-into the item that will be used for enrichment. 
+into the item that will be used for enrichment.
 
-Typically the enriching streams will be `Map.Entry`s coming from a 
+Typically the enriching streams will be `Map.Entry`s coming from a
 key-value store, but you want just the entry value to appear as the
 enriching item. In that case you'll specify `Map.Entry::getValue` as the
 projection function. This is what `joinMapEntries()` does for you. It
@@ -305,7 +313,8 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeS
 For example, you may want to enrich a trade with its associated product,
 broker, and market:
 
-```java
+[source,java]
+---
 Pipeline p = Pipeline.create();
 
 // The primary stream: trades
@@ -324,13 +333,14 @@ Tag<Product> prodTag = b.add(prodEntries, joinMapEntries(Trade::productId));
 Tag<Broker> brokTag = b.add(brokEntries, joinMapEntries(Trade::brokerId));
 Tag<Market> marketTag = b.add(marketEntries, joinMapEntries(Trade::marketId));
 ComputeStage<Tuple2<Trade, ItemsByTag>> joined = b.build();
-```
+---
 
 The data type on the hash-joined stage is `Tuple2<Trade, ItemsByTag>`.
 The next snippet shows how to use it to access the primary and enriching
 items:
 
-```java
+[source,java]
+---
 ComputeStage<String> mapped = joined.map(
         (Tuple2<Trade, ItemsByTag> t) -> {
             Trade trade = t.f0();
@@ -340,5 +350,5 @@ ComputeStage<String> mapped = joined.map(
             Market market = ibt.get(marketTag);
             return trade + ": " + product + ", " + broker + ", " + market;
         });
-```
+---
 

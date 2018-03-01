@@ -1,4 +1,6 @@
 .patch
 *.iml
+*.ipr
+*.iws
 .DS_Store
 .gradle

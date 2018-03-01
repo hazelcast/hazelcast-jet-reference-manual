@@ -10,12 +10,13 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Job.html
 is a handle to the execution of a `DAG`. To create a job, supply the `DAG`
 to a previously created `JetInstance` as shown below:
 
-```java
+[source,java]
+---
 JetInstance jet = Jet.newJetInstance(); // or Jet.newJetClient();
 DAG dag = new DAG();
 dag.newVertex(..);
 jet.newJob(dag).execute().get();
-```
+---
 
 As hinted in the code example, the job submission API is identical
 whether you use it from a client machine or directly on an instance of a
@@ -43,11 +44,12 @@ If the Jet cluster has not been started with all the job's computation
 code already on the classpath, you have to deploy the code together
 with the Job instance:
 
-```java
+[source,java]
+---
 JobConfig config = new JobConfig();
 config.addJar("..");
 jet.newJob(dag, config).execute().get();
-```
+---
 
 When reading and writing data to the underlying Hazelcast IMDG instance,
 keep in mind that the deployed code is available **only** within the

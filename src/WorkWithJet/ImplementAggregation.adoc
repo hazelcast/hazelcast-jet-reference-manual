@@ -43,7 +43,8 @@ you have to provide Jet with a specific mutable object, called the
 `accumulator`, which will keep the "running score" of the operation in
 progress. For the `average` example, it would be something like
 
-```java
+[source,java]
+---
 public class AvgAccumulator {
     private long sum;
     private long count;
@@ -62,7 +63,7 @@ public class AvgAccumulator {
         return (double) sum / count;
     }
 }
-```
+---
 
 This object will also have to be serializable, and preferably with
 Hazelcast's serialization instead of Java's because in a group-by
@@ -109,18 +110,20 @@ additional `deduct` primitive.
 Let's see how this works with our `average` function. Using
 `LongLongAccumulator` we can express our `accumulate` primitive as
 
-```java
+[source,java]
+---
 (acc, n) -> {
     acc.setValue1(acc.getValue1() + n);
     acc.setValue2(acc.getValue2() + 1);
 }
-```
+---
 
 The `finish` primitive will be
 
-```java
+[source,java]
+---
 acc -> (double) acc.getValue1() / acc.getValue2()
-```
+---
 
 Now we have to define the other three primitives to match our main
 logic. For `create` we just refer to the constructor:
@@ -128,25 +131,28 @@ logic. For `create` we just refer to the constructor:
 update the left-hand accumulator with the contents of the right-hand
 one, so:
 
-```java
+[source,java]
+---
 (left, right) -> {
     left.setValue1(left.getValue1() + right.getValue1());
     left.setValue2(left.getValue2() + right.getValue2());
 }
-```
+---
 
 Deducting must undo the effect of a previous `combine`:
 
-```java
+[source,java]
+---
 (left, right) -> {
     left.setValue1(left.getValue1() - right.getValue1());
     left.setValue2(left.getValue2() - right.getValue2());
 }
-```
+---
 
 All put together, we can define our counting operation as follows:
 
-```java
+[source,java]
+---
 AggregateOperation1<Long, LongLongAccumulator, Double> aggrOp = AggregateOperation
     .withCreate(LongLongAccumulator::new)
     .andAccumulate((acc, n) -> {
@@ -162,7 +168,7 @@ AggregateOperation1<Long, LongLongAccumulator, Double> aggrOp = AggregateOperati
         left.setValue2(left.getValue2() - right.getValue2());
     })
     .andFinish(acc -> (double) acc.getValue1() / acc.getValue2());
-```
+---
 
 Let's stop for a second to look at the type we got:
 `AggregateOperation1<Long, LongLongAccumulator, Double>`. Its type
@@ -194,7 +200,8 @@ and `Payment`. Note that in each case we're dealing with a simple `sum`
 applied to a field in the input item. We can perform a co-group
 transform with the following aggregate operation:
 
-```java
+[source,java]
+---
 Pipeline p = Pipeline.create();
 ComputeStage<PageVisit> pageVisit = p.drawFrom(Sources.list("pageVisit"));
 ComputeStage<AddToCart> addToCart = p.drawFrom(Sources.list("addToCart"));
@@ -224,7 +231,7 @@ ComputeStage<Entry<Long, long[]>> coGrouped = pageVisit.coGroup(PageVisit::userI
         addToCart, AddToCart::userId,
         payment, Payment::userId,
         aggrOp);
-```
+---
 
 Note how we got an `AggregateOperation3` and how it captured each input
 type. When we use it as an argument to a co-group transform, the

@@ -11,11 +11,12 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/J
 object and set the desired properties. For example, the following will
 configure Jet to use only two threads for cooperative execution:
 
-```java
+[source,java]
+---
 JetConfig config = new JetConfig();
 config.getInstanceConfig().setCooperativeThreadCount(2);
 JetInstance jet = Jet.newJetInstance(config);
-```
+---
 
 === Declarative Configuration
 
@@ -34,7 +35,8 @@ locations (in that order):
 
 An example configuration looks like the following:
 
-```xml
+[source,xml]
+---
 <hazelcast-jet xsi:schemaLocation="http://www.hazelcast.com/schema/jet-config hazelcast-jet-config-0.5.xsd"
                xmlns="http://www.hazelcast.com/schema/jet-config"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -63,7 +65,7 @@ An example configuration looks like the following:
     </edge-defaults>
     <!-- custom properties which can be read within a ProcessorSupplier -->
 </hazelcast-jet>
-```
+---
 
 The following are the configuration elements for Hazelcast Jet:
 
@@ -83,20 +85,22 @@ for specific configuration options for Hazelcast IMDG.
 
 The underlying Hazelcast IMDG member can be configured as follows:
 
-```java
+[source,java]
+---
 JetConfig jetConfig = new JetConfig();
 jetConfig.getHazelcastConfig().getGroupConfig().setName("test");
 JetInstance jet = Jet.newJetInstance(jetConfig);
-```
+---
 
 The underlying Hazelcast IMDG client can be configured as follows:
 
 
-````java
+`[source,java]
+---
 ClientConfig clientConfig = new ClientConfig();
 clientConfig.getGroupConfig().setName("test");
 JetInstance jet = Jet.newJetClient(clientConfig);
-````
+---`
 
 ==== Declarative
 
