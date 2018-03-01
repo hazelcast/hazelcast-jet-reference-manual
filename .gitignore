@@ -4,3 +4,7 @@
 *.iws
 .DS_Store
 .gradle
+.idea
+target
+static
+vendor
