@@ -10,9 +10,9 @@ integer numbers, but the result can also be a complex value, for example
 a list of all the input items.
 
 Jet's library contains a range of
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperations.html[predefined aggregate functions],
+{jet-javadoc}/aggregate/AggregateOperations.html[predefined aggregate functions],
 but it also exposes an abstraction, called
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html[`AggregateOperation`],
+{jet-javadoc}/aggregate/AggregateOperation.html[`AggregateOperation`],
 that allows you to plug in your own. Since Jet does the aggregation in a
 parallelized and distributed way, you can't simply supply a piece of
 Java code that does it; we need you to break it down into several
@@ -76,9 +76,9 @@ computation performed on it. This means that you just need one
 accumulator class per the kind of structure that holds the accumulated
 data, as opposed to one per each aggregate operation. Jet's library
 offers in the
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/package-summary.html[`com.hazelcast.jet.accumulator`]
+{jet-javadoc}/accumulator/package-summary.html[`com.hazelcast.jet.accumulator`]
 package several such classes, one of them being
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/LongLongAccumulator.html[`LongLongAccumulator`],
+{jet-javadoc}/accumulator/LongLongAccumulator.html[`LongLongAccumulator`],
 which is a match for our `average` function. You'll just have to supply
 the logic on top of it.
 
@@ -149,7 +149,7 @@ Deducting must undo the effect of a previous `combine`:
 }
 ---
 
-All put together, we can define our counting operation as follows:
+All put together, we can define our averaging operation as follows:
 
 [source,java]
 ---
