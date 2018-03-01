@@ -30,7 +30,7 @@ These are the steps taken to create and initialize a Jet job:
    execution.
 
 The most visible consequence of the above process is the
-{jet-javadoc}/core/ProcessorMetaSupplier.html[`ProcessorMetaSupplier`]
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/ProcessorMetaSupplier.html[`ProcessorMetaSupplier`]
 type: one must be provided for each `Vertex`. In Step 3, the coordinator
 deserializes the meta-supplier as a constituent of the `DAG` and asks it
 to create `ProcessorSupplier` instances which go into the execution
@@ -76,7 +76,7 @@ from 0 to 1,000,000 (exclusive). It is trivial to write a single
 [`Traverser`](AbstractProcessor#page_Traverser).
 
 [source,java]
----
+----
 class GenerateNumbersP extends AbstractProcessor {
 
     private final Traverser<Integer> traverser;
@@ -90,12 +90,12 @@ class GenerateNumbersP extends AbstractProcessor {
         return emitFromTraverser(traverser);
     }
 }
----
+----
 
 Now we can build our DAG and execute it:
 
 [source,java]
----
+----
 JetInstance jet = Jet.newJetInstance();
 
 int upperBound = 10;
@@ -111,18 +111,18 @@ try {
 } finally {
     Jet.shutdownAll();
 }
----
+----
 
 When you run this code, you will see the output as below:
 
----
+----
 Received number: 4
 Received number: 0
 Received number: 3
 Received number: 2
 Received number: 2
 Received number: 2
----
+----
 
 Since we are using the default parallelism setting on this vertex,
 several instances of the source processor were created, all of which
@@ -144,19 +144,19 @@ Let's write a new constructor for our processor which implements this
 partitioning logic:
 
 [source,java]
----
+----
 GenerateNumbersP(int upperBound, int processorCount, int processorIndex) {
     traverser = Traversers.traverseStream(
             IntStream.range(0, upperBound)
                      .filter(n -> n % processorCount == processorIndex)
                      .boxed());
 }
----
+----
 
 Given this preparation, implementing `ProcessorSupplier` is trivial:
 
 [source,java]
----
+----
 class GenerateNumbersPSupplier implements ProcessorSupplier {
 
     private final int upperBound;
@@ -172,32 +172,32 @@ class GenerateNumbersPSupplier implements ProcessorSupplier {
                 .collect(Collectors.toList());
     }
 }
----
+----
 
 Let's use the custom processor supplier in our DAG-building code:
 
 [source,java]
----
+----
 DAG dag = new DAG();
 Vertex generateNumbers = dag.newVertex("generate-numbers",
         new GenerateNumbersPSupplier(10));
 Vertex logInput = dag.newVertex("log-input",
         DiagnosticProcessors.writeLogger(i -> "Received number: " + i));
 dag.edge(Edge.between(generateNumbers, logInput));
----
+----
 
 Now we can re-run our example and see that each number indeed occurs
 only once. However, note that we are still working with a single-member
 Jet cluster; let's see what happens when we add another member:
 
 [source,java]
----
+----
 JetInstance jet = Jet.newJetInstance();
 Jet.newJetInstance();
 
 DAG dag = new DAG();
 ...
----
+----
 
 Running after this change we'll see that both members are generating the
 same set of numbers. This is because `ProcessorSupplier` is instantiated
@@ -221,7 +221,7 @@ simply return `map::get` as our function.
 
 
 [source,java]
----
+----
 class GenerateNumbersPMetaSupplier implements ProcessorMetaSupplier {
 
     private final int upperBound;
@@ -259,19 +259,19 @@ class GenerateNumbersPMetaSupplier implements ProcessorMetaSupplier {
     }
 
 }
----
+----
 
 We change our DAG-building code to use the meta-supplier:
 
 [source,java]
----
+----
 DAG dag = new DAG();
 Vertex generateNumbers = dag.newVertex("generate-numbers",
         new GenerateNumbersPMetaSupplier(upperBound));
 Vertex logInput = dag.newVertex("log-input",
         DiagnosticProcessors.writeLogger(i -> "Received number: " + i));
 dag.edge(Edge.between(generateNumbers, logInput));
----
+----
 
 After re-running with two Jet members, we should once again see each
 number generated just once.
@@ -298,7 +298,7 @@ care of the buffering/batching concern, we can use the simpler approach
 of extending `AbstractProcessor`:
 
 [source,java]
----
+----
 class WriteFileP extends AbstractProcessor implements Closeable {
 
     private final String path;
@@ -331,7 +331,7 @@ class WriteFileP extends AbstractProcessor implements Closeable {
         }
     }
 }
----
+----
 
 Some comments:
 
@@ -351,7 +351,7 @@ processors to achieve data partitioning, was achieved directly from the
 processor's code. This is the supplier's code:
 
 [source,java]
----
+----
 class WriteFilePSupplier implements ProcessorSupplier {
 
     private final String path;
@@ -390,4 +390,4 @@ class WriteFilePSupplier implements ProcessorSupplier {
         }
     }
 }
----
+----

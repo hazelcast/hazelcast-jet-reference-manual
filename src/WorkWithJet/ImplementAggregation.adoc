@@ -10,9 +10,9 @@ integer numbers, but the result can also be a complex value, for example
 a list of all the input items.
 
 Jet's library contains a range of
-{jet-javadoc}/aggregate/AggregateOperations.html[predefined aggregate functions],
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperations.html[predefined aggregate functions],
 but it also exposes an abstraction, called
-{jet-javadoc}/aggregate/AggregateOperation.html[`AggregateOperation`],
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperation.html[`AggregateOperation`],
 that allows you to plug in your own. Since Jet does the aggregation in a
 parallelized and distributed way, you can't simply supply a piece of
 Java code that does it; we need you to break it down into several
@@ -44,7 +44,7 @@ you have to provide Jet with a specific mutable object, called the
 progress. For the `average` example, it would be something like
 
 [source,java]
----
+----
 public class AvgAccumulator {
     private long sum;
     private long count;
@@ -63,7 +63,7 @@ public class AvgAccumulator {
         return (double) sum / count;
     }
 }
----
+----
 
 This object will also have to be serializable, and preferably with
 Hazelcast's serialization instead of Java's because in a group-by
@@ -76,9 +76,9 @@ computation performed on it. This means that you just need one
 accumulator class per the kind of structure that holds the accumulated
 data, as opposed to one per each aggregate operation. Jet's library
 offers in the
-{jet-javadoc}/accumulator/package-summary.html[`com.hazelcast.jet.accumulator`]
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/package-summary.html[`com.hazelcast.jet.accumulator`]
 package several such classes, one of them being
-{jet-javadoc}/accumulator/LongLongAccumulator.html[`LongLongAccumulator`],
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/accumulator/LongLongAccumulator.html[`LongLongAccumulator`],
 which is a match for our `average` function. You'll just have to supply
 the logic on top of it.
 
@@ -111,19 +111,19 @@ Let's see how this works with our `average` function. Using
 `LongLongAccumulator` we can express our `accumulate` primitive as
 
 [source,java]
----
+----
 (acc, n) -> {
     acc.setValue1(acc.getValue1() + n);
     acc.setValue2(acc.getValue2() + 1);
 }
----
+----
 
 The `finish` primitive will be
 
 [source,java]
----
+----
 acc -> (double) acc.getValue1() / acc.getValue2()
----
+----
 
 Now we have to define the other three primitives to match our main
 logic. For `create` we just refer to the constructor:
@@ -132,27 +132,27 @@ update the left-hand accumulator with the contents of the right-hand
 one, so:
 
 [source,java]
----
+----
 (left, right) -> {
     left.setValue1(left.getValue1() + right.getValue1());
     left.setValue2(left.getValue2() + right.getValue2());
 }
----
+----
 
 Deducting must undo the effect of a previous `combine`:
 
 [source,java]
----
+----
 (left, right) -> {
     left.setValue1(left.getValue1() - right.getValue1());
     left.setValue2(left.getValue2() - right.getValue2());
 }
----
+----
 
 All put together, we can define our averaging operation as follows:
 
 [source,java]
----
+----
 AggregateOperation1<Long, LongLongAccumulator, Double> aggrOp = AggregateOperation
     .withCreate(LongLongAccumulator::new)
     .andAccumulate((acc, n) -> {
@@ -168,7 +168,7 @@ AggregateOperation1<Long, LongLongAccumulator, Double> aggrOp = AggregateOperati
         left.setValue2(left.getValue2() - right.getValue2());
     })
     .andFinish(acc -> (double) acc.getValue1() / acc.getValue2());
----
+----
 
 Let's stop for a second to look at the type we got:
 `AggregateOperation1<Long, LongLongAccumulator, Double>`. Its type
@@ -201,7 +201,7 @@ applied to a field in the input item. We can perform a co-group
 transform with the following aggregate operation:
 
 [source,java]
----
+----
 Pipeline p = Pipeline.create();
 ComputeStage<PageVisit> pageVisit = p.drawFrom(Sources.list("pageVisit"));
 ComputeStage<AddToCart> addToCart = p.drawFrom(Sources.list("addToCart"));
@@ -231,7 +231,7 @@ ComputeStage<Entry<Long, long[]>> coGrouped = pageVisit.coGroup(PageVisit::userI
         addToCart, AddToCart::userId,
         payment, Payment::userId,
         aggrOp);
----
+----
 
 Note how we got an `AggregateOperation3` and how it captured each input
 type. When we use it as an argument to a co-group transform, the

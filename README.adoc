@@ -1,10 +1,10 @@
-== An Upgraded Approach To Reference Manual
+=== Hazelcast Jet Reference Manual
 
-This repository includes the actual work performed for the new generation Hazelcast Reference Manual.
+This is an AsciiDoc project.
 
-.Build The Documentation
+.Build The Documentation:
 ----
-./gradlew clean asciidoctor
+gradle clean build
 ----
 
-Result can be found in `target\html5` folder.
+Result can be found in `target/html5`.

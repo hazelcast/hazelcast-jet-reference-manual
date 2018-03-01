@@ -14,24 +14,24 @@ required inputs and outputs. The same `JobConf` instance can be shared
 between the source and the sink.
 
 [source,java]
----
+----
 JobConf jobConfig = new JobConf();
 jobConfig.setInputFormat(TextInputFormat.class);
 jobConfig.setOutputFormat(TextOutputFormat.class);
 TextOutputFormat.setOutputPath(jobConfig, "output-path");
 TextInputFormat.addInputPath(jobConfig, "input-path");
----
+----
 
 The word count pipeline can then be expressed using HDFS as follows
 
 [source,java]
----
+----
 Pipeline p = Pipeline.create();
 p.drawFrom(HdfsSources.hdfs(jobConfig, (k, v) -> v.toString()))
  .flatMap(line -> traverseArray(delimiter.split(line.toLowerCase())).filter(w -> !w.isEmpty()))
  .groupBy(wholeItem(), counting())
  .drainTo(HdfsSinks.hdfs(jobConfig));
----
+----
 
 ===== Data Locality When Reading
 

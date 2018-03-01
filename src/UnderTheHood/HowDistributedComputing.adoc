@@ -12,7 +12,6 @@ dissecting one specific problem: the Word Count. This is how you'd
 describe it in the https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount/src/main/java/WordCount.java[Jet Pipeline API]:
 
 [source,java]
----
 Pattern delimiter = Pattern.compile("\\W+");
 Pipeline p = Pipeline.create();
 p.drawFrom(Sources.<Long, String>map(BOOK_LINES))
@@ -20,7 +19,6 @@ p.drawFrom(Sources.<Long, String>map(BOOK_LINES))
  .filter(word -> !word.isEmpty())
  .groupBy(wholeItem(), counting())
  .drainTo(Sinks.writeMap(COUNTS));
----
 
 We'll step back from this and start from the single-threaded Java code
 that solves the problem for a basic data structure such as an
@@ -34,7 +32,6 @@ Here is the single-threaded code that counts the words in a `List` of
 lines of text:
 
 [source,java]
----
 List<String> lines = ... // a pre-existing list
 Map<String, Long> counts = new HashMap<>();
 for (String line : lines) {
@@ -44,19 +41,16 @@ for (String line : lines) {
         }
     }
 }
----
 
 To move us closer to how this computation is expressed in Jet, let's
 rewrite it in terms of the Java Streams API, still single-threaded:
 
 [source,java]
----
 Map<String, Long> counts =
     lines.stream()
          .flatMap(line -> Arrays.stream(line.toLowerCase().split("\\W+")))
          .filter(word -> !word.isEmpty())
          .collect(groupingBy(word -> word, counting()));
----
 
 The Java Streams formulation gives us clear insight into the steps taken
 to process each data item:
@@ -96,14 +90,12 @@ perform the same computation by running a separate thread for each step.
 Roughly speaking, these are the snippets the threads would be executing:
 
 [source,java]
----
 // Source thread
 for (String line : readLines()) {
     emit(line);
 }
----
+
 [source,java]
----
 // Tokenizer thread
 for (String line : receive()) {
     for (String word : line.toLowerCase().split("\\W+")) {
@@ -112,9 +104,8 @@ for (String line : receive()) {
         }
     }
 }
----
+
 [source,java]
----
 // Accumulator thread
 Map<String, Long> counts = new HashMap<>();
 for (String word : receive()) {
@@ -124,7 +115,6 @@ for (String word : receive()) {
 for (Entry<String, Long> wordAndCount : counts.entrySet()) {
     emit(wordAndCount);
 }
----
 
 The source loop feeds the tokenizer loop over a concurrent queue, the
 tokenizer feeds the accumulator loop, and after the accumulator is done
@@ -211,7 +201,6 @@ distinct word. Here's the rough equivalent of the code the combining
 vertex executes:
 
 [source,java]
----
 // Combining vertex
 Map<String, Long> combined = new HashMap<>();
 for (Entry<String, Long> wordAndCount : receive()) {
@@ -222,7 +211,6 @@ for (Entry<String, Long> wordAndCount : receive()) {
 for (Entry<String, Long> wordAndCount : combined.entrySet()) {
     emit(wordAndCount);
 }
----
 
 As noted above, such a scheme takes more memory due to more hashtable
 entries on each member, but it saves network traffic (an issue we didn't
@@ -248,10 +236,8 @@ to implement it. We start by instantiating the DAG class and adding the
 source vertex:
 
 [source,java]
----
 DAG dag = new DAG();
 Vertex source = dag.newVertex("source", SourceProcessors.readMapP("lines"));
----
 
 Note how we can build the DAG outside the context of any running Jet
 instances: it is a pure POJO.
@@ -268,7 +254,6 @@ The low-level support for such a processor is a part of Jet's library,
 we just need to provide the mapping function:
 
 [source,java]
----
 // (lineNum, line) -> words
 Pattern delimiter = Pattern.compile("\\W+");
 Vertex tokenize = dag.newVertex("tokenize",
@@ -276,7 +261,6 @@ Vertex tokenize = dag.newVertex("tokenize",
         traverseArray(delimiter.split(e.getValue().toLowerCase()))
               .filter(word -> !word.isEmpty()))
 );
----
 
 This creates a processor that applies the given function to each
 incoming item, obtaining zero or more output items, and emits them.
@@ -293,12 +277,10 @@ The next vertex will do the actual word count. We can use the built-in
 `accumulateByKey` processor for this:
 
 [source,java]
----
 // word -> (word, count)
 Vertex accumulate = dag.newVertex("accumulate",
         Processors.accumulateByKeyP(wholeItem(), counting())
 );
----
 
 This processor maintains a hashtable that maps each distinct key to its
 accumulated value. We specify `wholeItem()` as the _key extractor_
@@ -314,12 +296,10 @@ Next is the combining step which computes the grand totals from
 individual members' contributions. This is the code:
 
 [source,java]
----
 // (word, count) -> (word, count)
 Vertex combine = dag.newVertex("combine",
     Processors.combineByKeyP(counting())
 );
----
 
 `combineByKey` is designed to be used downstream of `accumulateByKey`,
 which is why it doesn't need an explicit key extractor. The aggregate
@@ -329,16 +309,13 @@ The final vertex is the sink; we want to store the output in
 another `IMap`:
 
 [source,java]
----
 Vertex sink = dag.newVertex("sink", SinkProcessors.writeMapP("counts"));
----
 
 Now that we have all the vertices, we must connect them into a graph and
 specify the edge type as discussed in the previous section. Here's all
 the code at once:
 
 [source,java]
----
 dag.edge(between(source, tokenize))
    .edge(between(tokenize, accumulate)
            .partitioned(wholeItem(), Partitioner.HASH_CODE))
@@ -346,16 +323,13 @@ dag.edge(between(source, tokenize))
            .distributed()
            .partitioned(entryKey()))
    .edge(between(combine, sink));
----
 
 Let's take a closer look at some of the edges. First, source to
 tokenizer:
 
 [source,java]
----
-.edge(between(tokenize, accumulate)
+ .edge(between(tokenize, accumulate)
        .partitioned(wholeItem(), Partitioner.HASH_CODE))
----
 
 We chose a _local partitioned_ edge. For each word, there will be a
 processor responsible for it on each member so that no items must travel
@@ -370,11 +344,9 @@ on a local edge.
 Next, the edge from the accumulator to the combiner:
 
 [source,java]
----
 .edge(between(accumulate, combine)
        .distributed()
        .partitioned(entryKey()))
----
 
 It is _distributed partitioned_: for each word there is a single
 `combiner` processor in the whole cluster responsible for it and items

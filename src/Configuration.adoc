@@ -7,17 +7,17 @@ You can configure Hazelcast Jet either programmatically or declaratively (XML).
 === Programmatic Configuration
 
 Programmatic configuration is the simplest way to configure Jet. You
-http://= instantiate a {jet-javadoc}/config/JetConfig.html[`JetConfig`]
-[= instantiate a {jet-javadoc}/config/JetConfig.html[`JetConfig`]
+http://= instantiate a http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JetConfig.html[`JetConfig`]
+[= instantiate a http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JetConfig.html[`JetConfig`]
 ]object and set the desired properties. For example, the following will
 configure Jet to use only two threads for cooperative execution:
 
 [source,java]
----
+----
 JetConfig config = new JetConfig();
 config.getInstanceConfig().setCooperativeThreadCount(2);
 JetInstance jet = Jet.newJetInstance(config);
----
+----
 
 === Declarative Configuration
 
@@ -37,7 +37,7 @@ locations (in that order):
 An example configuration looks like the following:
 
 [source,xml]
----
+----
 <hazelcast-jet xsi:schemaLocation="http://www.hazelcast.com/schema/jet-config hazelcast-jet-config-0.5.xsd"
                xmlns="http://www.hazelcast.com/schema/jet-config"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -66,7 +66,7 @@ An example configuration looks like the following:
     </edge-defaults>
     <!-- custom properties which can be read within a ProcessorSupplier -->
 </hazelcast-jet>
----
+----
 
 The following are the configuration elements for Hazelcast Jet:
 
@@ -100,21 +100,17 @@ for specific configuration options for Hazelcast IMDG.
 The underlying Hazelcast IMDG member can be configured as follows:
 
 [source,java]
----
 JetConfig jetConfig = new JetConfig();
 jetConfig.getHazelcastConfig().getGroupConfig().setName("test");
 JetInstance jet = Jet.newJetInstance(jetConfig);
----
 
 The underlying Hazelcast IMDG client can be configured as follows:
 
 
-`[source,java]
----
+[source,java]
 ClientConfig clientConfig = new ClientConfig();
 clientConfig.getGroupConfig().setName("test");
 JetInstance jet = Jet.newJetClient(clientConfig);
----`
 
 ==== Declarative
 

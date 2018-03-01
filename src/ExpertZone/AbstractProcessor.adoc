@@ -2,7 +2,7 @@
 [[abstract-processor]]
 === AbstractProcessor
 
-{jet-javadoc}/core/AbstractProcessor.html[`AbstractProcessor`]
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/AbstractProcessor.html[`AbstractProcessor`]
 is a convenience class designed to deal with most of the boilerplate in
 implementing the full `Processor` API.
 
@@ -76,7 +76,7 @@ The following example shows how you can implement a simple flatmapping
 processor:
 
 [source,java]
----
+----
 public class ItemAndSuccessorP extends AbstractProcessor {
     private final FlatMapper<Integer, Integer> flatMapper =
         flatMapper(i -> traverseIterable(asList(i, i + 1)));
@@ -86,7 +86,7 @@ public class ItemAndSuccessorP extends AbstractProcessor {
         return flatMapper.tryProcess((int) item);
     }
 }
----
+----
 
 For each received `Integer` this processor emits the number and its
 successor. If the outbox refuses an item, `flatMapper.tryProcess()`

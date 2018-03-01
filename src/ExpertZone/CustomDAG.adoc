@@ -69,9 +69,9 @@ user.
 Let's have a look at a specific search phrase:
 
 [source]
----
+----
 the man in the black suit murdered the king
----
+----
 
 The list of documents that contain all the above words is quite long...
 how do we decide which are the most relevant? The TF-IDF logic will make
@@ -102,33 +102,33 @@ a holder of a pair of values (a 2-tuple) and here we have a pair of
 
 
 [source,java]
----
+----
 Stream<Entry<Long, String>> docWords = docId2Name
         .entrySet()
         .parallelStream()
         .flatMap(TfIdfJdkStreams::docLines)
         .flatMap(this::tokenize);
----
+----
 
 We know the number of all documents so we can compute `double
 logDocCount`, the logarithm of the document count:
 
 [source,java]
----
+----
 double logDocCount = Math.log(docId2Name.size());
----
+----
 
 Calculating TF is very easy, just count the number of occurrences of
 each distinct pair and save the result in a `Map<Entry<Long, String>,
 Long>`:
 
 [source,java]
----
+----
 // TF map: (docId, word) -> count
 final Map<Entry<Long, String>, Long> tfMap = docWords
         .parallel()
         .collect(groupingBy(identity(), counting()));
----
+----
 
 And now we build the inverted index. We start from `tfMap`, group by
 word, and the list under each word already matches our final product:
@@ -137,7 +137,7 @@ applying a transformation to the list: currently it's just the raw
 entries from the `tf` map, but we need pairs `(docId, tfIDfScore)`.
 
 [source,java]
----
+----
 invertedIndex = tfMap
     .entrySet() // set of ((docId, word), count)
     .parallelStream()
@@ -161,7 +161,7 @@ private static Entry<Long, Double> tfidfEntry(
     final Long tf = tfEntry.getValue();
     return entry(tfEntry.getKey().getKey(), tf * idf);
 }
----
+----
 
 The search function can be implemented with another Streams expression,
 which you can review in the
@@ -256,27 +256,27 @@ implementation code. Let's start from the source vertex. It is easy,
 just the standard `IMap` reader:
 
 [source,java]
----
+----
 dag.newVertex("doc-source", SourceProcessors.readMapP(DOCID_NAME));;
----
+----
 
 The stopwords-producing processor has custom code, but it's quite
 simple:
 
 [source,java]
----
+----
 dag.newVertex("stopword-source", StopwordsP::new);
----
+----
 
 [source,java]
----
+----
 private static class StopwordsP extends AbstractProcessor {
     @Override
     public boolean complete() {
         return tryEmit(docLines("stopwords.txt").collect(toSet()));
     }
 }
----
+----
 
 Since this is a source processor, all its action happens in
 `complete()`. It emits a single item: the `HashSet` built directly from
@@ -286,21 +286,21 @@ The `doc-count` processor can be built from the primitives provided in
 Jet's library:
 
 [source,java]
----
+----
 dag.newVertex("doc-count", Processors.aggregateP(counting()));
----
+----
 
 The `doc-lines` processor is more of a mouthful, but still built from
 existing primitives:
 
 [source,java]
----
+----
 dag.newVertex("doc-lines",
     Processors.nonCooperativeP(
         Processors.flatMapP((Entry<Long, String> e) ->
             traverseStream(docLines("books/" + e.getValue())
                            .map(line -> entry(e.getKey(), line))))));
----
+----
 
 Let's break down this expression... `Processors.flatMap` returns a
 standard processor that emits an arbitrary number of items for each
@@ -314,7 +314,7 @@ calls.
 `tokenizer` is another custom vertex:
 
 [source,java]
----
+----
 dag.newVertex("tokenize", TokenizeP::new);
 
 private static class TokenizeP extends AbstractProcessor {
@@ -336,7 +336,7 @@ private static class TokenizeP extends AbstractProcessor {
         return flatMapper.tryProcess((Entry<Long, String>) item);
     }
 }
----
+----
 
 This is a processor that must deal with two different inbound edges. It
 receives the stopword set over edge 0 and then it does a flatmapping
@@ -353,10 +353,10 @@ method later, with the same input item.
 Let's show the code that creates the `tokenize`'s two inbound edges:
 
 [source,java]
----
+----
 dag.edge(between(stopwordSource, tokenize).broadcast().priority(-1))
    .edge(from(docLines).to(tokenize, 1));
----
+----
 
 Especially note the `.priority(-1)` part: this ensures that there will
 be no attempt to deliver any data coming from `docLines` before all the
@@ -368,14 +368,14 @@ place.
 primitives:
 
 [source,java]
----
+----
 dag.newVertex("tf", Processors.aggregateByKeyP(wholeItem(), counting()));
----
+----
 
 `tf-idf` is the most complex processor:
 
 [source,java]
----
+----
 dag.newVertex("tf-idf", TfIdfP::new);
 
 private static class TfIdfP extends AbstractProcessor {
@@ -429,7 +429,7 @@ private static class TfIdfP extends AbstractProcessor {
         return entry(docId, tf * idf);
     }
 }
----
+----
 
 This is quite a lot of code, but each of the three pieces is not too
 difficult to follow:
@@ -447,6 +447,6 @@ that obtains a traverser from a map after it has been populated.
 Finally, our DAG is terminated by a sink vertex:
 
 [source,java]
----
+----
 dag.newVertex("sink", SinkProcessors.writeMapP(INVERTED_INDEX));
----
+----

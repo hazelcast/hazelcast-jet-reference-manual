@@ -17,20 +17,20 @@ The most basic usage is very simple, here are snippets to use `IMap`
 and `ICache` as a source and a sink:
 
 [source,java]
----
+----
 Pipeline p = p.create();
 ComputeStage<Entry<String, Long>> stage =
         p.drawFrom(Sources.<String, Long>map("myMap"));
 stage.drainTo(Sinks.map("myMap"));
----
+----
 
 [source,java]
----
+----
 Pipeline p = p.create();
 ComputeStage<Entry<String, Long>> stage =
         p.drawFrom(Sources.<String, Long>cache("myCache"));
 stage.drainTo(Sinks.cache("myCache"));
----
+----
 
 In these snippets we draw from and drain to the same kind of structure,
 but you can use any combination.
@@ -47,7 +47,7 @@ code against a map entry, in a data-local manner.
 
 The updating sinks come in three variants:
 
-1. {jet-javadoc}/Sinks.html#mapWithMerging-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBinaryOperator-[`mapWithMerging`],
+1. http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithMerging-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBinaryOperator-[`mapWithMerging`],
 where you provide a a function that computes the map value from the
 stream item and a merging function that gets called if a value already
 exists in the map. Here's an example that concatenates string values:
@@ -67,7 +67,7 @@ exists in the map. Here's an example that concatenates string values:
 ----
 +
 NOTE: This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the update function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
-2. {jet-javadoc}/Sinks.html#mapWithUpdating-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBiFunction-[`mapWithUpdating`],
+2. http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithUpdating-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBiFunction-[`mapWithUpdating`],
 where you provide a single updating function that combines the roles of
 the two functions in `mapWithMerging`. It will be called on the stream
 item and the existing value, if any. Here's an example that concatenates
@@ -88,7 +88,7 @@ string values:
 ----
 +
 NOTE: This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the merge function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
-3. {jet-javadoc}/Sinks.html#mapWithEntryProcessor-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-[`mapWithEntryProcessor`],
+3. http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#mapWithEntryProcessor-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-[`mapWithEntryProcessor`],
 where you provide a function that returns a full-blown `EntryProcessor`
 instance that will be submitted to the map. This is the most general
 variant, but can't use batching that the other variants do and thus has
@@ -138,7 +138,7 @@ drain to remote `IMap` and `ICache`. Just for variety, we funnel the
 data from `IMap` to `ICache` and vice versa:
 
 [source,java]
----
+----
 ClientConfig cfg = new ClientConfig();
 cfg.getGroupConfig().setName("myGroup").setPassword("pAssw0rd");
 cfg.getNetworkConfig().addAddress("node1.mydomain.com", "node2.mydomain.com");
@@ -150,7 +150,7 @@ ComputeStage<Entry<String, Long>> fromCache =
         p.drawFrom(Sources.<String, Long>remoteCache("inputCache", cfg));
 fromMap.drainTo(Sinks.remoteCache("outputCache", cfg));
 fromCache.drainTo(Sinks.remoteMap("outputMap", cfg));
----
+----
 
 For a full discussion on how to configure your client connection, refer
 to the
@@ -166,13 +166,13 @@ source connector itself and they'll get applied on the remote side,
 before sending:
 
 [source,java]
----
+----
 Pipeline p = p.create();
 p.drawFrom(Sources.<String, Person, Integer>remoteMap(
         "inputMap", clientConfig,
         e -> e.getValue().getAge() > 21,
         e -> e.getValue().getAge()));
----
+----
 
 The same optimization works on a local `IMap`, too, but has less impact.
 However, Hazelcast IMDG goes a step further in optimizing your filtering
@@ -210,7 +210,7 @@ running.
 This is how you enable the Event Journal on an `IMap`:
 
 [source,java]
----
+----
 JetConfig cfg = new JetConfig();
 cfg.getHazelcastConfig()
    .getMapEventJournalConfig("inputMap")
@@ -218,7 +218,7 @@ cfg.getHazelcastConfig()
    .setCapacity(1000) // how many events to keep before evicting
    .setTimeToLiveSeconds(10); // evict events older than this
 JetInstance jet = Jet.newJetInstance(cfg);
----
+----
 
 The default journal capacity is 10,000 and the default time-to-live is 0
 (which means "unlimited"). Since the entire event journal is kept in
@@ -227,24 +227,24 @@ RAM, you should take care to adjust these values to match your use case.
 The configuration API for `ICache` is identical:
 
 [source,java]
----
+----
 cfg.getHazelcastConfig()
    .getCacheEventJournalConfig("inputCache")
    .setEnabled(true)
    .setCapacity(1000)
    .setTimeToLiveSeconds(10);
----
+----
 
 Once properly configured, you use Event Journal sources like this:
 
 [source,java]
----
+----
 Pipeline p = Pipeline.create();
 ComputeStage<Entry<String, Long>> fromMap =
         p.drawFrom(Sources.<String, Long>mapJournal("inputMap", START_FROM_CURRENT));
 ComputeStage<Entry<String, Long>> fromCache =
         p.drawFrom(Sources.<String, Long>cacheJournal("inputCache", START_FROM_CURRENT));
----
+----
 
 `IMap` and `ICache` are on an equal footing here. The second argument,
 `START_FROM_CURRENT` here, means "start receiving from events that occur
@@ -257,14 +257,14 @@ key and new value. If you want to receive all types of events, use the
 second version of methods:
 
 [source,java]
----
+----
 ComputeStage<EventJournalMapEvent<String, Long>> allFromMap =
         p.drawFrom(Sources.<String, Long, EventJournalMapEvent<String, Long>>mapJournal("inputMap",
                 alwaysTrue(), identity(), START_FROM_CURRENT));
 ComputeStage<EventJournalCacheEvent<String, Long>> allFromCache =
         p.drawFrom(Sources.<String, Long, EventJournalCacheEvent<String, Long>>cacheJournal("inputCache",
                 alwaysTrue(), identity(), START_FROM_CURRENT));
----
+----
 
 Note the type of the stream element: `EventJournalMapEvent` and
 `EventJournalCacheEvent`. These are almost the same and have these
@@ -285,12 +285,12 @@ cluster, you just have to prepend `remote` to the source names and add a
 `ClientConfig`, for example:
 
 [source,java]
----
+----
 ComputeStage<Entry<String, Long>> fromRemoteMap = p.drawFrom(
         Sources.<String, Long>remoteMapJournal("inputMap", clientConfig(), START_FROM_CURRENT));
 ComputeStage<Entry<String, Long>> fromRemoteCache = p.drawFrom(
         Sources.<String, Long>remoteCacheJournal("inputCache", clientConfig(), START_FROM_CURRENT));
----
+----
 
 ===== IList
 
@@ -307,7 +307,7 @@ another list, and fetch the results (we assume you already have a Jet
 instance in the variable `jet`):
 
 [source,java]
----
+----
 IList<Integer> inputList = jet.getList("inputList");
 for (int i = 0; i < 10; i++) {
     inputList.add(i);
@@ -322,13 +322,13 @@ jet.newJob(p).join();
 
 IList<String> resultList = jet.getList("resultList");
 System.out.println("Results: " + new ArrayList<>(resultList));
----
+----
 
 You can access a list in an external cluster as well, by providing a
  `ClientConfig` object:
 
 [source,java]
----
+----
 ClientConfig clientConfig = new ClientConfig();
 clientConfig.getGroupConfig().setName("myGroup").setPassword("pAssw0rd");
 clientConfig.getNetworkConfig().addAddress("node1.mydomain.com", "node2.mydomain.com");
@@ -336,4 +336,4 @@ clientConfig.getNetworkConfig().addAddress("node1.mydomain.com", "node2.mydomain
 Pipeline p = Pipeline.create();
 ComputeStage<Object> stage = p.drawFrom(Sources.remoteList("inputlist", clientConfig));
 stage.drainTo(Sinks.remoteList("resultList", clientConfig));
----
+----

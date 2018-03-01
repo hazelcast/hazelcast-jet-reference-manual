@@ -24,9 +24,9 @@ data and collect the sink data from all the cluster members.
 
 Jet provides two main ways to use the filesystem as a source:
 
-1. {jet-javadoc}/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-[`Sources.files()`]: read all the files in a
+1. http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-[`Sources.files()`]: read all the files in a
 directory and complete. The files should not change while being read.
-2. {jet-javadoc}/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-[`Sources.fileWatcher()`]:
+2. http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-[`Sources.fileWatcher()`]:
 first emit the contents of the files present in the directory and then
 continue watching the directory for further changes. Each time a
 complete line of text appears in an existing or a newly created file,
@@ -37,7 +37,7 @@ is deleted.
 ====== Sink
 
 The
-{jet-javadoc}/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-[`Sources.files()`]
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-[`Sources.files()`]
 sink writes output to several files in the configured directory. Each
 underlying processor writes to its own file to avoid contention.
 

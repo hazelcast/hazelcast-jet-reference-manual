@@ -124,7 +124,7 @@ public class HelloWorld {
 You should expect to see a lot of logging output from Jet (sent to
 `stderr`) and two lines on `stdout`:
 
----
+----
 Count of hello: 4
 Count of world: 5
----
+----

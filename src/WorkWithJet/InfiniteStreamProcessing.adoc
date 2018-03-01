@@ -85,7 +85,7 @@ specify a rule that tells us at which point all the data for a given
 window has been gathered, allowing us to emit the aggregated result.
 
 To approach these challenges we use the concept of the
-{jet-javadoc}/core/Watermark.html[_watermark_].
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Watermark.html[_watermark_].
 It is a timestamped item inserted into the stream that tells us "from
 this point on there will be no more items with timestamp less than
 this". Unfortunately, we almost never know for sure when such a
@@ -158,11 +158,11 @@ time. You can tweak this setting when starting Jet, for example increase
 the backup count to two:
 
 [source,java]
----
+----
 JetConfig config = new JetConfig();
 config.getInstanceConfig().setBackupCount(2);
 JetInstance = Jet.newJetInstance(config);
----
+----
 
 ===== Exactly-Once
 
@@ -201,16 +201,16 @@ benign because it just means getting the exact same result twice.
 
 Fault tolerance is off by default. To activate it for a job, create a
 `JobConfig` object and set the
-{jet-javadoc}/config/JobConfig.html#setProcessingGuarantee-com.hazelcast.jet.config.ProcessingGuarantee-[_processing guarantee_].
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JobConfig.html#setProcessingGuarantee-com.hazelcast.jet.config.ProcessingGuarantee-[_processing guarantee_].
 You can also configure
-{jet-javadoc}/config/JobConfig.html#setSnapshotIntervalMillis-long-[_snapshot interval_].
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JobConfig.html#setSnapshotIntervalMillis-long-[_snapshot interval_].
 
 [source,java]
----
+----
 JobConfig jobConfig = new JobConfig();
 jobConfig.setProcessingGuarantee(ProcessingGuarantee.EXACTLY_ONCE);
 jobConfig.setSnapshotIntervalMillis(SECONDS.toMillis(10));
----
+----
 
 Using less frequent snapshots, more data will have to be replayed
 and the temporary spike in the latency of the output will be greater.
@@ -229,15 +229,15 @@ one will recover and restart the same Jet job, making a mess in our
 application.
 
 Hazelcast Jet offers a mechanism to fight off this hazard:
-{jet-javadoc}/config/JobConfig.html#setSplitBrainProtection-boolean-[_split-brain protection_].
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JobConfig.html#setSplitBrainProtection-boolean-[_split-brain protection_].
 It works by ensuring that a job cannot be restarted in a
 cluster whose size isn't more than half of what it was before the job
 was suspended. Enable split-brain protection like this:
 
 [source,java]
----
+----
 jobConfig.setSplitBrainProtection(true);
----
+----
 
 A loophole here is that, after the split brain has occurred, you could
 add more members to any of the sub-clusters and have them both grow to

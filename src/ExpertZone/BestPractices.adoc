@@ -17,7 +17,7 @@ ways to capture the input/output of a vertex and inspect it.
 The first approach is to decorate a vertex declaration with a layer that
 will log all the data traffic going through it. This support is present
 in the
-{jet-javadoc}/core/processor/DiagnosticProcessors.html[`DiagnosticProcessors`]
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/DiagnosticProcessors.html[`DiagnosticProcessors`]
 factory class, which contains the following methods:
 
 * `peekInput()`: logs items received at any edge ordinal.
@@ -38,19 +38,19 @@ Suppose we have declared the second-stage vertex in a two-stage
 aggregation setup:
 
 [source,java]
----
+----
 Vertex combine = dag.newVertex("combine",
     combineByKey(counting()));
----
+----
 
 We'd like to see what exactly we're getting from the first stage, so
 we'll wrap the processor supplier with `peekInput()`:
 
 [source,java]
----
+----
 Vertex combine = dag.newVertex("combine",
     peekInput(combineByKey(counting())));
----
+----
 
 Keep in mind that logging happens on the machine running hosting the
 processor, so this technique is primarily targeted to Jet jobs the
@@ -61,7 +61,7 @@ developer runs locally in his development environment.
 Since most vertices are implemented to emit the same data stream to all
 attached edges, it is usually possible to attach a diagnostic sink to
 any vertex. For example, Jet's standard
-{jet-javadoc}/core/processor/SinkProcessors.html#writeFileP-java.lang.String-[`writeFileP()`]
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/processor/SinkProcessors.html#writeFileP-java.lang.String-[`writeFileP()`]
 sink vertex can be very useful here.
 
 ====== Example Usage
@@ -70,12 +70,12 @@ In the example from the Word Count tutorial we can add the following
 declarations:
 
 [source,java]
----
+----
 Vertex diagnose = dag.newVertex("diagnose",
         Sinks.writeFile("tokenize-output"))
         .localParallelism(1);
 dag.edge(from(tokenize, 1).to(diagnose));
----
+----
 
 This will create the directory `tokenize-output` which will contain one
 file per processor instance running on the machine. When running in a
@@ -87,12 +87,12 @@ output of all the processors on all the members saved on a single member
 ==== How to Unit-Test a Processor
 
 We provide some utility classes to simplify writing unit tests for your custom processors. You can find them in the
-{jet-javadoc}/core/test/package-summary.html[`com.hazelcast.jet.core.test`]
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/package-summary.html[`com.hazelcast.jet.core.test`]
 package. Using these utility classes you can unit test your processor by
 passing it some input items and asserting the expected output.
 
 Start by calling
-{jet-javadoc}/core/test/TestSupport.html#verifyProcessor-com.hazelcast.jet.core.ProcessorSupplier-[`TestSupport.verifyProcessor()`]
+http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/test/TestSupport.html#verifyProcessor-com.hazelcast.jet.core.ProcessorSupplier-[`TestSupport.verifyProcessor()`]
 by passing it a processor supplier or a processor instance.
 
 The test process does the following:
@@ -145,7 +145,7 @@ This class does not cover these cases:
 This will test one of the jet-provided processors:
 
 [source,java]
----
+----
 TestSupport.verifyProcessor(Processors.map((String s) -> s.toUpperCase()))
            .disableCompleteCall()             // enabled by default
            .disableLogging()                  // enabled by default
@@ -155,7 +155,7 @@ TestSupport.verifyProcessor(Processors.map((String s) -> s.toUpperCase()))
            .outputChecker(<function>)         // default is `Objects::equal`
            .input(asList("foo", "bar"))       // default is `emptyList()`
            .expectOutput(asList("FOO", "BAR"));
----
+----
 
 ===== Other Utility Classes
 
