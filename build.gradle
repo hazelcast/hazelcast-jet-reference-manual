@@ -19,7 +19,7 @@ asciidoctor {
     sources {
       include 'book.adoc'
     }
-    backends = [ 'html5', 'pdf', 'multipage_html5', 'epub3' ]
+    backends = [ 'html5', 'pdf', 'multipage_html5', /*'epub3'*/ ]
     options = [
         logDocuments: true,
         doctype: 'book',
