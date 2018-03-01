@@ -1,20 +1,4 @@
-.project
-.classpath
-.settings/
-.idea/
 .patch
 *.iml
 .DS_Store
-
-# PHP installation
-vendor
-
-# generated content
-static/
-
-# temporary build files
-src/images
-copyright.txt
-index.md
-manifest.json
-title.txt
+.gradle
