@@ -1,20 +1,12 @@
 = Hazelcast Jet Reference Manual
-:doctype: book
-:toc: macro
-:toclevels: 3
-ifndef::imagesdir[:imagesdir: images]
-:icons: font
-:last-update-label!:
+:toc: left
+:toclevels: 2
 :safe-mode: SECURE
-:allow-uri-read:
-
 
 :numbered!:
 
-toc::[]
 include::index.adoc[]
 include::Preface.adoc[]
-
 
 :numbered:
 
