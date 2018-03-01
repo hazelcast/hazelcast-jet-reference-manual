@@ -11,15 +11,15 @@ buildscript {
 }
 
 apply plugin: 'org.asciidoctor.convert'
-import org.asciidoctor.gradle.AsciidoctorTask
 
-// common Asciidoctor settings
-tasks.withType(AsciidoctorTask) { docTask ->
-    sourceDir "$sources"
-    outputDir "$output"
+asciidoctor {
+    requires file('./multipage-html5-converter.rb')
+    sourceDir "src"
+    outputDir "target"
     sources {
       include 'book.adoc'
     }
+    backends = [ 'html5', /*'pdf', 'multipage_html5', 'epub3'*/ ]
     options = [
         logDocuments: true,
         doctype: 'book',
@@ -33,37 +33,17 @@ tasks.withType(AsciidoctorTask) { docTask ->
         toc                 : 'left',
         idprefix            : '',
         idseparator         : '-',
-	imagesdir	    : './images',
-	sectanchors         : true,
-	sectlinks           : true,
- //       stylesheet	    : './asciidoctor-stylesheet-factory/stylesheets/foundation.css',
-
+        imagesdir	    : './images',
+        sectanchors         : true,
+        sectlinks           : true,
+//        stylesheet	    : './asciidoctor-stylesheet-factory/stylesheets/foundation.css',
     ]
 }
 
-// HTML specific settings
-task generateMulti (type: AsciidoctorTask, group: 'Documentation') {
-    requires file('./multipage-html5-converter.rb')
-    backends = ['multipage_html5']
+build {
+   dependsOn asciidoctor
 }
 
-task generateSingle (type: AsciidoctorTask, group: 'Documentation') {
-    backends = ['html5']
+clean {
+    delete asciidoctor.outputDir
 }
-
-// PDF specific settings
-task generatePdf (type: AsciidoctorTask, description: 'Generates PDF documentation.', group: 'Documentation') {
-    backends = ['pdf']
-}
-
-// epub3 specific settings
-task generateEpub (type: AsciidoctorTask, description: 'Generates PDF documentation.', group: 'Documentation') {
-    backends = ['epub3']
-}
-
-task cleanup(type: Delete) {
-  delete "$output"
-}
-
-task html (dependsOn: [cleanup, generateMulti, generateSingle], description: 'Generates single and multiple HTML documentation.')
-task generateAll (dependsOn: [cleanup, html, generatePdf, generateEpub])
