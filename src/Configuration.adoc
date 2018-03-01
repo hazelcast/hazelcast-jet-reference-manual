@@ -1,10 +1,8 @@
-
-
-== Configuration
+= Configuration
 
 You can configure Hazelcast Jet either programmatically or declaratively (XML).
 
-=== Programmatic Configuration
+== Programmatic Configuration
 
 Programmatic configuration is the simplest way to configure Jet. You
 http://= instantiate a http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/JetConfig.html[`JetConfig`]
@@ -19,7 +17,7 @@ config.getInstanceConfig().setCooperativeThreadCount(2);
 JetInstance jet = Jet.newJetInstance(config);
 ----
 
-=== Declarative Configuration
+== Declarative Configuration
 
 If you don't pass an explicit `JetConfig` object when constructing a Jet
 instance, it will look for an XML configuration file in the following
@@ -88,14 +86,14 @@ value is 1.
 * Edge Defaults: The default values to be used for all edges. Please see
 the section on <<fine-tuning-edges, Tuning Edges>>.
 
-=== Configure the Underlying Hazelcast Instance
+== Configure the Underlying Hazelcast Instance
 
 Each Jet member or client has its underlying Hazelcast member or client.
 Please refer to the
 http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#understanding-configuration[Hazelcast Reference Manual]
 for specific configuration options for Hazelcast IMDG.
 
-==== Programmatic
+=== Programmatic
 
 The underlying Hazelcast IMDG member can be configured as follows:
 
@@ -112,7 +110,7 @@ ClientConfig clientConfig = new ClientConfig();
 clientConfig.getGroupConfig().setName("test");
 JetInstance jet = Jet.newJetClient(clientConfig);
 
-==== Declarative
+=== Declarative
 
 Hazelcast IMDG can also be configured declaratively as well.
 Please refer to the

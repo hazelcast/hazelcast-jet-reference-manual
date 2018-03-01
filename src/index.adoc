@@ -1,3 +1,8 @@
+:toc: left
+:toclevels: 3
+:safe-mode: SECURE
+
+= Hazelcast Jet Reference Manual
 
 Welcome to the Hazelcast Jet Reference Manual. This manual includes
 concepts, instructions, and samples to guide you on how to use Hazelcast
@@ -12,3 +17,92 @@ its features, use cases and performance considerations.
 As the reader of this manual, you must be familiar with the Java
 programming language and you should have installed your preferred
 Integrated Development Environment (IDE).
+
+:leveloffset: +1
+
+include::Preface.adoc[]
+
+:numbered:
+
+include::Introduction.adoc[]
+include::GetStarted.adoc[]
+
+[[work-with-jet]]
+= Work With Jet
+
+:leveloffset: +1
+
+include::WorkWithJet/StartJet.adoc[]
+include::WorkWithJet/BuildComputation.adoc[]
+include::WorkWithJet/ImplementAggregation.adoc[]
+include::WorkWithJet/InfiniteStreamProcessing.adoc[]
+
+[[source-sink-connectors]]
+= Source and Sink Connectors
+
+:leveloffset: +1
+
+include::WorkWithJet/SourceSinkConnectors/Overview.adoc[]
+include::WorkWithJet/SourceSinkConnectors/IMDG.adoc[]
+include::WorkWithJet/SourceSinkConnectors/FileSocket.adoc[]
+include::WorkWithJet/SourceSinkConnectors/HDFS.adoc[]
+include::WorkWithJet/SourceSinkConnectors/Kafka.adoc[]
+
+:leveloffset: -1
+
+include::WorkWithJet/Considerations.adoc[]
+include::WorkWithJet/LogDebug.adoc[]
+
+:leveloffset: -1
+
+include::JetAPIs.adoc[]
+include::Configuration.adoc[]
+include::JUS.adoc[]
+
+[[under-the-hood]]
+= Under the Hood
+
+:leveloffset: +1
+
+include::UnderTheHood/HowDistributedComputing.adoc[]
+include::UnderTheHood/HowInfiniteStreamProcessing.adoc[]
+include::UnderTheHood/StreamProcessing.adoc[]
+
+:leveloffset: -1
+
+= Expert Zone
+
+:leveloffset: +1
+
+include::ExpertZone/Overview.adoc[]
+include::ExpertZone/JetExecutionModel.adoc[]
+include::ExpertZone/DAG.adoc[]
+include::ExpertZone/Job.adoc[]
+include::ExpertZone/Processor.adoc[]
+include::ExpertZone/AbstractProcessor.adoc[]
+include::ExpertZone/WatermarkPolicy.adoc[]
+include::ExpertZone/Vertices.adoc[]
+include::ExpertZone/CustomSourceSink.adoc[]
+include::ExpertZone/BestPractices.adoc[]
+include::ExpertZone/CustomDAG.adoc[]
+
+:leveloffset: -1
+
+[[misc]]
+= Miscellaneous
+
+:leveloffset: +1
+
+include::Misc/PhoneHomes.adoc[]
+include::Misc/LicenseQuestions.adoc[]
+include::Misc/FAQ.adoc[]
+include::Misc/CommonExceptions.adoc[]
+
+:leveloffset: -1
+
+include::Glossary.adoc[]
+
+
+
+
+

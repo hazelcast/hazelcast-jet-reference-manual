@@ -1,8 +1,7 @@
-
 [[pipeline-api]]
-=== Build Your Computation Pipeline
+= Build Your Computation Pipeline
 
-==== The Shape of a Pipeline
+== The Shape of a Pipeline
 
 The general shape of any data processing pipeline is `drawFromSource ->
 transform -> drainToSink` and the natural way to build it is from source
@@ -49,7 +48,7 @@ src.map(String::toLowerCase)
    .drainTo(Sinks.writeList("lowercase"));
 
 
-==== Choose Your Data Sources and Sinks
+== Choose Your Data Sources and Sinks
 
 Hazelcast Jet has support for these data sources and sinks:
 
@@ -75,7 +74,7 @@ connectors are in their separate modules.
 There's a <<source-sink-connectors, dedicated section>> that discusses
 the topic of data sources and sinks in more detail.
 
-==== Compose the Pipeline Transforms
+== Compose the Pipeline Transforms
 
 The simplest kind of transformation is one that can be done on each item
 individually and independent of other items. The major examples are
@@ -89,7 +88,7 @@ each item to another item; `filter` discards items that don't match its
 predicate; and `flatMap` transforms each item into zero or more output
 items.
 
-===== groupBy
+=== groupBy
 
 Stepping up from the simplest transforms we come to
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#groupBy-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation1-[`groupBy`],
@@ -132,7 +131,7 @@ there are two such transforms of special interest: `coGroup` and
 `hashJoin`. We discuss these next.
 
 [[cogroup]]
-===== coGroup
+=== coGroup
 
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#coGroup-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation2-[`coGroup`]
 is a generalization of `groupBy` to more than one contributing
@@ -179,7 +178,7 @@ This demonstrates the individual treatment of input streams: stream 1 is
 weighted so that each of its items is worth ten items from stream 0.
 
 [[cogroup-builder]]
-====== coGroup Builder
+==== coGroup Builder
 
 If you need to co-group more than three streams, you'll have to use the
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#coGroupBuilder-com.hazelcast.jet.function.DistributedFunction-[co-group builder]
@@ -240,7 +239,7 @@ to the
 to learn more about it.
 
 [[hash-join]]
-===== hashJoin
+=== hashJoin
 
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#hashJoin-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-[`hashJoin`]
 is a specialization of a general "join" operation, optimized for the use
@@ -300,7 +299,7 @@ each cluster member. That's why this operation is also known as a
 _replicated_ join. This is something to keep in mind when estimating
 the RAM requirements for a hash-join operation.
 
-====== hashJoin Builder
+==== hashJoin Builder
 
 You can hash-join a stream with up to two enriching streams using the
 API we demonstrated above. If you have more than two enriching streams,

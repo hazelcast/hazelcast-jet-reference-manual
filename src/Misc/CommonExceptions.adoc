@@ -1,5 +1,4 @@
-
-=== Common Exceptions
+= Common Exceptions
 
 You may see the following exceptions thrown when working with Jet:
 

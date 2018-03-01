@@ -1,13 +1,12 @@
-
 [[abstract-processor]]
-=== AbstractProcessor
+= AbstractProcessor
 
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/AbstractProcessor.html[`AbstractProcessor`]
 is a convenience class designed to deal with most of the boilerplate in
 implementing the full `Processor` API.
 
 [[receiving-items]]
-==== Receiving items
+== Receiving items
 
 On the reception side the first line of convenience are the
 `tryProcessN()` methods. While in the inbox the watermark and data items
@@ -27,7 +26,7 @@ practice.
 Paralleling the above there are `tryProcessWm(ordinal, wm)` and
 `tryProcessWmN(wm)` methods that get just the watermark items.
 
-==== Emitting items
+== Emitting items
 
 `AbstractProcessor` has a private reference to its outbox and lets you
 access all its functionality indirectly. The `tryEmit()` methods offer your items to the outbox. If you get a `false` return value, you must stop emitting items and return from the current callback method of the processor. For example, if you called `tryEmit()` from `tryProcess0()`,
@@ -53,7 +52,7 @@ flatmapping kind of transformation. It automatically handles the concern
 of creating a new traverser when the previous one is exhausted and
 reusing the previous one until exhausted.
 
-==== Traverser
+== Traverser
 
 `Traverser` is a very simple functional interface whose shape matches
 that of a `Supplier`, but with a contract specialized for the traversal

@@ -1,6 +1,5 @@
-
 [[processor]]
-=== Processor
+= Processor
 
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html[`Processor`]
 is the main type whose implementation is up to the user of the Core API:
@@ -24,7 +23,7 @@ from one thread at a time, although not necessarily always the same
 thread.
 
 [[cooperativeness]]
-==== Cooperativeness
+== Cooperativeness
 
 `Processor` instances are cooperative by default. The processor can opt
 out of cooperative multithreading by overriding `isCooperative()` to
@@ -37,7 +36,7 @@ processors and most processors can and should be implemented to fit
 these requirements. The major exception are sources and sinks because
 they often have no choice but calling into blocking I/O APIs.
 
-==== The Outbox
+== The Outbox
 
 The processor sends its output items to its
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Outbox.html[`Outbox`]
@@ -47,9 +46,9 @@ processor should be implemented such that when the outbox refuses its
 item, it saves its processing state and returns from the processing
 method. The execution engine will then drain the outbox buckets.
 
-==== Data Processing Callbacks
+== Data Processing Callbacks
 
-===== process(ordinal, inbox)
+=== process(ordinal, inbox)
 
 Jet passes the items received over a given edge to the processor by
 calling
@@ -68,7 +67,7 @@ corresponding to a given input item and may need to return from the
 stay in the inbox so Jet knows the processor has more work to do even if
 no new items are received.
 
-===== tryProcessWatermark(watermark)
+=== tryProcessWatermark(watermark)
 
 When new highest watermark is received from all input edges and all
 input processor instances, the
@@ -81,7 +80,7 @@ The implementation may choose to process only partially and return
 timestamp before any other processing method is called. When the method
 returns `true`, the watermark is forwarded to the downstream processors.
 
-===== tryProcess()
+=== tryProcess()
 
 If a processor's inbox is empty, Jet will call its
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#tryProcess--[`tryProcess()`]
@@ -103,7 +102,7 @@ must be able to advance the watermark even during a stream lull, based
 on the passage of wall-clock time, and it can do it inside the
 `tryProcess()` method.
 
-===== complete()
+=== complete()
 
 Jet calls
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#complete--[`complete()`]
@@ -114,7 +113,7 @@ can't emit everything in a given call, it should return `false` and will
 be called again later.
 
 [[snapshotting-callbacks]]
-==== Snapshotting Callbacks
+== Snapshotting Callbacks
 
 Hazelcast Jet supports fault-tolerant processing jobs by taking
 distributed snapshots. In regular time intervals each of the source
@@ -127,7 +126,7 @@ At the level of the `Processor` API the barrier items are not visible;
 `ProcessorTasklet` handles them internally and invokes the snapshotting
 callback methods described below.
 
-===== saveToSnapshot()
+=== saveToSnapshot()
 
 Jet will call
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Processor.html#saveToSnapshot--[`saveToSnapshot()`]
@@ -143,7 +142,7 @@ been flushed.
 When this method returns `true`, `ProcessorTasklet` will forward the
 barrier item to all the outbound edges.
 
-===== restoreFromSnapshot()
+=== restoreFromSnapshot()
 
 When a Jet job is restarting after having been suspended, it will first
 reload all the state from the last successful snapshot. Each processor
@@ -153,7 +152,7 @@ Its parameter is the `Inbox` filled with a batch of snapshot data. The
 method will be called repeatedly until it consumes all the snapshot
 data.
 
-===== finishSnapshotRestore()
+=== finishSnapshotRestore()
 
 After it has delivered all the snapshot data to `restoreFromSnapshot()`,
 Jet will call
@@ -162,7 +161,7 @@ The processor may use it to initialize some transient state from the
 restored state.
 
 [[alo-behavior]]
-==== Best Practice: Document At-Least-Once Behavior
+== Best Practice: Document At-Least-Once Behavior
 
 As we discuss in the <<pitfalls-alo, Under the
 Hood>> chapter, the behavior of a processor under _at-least-once_ semantics

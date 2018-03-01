@@ -1,5 +1,4 @@
-
-=== How Infinite Stream Processing Works In Jet
+= How Infinite Stream Processing Works In Jet
 
 Continuing our deep dive into Jet's fundamentals we shall now move on to
 infinite stream processing. The major challenge in batch jobs was
@@ -10,7 +9,7 @@ independently on any member, always yielding the same result. In the
 context of infinite stream processing we have the same concern and solve
 it with the same means, but we also face some new challenges.
 
-==== Stream Skew
+== Stream Skew
 
 We
 <<time-ordering, already introduced>>
@@ -26,7 +25,7 @@ edge, we make sure the downstream processor observes the correct watermark
 value, which is the least of watermarks received from the contributing
 substreams.
 
-==== Sliding and Tumbling Window
+== Sliding and Tumbling Window
 
 Many quantities, like "the current rate of change of a price" require you
 to aggregate your data over some time period. This is what makes the
@@ -69,7 +68,7 @@ scratch each time. After accumulating an item just once, the rest of the
 process has fixed cost regardless of input size. With _deduct_, the
 fixed cost approaches zero.
 
-===== Example: 30-second Window Sliding by 10 Seconds
+=== Example: 30-second Window Sliding by 10 Seconds
 
 We'll now illustrate the above story with a specific example: we'll
 construct a 30-second window which slides by 10 seconds (i.e., three
@@ -95,7 +94,7 @@ Keep in mind that the whole diagram represents what happens on just one
 cluster member and for just one grouping key. The same process is going
 on simultaneously for all the keys on all the members.
 
-===== Two-stage aggregation
+=== Two-stage aggregation
 
 The concept of frame combining helps us implement two-stage aggregation
 as well. In the first stage the individual members come up with their
@@ -106,7 +105,7 @@ results along the event time axis into the sliding window.
 
 image::combining-frames.png[Combining partial frames in two-stage aggregation,800,800]
 
-==== Session Window
+== Session Window
 
 In the abstract sense, the session window is a quite intuitive concept:
 it simply captures a burst of events. If no new events occur within the
@@ -144,7 +143,7 @@ image::session-window-4.png[Session window: an event may merge two existing wind
 Once the watermark has passed the closing time of a session window, Jet
 can close it and emit the result of its aggregation.
 
-==== Distributed Snapshot
+== Distributed Snapshot
 
 The technique Jet uses to achieve
 <<fault-tolerance-and-processing-guarantees, fault tolerance>>
@@ -165,7 +164,7 @@ of them at separate times, but it must start taking a snapshot at a
 single point in time. There are two approaches it can take, as explained
 below.
 
-===== Exactly-Once Snapshotting
+=== Exactly-Once Snapshotting
 
 With _exactly-once_ configured, as soon as the processor gets a barrier
 item in any input stream (from any upstream processor), it must stop
@@ -185,7 +184,7 @@ image::exactly-once-3.png[Exactly-once processing: forward the barrier,300,110]
 
 
 
-===== At-Least-Once Snapshotting
+=== At-Least-Once Snapshotting
 
 With _at-least-once_ configured, the processor can keep consuming all 
 the streams until it gets all the barriers, at which point it will stop 
@@ -211,7 +210,7 @@ computation job stops and restarts, this state will be restored from the
 snapshot and then the source will replay `x1` and `x2`. The processor
 will think it got two new items.
 
-==== Rules of Watermark Propagation
+== Rules of Watermark Propagation
 
 Watermark objects are sent interleaved with other stream items, but are
 handled specially:
@@ -240,7 +239,7 @@ watermark downstream. This happens at two levels:
 * between multiple queues backing single edge
 * between multiple input edges to single processor
 
-===== Idle inputs
+=== Idle inputs
 
 A special object called _idle message_ can be emitted from source
 processor when the processor sees no events for configured _idle
@@ -257,12 +256,12 @@ events), the processing will stall indefinitely (unless
 is configured).
 
 [[pitfalls-alo]]
-==== The Pitfalls of At-Least-Once Processing
+== The Pitfalls of At-Least-Once Processing
 
 In some cases _at-least-once_ semantics can have consequences of quite
 an unexpected magnitude, as we discuss next.
 
-===== Apparent Data Loss
+=== Apparent Data Loss
 
 Imagine a very simple kind of processor: it matches up the items that
 belong to a _pair_ based on some rule. If it receives item A first, it
@@ -284,7 +283,7 @@ caused it to forget facts about some pre-barrier items. After a restart
 it will behave as though it has never observed those pre-barrier items,
 resulting in behavior equivalent to data loss.
 
-===== Non-Monotonic Watermark
+=== Non-Monotonic Watermark
 
 One special case of the above story concerns watermark items. Thanks to
 watermark coalescing, processors are typically implemented against the

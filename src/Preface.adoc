@@ -1,10 +1,8 @@
-
 [[preface]]
-== Preface
-
+= Preface
 
 [[naming]]
-=== Naming
+== Naming
 
 * *Hazelcast Jet* or *Jet* both refer to the same distributed data
 processing engine provided by Hazelcast, Inc.
@@ -13,19 +11,19 @@ data grid middleware. *Hazelcast* is also the name of the company
 (Hazelcast, Inc.) providing Hazelcast IMDG and Hazelcast Jet.
 
 [[licensing]]
-=== Licensing
+== Licensing
 
 Hazelcast Jet and Hazelcast Jet Reference Manual are free and provided
 under the Apache License, Version 2.0.
 
 [[trademarks]]
-=== Trademarks
+== Trademarks
 
 Hazelcast is a registered trademark of Hazelcast, Inc. All other
 trademarks in this manual are held by their respective owners.
 
 [[getting-help]]
-=== Getting Help
+== Getting Help
 
 The Jet team provides support to its community via these channels:
 

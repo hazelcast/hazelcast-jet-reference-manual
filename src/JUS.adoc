@@ -1,6 +1,5 @@
-
 [[jus]]
-== Distributed Implementation of java.util.stream API
+= Distributed Implementation of java.util.stream API
 
 Hazelcast Jet adds distributed `java.util.stream` support for Hazelcast
 IMap, ICache and IList data structures.
@@ -8,7 +7,7 @@ IMap, ICache and IList data structures.
 For extensive information about `java.util.stream` API please refer to
 the official https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html[javadocs].
 
-=== Simple Example
+== Simple Example
 
 [source,java]
 ----
@@ -46,8 +45,7 @@ terminal operation on it (such as `forEach()`). At that point Jet
 converts the expression into a Core API DAG and submits it for
 execution.
 
-
-=== Distributed Collectors
+== Distributed Collectors
 
 Like with the functional interfaces, Jet also includes distributed
 versions of the classes found in `java.util.stream.Collectors`. These
@@ -94,7 +92,7 @@ a data item inside a larger collection, a further consequence being that
 a `Reducer` is inappropriate as a downstream collector; that's where
 the JDK-standard collectors make sense.
 
-=== Word Count
+== Word Count
 
 The word count example that was described in the
 <<get-started, Get Started>> section can be rewritten using the `java.util.stream` API as follows:

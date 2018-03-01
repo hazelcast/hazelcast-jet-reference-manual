@@ -1,10 +1,5 @@
-
-[[work-with-jet]]
-== Work with Jet
-
-
 [[start-jet]]
-=== Start Jet and Submit Jobs to It
+= Start Jet and Submit Jobs to It
 
 To create a Jet cluster, we simply start some Jet instances. Normally
 these would be started on separate machines, but for simple practice
@@ -74,7 +69,7 @@ and
 https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java[the Core API DAG]
 are available at our Code Samples repo.
 
-==== JobConfig
+== JobConfig
 
 To gain more control over how Jet will run your job, you can pass in
 a `JobConfig` instance. For example, you can give your job a human-
@@ -91,7 +86,7 @@ In the <<practical-considerations, Practical Considerations>> section
 we'll deepen this story and explain how to use the `JobConfig` to
 to submit a job to a Jet cluster in production.
 
-==== Manage a Submitted Job
+== Manage a Submitted Job
 
 `jet.newJob()` returns a `Job` object, which you can use to monitor the
 job and change its status. You can get the job's name, configuration, and
@@ -110,7 +105,7 @@ job in the cluster changes to that state. Not to confuse the users with
 these differences we decided to make `future.cancel()` fail with an
 exception.
 
-==== Get a List of all Submitted Jobs
+== Get a List of all Submitted Jobs
 
 Jet keeps an inventory of all the jobs submitted to it, including those
 that have already completed. Access the full list with `jet.getJobs()`.

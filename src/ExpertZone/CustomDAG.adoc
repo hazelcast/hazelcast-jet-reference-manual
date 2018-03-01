@@ -1,6 +1,5 @@
-
 [[tf-idf]]
-=== Custom DAG - Inverted TF-IDF Index
+= Custom DAG - Inverted TF-IDF Index
 
 In this tutorial we'll explore what the Core API DAG model offers beyond
 the capabilities of the Pipeline API. Our DAG will feature splits,
@@ -88,7 +87,7 @@ the sum of its parts; a document may contain the exact phrase and this
 will not affect its score.
 
 [[building-inverted-index]]
-==== Building the Inverted Index with Java Streams
+== Building the Inverted Index with Java Streams
 
 To warm us up, let's see what it takes to build the inverted index with
 just thread parallelism and without the ability to scale out across
@@ -182,7 +181,7 @@ words in the tokenization phase. The same set is used to cross out words
 from the user's search phrase, as if they weren't entered. We'll add this
 feature to our DAG based model in the following section.
 
-==== Translating to Jet DAG
+== Translating to Jet DAG
 
 Our DAG as a whole will look relatively complex, but it can be
 understood as a "backbone" (cascade of vertices) starting from a source
@@ -249,7 +248,7 @@ suffer because first the CPU would be forced to sit idle, then we'd be
 late in making the next IO call while tokenizing the input. The separate
 vertex can proceed at full speed all the time.
 
-==== Implementation Code
+== Implementation Code
 
 As we announced, some of the processors in our DAG will need custom
 implementation code. Let's start from the source vertex. It is easy,

@@ -1,6 +1,5 @@
-
 [[job]]
-=== Job
+= Job
 
 A Job is the unit of work which is executed. A Job is described by a
 DAG, which describes the computation to be performed, and the inputs and
@@ -38,7 +37,7 @@ be in a Hazelcast map or another structure and have to be accessed by
 their own API after the job is done.
 
 [[deploy-your-resources]]
-==== Deploy your Resources
+== Deploy your Resources
 
 If the Jet cluster has not been started with all the job's computation
 code already on the classpath, you have to deploy the code together

@@ -1,13 +1,12 @@
-
 [[infinite-stream-processing]]
-=== Infinite Stream Processing
+= Infinite Stream Processing
 
 Distributed stream processing has two major variants: finite and
 infinite. Let's discuss this difference and some concerns specific to
 infinite streams.
 
 
-==== Finite aka. Batch Processing
+== Finite aka. Batch Processing
 
 Finite stream (batch) processing is the simpler variant where you
 provide one or more pre-existing datasets and order Jet to mine them for
@@ -17,7 +16,7 @@ function that computes a grouping key for each of the datasets and
 an aggregate operation that will be performed on all the items in each
 group, yielding one result item per distinct key.
 
-==== The Importance of "Right Now"
+== The Importance of "Right Now"
 
 In batch jobs the data we process represents a point-in-time snapshot of
 our state of knowledge (for example, warehouse inventory where
@@ -34,7 +33,7 @@ A single word that captures the above story is _latency_: we want our
 system to minimize the latency from observing an event to acting upon
 it.
 
-==== Windowing
+== Windowing
 
 In an infinite stream, the dimension of time is always there.  Consider
 a batch job: it may process a dataset labeled "Wednesday", but the
@@ -71,7 +70,7 @@ the session window "closes" when the specified session timeout elapses
 with no further events.
 
 [[time-ordering]]
-==== Time Ordering and the Watermark
+== Time Ordering and the Watermark
 
 Usually the time of observing an event is explicitly written in the
 stream item. There is no guarantee that items will occur in the stream
@@ -105,7 +104,7 @@ Jet comes with some predefined policies which you can tune with a few
 configurable parameters. You can also write your own policy from
 scratch.
 
-==== Fault Tolerance and Processing Guarantees
+== Fault Tolerance and Processing Guarantees
 
 One less-than-obvious consequence of stepping up from finite to infinite
 streams is the difficulty of forever maintaining the continuity of the
@@ -130,7 +129,7 @@ have submitted it, you can disconnect with no effect on the job. Any
 other client or Jet member can request a local `Job` instance which
 allows it to monitor and manage the job.
 
-===== Snapshotting the State of Computation
+=== Snapshotting the State of Computation
 
 To be able to tolerate failures, Jet takes snapshots of the entire state
 of the computation at regular intervals. The snapshot is coordinated
@@ -144,7 +143,7 @@ members, rewind the sources to the last checkpoint, restore the state of
 processing from the last snapshot, and then seamlessly
 continue from that point.
 
-===== Level of Safety
+=== Level of Safety
 
 Jet stores job metadata and snapshot data in Hazelcast `IMap`s, which
 means that you don't have to install any other system for fault
@@ -164,7 +163,7 @@ config.getInstanceConfig().setBackupCount(2);
 JetInstance = Jet.newJetInstance(config);
 ----
 
-===== Exactly-Once
+=== Exactly-Once
 
 As always when guarantees are involved, the principle of the weakest
 link applies: if any part of the system is unable to provide it, the
@@ -179,7 +178,7 @@ As of version 0.5, Hazelcast Jet supports exactly-once with the source
 being either a Hazelcast `IMap` or a Kafka topic, and the sink being a
 Hazelcast `IMap`.
 
-===== At-Least-Once
+=== At-Least-Once
 
 A lesser, but still useful guarantee you can configure Jet for is
 "at-least-once". In this case no stream item will be missed, but some
@@ -197,7 +196,7 @@ but use Kafka as the sink, after a job restart you may get duplicates in
 the output. As opposed to duplicating an input item, this is much more
 benign because it just means getting the exact same result twice.
 
-===== Enabling Snapshotting
+=== Enabling Snapshotting
 
 Fault tolerance is off by default. To activate it for a job, create a
 `JobConfig` object and set the
@@ -217,7 +216,7 @@ and the temporary spike in the latency of the output will be greater.
 More frequent snapshots will reduce the throughput and introduce more
 latency variation during regular processing.
 
-===== Split-Brain Protection
+=== Split-Brain Protection
 
 A particularly nasty kind of failure is the "split brain": due to a very
 specific pattern in the loss of network connectivity the cluster splits
@@ -245,7 +244,7 @@ more than half the previous size. Since the job will keep trying to
 restart itself and by definition one cluster has no idea of the other's
 existence, it will restart as soon as the quorum value is reached.
 
-==== Scaling up Jobs
+== Scaling up Jobs
 
 After a job is submitted to the cluster, new nodes can be started and
 the job can be scaled up. Hazelcast Jet 0.6 introduces a new method into
@@ -255,7 +254,7 @@ scheduled. If the snapshotting mechanism enabled, the job is restarted
 from the last successful snapshot. Therefore, the restart procedure
 respects to the configured processing guarantee.
 
-==== Note for Hazelcast Jet version 0.5
+== Note for Hazelcast Jet version 0.5
 
 Hazelcast Jet's version 0.5 was released with the Pipeline API still
 under construction. We started from the simple case of batch jobs and we

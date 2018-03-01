@@ -1,6 +1,5 @@
-
 [[vertices]]
-=== Vertices in the Library
+= Vertices in the Library
 
 While formally there's only one kind of vertex in Jet, in practice
 there is an important distinction between the following:

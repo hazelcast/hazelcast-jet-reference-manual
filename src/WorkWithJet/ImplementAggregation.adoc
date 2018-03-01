@@ -1,6 +1,5 @@
-
 [[implement-your-aggregate-operation]]
-=== Implement Your Aggregate Operation
+= Implement Your Aggregate Operation
 
 The single most important kind of processing Jet does is aggregation. In
 general it is a transformation of a set of input values into a single

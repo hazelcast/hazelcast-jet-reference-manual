@@ -1,7 +1,5 @@
-
-
 [[dag]]
-=== DAG
+= DAG
 
 The DAG-building API is centered around the
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/DAG.html[`DAG`]
@@ -43,7 +41,7 @@ dag.edge(between(transform, sink));
 ----
 
 [[creating-a-vertex]]
-==== Creating a Vertex
+== Creating a Vertex
 
 The two mandatory elements of creating a vertex are its string
 identifier and the supplier of processors. The latter can be provided in
@@ -72,7 +70,7 @@ the other and they will integrate the same way into your `newVertex()`
 calls.
 
 [[local-and-global-parallelism-of-vertex]]
-==== Local and Global Parallelism of Vertex
+== Local and Global Parallelism of Vertex
 
 The vertex is implemented by one or more instances of `Processor` on
 each member. Each vertex can specify how many of its processors will run
@@ -93,7 +91,7 @@ It is equal to local parallelism multiplied by the cluster size.
 
 
 [[edge-original]]
-==== Edge Ordinal
+== Edge Ordinal
 
 An edge is connected to a vertex with a given **ordinal**, which
 identifies it to the vertex and its processors. When a processor
@@ -128,7 +126,7 @@ dag.edge(from(source, 1).to(v2));
 ----
 
 [[local-and-distributed-edge]]
-==== Local and Distributed Edge
+== Local and Distributed Edge
 
 A major choice to make in terms of data routing is whether the candidate
 set of target processors is unconstrained, encompassing all processors
@@ -162,13 +160,13 @@ dag.edge(between(source, tokenizer))
 Note that only the edge from `accumulate` to `combine` is distributed.
 
 [[routing-policies]]
-==== Routing Policies
+== Routing Policies
 
 The http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/Edge.RoutingPolicy.html[routing policy]
 decides which of the processors in the candidate set to route each
 particular item to.
 
-===== Unicast
+=== Unicast
 
 This is the default routing policy, the one you get when you write
 
@@ -187,7 +185,7 @@ This choice makes sense when the data does not have to be partitioned,
 usually implying a downstream vertex which can compute the result based
 on each item in isolation.
 
-===== Isolated
+=== Isolated
 
 This is a more restricted kind of unicast policy: any given downstream
 processor receives data from exactly one upstream processor. This is
@@ -200,7 +198,7 @@ upstream source processors. Activate this policy by calling
 dag.edge(between(source, insertWatermarks).isolated());
 ----
 
-===== Broadcast
+=== Broadcast
 
 A broadcasting edge sends each item to all candidate receivers. This is
 useful when some small amount of data must be broadcast to all
@@ -218,7 +216,7 @@ Activate this policy by calling `broadcast()` on the edge:
 dag.edge(between(source, count).broadcast());
 ----
 
-===== Partitioned
+=== Partitioned
 
 A partitioned edge sends each item to the one processor responsible for
 the item's partition ID. On a distributed edge, this processor will be
@@ -277,7 +275,7 @@ Since much less data travels towards the combiner than towards the
 accumulator, the performance of the whole job is hardly affected by this
 choice.
 
-===== All-To-One
+=== All-To-One
 
 The all-to-one routing policy is a special case of the `partitioned`
 policy which assigns the same partition ID to all items. The partition
@@ -300,7 +298,7 @@ must see the complete picture, so an all-to-one edge is employed:
 dag.edge(between(topNStage1, topNStage2).distributed().allToOne())
 ----
 
-==== Priority
+== Priority
 
 By default the processor receives items from all inbound edges as they
 arrive. However, there are important cases where an edge must be
@@ -329,7 +327,7 @@ The `tokenize` vertex performs lookup table-based filtering of words. It
 must receive the entire lookup table before beginning to process the
 data.
 
-===== A Fault Tolerance Caveat
+=== A Fault Tolerance Caveat
 
 As explained in the section on the
 <<snapshotting-callbacks, Processor>>
@@ -353,7 +351,7 @@ would be just that there are many more items processed twice after the
 restart.
 
 [[fine-tuning-edges]]
-==== Fine-Tuning Edges
+== Fine-Tuning Edges
 
 Edges can be configured with an
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/EdgeConfig.html[`EdgeConfig`]

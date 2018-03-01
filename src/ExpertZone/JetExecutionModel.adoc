@@ -1,6 +1,5 @@
-
 [[jet-execution-model]]
-=== Jet Execution Model
+= Jet Execution Model
 
 At the heart of Jet is the 
 https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/TaskletExecutionService.java[`TaskletExecutionService`].
@@ -10,7 +9,7 @@ understanding how it schedules code for execution is essential if you
 want to implement a cooperative processor.
 
 [[cooperative-multithreading]]
-==== Cooperative Multithreading
+== Cooperative Multithreading
 
 Cooperative multithreading is one of the core features of Jet and can be
 roughly compared to
@@ -33,7 +32,7 @@ longer periods, preserving the CPU cache lines.
 to make progress (by inspecting its input/output buffers).
 
 [[tasklet]]
-==== Tasklet
+== Tasklet
 
 The execution service doesn't deal with processors directly; instead it
 deals with _tasklets_.
@@ -50,7 +49,7 @@ The most important tasklet is the one driving a processor
 sending/receiving and taking snapshots.
 
 [[work-stealing]]
-==== Work Stealing
+== Work Stealing
 
 When a tasklet is done, its worker will inspect all the other workers'
 tasklet lists to see if any of them has a longer tasklet list than its
@@ -58,7 +57,7 @@ own. If it finds such a worker, it will "steal" one of its tasklets to
 even out the load per thread.
 
 [[exponential-backoff]]
-==== Exponential Backoff
+== Exponential Backoff
 
 If none of the worker's tasklets report having made progress, the worker
 will go to a short sleep. If this happens again after it wakes up, it
@@ -67,7 +66,7 @@ continue retrying once per millisecond to see if any tasklets can make
 progress.
 
 [[processor-tasklet]]
-==== ProcessorTasklet
+== ProcessorTasklet
 
 https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/ProcessorTasklet.java[`ProcessorTasklet`]
 is the one that drives a processor. It manages its inbox, outbox,
@@ -79,7 +78,7 @@ one of its processor's callbacks. It determines the processor's progress
 status and reports it to the execution service.
 
 [[non-cooperative-processor]]
-==== Non-Cooperative Processor
+== Non-Cooperative Processor
 
 If a processor declares itself as non-cooperative, the execution service
 will start a dedicated Java thread for its tasklet to run on.
@@ -90,7 +89,7 @@ Otherwise the tasklet will never be able to initiate a snapshot on the
 processor.
 
 [[running-a-jet-job]]
-==== Running a Jet job
+== Running a Jet job
 
 When you submit a `Job` to it, Jet replicates the DAG to the whole Jet
 cluster and executes a copy of it on each member.

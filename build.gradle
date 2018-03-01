@@ -17,7 +17,7 @@ asciidoctor {
     sourceDir "src"
     outputDir "target"
     sources {
-      include 'book.adoc'
+      include 'index.adoc'
     }
     backends = [ 'html5', /*'pdf',*/ 'multipage_html5', /*'epub3'*/ ]
     options = [

@@ -1,5 +1,4 @@
-
-=== License Questions
+= License Questions
 
 Hazelcast Jet is distributed using the
 http://www.apache.org/licenses/LICENSE-2.0[Apache License 2],
@@ -10,7 +9,7 @@ Depending on the used feature-set, Hazelcast Jet has certain runtime
 dependencies which might have different licenses. Following are
 dependencies and their respective licenses.
 
-==== Embedded Dependencies
+== Embedded Dependencies
 
 Embedded dependencies are merged (shaded) with the Hazelcast Jet codebase
 at compile-time. These dependencies become an integral part of the
@@ -20,7 +19,7 @@ For license files of embedded dependencies, please see the `license`
 directory of the Hazelcast Jet distribution, available at our
 https://jet.hazelcast.org/download/[download page].
 
-===== minimal-json
+=== minimal-json
 
 minimal-json is a JSON parsing and generation library which is a part of
 the Hazelcast Jet distribution. It is used for communication
@@ -29,13 +28,13 @@ between the Hazelcast Jet cluster and the Management Center.
 minimal-json is distributed under the http://opensource.org/licenses/MIT[MIT license] and offers the same rights to add, use,
 modify, and distribute the source code as the Apache License 2.0 that Hazelcast uses. However, some other restrictions might apply.
 
-===== Runtime Dependencies
+=== Runtime Dependencies
 
 Depending on the used features, additional dependencies might be added
 to the dependency set. Those runtime dependencies might have
 other licenses. See the following list of additional runtime dependencies.
 
-===== Apache Hadoop
+=== Apache Hadoop
 
 Hazelcast integrates with Apache Hadoop and can use it as a data
  sink or source. Jet has a dependency on the libraries required to
@@ -43,7 +42,7 @@ Hazelcast integrates with Apache Hadoop and can use it as a data
 
 Apache Hadoop is distributed under the terms of the http://www.apache.org/licenses/LICENSE-2.0[Apache License 2].
 
-===== Apache Kafka
+=== Apache Kafka
 
 Hazelcast integrates with Apache Kafka and can make use of it as a
 data sink or source. Hazelcast has a dependency on Kafka client

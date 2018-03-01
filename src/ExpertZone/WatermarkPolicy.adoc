@@ -1,7 +1,5 @@
-
 [[watermark-policy]]
-=== WatermarkPolicy
-
+= WatermarkPolicy
 
 As mentioned in the
 <<time-ordering, Work_with_Jet>> chapter, determining the watermark is somewhat of a black art; it's
@@ -23,7 +21,7 @@ is the abstraction that computes the value of the watermark for a
 (sub)stream of disordered data items. It takes as input the timestamp of
 each observed item and outputs the current watermark value.
 
-==== Predefined watermark policies
+== Predefined watermark policies
 
 We provide some general, data-agnostic watermark policies in the
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html[`WatermarkPolicies`]
@@ -33,7 +31,7 @@ must make on the nature of the events' timestamp values and on the
 relationship between the timestamps and the locally observed wall-clock
 time.
 
-===== "With Fixed Lag"
+=== "With Fixed Lag"
 
 The
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#withFixedLag-long-[`withFixedLag()`]
@@ -45,7 +43,7 @@ between timestamps in the stream: all events whose timestamp is more than
 the configured `lag` behind the highest timestamp are considered late.
 
 
-===== "Limiting Lag and Delay"
+=== "Limiting Lag and Delay"
 
 The
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#limitingLagAndDelay-long-long-[`limitingLagAndDelay()`]
@@ -62,7 +60,7 @@ watermarks.
 The advantage of this policy is that it doesn't assume anything about
 the unit of measurement used for event timestamps.
 
-===== "Limiting Lag and Lull"
+=== "Limiting Lag and Lull"
 
 The
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#limitingLagAndLull-long-long-[`limitingLagAndLull()`]
@@ -84,7 +82,7 @@ instance won't be able to initialize its "last seen timestamp" and will
 cause the watermark sent to the downstream to forever lag behind all
 the actual data.
 
-===== "Limiting Timestamp and Wall-Clock Lag"
+=== "Limiting Timestamp and Wall-Clock Lag"
 
 The
 http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/core/WatermarkPolicies.html#limitingTimestampAndWallClockLag-long-long-[`limitingTimestampAndWallClockLag()`]
@@ -95,7 +93,7 @@ watermark can lag behind the local time. As long as its assumption holds,
 this policy gives straightforward results. It also doesn't suffer from the
 subtle issue with `limitingLagAndLull()`.
 
-==== Watermark Throttling
+== Watermark Throttling
 
 The policy objects presented above will return the "ideal" watermark
 value according to their logic; however it would be too much overhead to
@@ -117,7 +115,7 @@ which suppresses watermark items until the watermark has advanced at least
 `minStep` ahead of the previously emitted one.
 
 [[max-watermark-retention]]
-==== Maximum watermark retention on substream merge
+== Maximum watermark retention on substream merge
 
 When two input streams are merged into one for downstream processing,
 Jet waits for the watermark to advance in all substreams in order to

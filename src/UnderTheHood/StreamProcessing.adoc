@@ -1,5 +1,4 @@
-
-=== Stream-Processing DAG and Code
+= Stream-Processing DAG and Code
 
 For this example we'll build a simple Jet job that monitors trading
 events on a stock market, categorizes the events by stock ticker, and

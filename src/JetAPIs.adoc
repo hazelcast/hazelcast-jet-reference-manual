@@ -1,6 +1,5 @@
-
 [[comparison-of-jet-apis]]
-== Comparison of Jet APIs
+= Comparison of Jet APIs
 
 Hazelcast Jet defines several kinds of API, each of which can be used to
 build computation jobs. However, there are significant differences

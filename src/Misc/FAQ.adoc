@@ -1,4 +1,3 @@
-
-=== FAQ
+= FAQ
 
 You can refer to the https://jet.hazelcast.org/faq/[FAQ] page to see the answers to frequently asked questions related to topics such as the relationship and differences between Hazelcast Jet and Hazelcast IMDG, Jet's APIs and roadmap.

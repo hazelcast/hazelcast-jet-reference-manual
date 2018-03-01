@@ -1,9 +1,4 @@
-
-[[source-sink-connectors]]
-=== Source and Sink Connectors
-
-
-==== Overview
+= Overview
 
 In an <<pipeline-api, earlier section>> we briefly
 listed the resources you can use as sources and sinks of a Jet job's
@@ -16,7 +11,7 @@ connectors do their best to unify the various kinds of resources under
 the same "data stream" paradigm, there are still many concerns that need
 your attention.
 
-===== Is it Infinite?
+== Is it Infinite?
 
 The first decision when building a Jet computation job is whether it
 will deal with finite or infinite data. A typical example of a finite
@@ -33,7 +28,7 @@ feature). You can also set up an `IMap`/`ICache` as a sink for an
 infinite amount of data, either by ensuring that the size of the keyset
 will be finite or by allowing the eviction of old entries.
 
-===== Is it Replayable?
+== Is it Replayable?
 
 Most finite data sources are replayable because they come from
 persistent storage. You can easily replay the whole dataset. However, an
@@ -42,7 +37,7 @@ once. An example is the TCP socket connector. Such sources are bad at
 fault tolerance: if anything goes wrong during the computation, it
 cannot be retried.
 
-====== Does it Support Checkpointing?
+=== Does it Support Checkpointing?
 
 It would be quite impractical if you could only replay an infinite data
 stream from the very beginning. This is why you need _checkpointing_:
@@ -50,7 +45,7 @@ the ability of the stream source to replay its data from the point you
 choose, discarding everything before it. Both Kafka and the Hazelcast
 Event Journal support this.
 
-===== Is it Distributed?
+== Is it Distributed?
 
 A distributed computation engine prefers to work with distributed data
 resources. If the resource is not distributed, all Jet members will have
@@ -68,7 +63,7 @@ prepare the files on each machine so each Jet member gets its part of
 the data. When used as a sink, you'll have to manually gather all the
 pieces that Jet created around the cluster.
 
-===== What about Data Locality?
+== What about Data Locality?
 
 If you're looking to achieve record-breaking throughput for your
 application, you'll have to think carefully how close you can deliver
@@ -89,7 +84,7 @@ an error of unrestricted scope, such as `OutOfMemoryError` or
 state of the whole Jet member, jeopardizing the integrity of the data
 stored on it.
 
-===== Overview of Sources and Sinks
+== Overview of Sources and Sinks
 
 The table below gives you a high-level overview of all the source and
 sink connectors we deliver with Jet. There are links to Javadoc and

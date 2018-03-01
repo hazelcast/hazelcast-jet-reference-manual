@@ -1,6 +1,5 @@
-
 [[custom-source-sink]]
-=== Implement a Custom Source or Sink
+= Implement a Custom Source or Sink
 
 The Hazelcast Jet distribution contains vertices for the sources and
 sinks exposed through the Pipeline API. You can extend Jet's support for
@@ -11,7 +10,7 @@ data source is typically distributed across multiple machines and
 partitions, and the work needs to be distributed across multiple members
 and processors.
 
-==== How Jet Creates and Initializes a Job
+== How Jet Creates and Initializes a Job
 
 These are the steps taken to create and initialize a Jet job:
 
@@ -47,7 +46,7 @@ driving a source vertex: typically each one will emit only a slice of
 the total data stream, as appropriate to the partitions it is in charge
 of.
 
-===== ProcessorMetaSupplier
+=== ProcessorMetaSupplier
 
 The client serializes an instance of `ProcessorMetaSupplier` as part of
 each `Vertex` in the `DAG`. The **coordinator** member deserializes the
@@ -58,7 +57,7 @@ information. The `get()` method takes `List<Address>` as a parameter,
 which you should use to determine cluster members that will run the job,
 if needed.
 
-===== ProcessorSupplier
+=== ProcessorSupplier
 
 Usually this type will be custom-implemented in the same cases where the
 meta-supplier is custom-implemented and will complete the logic of a
@@ -68,7 +67,7 @@ distributed data source's partition assignment. It creates instances of
 Another use is to open and close external resources, such as files or
 connections. We provide `CloseableProcessorSupplier` for this.
 
-==== Example - Distributed Integer Generator
+== Example - Distributed Integer Generator
 
 Let's say we want to write a simple source that will generate numbers
 from 0 to 1,000,000 (exclusive). It is trivial to write a single
@@ -139,7 +138,7 @@ processors: `ProcessorSupplier` and its method `get(int processorCount)`.
 First we must decide on a partitioning policy: what subset will each
 processor emit. In our simple example we can use a simple policy: we'll
 label each processor with its index in the list and have it emit only
-those numbers `n` that satisfy `n % processorCount == processorIndex`.
+those numbers `n` that satisfy `n % processorCount  processorIndex`.
 Let's write a new constructor for our processor which implements this
 partitioning logic:
 
@@ -276,7 +275,7 @@ dag.edge(Edge.between(generateNumbers, logInput));
 After re-running with two Jet members, we should once again see each
 number generated just once.
 
-==== Sinks
+== Sinks
 
 Like a source, a sink is just another kind of processor. It accepts
 items from the inbox and pushes them into some system external to the
@@ -289,7 +288,7 @@ this case directly implementing `Processor` is better because its
 `process()` method gets the entire `Inbox` which can be drained to a
 buffer and flushed out.
 
-==== Example - File Writer
+== Example - File Writer
 
 In this example we'll implement a vertex that writes the received items
 to files. To avoid contention and conflicts, each processor must write

@@ -1,5 +1,4 @@
-
-== Expert Zone - The Core API
+= The Core API
 
 This section covers the Core API, Jet's low-level API that directly
 exposes the computation engine's raw features. If you are looking for
