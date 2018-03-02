@@ -25,6 +25,7 @@ include::Preface.adoc[]
 :numbered:
 
 include::Introduction.adoc[]
+
 include::GetStarted.adoc[]
 
 [[work-with-jet]]
@@ -33,8 +34,11 @@ include::GetStarted.adoc[]
 :leveloffset: +1
 
 include::WorkWithJet/StartJet.adoc[]
+
 include::WorkWithJet/BuildComputation.adoc[]
+
 include::WorkWithJet/ImplementAggregation.adoc[]
+
 include::WorkWithJet/InfiniteStreamProcessing.adoc[]
 
 [[source-sink-connectors]]
@@ -43,20 +47,27 @@ include::WorkWithJet/InfiniteStreamProcessing.adoc[]
 :leveloffset: +1
 
 include::WorkWithJet/SourceSinkConnectors/Overview.adoc[]
+
 include::WorkWithJet/SourceSinkConnectors/IMDG.adoc[]
+
 include::WorkWithJet/SourceSinkConnectors/FileSocket.adoc[]
+
 include::WorkWithJet/SourceSinkConnectors/HDFS.adoc[]
+
 include::WorkWithJet/SourceSinkConnectors/Kafka.adoc[]
 
 :leveloffset: -1
 
 include::WorkWithJet/Considerations.adoc[]
+
 include::WorkWithJet/LogDebug.adoc[]
 
 :leveloffset: -1
 
 include::JetAPIs.adoc[]
+
 include::Configuration.adoc[]
+
 include::JUS.adoc[]
 
 [[under-the-hood]]
@@ -65,7 +76,9 @@ include::JUS.adoc[]
 :leveloffset: +1
 
 include::UnderTheHood/HowDistributedComputing.adoc[]
+
 include::UnderTheHood/HowInfiniteStreamProcessing.adoc[]
+
 include::UnderTheHood/StreamProcessing.adoc[]
 
 :leveloffset: -1
@@ -75,34 +88,39 @@ include::UnderTheHood/StreamProcessing.adoc[]
 :leveloffset: +1
 
 include::ExpertZone/Overview.adoc[]
+
 include::ExpertZone/JetExecutionModel.adoc[]
+
 include::ExpertZone/DAG.adoc[]
+
 include::ExpertZone/Job.adoc[]
+
 include::ExpertZone/Processor.adoc[]
+
 include::ExpertZone/AbstractProcessor.adoc[]
+
 include::ExpertZone/WatermarkPolicy.adoc[]
+
 include::ExpertZone/Vertices.adoc[]
+
 include::ExpertZone/CustomSourceSink.adoc[]
+
 include::ExpertZone/BestPractices.adoc[]
+
 include::ExpertZone/CustomDAG.adoc[]
 
 :leveloffset: -1
 
-[[misc]]
-= Miscellaneous
-
-:leveloffset: +1
-
+[appendix]
 include::Misc/PhoneHomes.adoc[]
+
+[appendix]
 include::Misc/LicenseQuestions.adoc[]
+
+[appendix]
 include::Misc/FAQ.adoc[]
+
+[appendix]
 include::Misc/CommonExceptions.adoc[]
 
-:leveloffset: -1
-
 include::Glossary.adoc[]
-
-
-
-
-

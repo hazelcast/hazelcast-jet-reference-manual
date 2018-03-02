@@ -190,16 +190,16 @@ This is just the backbone:
 
 image::tf-idf-backbone.png[Backbone of the TF-IDF DAG,250,750]
 
-
-1. The data source is a Hazelcast `IMap` which holds a mapping from
+. The data source is a Hazelcast `IMap` which holds a mapping from
 document ID to its filename. The source vertex will emit all the map's
 entries, but only a subset on each cluster member.
-1. `doc-lines` opens each file named by the map entry and emits all its
+. `doc-lines` opens each file named by the map entry and emits all its
 lines in the `(docId, line)` format.
-1. `tokenize` transforms each line into a sequence of its words, again
+. `tokenize` transforms each line into a sequence of its words, again
 paired with the document ID, so it emits `(docId, word)`.
-1. `tf` builds a set of all distinct pairs emitted from `tokenize` and maintains the count of each pair's occurrences (its TF score).
-1. `tf-idf` takes that set, groups the pairs by word, and calculates
+. `tf` builds a set of all distinct pairs emitted from `tokenize` and maintains the count of each pair's occurrences
+(its TF score).
+. `tf-idf` takes that set, groups the pairs by word, and calculates
 the TF-IDF scores. It emits the results to the sink, which saves them
 to a distributed `IMap`.
 
@@ -433,10 +433,10 @@ private static class TfIdfP extends AbstractProcessor {
 This is quite a lot of code, but each of the three pieces is not too
 difficult to follow:
 
-1. `tryProcess0()` accepts a single item, the total document count.
-1. `tryProcess1()` performs a boilerplate `groupBy` operation,
+. `tryProcess0()` accepts a single item, the total document count.
+. `tryProcess1()` performs a boilerplate `groupBy` operation,
 collecting a list of items under each key.
-1. `complete()` outputs the accumulated results, also applying the
+. `complete()` outputs the accumulated results, also applying the
 final transformation on each one: replacing the TF score with the final
 TF-IDF score. It relies on a _lazy_ traverser, which holds a
 `Supplier<Traverser>` and will obtain the inner traverser from it the

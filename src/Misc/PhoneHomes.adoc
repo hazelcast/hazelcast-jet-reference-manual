@@ -7,7 +7,7 @@ Hazelcast Jet instances call our phone home server initially when they
 are started and then every 24 hours. This applies to all the instances
 joined to the cluster.
 
-**What is sent in?**
+== What is sent in?
 
 The following information is sent in a phone home:
 
@@ -31,11 +31,11 @@ The following information is sent in a phone home:
 ** Hash value of license key
 ** Native memory usage
 
-**Phone Home Code**
+== Phone Home Code
 
 The phone home code itself is open source. Please see https://github.com/hazelcast/hazelcast/blob/master/hazelcast/src/main/java/com/hazelcast/util/PhoneHome.java[here].
 
-**Disabling Phone Homes**
+== Disabling Phone Homes
 
 Set the `hazelcast.phone.home.enabled` system property to false either
 in the config or on the Java command line.
@@ -48,7 +48,7 @@ following line to your `.bash_profile`:
     export HZ_PHONE_HOME_ENABLED=false
 
 
-**Phone Home URL**
+== Phone Home URL
 
 The URL used for phone home requests is
 http://phonehome.hazelcast.com/ping

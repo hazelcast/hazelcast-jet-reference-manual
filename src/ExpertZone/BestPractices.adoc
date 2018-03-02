@@ -117,7 +117,7 @@ The test optionally asserts that the processor made progress on each call to any
 * put something to the outbox
 * return `true` (applies only to `boolean`-returning methods)
 
-==== Cooperative Processors
+=== Cooperative Processors
 
 The test will provide a 1-capacity outbox to cooperative processors. The
 outbox will already be full on every other call to `process()`. This
@@ -128,7 +128,7 @@ emitting anything.
 The test will also assert that the processor doesn't spend more time in
 any callback than the limit specified in `cooperativeTimeout(long)`.
 
-==== Cases Not Covered
+=== Cases Not Covered
 
 This class does not cover these cases:
 
@@ -139,7 +139,7 @@ This class does not cover these cases:
   from your supplier)
 * it never calls `Processor.tryProcess()`
 
-==== Example Usage
+=== Example Usage
 
 This will test one of the jet-provided processors:
 
