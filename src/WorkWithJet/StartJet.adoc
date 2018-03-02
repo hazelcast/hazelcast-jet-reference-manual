@@ -64,9 +64,9 @@ jet.newJob(dag).join();
 ----
 
 Code samples with
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountRefMan.java[the pipeline]
+{jet-samples}/refman/src/main/java/refman/WordCountRefMan.java[the pipeline]
 and
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/refman/src/main/java/refman/WordCountCoreApiRefMan.java[the Core API DAG]
+{jet-samples}/refman/src/main/java/refman/WordCountCoreApiRefMan.java[the Core API DAG]
 are available at our Code Samples repo.
 
 == JobConfig

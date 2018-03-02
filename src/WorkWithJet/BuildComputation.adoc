@@ -6,7 +6,7 @@
 The general shape of any data processing pipeline is `drawFromSource ->
 transform -> drainToSink` and the natural way to build it is from source
 to sink. The
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Pipeline.html[Pipeline]
+{jet-javadoc}/Pipeline.html[Pipeline]
 API follows this pattern. For example,
 
 [source,java]
@@ -62,13 +62,13 @@ contents and their event journal as an infinite source
   file contents and an infinite source of append events to the files
 
 You can access most of them via the
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html[`Sources`]
+{jet-javadoc}/Sources.html[`Sources`]
 and
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html[`Sinks`]
+{jet-javadoc}/Sinks.html[`Sinks`]
 utility classes.
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/KafkaSources.html[Kafka]
+{jet-javadoc}/KafkaSources.html[Kafka]
 and
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSources.html[HDFS]
+{jet-javadoc}/HdfsSources.html[HDFS]
 connectors are in their separate modules.
 
 There's a <<source-sink-connectors, dedicated section>> that discusses
@@ -79,10 +79,10 @@ the topic of data sources and sinks in more detail.
 The simplest kind of transformation is one that can be done on each item
 individually and independent of other items. The major examples are
 
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#map-com.hazelcast.jet.function.DistributedFunction-[`map`],
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#filter-com.hazelcast.jet.function.DistributedPredicate-[`filter`]
+{jet-javadoc}/ComputeStage.html#map-com.hazelcast.jet.function.DistributedFunction-[`map`],
+{jet-javadoc}/ComputeStage.html#filter-com.hazelcast.jet.function.DistributedPredicate-[`filter`]
 and
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#flatMap-com.hazelcast.jet.function.DistributedFunction-[`flatMap`].
+{jet-javadoc}/ComputeStage.html#flatMap-com.hazelcast.jet.function.DistributedFunction-[`flatMap`].
 We already saw them in use in the previous examples. `map` transforms
 each item to another item; `filter` discards items that don't match its
 predicate; and `flatMap` transforms each item into zero or more output
@@ -91,7 +91,7 @@ items.
 === groupBy
 
 Stepping up from the simplest transforms we come to
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#groupBy-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation1-[`groupBy`],
+{jet-javadoc}/ComputeStage.html#groupBy-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation1-[`groupBy`],
 the quintessential finite stream transform. It groups the data items by
 a key computed for each item and performs an aggregate operation over
 all the items in a group. The output of this transform is one
@@ -114,7 +114,7 @@ aggregate operation. In this case the key function is a trivial identity
 because we use the word itself as the grouping key and the definition of
 the aggregate operation hides behind the `counting()` method call. This
 is a static method in our
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/aggregate/AggregateOperations.html[`AggregateOperations`]
+{jet-javadoc}/aggregate/AggregateOperations.html[`AggregateOperations`]
 utility class, which provides you with some predefined aggregate
 operations. You can also implement your own aggregate operations; please
 refer to the section
@@ -133,7 +133,7 @@ there are two such transforms of special interest: `coGroup` and
 [[cogroup]]
 === coGroup
 
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#coGroup-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation2-[`coGroup`]
+{jet-javadoc}/ComputeStage.html#coGroup-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation2-[`coGroup`]
 is a generalization of `groupBy` to more than one contributing
 data stream. Instead of a single `accumulate` primitive you provide one
 for each input stream so the operation can discriminate between them. In
@@ -181,7 +181,7 @@ weighted so that each of its items is worth ten items from stream 0.
 ==== coGroup Builder
 
 If you need to co-group more than three streams, you'll have to use the
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#coGroupBuilder-com.hazelcast.jet.function.DistributedFunction-[co-group builder]
+{jet-javadoc}/ComputeStage.html#coGroupBuilder-com.hazelcast.jet.function.DistributedFunction-[co-group builder]
 object. For example, your goal may be correlating events coming from
 different systems, where all the systems serve the same user base. In an
 online store you may have separate streams for product page visits,
@@ -241,7 +241,7 @@ to learn more about it.
 [[hash-join]]
 === hashJoin
 
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#hashJoin-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-[`hashJoin`]
+{jet-javadoc}/ComputeStage.html#hashJoin-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-[`hashJoin`]
 is a specialization of a general "join" operation, optimized for the use
 case of _data enrichment_. In this scenario there is a single,
 potentially infinite data stream (the _primary_ stream), that goes
@@ -304,7 +304,7 @@ the RAM requirements for a hash-join operation.
 You can hash-join a stream with up to two enriching streams using the
 API we demonstrated above. If you have more than two enriching streams,
 you'll use the
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/ComputeStage.html#hashJoinBuilder--[hash-join builder].
+{jet-javadoc}/ComputeStage.html#hashJoinBuilder--[hash-join builder].
 For example, you may want to enrich a trade with its associated product,
 broker, and market:
 

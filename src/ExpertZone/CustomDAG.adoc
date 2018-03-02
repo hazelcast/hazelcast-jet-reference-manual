@@ -12,9 +12,9 @@ own with minimum boilerplate.
 The full code is available at the `hazelcast-jet-code-samples`
 repository:
 
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[TfIdfJdkStreams.java]
+{jet-samples}/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[TfIdfJdkStreams.java]
 
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdf.java[TfIdf.java]
+{jet-samples}/core-api/batch/tf-idf/src/main/java/TfIdf.java[TfIdf.java]
 
 Let us first introduce the problem. The inverted index is a basic data
 structure in the domain of full-text search. First used in the 1950s, it
@@ -92,7 +92,7 @@ will not affect its score.
 To warm us up, let's see what it takes to build the inverted index with
 just thread parallelism and without the ability to scale out across
 many machines. It is expressible in Java Streams API without too much
-work. The full code is https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[here].
+work. The full code is {jet-samples}/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[here].
 
 We'll start by preparing a `Stream<Entry<Long, String>> docWords`: a
 stream of all the words found in all the documents. We use `Map.Entry` as
@@ -164,9 +164,9 @@ private static Entry<Long, Double> tfidfEntry(
 
 The search function can be implemented with another Streams expression,
 which you can review in the
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/SearchGui.java[SearchGui]
+{jet-samples}/core-api/batch/tf-idf/src/main/java/SearchGui.java[SearchGui]
 class. You can also run the
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[TfIdfJdkStreams]
+{jet-samples}/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[TfIdfJdkStreams]
 class and take the inverted index for a spin, making actual searches.
 
 There is one last concept in this model that we haven't mentioned yet:

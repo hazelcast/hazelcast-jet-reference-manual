@@ -97,10 +97,10 @@ more detail.
 |Resource|Javadoc|Sample|Infinite?|Replayable?|Checkpointing?|Distributed?|Data Locality
 
 |IMap
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#map-java.lang.String-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-[Source]
+|{jet-javadoc}/Sources.html#map-java.lang.String-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-[Source]
 
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#map-java.lang.String-[Sink]
-|https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/MapSourceAndSink.java[Sample]
+{jet-javadoc}/Sinks.html#map-java.lang.String-[Sink]
+|{jet-samples}/batch/hazelcast-connectors/src/main/java/MapSourceAndSink.java[Sample]
 |❌
 |✅
 |❌
@@ -110,10 +110,10 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.ht
 Sink ❌
 
 |ICache
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#cache-java.lang.String-[Source]
+|{jet-javadoc}/Sources.html#cache-java.lang.String-[Source]
 
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#cache-java.lang.String-[Sink]
-|https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/CacheSourceAndSink.java[Sample]
+{jet-javadoc}/Sinks.html#cache-java.lang.String-[Sink]
+|{jet-samples}/batch/hazelcast-connectors/src/main/java/CacheSourceAndSink.java[Sample]
 |❌
 |✅
 |❌
@@ -123,10 +123,10 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.ht
 Sink ❌
 
 |IMap in another cluster
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-[Source]
+|{jet-javadoc}/Sources.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-[Source]
 
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
-|https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/RemoteMapSourceAndSink.java[Sample]
+{jet-javadoc}/Sinks.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
+|{jet-samples}/batch/hazelcast-connectors/src/main/java/RemoteMapSourceAndSink.java[Sample]
 |❌
 |✅
 |❌
@@ -134,9 +134,9 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.ht
 |✅
 
 |ICache in another cluster
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-[Source]
+|{jet-javadoc}/Sources.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-[Source]
 
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
+{jet-javadoc}/Sinks.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
 |
 |❌
 |✅
@@ -145,8 +145,8 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.ht
 |✅
 
 |IMap's Event Journal
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#mapJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
-|https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/map-journal-source/src/main/java/MapJournalSource.java[Sample]
+|{jet-javadoc}/Sources.html#mapJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
+|{jet-samples}/streaming/map-journal-source/src/main/java/MapJournalSource.java[Sample]
 |✅
 |✅
 |✅
@@ -155,7 +155,7 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.ht
 
 
 |ICache's Event Journal
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#cacheJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
+|{jet-javadoc}/Sources.html#cacheJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
 |
 |✅
 |✅
@@ -164,8 +164,8 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.ht
 |✅
 
 |Event Journal of IMap in another cluster
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteMapJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
-|https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/map-journal-source/src/main/java/RemoteMapJournalSource.java[Sample]
+|{jet-javadoc}/Sources.html#remoteMapJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
+|{jet-samples}/streaming/map-journal-source/src/main/java/RemoteMapJournalSource.java[Sample]
 |✅
 |✅
 |✅
@@ -173,7 +173,7 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.ht
 |❌
 
 |Event Journal of ICache in another cluster
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteCacheJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
+|{jet-javadoc}/Sources.html#remoteCacheJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
 |
 |✅
 |✅
@@ -182,10 +182,10 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.ht
 |❌
 
 |IList
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#list-java.lang.String-[Source]
+|{jet-javadoc}/Sources.html#list-java.lang.String-[Source]
 
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#list-java.lang.String-[Sink]
-|https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/hazelcast-connectors/src/main/java/ListSourceAndSink.java[Sample]
+{jet-javadoc}/Sinks.html#list-java.lang.String-[Sink]
+|{jet-samples}/batch/hazelcast-connectors/src/main/java/ListSourceAndSink.java[Sample]
 |❌
 |✅
 |❌
@@ -193,9 +193,9 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.ht
 |❌
 
 |IList in another cluster
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-[Source]
+|{jet-javadoc}/Sources.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-[Source]
 
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
+{jet-javadoc}/Sinks.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
 |
 |❌
 |✅
@@ -204,10 +204,10 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.ht
 |❌
 
 |HDFS
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSources.html[Source]
+|{jet-javadoc}/HdfsSources.html[Source]
 
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSinks.html[Sink]
-|https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/wordcount-hadoop/src/main/java/HadoopWordCount.java[Sample]
+{jet-javadoc}/HdfsSinks.html[Sink]
+|{jet-samples}/batch/wordcount-hadoop/src/main/java/HadoopWordCount.java[Sample]
 |❌
 |✅
 |❌
@@ -215,10 +215,10 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/HdfsSink
 |✅
 
 |Kafka
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/KafkaSources.html[Source]
+|{jet-javadoc}/KafkaSources.html[Source]
 
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/KafkaSinks.html[Sink]
-|https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/kafka-source/src/main/java/KafkaSource.java[Source]
+{jet-javadoc}/KafkaSinks.html[Sink]
+|{jet-samples}/streaming/kafka-source/src/main/java/KafkaSource.java[Source]
 |✅
 |✅
 |✅
@@ -226,10 +226,10 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/KafkaSin
 |❌
 
 |Files
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-[Source]
+|{jet-javadoc}/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-[Source]
 
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-[Sink]
-|https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/batch/access-log-analyzer/src/main/java/AccessLogAnalyzer.java[Sample]
+{jet-javadoc}/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-[Sink]
+|{jet-samples}/batch/access-log-analyzer/src/main/java/AccessLogAnalyzer.java[Sample]
 |❌
 |✅
 |❌
@@ -237,8 +237,8 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.ht
 |✅
 
 |File Watcher
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-[Source]
-|https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/core-api/streaming/access-stream-analyzer/src/main/java/AccessStreamAnalyzer.java[Sample (Core API)]
+|{jet-javadoc}/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-[Source]
+|{jet-samples}/core-api/streaming/access-stream-analyzer/src/main/java/AccessStreamAnalyzer.java[Sample (Core API)]
 |✅
 |❌
 |❌
@@ -246,12 +246,12 @@ http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.ht
 |✅
 
 |TCP Socket
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sources.html#socket-java.lang.String-int-java.nio.charset.Charset-[Source]
+|{jet-javadoc}/Sources.html#socket-java.lang.String-int-java.nio.charset.Charset-[Source]
 
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#socket-java.lang.String-int-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-[Sink]
-|https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/socket-connector/src/main/java/StreamTextSocket.java[Source]
+{jet-javadoc}/Sinks.html#socket-java.lang.String-int-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-[Sink]
+|{jet-samples}/streaming/socket-connector/src/main/java/StreamTextSocket.java[Source]
 
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/socket-connector/src/main/java/WriteTextSocket.java[Sink]
+{jet-samples}/streaming/socket-connector/src/main/java/WriteTextSocket.java[Sink]
 |✅
 |❌
 |❌
@@ -259,8 +259,8 @@ https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/so
 |❌
 
 |Application Log
-|http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/Sinks.html#writeLogger-com.hazelcast.jet.function.DistributedFunction-[Sink]
-|https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/streaming/enrichment/src/main/java/Enrichment.java[Sink]
+|{jet-javadoc}/Sinks.html#writeLogger-com.hazelcast.jet.function.DistributedFunction-[Sink]
+|{jet-samples}/streaming/enrichment/src/main/java/Enrichment.java[Sink]
 |N/A
 |N/A
 |❌

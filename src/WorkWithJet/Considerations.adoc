@@ -61,7 +61,7 @@ it, follow these steps:
 
 * Write your `main()` method and your Jet code the usual way, except
 for calling
-http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/server/JetBootstrap.html[`JetBootstrap.getInstance()`]
+{jet-javadoc}/server/JetBootstrap.html[`JetBootstrap.getInstance()`]
 to acquire a Jet client instance (instead of `Jet.newJetClient()`).
 * Create a runnable JAR which declares its `Main-Class` in
 * `MANIFEST.MF`.
@@ -267,7 +267,7 @@ JetInstance jet = Jet.newJetInstance(config);
 ----
 
 Consult the chapter on
-http://docs.hazelcast.org/docs/latest/manual/html-single/index.html#custom-serialization[custom serialization]
+{hz-refman}#custom-serialization[custom serialization]
 in Hazelcast IMDG's reference manual for more details.
 
 Note the limitation implied here: the serializers must be registered
