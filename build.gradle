@@ -22,20 +22,6 @@ asciidoctor {
     backends = [ 'html5', /*'pdf',*/ 'multipage_html5', /*'epub3'*/ ]
     options = [
         logDocuments: true,
-        doctype: 'book',
-        icons: 'font',
-    ]
-    attributes = [
-        'source-highlighter': 'coderay',
-        //experimental: true,
-        //'source-highlighter': 'highlightjs',
-        //'highlightjs-theme' : 'tomorrow',
-        idprefix            : '',
-        idseparator         : '-',
-        imagesdir	    : './images',
-        sectanchors         : true,
-        sectlinks           : true,
-//        stylesheet	    : './asciidoctor-stylesheet-factory/stylesheets/foundation.css',
     ]
 }
 
