@@ -35,66 +35,66 @@ Integrated Development Environment (IDE).
 
 :leveloffset: +1
 
-include::Preface.adoc[]
+include::preface.adoc[]
 
 :numbered:
 
-include::Introduction.adoc[]
+include::introduction.adoc[]
 
-include::GetStarted.adoc[]
+include::get-started.adoc[]
 
 [[work-with-jet]]
 = Work With Jet
 
 :leveloffset: +1
 
-include::WorkWithJet/StartJet.adoc[]
+include::work-with-jet/start-jet.adoc[]
 
-include::WorkWithJet/BuildComputation.adoc[]
+include::work-with-jet/build-computation.adoc[]
 
-include::WorkWithJet/ImplementAggregation.adoc[]
+include::work-with-jet/implement-aggregation.adoc[]
 
-include::WorkWithJet/InfiniteStreamProcessing.adoc[]
+include::work-with-jet/infinite-stream-processing.adoc[]
 
 [[source-sink-connectors]]
 = Source and Sink Connectors
 
 :leveloffset: +1
 
-include::WorkWithJet/SourceSinkConnectors/Overview.adoc[]
+include::work-with-jet/source-sink-connectors/overview.adoc[]
 
-include::WorkWithJet/SourceSinkConnectors/IMDG.adoc[]
+include::work-with-jet/source-sink-connectors/imdg.adoc[]
 
-include::WorkWithJet/SourceSinkConnectors/FileSocket.adoc[]
+include::work-with-jet/source-sink-connectors/file-socket.adoc[]
 
-include::WorkWithJet/SourceSinkConnectors/HDFS.adoc[]
+include::work-with-jet/source-sink-connectors/hdfs.adoc[]
 
-include::WorkWithJet/SourceSinkConnectors/Kafka.adoc[]
-
-:leveloffset: -1
-
-include::WorkWithJet/Considerations.adoc[]
-
-include::WorkWithJet/LogDebug.adoc[]
+include::work-with-jet/source-sink-connectors/kafka.adoc[]
 
 :leveloffset: -1
 
-include::JetAPIs.adoc[]
+include::work-with-jet/considerations.adoc[]
 
-include::Configuration.adoc[]
+include::work-with-jet/log-debug.adoc[]
 
-include::JUS.adoc[]
+:leveloffset: -1
+
+include::jet-apis.adoc[]
+
+include::configuration.adoc[]
+
+include::j-u-s.adoc[]
 
 [[under-the-hood]]
 = Under the Hood
 
 :leveloffset: +1
 
-include::UnderTheHood/HowDistributedComputing.adoc[]
+include::under-the-hood/how-distributed-computing.adoc[]
 
-include::UnderTheHood/HowInfiniteStreamProcessing.adoc[]
+include::under-the-hood/how-infinite-stream-processing.adoc[]
 
-include::UnderTheHood/StreamProcessing.adoc[]
+include::under-the-hood/stream-processing.adoc[]
 
 :leveloffset: -1
 
@@ -102,40 +102,40 @@ include::UnderTheHood/StreamProcessing.adoc[]
 
 :leveloffset: +1
 
-include::ExpertZone/Overview.adoc[]
+include::expert-zone/overview.adoc[]
 
-include::ExpertZone/JetExecutionModel.adoc[]
+include::expert-zone/jet-execution-model.adoc[]
 
-include::ExpertZone/DAG.adoc[]
+include::expert-zone/dag.adoc[]
 
-include::ExpertZone/Job.adoc[]
+include::expert-zone/job.adoc[]
 
-include::ExpertZone/Processor.adoc[]
+include::expert-zone/processor.adoc[]
 
-include::ExpertZone/AbstractProcessor.adoc[]
+include::expert-zone/abstract-processor.adoc[]
 
-include::ExpertZone/WatermarkPolicy.adoc[]
+include::expert-zone/watermark-policy.adoc[]
 
-include::ExpertZone/Vertices.adoc[]
+include::expert-zone/vertices.adoc[]
 
-include::ExpertZone/CustomSourceSink.adoc[]
+include::expert-zone/custom-source-sink.adoc[]
 
-include::ExpertZone/BestPractices.adoc[]
+include::expert-zone/best-practices.adoc[]
 
-include::ExpertZone/CustomDAG.adoc[]
+include::expert-zone/custom-dag.adoc[]
 
 :leveloffset: -1
 
 [appendix]
-include::Misc/PhoneHomes.adoc[]
+include::misc/phone-homes.adoc[]
 
 [appendix]
-include::Misc/LicenseQuestions.adoc[]
+include::misc/license-questions.adoc[]
 
 [appendix]
-include::Misc/FAQ.adoc[]
+include::misc/faq.adoc[]
 
 [appendix]
-include::Misc/CommonExceptions.adoc[]
+include::misc/common-exceptions.adoc[]
 
 include::Glossary.adoc[]
