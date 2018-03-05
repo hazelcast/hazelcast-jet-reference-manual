@@ -78,9 +78,9 @@ use Hazelcast structures.
 ----
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
-import com.hazelcast.jet.Pipeline;
-import com.hazelcast.jet.Sinks;
-import com.hazelcast.jet.Sources;
+import com.hazelcast.jet.pipeline.Pipeline;
+import com.hazelcast.jet.pipeline.Sinks;
+import com.hazelcast.jet.pipeline.Sources;
 
 import java.util.List;
 import java.util.Map;
@@ -90,14 +90,15 @@ import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 
 public class HelloWorld {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         // Create the specification of the computation pipeline. Note that it is
         // a pure POJO: no instance of Jet is needed to create it.
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.<String>list("text"))
          .flatMap(word -> traverseArray(word.toLowerCase().split("\\W+")))
          .filter(word -> !word.isEmpty())
-         .groupBy(wholeItem(), counting())
+         .groupingKey(wholeItem())
+         .aggregate(counting())
          .drainTo(Sinks.map("counts"));
 
         // Start Jet, populate the input list

@@ -5,9 +5,8 @@
 
 The general shape of any data processing pipeline is `drawFromSource ->
 transform -> drainToSink` and the natural way to build it is from source
-to sink. The
-{jet-javadoc}/Pipeline.html[Pipeline]
-API follows this pattern. For example,
+to sink. The {jet-javadoc}/Pipeline.html[Pipeline] API follows this
+pattern. For example,
 
 [source,java,indent=0]
 ----
@@ -25,24 +24,26 @@ transformation such as co-grouping:
 
 [source,java]
 Pipeline p = Pipeline.create();
-ComputeStage<String> src1 = p.drawFrom(Sources.list("src1"));
-ComputeStage<String> src2 = p.drawFrom(Sources.list("src2"));
-src1.coGroup(wholeItem(), src2, wholeItem(), counting2())
-    .drainTo(Sinks.writeMap("result"));
+StageWithGrouping<Object, Object> src1 = p.drawFrom(Sources.list("src1"))
+                                          .groupingKey(wholeItem());
+StageWithGrouping<Object, Object> src2 = p.drawFrom(Sources.list("src2"))
+                                          .groupingKey(wholeItem());
+src1.aggregate3(src2, counting2())
+    .drainTo(Sinks.map("result"));
 
-For further details on `coGroup` please refer to the <<cogroup, dedicated
-section>> below.
+For further details on co-grouping please refer to the <<cogroup,
+dedicated section>> below.
 
 Symmetrically, the output of a stage can be sent to more than one
 destination:
 
 [source,java]
 Pipeline p = Pipeline.create();
-ComputeStage<String> src = p.drawFrom(Sources.list("src"));
+BatchStage<String> src = p.drawFrom(Sources.list("src"));
 src.map(String::toUpperCase)
-   .drainTo(Sinks.writeList("uppercase"));
+   .drainTo(Sinks.list("uppercase"));
 src.map(String::toLowerCase)
-   .drainTo(Sinks.writeList("lowercase"));
+   .drainTo(Sinks.list("lowercase"));
 
 
 == Choose Your Data Sources and Sinks
@@ -85,32 +86,60 @@ each item to another item; `filter` discards items that don't match its
 predicate; and `flatMap` transforms each item into zero or more output
 items.
 
-=== groupBy
+=== Aggregation and Grouping
 
-Stepping up from the simplest transforms we come to
-{jet-javadoc}/ComputeStage.html#groupBy-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation1-[`groupBy`],
-the quintessential finite stream transform. It groups the data items by
-a key computed for each item and performs an aggregate operation over
-all the items in a group. The output of this transform is one
-aggregation result per distinct grouping key. We saw this one used in
-the introductory
-<<verify, Hello World>> code with a word count pipeline:
+Stepping up from mapping and filtering we come to _aggregation_, the
+cornerstone of stream transforms. It computes an aggregate function
+(simple examples: sum and average) over the data items. Typically you
+don't want to agregate all the items together, but classify them by some
+key and then aggregate over each group separately. This is the
+_group-and-aggregate_ transformation. Finally, if you're processing
+an infinite event stream, you must define a finite _window_ over the
+stream within which Jet will aggregate the data.
+
+This is how a very simples batch aggregation without grouping may look:
 
 [source,java]
-----
+Pipeline p = Pipeline.create();
+p.drawFrom(Sources.list("text"))
+ .aggregate(counting())
+ .drainTo(Sinks.list("result"));
+
+We simply counted all the lines in a Hazelcast list named "text" and
+pushed the count to a list named "result". Let's count all the words
+instead:
+
+[source,java]
 Pipeline p = Pipeline.create();
 p.drawFrom(Sources.<String>list("text"))
  .flatMap(word -> traverseArray(word.toLowerCase().split("\\W+")))
  .filter(word -> !word.isEmpty())
- .groupBy(wholeItem(), counting())
-----
+ .aggregate(counting())
+ .drainTo(Sinks.list("result"));
 
-Let's take a moment to analyze the last line. The `groupBy()` method
-takes two parameters: the function to compute the grouping key and the
-aggregate operation. In this case the key function is a trivial identity
-because we use the word itself as the grouping key and the definition of
-the aggregate operation hides behind the `counting()` method call. This
-is a static method in our
+We split up the lines into words using a regular expression. Blank lines
+result in empty "words" so we filter these out.
+
+Now let's turn this into something more insigtful: a word frequency
+histogram, giving us for each distinct word the number of its
+occurrences:
+
+[source,java]
+Pipeline p = Pipeline.create();
+p.drawFrom(Sources.<String>list("text"))
+ .flatMap(word -> traverseArray(word.toLowerCase().split("\\W+")))
+ .filter(word -> !word.isEmpty())
+ .groupingKey(wholeItem())
+ .aggregate(counting())
+ .drainTo(Sinks.map("result"));
+
+We just added a grouping key, in this case it is the word itself
+(`Util.wholeItem()` returns the identity function). Now our pipeline
+produces not one, but as many distinct result items as there are words
+in the text. What we've just built up is the classical Word Count task.
+
+The definition of the aggregate operation hides behind the `counting()`
+method call. This is a static method in our
 {jet-javadoc}/aggregate/AggregateOperations.html[`AggregateOperations`]
 utility class, which provides you with some predefined aggregate
 operations. You can also implement your own aggregate operations; please
