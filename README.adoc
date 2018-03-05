@@ -4,7 +4,7 @@ This is an AsciiDoc project.
 
 .Build The Documentation:
 ----
-gradle clean build
+gradle build
 ----
 
-Result can be found in `target/html5`.
+The resulting document can be found in `build/asciidoc/html5`.
