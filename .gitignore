@@ -5,6 +5,6 @@
 .DS_Store
 .gradle
 .idea
-target
+build
 static
 vendor

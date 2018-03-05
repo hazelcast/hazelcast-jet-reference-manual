@@ -11,24 +11,38 @@ buildscript {
 }
 
 apply plugin: 'org.asciidoctor.convert'
+apply plugin: 'idea'
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
+}
+
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+dependencies {
+    compile 'com.hazelcast.jet:hazelcast-jet:0.6-SNAPSHOT'
+}
 
 asciidoctor {
+    dependsOn compileJava
     requires file('./multipage-html5-converter.rb')
-    sourceDir "src"
-    outputDir "target"
+
     sources {
       include 'index.adoc'
     }
+
     backends = [ 'html5', /*'pdf',*/ 'multipage_html5', /*'epub3'*/ ]
-    options = [
-        logDocuments: true,
-    ]
+    attributes \
+        'sourceDir' : project.sourceSets.main.java.srcDirs[0].absolutePath
 }
 
 build {
    dependsOn asciidoctor
-}
-
-clean {
-    delete asciidoctor.outputDir
 }

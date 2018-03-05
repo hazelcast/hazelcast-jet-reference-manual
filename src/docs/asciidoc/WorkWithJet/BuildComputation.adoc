@@ -9,12 +9,9 @@ to sink. The
 {jet-javadoc}/Pipeline.html[Pipeline]
 API follows this pattern. For example,
 
-[source,java]
+[source,java,indent=0]
 ----
-Pipeline p = Pipeline.create();
-p.drawFrom(Sources.<String>list("input"))
- .map(String::toUpperCase)
- .drainTo(Sinks.writeList("result");
+include::{sourceDir}/BuildComputation.java[tag=simple]
 ----
 
 In each step, such as `drawFrom` or `drainTo`, you create a pipeline
