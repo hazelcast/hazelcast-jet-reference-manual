@@ -1,14 +1,14 @@
-:source-highlighter: coderay
-:source-language: asciidoc
 :icons: font
-:sectanchors:
-:sectlinks:
 :idprefix:
 :idseparator: -
 :imagesdir: images
+:safe-mode: SECURE
+:sectanchors:
+:sectlinks:
+:source-highlighter: coderay
+:source-language: asciidoc
 :toc: left
 :toclevels: 2
-:safe-mode: SECURE
 
 include::attributes.adoc[]
 
