@@ -21,22 +21,22 @@ dependency to your project.
 Hazelcast Jet is published on the Maven repositories. Add the following
 lines to your `pom.xml`:
 
-[source,xml]
+[source,xml,subs="attributes+"]
 ----
 <dependencies>
   <dependency>
     <groupId>com.hazelcast.jet</groupId>
     <artifactId>hazelcast-jet</artifactId>
-    <version>0.5</version>
+    <version>{jet-version}</version>
   </dependency>
 </dependencies>
 ----
 
 If you prefer to use Gradle, execute the following command:
 
-[source,groovy]
+[source,groovy,subs="attributes+"]
 ----
-compile 'com.hazelcast.jet:hazelcast-jet:0.5'
+compile 'com.hazelcast.jet:hazelcast-jet:{jet-version}'
 ----
 
 
@@ -74,52 +74,9 @@ output cannot be simple in-memory structures like a Java `List`; they
 must reside in the cluster so any member can access them. This is why we
 use Hazelcast structures.
 
-[source,java]
+[source,java,indent=0]
 ----
-import com.hazelcast.jet.Jet;
-import com.hazelcast.jet.JetInstance;
-import com.hazelcast.jet.pipeline.Pipeline;
-import com.hazelcast.jet.pipeline.Sinks;
-import com.hazelcast.jet.pipeline.Sources;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.hazelcast.jet.Traversers.traverseArray;
-import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
-import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
-
-public class HelloWorld {
-    public static void main(String[] args) {
-        // Create the specification of the computation pipeline. Note that it is
-        // a pure POJO: no instance of Jet is needed to create it.
-        Pipeline p = Pipeline.create();
-        p.drawFrom(Sources.<String>list("text"))
-         .flatMap(word -> traverseArray(word.toLowerCase().split("\\W+")))
-         .filter(word -> !word.isEmpty())
-         .groupingKey(wholeItem())
-         .aggregate(counting())
-         .drainTo(Sinks.map("counts"));
-
-        // Start Jet, populate the input list
-        JetInstance jet = Jet.newJetInstance();
-        try {
-            List<String> text = jet.getList("text");
-            text.add("hello world hello hello world");
-            text.add("world world hello world");
-
-            // Perform the computation
-            jet.newJob(p).join();
-
-            // Check the results
-            Map<String, Long> counts = jet.getMap("counts");
-            System.out.println("Count of hello: " + counts.get("hello"));
-            System.out.println("Count of world: " + counts.get("world"));
-        } finally {
-            Jet.shutdownAll();
-        }
-    }
-}
+include::{sourceDir}/HelloWorld.java[]
 ----
 
 You should expect to see a lot of logging output from Jet (sent to

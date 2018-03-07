@@ -32,6 +32,7 @@ dependencies {
 
 asciidoctor {
     dependsOn compileJava
+    inputs.files compileJava.outputs
     requires file('./multipage-html5-converter.rb')
 
     sources {

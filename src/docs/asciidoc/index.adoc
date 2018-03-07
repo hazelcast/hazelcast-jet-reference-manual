@@ -139,4 +139,4 @@ include::misc/faq.adoc[]
 [appendix]
 include::misc/common-exceptions.adoc[]
 
-include::Glossary.adoc[]
+include::glossary.adoc[]

@@ -1,14 +1,13 @@
 [[infinite-stream-processing]]
 = Infinite Stream Processing
 
-Distributed stream processing has two major variants: finite and
-infinite. Let's discuss this difference and some concerns specific to
-infinite streams.
+Distributed processing in Hazelcast Jet has two major variants:
+batch (bounded) and stream (unbounded). Let's discuss this difference
+and some concerns specific to unbounded streams.
 
+== Bounded aka. Batch Processing
 
-== Finite aka. Batch Processing
-
-Finite stream (batch) processing is the simpler variant where you
+Bounded stream (batch) processing is the simpler variant where you
 provide one or more pre-existing datasets and order Jet to mine them for
 interesting information. The most important workhorse in this area is
 the "join, group and aggregate" operation: you define a classifying

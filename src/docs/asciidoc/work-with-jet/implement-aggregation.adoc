@@ -14,8 +14,9 @@ but it also exposes an abstraction, called
 {jet-javadoc}/aggregate/AggregateOperation.html[`AggregateOperation`],
 that allows you to plug in your own. Since Jet does the aggregation in a
 parallelized and distributed way, you can't simply supply a piece of
-Java code that does it; we need you to break it down into several
-smaller pieces that fit into Jet's processing engine.
+Java code that implements the aggregate function; we need you to break
+it down into several smaller pieces that fit into Jet's processing
+engine.
 
 The ability to compute the aggregate function in parallel comes at a
 cost: Jet must be able to give a slice of the total data set to each
@@ -33,7 +34,7 @@ have this property; however if you add one more ingredient, the `finish`
 function, you can express it easily. Jet allows you to first compute
 some CA function, whose partial results can be combined, and then at the
 very end apply the `finish` function on the fully combined result. To
-compute the `average`, your CA function will output the pair `(sum,
+compute the average, your CA function will output the pair `(sum,
 count)`. Two such pairs are trivial to combine by summing each
 component. The `finish` function will be `sum / count`.
 
@@ -65,15 +66,16 @@ public class AvgAccumulator {
 ----
 
 This object will also have to be serializable, and preferably with
-Hazelcast's serialization instead of Java's because in a group-by
-operation there's one accumulator per each key and all of them have to
-be sent across the network to be combined and finished.
+Hazelcast's serialization instead of Java's because in a
+group-and-aggregate operation there's one accumulator per each key and
+all of them have to be sent across the network to be combined and
+finished.
 
 Instead of requiring you to write a complete class from scratch, Jet
 separates the concern of holding the accumulated state from that of the
 computation performed on it. This means that you just need one
-accumulator class per the kind of structure that holds the accumulated
-data, as opposed to one per each aggregate operation. Jet's library
+accumulator class for each kind of structure that holds the accumulated
+data, as opposed to one for each aggregate operation. Jet's library
 offers in the
 {jet-javadoc}/accumulator/package-summary.html[`com.hazelcast.jet.accumulator`]
 package several such classes, one of them being
@@ -112,8 +114,8 @@ Let's see how this works with our `average` function. Using
 [source,java]
 ----
 (acc, n) -> {
-    acc.setValue1(acc.getValue1() + n);
-    acc.setValue2(acc.getValue2() + 1);
+    acc.set1(acc.get1() + n);
+    acc.set2(acc.get2() + 1);
 }
 ----
 
@@ -121,7 +123,7 @@ The `finish` primitive will be
 
 [source,java]
 ----
-acc -> (double) acc.getValue1() / acc.getValue2()
+acc -> (double) acc.get1() / acc.get2()
 ----
 
 Now we have to define the other three primitives to match our main
@@ -133,8 +135,8 @@ one, so:
 [source,java]
 ----
 (left, right) -> {
-    left.setValue1(left.getValue1() + right.getValue1());
-    left.setValue2(left.getValue2() + right.getValue2());
+    left.set1(left.get1() + right.get1());
+    left.set2(left.get2() + right.get2());
 }
 ----
 
@@ -143,35 +145,22 @@ Deducting must undo the effect of a previous `combine`:
 [source,java]
 ----
 (left, right) -> {
-    left.setValue1(left.getValue1() - right.getValue1());
-    left.setValue2(left.getValue2() - right.getValue2());
+    left.set1(left.get1() - right.get1());
+    left.set2(left.get2() - right.get2());
 }
 ----
 
 All put together, we can define our averaging operation as follows:
 
-[source,java]
+[source,java,indent=0]
 ----
-AggregateOperation1<Long, LongLongAccumulator, Double> aggrOp = AggregateOperation
-    .withCreate(LongLongAccumulator::new)
-    .andAccumulate((acc, n) -> {
-        acc.setValue1(acc.getValue1() + n);
-        acc.setValue2(acc.getValue2() + 1);
-    })
-    .andCombine((left, right) -> {
-        left.setValue1(left.getValue1() + right.getValue1());
-        left.setValue2(left.getValue2() + right.getValue2());
-    })
-    .andDeduct((left, right) -> {
-        left.setValue1(left.getValue1() - right.getValue1());
-        left.setValue2(left.getValue2() - right.getValue2());
-    })
-    .andFinish(acc -> (double) acc.getValue1() / acc.getValue2());
+include::{sourceDir}/ImplementAggregation.java[tag=s1]
 ----
 
 Let's stop for a second to look at the type we got:
 `AggregateOperation1<Long, LongLongAccumulator, Double>`. Its type
 parameters are:
+
 1. `Long`: the type of the input item
 2. `LongLongAccumulator`: the type of the accumulator
 3. `Double`: the type of the result
@@ -179,14 +168,17 @@ parameters are:
 Specifically note the `1` at the end of the type's name: it signifies
 that it's the specialization of the general `AggregateOperation` to
 exactly one input stream. In Hazelcast Jet you can also perform a
-<<cogroup, co-grouping>>
-operation, aggregating several input streams together. Since the number
-of input types is variable, the general `AggregateOperation` type cannot
-statically capture them and we need separate subtypes. We decided to
-statically support up to three input types; if you need more, you'll
-have to resort to the less type-safe, general `AggregateOperation`.
+<<cogroup, co-aggregating>> operation, aggregating several input streams
+together. Since the number of input types is variable, the general
+`AggregateOperation` type cannot statically capture them and we need
+separate subtypes. We decided to statically support up to three input
+types; if you need more, you'll have to resort to the less type-safe,
+general `AggregateOperation`.
 
-Let us now study a use case that calls for co-grouping. We are
+[[multi-aggregate]]
+== Aggregating over multiple inputs
+
+Let us now study a use case that calls for co-aggregation. We are
 interested in the behavior of users in an online shop application and
 want to gather the following statistics for each user:
 
@@ -196,46 +188,18 @@ want to gather the following statistics for each user:
 
 This data is dispersed among separate datasets: `PageVisit`, `AddToCart`
 and `Payment`. Note that in each case we're dealing with a simple `sum`
-applied to a field in the input item. We can perform a co-group
-transform with the following aggregate operation:
+applied to a field in the input item. We can perform a
+cogroup-and-aggregate transform with the following aggregate operation:
 
-[source,java]
+[source,java,indent=0]
 ----
-Pipeline p = Pipeline.create();
-ComputeStage<PageVisit> pageVisit = p.drawFrom(Sources.list("pageVisit"));
-ComputeStage<AddToCart> addToCart = p.drawFrom(Sources.list("addToCart"));
-ComputeStage<Payment> payment = p.drawFrom(Sources.list("payment"));
-
-AggregateOperation3<PageVisit, AddToCart, Payment, LongAccumulator[], long[]> aggrOp =
-        AggregateOperation
-                .withCreate(() -> new LongAccumulator[] {
-                        new LongAccumulator(),
-                        new LongAccumulator(),
-                        new LongAccumulator()
-                })
-                .<PageVisit>andAccumulate0((accs, pv) -> accs[0].add(pv.loadTime()))
-                .<AddToCart>andAccumulate1((accs, atc) -> accs[1].add(atc.quantity()))
-                .<Payment>andAccumulate2((accs, pm) -> accs[2].add(pm.amount()))
-                .andCombine((accs1, accs2) -> {
-                    accs1[0].add(accs2[0]);
-                    accs1[1].add(accs2[1]);
-                    accs1[2].add(accs2[2]);
-                })
-                .andFinish(accs -> new long[] {
-                        accs[0].get(),
-                        accs[1].get(),
-                        accs[2].get()
-                });
-ComputeStage<Entry<Long, long[]>> coGrouped = pageVisit.coGroup(PageVisit::userId,
-        addToCart, AddToCart::userId,
-        payment, Payment::userId,
-        aggrOp);
+include::{sourceDir}/ImplementAggregation.java[tag=s2]
 ----
 
 Note how we got an `AggregateOperation3` and how it captured each input
-type. When we use it as an argument to a co-group transform, the
-compiler will ensure that the `ComputeStage`s we attach it to have the
-correct type and are in the correct order.
+type. When we use it as an argument to a cogroup-and-aggregate
+transform, the compiler will ensure that the `ComputeStage` s we attach
+it to have the correct type and are in the correct order.
 
 On the other hand, if you use the
 <<cogroup-builder, co-group builder>>

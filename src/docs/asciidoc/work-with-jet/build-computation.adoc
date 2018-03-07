@@ -10,7 +10,7 @@ pattern. For example,
 
 [source,java,indent=0]
 ----
-include::{sourceDir}/BuildComputation.java[tag=simple]
+include::{sourceDir}/BuildComputation.java[tag=s1]
 ----
 
 In each step, such as `drawFrom` or `drainTo`, you create a pipeline
@@ -18,33 +18,31 @@ _stage_. The stage resulting from a `drainTo` operation is called a
 _sink stage_ and you can't attach more stages to it. All others are
 called _compute stages_ and expect you to attach stages to them.
 
-In a more complex scenario you'll have several sources, each starting
-its own pipeline branch. Then you can merge them in a multi-input
-transformation such as co-grouping:
+The API differentiates between batch (bounded) and stream (unbounded)
+sources and this is reflected in the naming: there is a `BatchStage`
+and a `StreamStage`, each offering the operations appropriate to its
+kind. In this section we'll mostly use batch stages, for simplicity,
+but the API of operations common to both kinds is identical. We'll
+explain later on how to apply windowing, which is necessary to aggregate
+over unbounded streams.
 
-[source,java]
-Pipeline p = Pipeline.create();
-StageWithGrouping<Object, Object> src1 = p.drawFrom(Sources.list("src1"))
-                                          .groupingKey(wholeItem());
-StageWithGrouping<Object, Object> src2 = p.drawFrom(Sources.list("src2"))
-                                          .groupingKey(wholeItem());
-src1.aggregate3(src2, counting2())
-    .drainTo(Sinks.map("result"));
+Your pipeline can consist of multiple sources, each starting its own
+branch, and you mix both kinds in the same pipeline. You can merge the
+branches with joining transforms. For example, the <<hash-join,
+hash-join>> transform can join a stream stage with batch stages:
 
-For further details on co-grouping please refer to the <<cogroup,
-dedicated section>> below.
+[source,java,indent=0]
+----
+include::{sourceDir}/BuildComputation.java[tag=s2]
+----
 
-Symmetrically, the output of a stage can be sent to more than one
-destination:
+Symmetrically, you can fork the output of a stage and send it to more
+than one destination:
 
-[source,java]
-Pipeline p = Pipeline.create();
-BatchStage<String> src = p.drawFrom(Sources.list("src"));
-src.map(String::toUpperCase)
-   .drainTo(Sinks.list("uppercase"));
-src.map(String::toLowerCase)
-   .drainTo(Sinks.list("lowercase"));
-
+[source,java,indent=0]
+----
+include::{sourceDir}/BuildComputation.java[tag=s3]
+----
 
 == Choose Your Data Sources and Sinks
 
@@ -60,14 +58,11 @@ contents and their event journal as an infinite source
   file contents and an infinite source of append events to the files
 
 You can access most of them via the
-{jet-javadoc}/Sources.html[`Sources`]
-and
-{jet-javadoc}/Sinks.html[`Sinks`]
-utility classes.
-{jet-javadoc}/KafkaSources.html[Kafka]
-and
-{jet-javadoc}/HdfsSources.html[HDFS]
-connectors are in their separate modules.
+{jet-javadoc}/pipeline/Sources.html[`Sources`] and
+{jet-javadoc}/pipeline/Sinks.html[`Sinks`] utility classes.
+{jet-javadoc}/KafkaSources.html[Kafka] and
+{jet-javadoc}/HdfsSources.html[HDFS] connectors are in their separate
+modules.
 
 There's a <<source-sink-connectors, dedicated section>> that discusses
 the topic of data sources and sinks in more detail.
@@ -76,11 +71,10 @@ the topic of data sources and sinks in more detail.
 
 The simplest kind of transformation is one that can be done on each item
 individually and independent of other items. The major examples are
-
-{jet-javadoc}/ComputeStage.html#map-com.hazelcast.jet.function.DistributedFunction-[`map`],
-{jet-javadoc}/ComputeStage.html#filter-com.hazelcast.jet.function.DistributedPredicate-[`filter`]
+{jet-javadoc}/pipeline/BatchStage.html#map-com.hazelcast.jet.function.DistributedFunction-[`map`],
+{jet-javadoc}/pipeline/BatchStage.html#filter-com.hazelcast.jet.function.DistributedPredicate-[`filter`]
 and
-{jet-javadoc}/ComputeStage.html#flatMap-com.hazelcast.jet.function.DistributedFunction-[`flatMap`].
+{jet-javadoc}/pipeline/BatchStage.html#flatMap-com.hazelcast.jet.function.DistributedFunction-[`flatMap`].
 We already saw them in use in the previous examples. `map` transforms
 each item to another item; `filter` discards items that don't match its
 predicate; and `flatMap` transforms each item into zero or more output
@@ -97,25 +91,21 @@ _group-and-aggregate_ transformation. Finally, if you're processing
 an infinite event stream, you must define a finite _window_ over the
 stream within which Jet will aggregate the data.
 
-This is how a very simples batch aggregation without grouping may look:
+This is how a very simple batch aggregation without grouping may look:
 
-[source,java]
-Pipeline p = Pipeline.create();
-p.drawFrom(Sources.list("text"))
- .aggregate(counting())
- .drainTo(Sinks.list("result"));
+[source,java,indent=0]
+----
+include::{sourceDir}/BuildComputation.java[tag=s4]
+----
 
 We simply counted all the lines in a Hazelcast list named "text" and
 pushed the count to a list named "result". Let's count all the words
 instead:
 
-[source,java]
-Pipeline p = Pipeline.create();
-p.drawFrom(Sources.<String>list("text"))
- .flatMap(word -> traverseArray(word.toLowerCase().split("\\W+")))
- .filter(word -> !word.isEmpty())
- .aggregate(counting())
- .drainTo(Sinks.list("result"));
+[source,java,indent=0]
+----
+include::{sourceDir}/BuildComputation.java[tag=s5]
+----
 
 We split up the lines into words using a regular expression. Blank lines
 result in empty "words" so we filter these out.
@@ -124,14 +114,10 @@ Now let's turn this into something more insigtful: a word frequency
 histogram, giving us for each distinct word the number of its
 occurrences:
 
-[source,java]
-Pipeline p = Pipeline.create();
-p.drawFrom(Sources.<String>list("text"))
- .flatMap(word -> traverseArray(word.toLowerCase().split("\\W+")))
- .filter(word -> !word.isEmpty())
- .groupingKey(wholeItem())
- .aggregate(counting())
- .drainTo(Sinks.map("result"));
+[source,java,indent=0]
+----
+include::{sourceDir}/BuildComputation.java[tag=s6]
+----
 
 We just added a grouping key, in this case it is the word itself
 (`Util.wholeItem()` returns the identity function). Now our pipeline
@@ -143,71 +129,51 @@ method call. This is a static method in our
 {jet-javadoc}/aggregate/AggregateOperations.html[`AggregateOperations`]
 utility class, which provides you with some predefined aggregate
 operations. You can also implement your own aggregate operations; please
-refer to the section
-<<implement-your-aggregate-operation, dedicated to this>>.
-
-If you don't need grouping and want to aggregate the full data set
-into a single result, you can supply a constant function to compute the
-grouping key: `DistributedFunctions.constantKey()`. It always returns
-the string `"ALL"`.
+refer to the section <<implement-your-aggregate-operation,
+dedicated to this>>.
 
 A more complex variety of pipeline transforms are those that merge
 several input stages into a single resulting stage. In Hazelcast Jet
-there are two such transforms of special interest: `coGroup` and
-`hashJoin`. We discuss these next.
+there are two such transforms of special interest: co-aggregation and
+hash-join. We discuss these next.
 
 [[cogroup]]
-=== coGroup
+=== Co-Aggregation
 
-{jet-javadoc}/ComputeStage.html#coGroup-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.aggregate.AggregateOperation2-[`coGroup`]
-is a generalization of `groupBy` to more than one contributing
-data stream. Instead of a single `accumulate` primitive you provide one
-for each input stream so the operation can discriminate between them. In
-SQL terms it can be interpreted as JOIN coupled with GROUP BY. The JOIN
-condition is constrained to matching on the grouping key.
+Just as we performed aggregate and group-and-aggregate operations above,
+we can peform co-aggregate and cogroup-and-aggregate of several stages
+together. In SQL terms this is analogous to a JOIN coupled with a GROUP
+BY. The JOIN condition is constrained to matching on the grouping key.
 
-Here is the example we already used earlier on this page:
+Here's a simple example where we do the Word Count from two source
+lists:
 
-[source,java]
+[source,java,indent=0]
 ----
-Pipeline p = Pipeline.create();
-ComputeStage<String> src1 = p.drawFrom(Sources.list("src1"));
-ComputeStage<String> src2 = p.drawFrom(Sources.list("src2"));
-ComputeStage<Tuple2<String, Long>> coGrouped =
-        src1.coGroup(wholeItem(), src2, wholeItem(), counting2());
+include::{sourceDir}/BuildComputation.java[tag=s7]
 ----
 
-These are the arguments:
+Note the `counting2()` call, this one isn't included in Jet's library.
+It is like `AggregateOperations.counting()`, but for two sources. In
+this simple example both sources are treated equally (just increment the
+total count), but the point of `AggregateOperation` 's API is that you
+can differentiate between them and treat each one differently. Here's
+an example definition that applies different weights to the streams,
+making the stream-1 words weight ten times more than those in stream-0:
 
-1. `wholeItem()`: the key extractor function for `this` stage's items
-2. `src2`: the other stage to co-group with this one
-3. `wholeItem()`: the key extractor function for `src2` items
-4. `counting2()`: the aggregate operation
-
-`counting2()` is a factory method returning a 2-way
-<<implement-your-aggregate-operation, aggregate operation>>
-which may be defined as follows:
-
-[source,java]
+[source,java,indent=0]
 ----
-private static AggregateOperation2<Object, Object, LongAccumulator, Long> counting2() {
-    return AggregateOperation
-            .withCreate(LongAccumulator::new)
-            .andAccumulate0((count, item) -> count.add(1))
-            .andAccumulate1((count, item) -> count.add(10))
-            .andCombine(LongAccumulator::add)
-            .andFinish(LongAccumulator::get);
-}
+include::{sourceDir}/BuildComputation.java[tag=s8]
 ----
 
 This demonstrates the individual treatment of input streams: stream 1 is
 weighted so that each of its items is worth ten items from stream 0.
 
 [[cogroup-builder]]
-==== coGroup Builder
+====  Co-aggregate Four or More Streams Using the Builder
 
 If you need to co-group more than three streams, you'll have to use the
-{jet-javadoc}/ComputeStage.html#coGroupBuilder-com.hazelcast.jet.function.DistributedFunction-[co-group builder]
+{jet-javadoc}/pipeline/StageWithGroupingAndWindow.html#aggregateBuilder--[builder]
 object. For example, your goal may be correlating events coming from
 different systems, where all the systems serve the same user base. In an
 online store you may have separate streams for product page visits,
@@ -215,59 +181,23 @@ adding to shopping cart, payments, and deliveries. You want to correlate
 all the events associated with the same user. The example below
 calculates statistics per category for each user:
 
-[source,java]
+[source,java,indent=0]
 ----
-Pipeline p = Pipeline.create();
-ComputeStage<PageVisit> pageVisit = p.drawFrom(Sources.list("pageVisit"));
-ComputeStage<AddToCart> addToCart = p.drawFrom(Sources.list("addToCart"));
-ComputeStage<Payment> payment = p.drawFrom(Sources.list("payment"));
-ComputeStage<Delivery> delivery = p.drawFrom(Sources.list("delivery"));
-
-CoGroupBuilder<Long, PageVisit> b = pageVisit.coGroupBuilder(PageVisit::userId);
-Tag<PageVisit> pvTag = b.tag0();
-Tag<AddToCart> atcTag = b.add(addToCart, AddToCart::userId);
-Tag<Payment> pmtTag = b.add(payment, Payment::userId);
-Tag<Delivery> delTag = b.add(delivery, Delivery::userId);
-
-ComputeStage<Tuple2<Long, long[]>> coGrouped = b.build(AggregateOperation
-        .withCreate(() -> new LongAccumulator[] {
-                new LongAccumulator(),
-                new LongAccumulator(),
-                new LongAccumulator(),
-                new LongAccumulator()
-        })
-        .andAccumulate(pvTag, (accs, pv) -> accs[0].add(pv.loadTime()))
-        .andAccumulate(atcTag, (accs, atc) -> accs[1].add(atc.quantity()))
-        .andAccumulate(pmtTag, (accs, pm) -> accs[2].add(pm.amount()))
-        .andAccumulate(delTag, (accs, d) -> accs[3].add(d.days()))
-        .andCombine((accs1, accs2) -> {
-                    accs1[0].add(accs2[0]);
-                    accs1[1].add(accs2[1]);
-                    accs1[2].add(accs2[2]);
-                    accs1[3].add(accs2[3]);
-                })
-        .andFinish(accs -> new long[] {
-                accs[0].get(),
-                accs[1].get(),
-                accs[2].get(),
-                accs[3].get()
-        })
-);
+include::{sourceDir}/BuildComputation.java[tag=s9]
 ----
 
 Note the interaction between the co-group building code and the
 aggregate operation-building code: the co-group builder gives you type
-tags that you then pass to the aggregate operation builder. This
-establishes the connection between the streams contributing to the
-co-group transform and the aggregate operation processing them. Refer
-to the
+tags that you then pass to the aggregate operation. This establishes the
+connection between the streams contributing to the co-group transform
+and the aggregate operation processing them. Refer to the
 <<implement-your-aggregate-operation, section on `AggregateOperation`>>
 to learn more about it.
 
 [[hash-join]]
 === hashJoin
 
-{jet-javadoc}/ComputeStage.html#hashJoin-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-com.hazelcast.jet.ComputeStage-com.hazelcast.jet.JoinClause-[`hashJoin`]
+{jet-javadoc}/pipeline/BatchStage.html#hashJoin-com.hazelcast.jet.pipeline.BatchStage-com.hazelcast.jet.pipeline.JoinClause-com.hazelcast.jet.function.DistributedBiFunction-[`hashJoin`]
 is a specialization of a general "join" operation, optimized for the use
 case of _data enrichment_. In this scenario there is a single,
 potentially infinite data stream (the _primary_ stream), that goes
@@ -283,24 +213,9 @@ streams. The following example shows a three-way hash-join between the
 primary stream of stock trade events and two enriching streams:
 _products_ and _brokers_.
 
-[source,java]
+[source,java,indent=0]
 ----
-Pipeline p = Pipeline.create();
-
-// The primary stream: trades
-ComputeStage<Trade> trades = p.drawFrom(Sources.<Trade>list("trades"));
-
-// The enriching streams: products and brokers
-ComputeStage<Entry<Integer, Product>> prodEntries =
-        p.drawFrom(Sources.<Integer, Product>map("products"));
-ComputeStage<Entry<Integer, Broker>> brokEntries =
-        p.drawFrom(Sources.<Integer, Broker>map("brokers"));
-
-// Join the trade stream with the product and broker streams
-ComputeStage<Tuple3<Trade, Product, Broker>> joined = trades.hashJoin(
-        prodEntries, joinMapEntries(Trade::productId),
-        brokEntries, joinMapEntries(Trade::brokerId)
-);
+include::{sourceDir}/BuildComputation.java[tag=s10]
 ----
 
 Products are joined on `Trade.productId` and brokers on
@@ -325,51 +240,26 @@ each cluster member. That's why this operation is also known as a
 _replicated_ join. This is something to keep in mind when estimating
 the RAM requirements for a hash-join operation.
 
-==== hashJoin Builder
+==== Hash-Join With Three or More Streams Using the Builder
 
 You can hash-join a stream with up to two enriching streams using the
 API we demonstrated above. If you have more than two enriching streams,
 you'll use the
-{jet-javadoc}/ComputeStage.html#hashJoinBuilder--[hash-join builder].
+{jet-javadoc}/pipeline/StreamStage.html#hashJoinBuilder--[hash-join builder].
 For example, you may want to enrich a trade with its associated product,
 broker, and market:
 
-[source,java]
+[source,java,indent=0]
 ----
-Pipeline p = Pipeline.create();
-
-// The primary stream: trades
-ComputeStage<Trade> trades = p.drawFrom(Sources.<Trade>list("trades"));
-
-// The enriching streams: products and brokers
-ComputeStage<Entry<Integer, Product>> prodEntries =
-        p.drawFrom(Sources.<Integer, Product>map("products"));
-ComputeStage<Entry<Integer, Broker>> brokEntries =
-        p.drawFrom(Sources.<Integer, Broker>map("brokers"));
-ComputeStage<Entry<Integer, Market>> marketEntries =
-        p.drawFrom(Sources.<Integer, Market>map("markets"));
-
-HashJoinBuilder<Trade> b = trades.hashJoinBuilder();
-Tag<Product> prodTag = b.add(prodEntries, joinMapEntries(Trade::productId));
-Tag<Broker> brokTag = b.add(brokEntries, joinMapEntries(Trade::brokerId));
-Tag<Market> marketTag = b.add(marketEntries, joinMapEntries(Trade::marketId));
-ComputeStage<Tuple2<Trade, ItemsByTag>> joined = b.build();
+include::{sourceDir}/BuildComputation.java[tag=s11]
 ----
 
 The data type on the hash-joined stage is `Tuple2<Trade, ItemsByTag>`.
 The next snippet shows how to use it to access the primary and enriching
 items:
 
-[source,java]
+[source,java,indent=0]
 ----
-ComputeStage<String> mapped = joined.map(
-        (Tuple2<Trade, ItemsByTag> t) -> {
-            Trade trade = t.f0();
-            ItemsByTag ibt = t.f1();
-            Product product = ibt.get(prodTag);
-            Broker broker = ibt.get(brokTag);
-            Market market = ibt.get(marketTag);
-            return trade + ": " + product + ", " + broker + ", " + market;
-        });
+include::{sourceDir}/BuildComputation.java[tag=s12]
 ----
 
