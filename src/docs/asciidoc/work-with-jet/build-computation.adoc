@@ -84,23 +84,23 @@ items.
 
 Stepping up from mapping and filtering we come to _aggregation_, the
 cornerstone of stream transforms. It computes an aggregate function
-(simple examples: sum and average) over the data items. Typically you
+(simple examples: sum or average) over the data items. Typically you
 don't want to agregate all the items together, but classify them by some
 key and then aggregate over each group separately. This is the
 _group-and-aggregate_ transformation. Finally, if you're processing
-an infinite event stream, you must define a finite _window_ over the
+an unbounded event stream, you must define a bounded _window_ over the
 stream within which Jet will aggregate the data.
 
-This is how a very simple batch aggregation without grouping may look:
+This is how a very simple batch aggregation without grouping may look
+(the list named "text" contains lines of text):
 
 [source,java,indent=0]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s4]
 ----
 
-We simply counted all the lines in a Hazelcast list named "text" and
-pushed the count to a list named "result". Let's count all the words
-instead:
+We simply counted all the lines and pushed the count to a list named
+"result". Let's count all the words instead:
 
 [source,java,indent=0]
 ----
@@ -132,16 +132,30 @@ operations. You can also implement your own aggregate operations; please
 refer to the section <<implement-your-aggregate-operation,
 dedicated to this>>.
 
-A more complex variety of pipeline transforms are those that merge
-several input stages into a single resulting stage. In Hazelcast Jet
-there are two such transforms of special interest: co-aggregation and
-hash-join. We discuss these next.
+Let's upgrade this to windowed aggregation over a stream of tweets:
+
+[source,java,indent=0]
+----
+include::{sourceDir}/BuildComputation.java[tag=s6a]
+----
+
+Now we've got a Jet job that does live tracking of words currently
+trending in tweets. The sliding window definition tells Jet to aggregate
+over the last minute and update its result every second.
+
+This example uses a very simple way to define a windowing operation,
+using the current time for timestamp. In a realistic scenario you'd be
+receiving events which contain the text of the tweet together with
+metadata such as username and timestamp. In that case you would pass a
+function that selects the timestamp to `addTimestamps()`, and you'd also
+have to deal with events coming out of order. We discuss these concerns
+<<time-ordering, later on>>.
 
 [[cogroup]]
 === Co-Aggregation
 
 Just as we performed aggregate and group-and-aggregate operations above,
-we can peform co-aggregate and cogroup-and-aggregate of several stages
+we can perform co-aggregate and cogroup-and-aggregate of several stages
 together. In SQL terms this is analogous to a JOIN coupled with a GROUP
 BY. The JOIN condition is constrained to matching on the grouping key.
 
@@ -159,20 +173,17 @@ this simple example both sources are treated equally (just increment the
 total count), but the point of `AggregateOperation` 's API is that you
 can differentiate between them and treat each one differently. Here's
 an example definition that applies different weights to the streams,
-making the stream-1 words weight ten times more than those in stream-0:
+making the stream-1 words worth ten times more than those in stream-0:
 
 [source,java,indent=0]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s8]
 ----
 
-This demonstrates the individual treatment of input streams: stream 1 is
-weighted so that each of its items is worth ten items from stream 0.
-
 [[cogroup-builder]]
 ====  Co-aggregate Four or More Streams Using the Builder
 
-If you need to co-group more than three streams, you'll have to use the
+If you need to join more than three streams, you'll have to use the
 {jet-javadoc}/pipeline/StageWithGroupingAndWindow.html#aggregateBuilder--[builder]
 object. For example, your goal may be correlating events coming from
 different systems, where all the systems serve the same user base. In an

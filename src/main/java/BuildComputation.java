@@ -14,6 +14,7 @@ import com.hazelcast.jet.pipeline.Sources;
 import com.hazelcast.jet.pipeline.StageWithGrouping;
 import com.hazelcast.jet.pipeline.StreamHashJoinBuilder;
 import com.hazelcast.jet.pipeline.StreamStage;
+import com.hazelcast.jet.pipeline.WindowDefinition;
 import datamodel.AddToCart;
 import datamodel.Broker;
 import datamodel.Delivery;
@@ -24,6 +25,7 @@ import datamodel.Product;
 import datamodel.Trade;
 
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import static com.hazelcast.jet.Traversers.traverseArray;
 import static com.hazelcast.jet.Util.mapEventNewValue;
@@ -34,6 +36,9 @@ import static com.hazelcast.jet.function.DistributedFunctions.entryValue;
 import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 import static com.hazelcast.jet.pipeline.JoinClause.joinMapEntries;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_CURRENT;
+import static com.hazelcast.jet.pipeline.WindowDefinition.sliding;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 class BuildComputation {
     static void s1() {
@@ -101,6 +106,21 @@ class BuildComputation {
          .aggregate(counting())
          .drainTo(Sinks.list("result"));
         //end::s6[]
+    }
+
+    static void s6a() {
+        //tag::s6a[]
+        Pipeline p = Pipeline.create();
+        p.<String>drawFrom(Sources.mapJournal("tweets",
+                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT))
+         .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
+         .filter(word -> !word.isEmpty())
+         .addTimestamps()
+         .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
+         .groupingKey(wholeItem())
+         .aggregate(counting())
+         .drainTo(Sinks.list("result"));
+        //end::s6a[]
     }
 
     //tag::s7[]

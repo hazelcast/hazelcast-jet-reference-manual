@@ -71,12 +71,12 @@ with no further events.
 [[time-ordering]]
 == Time Ordering and the Watermark
 
-Usually the time of observing an event is explicitly written in the
-stream item. There is no guarantee that items will occur in the stream
-ordered by the value of that field; in fact in many cases it is certain
-that they won't. Consider events gathered from users of a mobile app:
-for all kinds of reasons the items will arrive to our datacenter out of
-order, even with significant delays due to connectivity issues.
+Usually the time of observing an event is explicitly written in a field
+of the stream item. There is no guarantee that items will occur in the
+stream ordered by the value of that field; in fact in many cases it is
+certain that they won't. Consider events gathered from users of a mobile
+app: for all kinds of reasons the items will arrive to our datacenter
+out of order, even with significant delays due to connectivity issues.
 
 This disorder in the event stream makes it more difficult to formally
 specify a rule that tells us at which point all the data for a given
@@ -84,7 +84,7 @@ window has been gathered, allowing us to emit the aggregated result.
 
 To approach these challenges we use the concept of the
 {jet-javadoc}/core/Watermark.html[_watermark_].
-It is a timestamped item inserted into the stream that tells us "from
+It is a timestamped item Jet inserts into the stream that says "from
 this point on there will be no more items with timestamp less than
 this". Unfortunately, we almost never know for sure when such a
 statement becomes true and there is always a chance some events will
@@ -97,11 +97,8 @@ given watermark. The more we wait, the higher the latency of getting the
 results of the computation; the less we wait, the worse their accuracy
 due to missed events.
 
-For the above reasons the policy to compute the watermark is not
-hardcoded and you as the user must decide which one to use. Hazelcast
-Jet comes with some predefined policies which you can tune with a few
-configurable parameters. You can also write your own policy from
-scratch.
+For these reasons Jet cannot determine the watermark on its own, you
+must decide how much disorder to accept (and expect).
 
 == Fault Tolerance and Processing Guarantees
 
