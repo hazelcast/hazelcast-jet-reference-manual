@@ -56,7 +56,7 @@ include::work-with-jet/build-computation.adoc[]
 
 include::work-with-jet/implement-aggregation.adoc[]
 
-include::work-with-jet/infinite-stream-processing.adoc[]
+include::work-with-jet/unbounded-stream-processing.adoc[]
 
 [[source-sink-connectors]]
 = Source and Sink Connectors
@@ -94,7 +94,7 @@ include::j-u-s.adoc[]
 
 include::under-the-hood/how-distributed-computing.adoc[]
 
-include::under-the-hood/how-infinite-stream-processing.adoc[]
+include::under-the-hood/how-unbounded-stream-processing.adoc[]
 
 include::under-the-hood/stream-processing.adoc[]
 

@@ -1,4 +1,4 @@
-[[infinite-stream-processing]]
+[[unbounded-stream-processing]]
 = Infinite Stream Processing
 
 Distributed processing in Hazelcast Jet has two major variants:
@@ -249,23 +249,3 @@ ongoing execution of the job is interrupted and a new execution is
 scheduled. If the snapshotting mechanism enabled, the job is restarted
 from the last successful snapshot. Therefore, the restart procedure
 respects to the configured processing guarantee.
-
-== Note for Hazelcast Jet version 0.5
-
-Hazelcast Jet's version 0.5 was released with the Pipeline API still
-under construction. We started from the simple case of batch jobs and we
-support the major batch operation of (co)group-and-aggregate, but still
-lack the API to define the windowing and watermark policies. Other,
-non-aggregating operations aren't sensitive to the difference between
-finite and infinite streams and are ready to use. The major example here
-is data enrichment
-(<<hash-join, hash join>>),
-which is essentially a mapping stream transformation. The next release
-of Jet will feature a fully developed API that supports windowed
-aggregation of infinite streams and we also plan to add more batch
-transforms (`sort` and `distinct` for example).
-
-On the other hand, Jet's core has had full-fledged support for all of
-the windows described above since version 0.4. You can refer to the
-<<under-the-hood, Under the Hood>> chapter for details on how to create
-a Core API DAG that does infinite stream aggregation.
