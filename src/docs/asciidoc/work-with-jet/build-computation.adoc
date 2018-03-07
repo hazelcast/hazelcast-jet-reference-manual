@@ -155,9 +155,10 @@ have to deal with events coming out of order. We discuss these concerns
 === Co-Aggregation
 
 Just as we performed aggregate and group-and-aggregate operations above,
-we can perform co-aggregate and cogroup-and-aggregate of several stages
-together. In SQL terms this is analogous to a JOIN coupled with a GROUP
-BY. The JOIN condition is constrained to matching on the grouping key.
+we can perform a co-aggregate and cogroup-and-aggregate of several
+stages together. In SQL terms this is analogous to a JOIN coupled with a
+GROUP BY. The JOIN condition is constrained to matching on the grouping
+key.
 
 Here's a simple example where we do the Word Count from two source
 lists:

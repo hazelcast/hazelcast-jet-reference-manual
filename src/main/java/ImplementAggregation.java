@@ -40,26 +40,26 @@ public class ImplementAggregation {
         BatchStage<AddToCart> addToCart = p.drawFrom(Sources.list("addToCart"));
         BatchStage<Payment> payment = p.drawFrom(Sources.list("payment"));
 
-        AggregateOperation3<PageVisit, AddToCart, Payment, LongAccumulator[], long[]> aggrOp =
-                AggregateOperation
-                        .withCreate(() -> new LongAccumulator[] {
-                                new LongAccumulator(),
-                                new LongAccumulator(),
-                                new LongAccumulator()
-                        })
-                        .<PageVisit>andAccumulate0((accs, pv) -> accs[0].add(pv.loadTime()))
-                        .<AddToCart>andAccumulate1((accs, atc) -> accs[1].add(atc.quantity()))
-                        .<Payment>andAccumulate2((accs, pm) -> accs[2].add(pm.amount()))
-                        .andCombine((accs1, accs2) -> {
-                            accs1[0].add(accs2[0]);
-                            accs1[1].add(accs2[1]);
-                            accs1[2].add(accs2[2]);
-                        })
-                        .andFinish(accs -> new long[] {
-                                accs[0].get(),
-                                accs[1].get(),
-                                accs[2].get()
-                        });
+        AggregateOperation3<PageVisit, AddToCart, Payment, LongAccumulator[], long[]>
+            aggrOp = AggregateOperation
+                .withCreate(() -> new LongAccumulator[] {
+                        new LongAccumulator(),
+                        new LongAccumulator(),
+                        new LongAccumulator()
+                })
+                .<PageVisit>andAccumulate0((accs, pv) -> accs[0].add(pv.loadTime()))
+                .<AddToCart>andAccumulate1((accs, atc) -> accs[1].add(atc.quantity()))
+                .<Payment>andAccumulate2((accs, pm) -> accs[2].add(pm.amount()))
+                .andCombine((accs1, accs2) -> {
+                    accs1[0].add(accs2[0]);
+                    accs1[1].add(accs2[1]);
+                    accs1[2].add(accs2[2]);
+                })
+                .andFinish(accs -> new long[] {
+                        accs[0].get(),
+                        accs[1].get(),
+                        accs[2].get()
+                });
 
         BatchStage<Entry<Integer, long[]>> coGrouped =
                 pageVisit.groupingKey(PageVisit::userId)
