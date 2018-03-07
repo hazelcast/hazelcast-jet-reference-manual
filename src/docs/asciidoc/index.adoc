@@ -100,33 +100,7 @@ include::under-the-hood/stream-processing.adoc[]
 
 :leveloffset: -1
 
-= Expert Zone
-
-:leveloffset: +1
-
-include::expert-zone/overview.adoc[]
-
-include::expert-zone/jet-execution-model.adoc[]
-
-include::expert-zone/dag.adoc[]
-
-include::expert-zone/job.adoc[]
-
-include::expert-zone/processor.adoc[]
-
-include::expert-zone/abstract-processor.adoc[]
-
-include::expert-zone/watermark-policy.adoc[]
-
-include::expert-zone/vertices.adoc[]
-
-include::expert-zone/custom-source-sink.adoc[]
-
-include::expert-zone/best-practices.adoc[]
-
-include::expert-zone/custom-dag.adoc[]
-
-:leveloffset: -1
+include::expert-zone/index.adoc[]
 
 [appendix]
 include::misc/phone-homes.adoc[]

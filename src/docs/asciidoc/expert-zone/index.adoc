@@ -1,4 +1,6 @@
-= The Core API
+= Expert Zone
+
+== The Core API
 
 This section covers the Core API, Jet's low-level API that directly
 exposes the computation engine's raw features. If you are looking for
@@ -20,3 +22,27 @@ with Jet's concept of cooperative multithreading. While we provide as
 much convenience as we can for extending Jet with your custom
 processors, we cannot remove the dangers of using these facilities
 improperly.
+
+:leveloffset: +1
+
+include::jet-execution-model.adoc[]
+
+include::dag.adoc[]
+
+include::job.adoc[]
+
+include::processor.adoc[]
+
+include::abstract-processor.adoc[]
+
+include::watermark-policy.adoc[]
+
+include::vertices.adoc[]
+
+include::custom-source-sink.adoc[]
+
+include::best-practices.adoc[]
+
+include::custom-dag.adoc[]
+
+:leveloffset: -1
