@@ -4,18 +4,19 @@
 Hazelcast Jet is a distributed data processing engine, built for
 high-performance batch and stream processing. It reuses some features
 and services of http://www.hazelcast.org[Hazelcast In-Memory Data
-Grid] (IMDG), but is otherwise a separate
-product with features not available in the IMDG.
+Grid] (IMDG), but is otherwise a separate product with features not
+available in the IMDG.
 
-In addition to its own
-<<pipeline-api, Pipeline API>>,
-Jet also offers a distributed implementation of
-https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html[java.util.stream].
-You can express your computation over any data source Jet supports using
-the familiar API from the JDK 8.
+Jet provides you with the simple and expressive <<pipeline-api, Pipeline
+API>> with which you can perform complex transforming and aggregating
+tasks that can combine the input from several data sources. It also
+offers a distributed implementation of
+https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html[java.util.stream],
+with which you can achieve some simple transformations of a single data
+source using the API familiar from Java 8.
 
-With Hazelcast’s IMDG providing storage functionality, Hazelcast
-Jet performs parallel execution to enable data-intensive applications to
+With Hazelcast’s IMDG providing storage functionality, Hazelcast Jet
+performs parallel execution to enable data-intensive applications to
 operate in near real-time. Using directed acyclic graphs (DAG) to model
 relationships between individual steps in the data processing pipeline,
 Hazelcast Jet can execute both batch and stream-based data processing
