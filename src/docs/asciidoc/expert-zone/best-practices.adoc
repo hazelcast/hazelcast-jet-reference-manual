@@ -36,19 +36,17 @@ These methods take two optional parameters:
 Suppose we have declared the second-stage vertex in a two-stage
 aggregation setup:
 
-[source,java]
+[source]
 ----
-Vertex combine = dag.newVertex("combine",
-    combineByKey(counting()));
+include::{sourceDir}/ExpertZone.java[tag=bp1]
 ----
 
 We'd like to see what exactly we're getting from the first stage, so
 we'll wrap the processor supplier with `peekInput()`:
 
-[source,java]
+[source]
 ----
-Vertex combine = dag.newVertex("combine",
-    peekInput(combineByKey(counting())));
+include::{sourceDir}/ExpertZone.java[tag=bp2]
 ----
 
 Keep in mind that logging happens on the machine running hosting the
@@ -68,12 +66,9 @@ sink vertex can be very useful here.
 In the example from the Word Count tutorial we can add the following
 declarations:
 
-[source,java]
+[source]
 ----
-Vertex diagnose = dag.newVertex("diagnose",
-        Sinks.writeFile("tokenize-output"))
-        .localParallelism(1);
-dag.edge(from(tokenize, 1).to(diagnose));
+include::{sourceDir}/ExpertZone.java[tag=bp3]
 ----
 
 This will create the directory `tokenize-output` which will contain one
@@ -143,17 +138,9 @@ This class does not cover these cases:
 
 This will test one of the jet-provided processors:
 
-[source,java]
+[source]
 ----
-TestSupport.verifyProcessor(Processors.map((String s) -> s.toUpperCase()))
-           .disableCompleteCall()             // enabled by default
-           .disableLogging()                  // enabled by default
-           .disableProgressAssertion()        // enabled by default
-           .disableSnapshots()                // enabled by default
-           .cooperativeTimeout(<timeoutInMs>) // default is 1000
-           .outputChecker(<function>)         // default is `Objects::equal`
-           .input(asList("foo", "bar"))       // default is `emptyList()`
-           .expectOutput(asList("FOO", "BAR"));
+include::{sourceDir}/ExpertZone.java[tag=bp4]
 ----
 
 === Other Utility Classes

@@ -28,6 +28,8 @@ compileJava {
 
 dependencies {
     compile 'com.hazelcast.jet:hazelcast-jet:0.6-SNAPSHOT'
+    compile 'com.hazelcast.jet:hazelcast-jet-kafka:0.6-SNAPSHOT'
+    compile 'com.hazelcast.jet:hazelcast-jet-hadoop:0.6-SNAPSHOT'
 }
 
 asciidoctor {

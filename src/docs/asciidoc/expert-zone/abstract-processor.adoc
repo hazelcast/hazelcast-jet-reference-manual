@@ -74,17 +74,9 @@ building a simple transformation layer over the underlying sequence:
 The following example shows how you can implement a simple flatmapping
 processor:
 
-[source,java]
+[source]
 ----
-public class ItemAndSuccessorP extends AbstractProcessor {
-    private final FlatMapper<Integer, Integer> flatMapper =
-        flatMapper(i -> traverseIterable(asList(i, i + 1)));
-
-    @Override
-    protected boolean tryProcess(int ordinal, Object item) {
-        return flatMapper.tryProcess((int) item);
-    }
-}
+include::{sourceDir}/ExpertZone.java[tag=ItemAndSuccessorP]
 ----
 
 For each received `Integer` this processor emits the number and its
