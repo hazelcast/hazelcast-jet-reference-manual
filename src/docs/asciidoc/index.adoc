@@ -7,7 +7,7 @@
 :sectlinks:
 :source-highlighter: coderay
 :source-language: asciidoc
-:stylesheet: stylesheets/github.css
+:stylesheet: stylesheets/hazelcast.css
 :toc: left
 :toclevels: 2
 
