@@ -12,7 +12,7 @@ MapReduce job is created, this config is simply used to describe the
 required inputs and outputs. The same `JobConf` instance can be shared
 between the source and the sink.
 
-[source,java]
+[source]
 ----
 JobConf jobConfig = new JobConf();
 jobConfig.setInputFormat(TextInputFormat.class);
@@ -23,7 +23,7 @@ TextInputFormat.addInputPath(jobConfig, "input-path");
 
 The word count pipeline can then be expressed using HDFS as follows
 
-[source,java]
+[source]
 ----
 Pipeline p = Pipeline.create();
 p.drawFrom(HdfsSources.hdfs(jobConfig, (k, v) -> v.toString()))

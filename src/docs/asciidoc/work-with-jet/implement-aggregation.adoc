@@ -43,7 +43,7 @@ you have to provide Jet with a specific mutable object, called the
 `accumulator`, which will keep the "running score" of the operation in
 progress. For the `average` example, it would be something like
 
-[source,java]
+[source]
 ----
 public class AvgAccumulator {
     private long sum;
@@ -111,7 +111,7 @@ additional `deduct` primitive.
 Let's see how this works with our `average` function. Using
 `LongLongAccumulator` we can express our `accumulate` primitive as
 
-[source,java]
+[source]
 ----
 (acc, n) -> {
     acc.set1(acc.get1() + n);
@@ -121,7 +121,7 @@ Let's see how this works with our `average` function. Using
 
 The `finish` primitive will be
 
-[source,java]
+[source]
 ----
 acc -> (double) acc.get1() / acc.get2()
 ----
@@ -132,7 +132,7 @@ logic. For `create` we just refer to the constructor:
 update the left-hand accumulator with the contents of the right-hand
 one, so:
 
-[source,java]
+[source]
 ----
 (left, right) -> {
     left.set1(left.get1() + right.get1());
@@ -142,7 +142,7 @@ one, so:
 
 Deducting must undo the effect of a previous `combine`:
 
-[source,java]
+[source]
 ----
 (left, right) -> {
     left.set1(left.get1() - right.get1());

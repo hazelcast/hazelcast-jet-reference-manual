@@ -10,7 +10,7 @@ http://= instantiate a {jet-javadoc}/config/JetConfig.html[`JetConfig`]
 ]object and set the desired properties. For example, the following will
 configure Jet to use only two threads for cooperative execution:
 
-[source,java]
+[source]
 ----
 JetConfig config = new JetConfig();
 config.getInstanceConfig().setCooperativeThreadCount(2);
@@ -97,7 +97,7 @@ for specific configuration options for Hazelcast IMDG.
 
 The underlying Hazelcast IMDG member can be configured as follows:
 
-[source,java]
+[source]
 JetConfig jetConfig = new JetConfig();
 jetConfig.getHazelcastConfig().getGroupConfig().setName("test");
 JetInstance jet = Jet.newJetInstance(jetConfig);
@@ -105,7 +105,7 @@ JetInstance jet = Jet.newJetInstance(jetConfig);
 The underlying Hazelcast IMDG client can be configured as follows:
 
 
-[source,java]
+[source]
 ClientConfig clientConfig = new ClientConfig();
 clientConfig.getGroupConfig().setName("test");
 JetInstance jet = Jet.newJetClient(clientConfig);

@@ -9,7 +9,7 @@ the official https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-
 
 == Simple Example
 
-[source,java]
+[source]
 ----
 JetInstance jet = Jet.newJetInstance();
 IStreamMap<String, Integer> map = jet.getMap("latitudes");
@@ -26,7 +26,7 @@ map.stream().filter(e -> e.getValue() < 0).forEach(System.out::println);
 In addition to Hazelcast data structures any source processor
 can be used to create a distributed stream.
 
-[source,java]
+[source]
 ----
 JetInstance jet = Jet.newJetInstance();
 ProcessorSupplier processorSupplier = SourceProcessors.readFilesP("path", UTF_8, "*");
@@ -61,7 +61,7 @@ For example the following innocent-looking code can easily cause
 out-of-memory errors because the whole distributed map will need to be
 held in the memory at a single place:
 
-[source,java]
+[source]
 ----
 // get a distributed map with 5GB per member on a 10-member cluster
 IStreamMap<String, String> map = jet.getMap("large_map");
@@ -97,7 +97,7 @@ the JDK-standard collectors make sense.
 The word count example that was described in the
 <<get-started, Get Started>> section can be rewritten using the `java.util.stream` API as follows:
 
-[source,java]
+[source]
 ----
 IMap<String, Long> counts = lines
                 .stream()

@@ -5,7 +5,7 @@ distributed computing and Jet's specific take on it. We will do this by
 dissecting one specific problem: the Word Count. This is how you'd
 describe it in the {jet-samples}/batch/wordcount/src/main/java/WordCount.java[Jet Pipeline API]:
 
-[source,java]
+[source]
 Pattern delimiter = Pattern.compile("\\W+");
 Pipeline p = Pipeline.create();
 p.drawFrom(Sources.<Long, String>map(BOOK_LINES))
@@ -25,7 +25,7 @@ DAG we designed.
 Here is the single-threaded code that counts the words in a `List` of
 lines of text:
 
-[source,java]
+[source]
 List<String> lines = ... // a pre-existing list
 Map<String, Long> counts = new HashMap<>();
 for (String line : lines) {
@@ -39,7 +39,7 @@ for (String line : lines) {
 To move us closer to how this computation is expressed in Jet, let's
 rewrite it in terms of the Java Streams API, still single-threaded:
 
-[source,java]
+[source]
 Map<String, Long> counts =
     lines.stream()
          .flatMap(line -> Arrays.stream(line.toLowerCase().split("\\W+")))
@@ -83,13 +83,13 @@ into isolated steps with clear data interfaces between them. We can
 perform the same computation by running a separate thread for each step.
 Roughly speaking, these are the snippets the threads would be executing:
 
-[source,java]
+[source]
 // Source thread
 for (String line : readLines()) {
     emit(line);
 }
 
-[source,java]
+[source]
 // Tokenizer thread
 for (String line : receive()) {
     for (String word : line.toLowerCase().split("\\W+")) {
@@ -99,7 +99,7 @@ for (String line : receive()) {
     }
 }
 
-[source,java]
+[source]
 // Accumulator thread
 Map<String, Long> counts = new HashMap<>();
 for (String word : receive()) {
@@ -194,7 +194,7 @@ combining vertex. Note that this means sending only one item per
 distinct word. Here's the rough equivalent of the code the combining
 vertex executes:
 
-[source,java]
+[source]
 // Combining vertex
 Map<String, Long> combined = new HashMap<>();
 for (Entry<String, Long> wordAndCount : receive()) {
@@ -228,7 +228,7 @@ Now that we've come up with a good DAG design, we can use Jet's Core API
 to implement it. We start by instantiating the DAG class and adding the
 source vertex:
 
-[source,java]
+[source]
 DAG dag = new DAG();
 Vertex source = dag.newVertex("source", SourceProcessors.readMapP("lines"));
 
@@ -246,7 +246,7 @@ operation (transforms one input item into zero or more output items).
 The low-level support for such a processor is a part of Jet's library,
 we just need to provide the mapping function:
 
-[source,java]
+[source]
 // (lineNum, line) -> words
 Pattern delimiter = Pattern.compile("\\W+");
 Vertex tokenize = dag.newVertex("tokenize",
@@ -269,7 +269,7 @@ abstraction simplifies many of its aspects.
 The next vertex will do the actual word count. We can use the built-in
 `accumulateByKey` processor for this:
 
-[source,java]
+[source]
 // word -> (word, count)
 Vertex accumulate = dag.newVertex("accumulate",
         Processors.accumulateByKeyP(wholeItem(), counting())
@@ -288,7 +288,7 @@ all the input, and at that point it emits the hashtable as a stream of
 Next is the combining step which computes the grand totals from
 individual members' contributions. This is the code:
 
-[source,java]
+[source]
 // (word, count) -> (word, count)
 Vertex combine = dag.newVertex("combine",
     Processors.combineByKeyP(counting())
@@ -301,14 +301,14 @@ operation must be the same as on `accumulateByKey`.
 The final vertex is the sink; we want to store the output in
 another `IMap`:
 
-[source,java]
+[source]
 Vertex sink = dag.newVertex("sink", SinkProcessors.writeMapP("counts"));
 
 Now that we have all the vertices, we must connect them into a graph and
 specify the edge type as discussed in the previous section. Here's all
 the code at once:
 
-[source,java]
+[source]
 dag.edge(between(source, tokenize))
    .edge(between(tokenize, accumulate)
            .partitioned(wholeItem(), Partitioner.HASH_CODE))
@@ -320,7 +320,7 @@ dag.edge(between(source, tokenize))
 Let's take a closer look at some of the edges. First, source to
 tokenizer:
 
-[source,java]
+[source]
  .edge(between(tokenize, accumulate)
        .partitioned(wholeItem(), Partitioner.HASH_CODE))
 
@@ -336,7 +336,7 @@ on a local edge.
 
 Next, the edge from the accumulator to the combiner:
 
-[source,java]
+[source]
 .edge(between(accumulate, combine)
        .distributed()
        .partitioned(entryKey()))

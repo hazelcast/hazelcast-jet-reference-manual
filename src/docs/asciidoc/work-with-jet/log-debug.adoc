@@ -17,12 +17,12 @@ support. To use one of the built-in adapters, set the
 
 For example, to configure Jet to use Log4j, you can do one of the following:
 
-[source,java]
+[source]
 System.setProperty("hazelcast.logging.type", "log4j");
 
 or
 
-[source,java]
+[source]
 JetConfig config = new JetConfig() ;
 config.getHazelcastConfig().setProperty( "hazelcast.logging.type", "log4j" );
 
@@ -37,7 +37,7 @@ each stage is. This can be achieved by using the
 {jet-javadoc}/ComputeStage.html#peek--[`peek()`]
 stage. For example:
 
-[source,java]
+[source]
 p.drawFrom(Sources.<Long, String>map(...))
    .flatMap(e -> traverseArray(delimiter.split(e.getValue().toLowerCase())))
    .filter(word -> !word.isEmpty())

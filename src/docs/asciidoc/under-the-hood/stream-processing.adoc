@@ -27,7 +27,7 @@ present the much simpler code to do it in the Pipelines API.
 If you studied the DAG-building code for the Word Count job, this code
 should look generally familiar:
 
-[source,java]
+[source]
 ----
 WindowDefinition windowDef = WindowDefinition.slidingWindowDef(
         SLIDING_WINDOW_LENGTH_MILLIS, SLIDE_STEP_MILLIS);

@@ -9,7 +9,7 @@ Kafka topic and the sink publishes events to a Kafka topic.
 The following code will consume from topics `t1` and `t2` and then write to
 `t3`:
 
-[source,java]
+[source]
 ----
 Properties props = new Properties();
 props.setProperty("bootstrap.servers", "localhost:9092");

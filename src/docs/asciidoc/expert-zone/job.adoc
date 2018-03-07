@@ -9,7 +9,7 @@ outputs of the computation.
 is a handle to the execution of a `DAG`. To create a job, supply the `DAG`
 to a previously created `JetInstance` as shown below:
 
-[source,java]
+[source]
 ----
 JetInstance jet = Jet.newJetInstance(); // or Jet.newJetClient();
 DAG dag = new DAG();
@@ -43,7 +43,7 @@ If the Jet cluster has not been started with all the job's computation
 code already on the classpath, you have to deploy the code together
 with the Job instance:
 
-[source,java]
+[source]
 ----
 JobConfig config = new JobConfig();
 config.addJar("..");

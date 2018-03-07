@@ -74,7 +74,7 @@ from 0 to 1,000,000 (exclusive). It is trivial to write a single
 `Processor` which can do this using `java.util.stream` and
 [`Traverser`](AbstractProcessor#page_Traverser).
 
-[source,java]
+[source]
 ----
 class GenerateNumbersP extends AbstractProcessor {
 
@@ -93,7 +93,7 @@ class GenerateNumbersP extends AbstractProcessor {
 
 Now we can build our DAG and execute it:
 
-[source,java]
+[source]
 ----
 JetInstance jet = Jet.newJetInstance();
 
@@ -142,7 +142,7 @@ those numbers `n` that satisfy `n % processorCount  processorIndex`.
 Let's write a new constructor for our processor which implements this
 partitioning logic:
 
-[source,java]
+[source]
 ----
 GenerateNumbersP(int upperBound, int processorCount, int processorIndex) {
     traverser = Traversers.traverseStream(
@@ -154,7 +154,7 @@ GenerateNumbersP(int upperBound, int processorCount, int processorIndex) {
 
 Given this preparation, implementing `ProcessorSupplier` is trivial:
 
-[source,java]
+[source]
 ----
 class GenerateNumbersPSupplier implements ProcessorSupplier {
 
@@ -175,7 +175,7 @@ class GenerateNumbersPSupplier implements ProcessorSupplier {
 
 Let's use the custom processor supplier in our DAG-building code:
 
-[source,java]
+[source]
 ----
 DAG dag = new DAG();
 Vertex generateNumbers = dag.newVertex("generate-numbers",
@@ -189,7 +189,7 @@ Now we can re-run our example and see that each number indeed occurs
 only once. However, note that we are still working with a single-member
 Jet cluster; let's see what happens when we add another member:
 
-[source,java]
+[source]
 ----
 JetInstance jet = Jet.newJetInstance();
 Jet.newJetInstance();
@@ -219,7 +219,7 @@ from address to a properly configured `ProcessorSupplier`. Then we can
 simply return `map::get` as our function.
 
 
-[source,java]
+[source]
 ----
 class GenerateNumbersPMetaSupplier implements ProcessorMetaSupplier {
 
@@ -262,7 +262,7 @@ class GenerateNumbersPMetaSupplier implements ProcessorMetaSupplier {
 
 We change our DAG-building code to use the meta-supplier:
 
-[source,java]
+[source]
 ----
 DAG dag = new DAG();
 Vertex generateNumbers = dag.newVertex("generate-numbers",
@@ -296,7 +296,7 @@ to its own file. Since we'll be using a `BufferedWriter` which takes
 care of the buffering/batching concern, we can use the simpler approach
 of extending `AbstractProcessor`:
 
-[source,java]
+[source]
 ----
 class WriteFileP extends AbstractProcessor implements Closeable {
 
@@ -349,7 +349,7 @@ need `ProcessorSupplier` for: the other typical concern, specializing
 processors to achieve data partitioning, was achieved directly from the
 processor's code. This is the supplier's code:
 
-[source,java]
+[source]
 ----
 class WriteFilePSupplier implements ProcessorSupplier {
 

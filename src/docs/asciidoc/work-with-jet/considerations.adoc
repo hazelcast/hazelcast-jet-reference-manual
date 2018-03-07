@@ -14,7 +14,7 @@ classpath.
 Your custom code must be packaged with the Jet job. For simple examples
 you can have everything in a single class and use code like this:
 
-[source,java]
+[source]
 ----
 class JetExample {
     static Job createJob(JetInstance jet) {
@@ -75,7 +75,7 @@ distribution. Adjust that file to suit your needs.
 
 For example, write a class like this:
 
-[source,java]
+[source]
 ----
 public class CustomJetJob {
     public static void main(String[] args) {
@@ -121,7 +121,7 @@ variable of the enclosing class, it implicitly captures `this` so the
 entire class will be serialized. For example, this will fail because
 `JetJob` doesn't implement `Serializable`:
 
-[source,java]
+[source]
 ----
 class JetJob {
     private String instanceVar;
@@ -140,7 +140,7 @@ class JetJob {
 Just adding `implements Serializable` to `JetJob` would be a viable
 workaround here. However, consider something just a bit different:
 
-[source,java]
+[source]
 ----
 class JetJob {
     private String instanceVar;
@@ -163,7 +163,7 @@ the sane approach is to avoid referring to instance variables of the
 surrounding class. This can be simply achieved by assigning to a local
 variable, then referring to that variable inside the lambda:
 
-[source,java]
+[source]
 ----
 class JetJob {
     private String instanceVar;
@@ -183,7 +183,7 @@ class JetJob {
 Another common pitfall is capturing an instance of `DateTimeFormatter`
 or a similar non-serializable class:
 
-[source,java]
+[source]
 ----
 DateTimeFormatter formatter =
         DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
@@ -197,7 +197,7 @@ src.map((Long tstamp) -> formatter.format(Instant.ofEpochMilli(tstamp)));
 Sometimes we can get away by using one of the preconfigured formatters
 available in the JDK:
 
-[source,java]
+[source]
 ----
 // Accesses the static final field ISO_LOCAL_TIME. Static fields are
 // not subject to lambda capture, they are dereferenced when the code
@@ -212,7 +212,7 @@ available on any JVM. A similar approach is to declare our own `static
 final` field; however in that case we must add the declaring class as a
 job resource:
 
-[source,java]
+[source]
 ----
 class JetJob {
 
@@ -255,7 +255,7 @@ use it for stream data. In essence, you must implement a
 `StreamSerializer` for the objects you emit from your processors and
 register it in Jet configuration:
 
-[source,java]
+[source]
 ----
 SerializerConfig serializerConfig = new SerializerConfig()
         .setImplementation(new MyItemSerializer())

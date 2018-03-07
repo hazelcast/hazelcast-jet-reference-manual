@@ -6,7 +6,7 @@ these would be started on separate machines, but for simple practice
 we can use the same JVM for two instances. Even though they are in the
 same JVM, they'll communicate over the network interface.
 
-[source,java]
+[source]
 ----
 public class WordCount {
     public static void main(String[] args) {
@@ -32,7 +32,7 @@ instances start their own threads, it is important to explicitly shut
 them down at the end of your program; otherwise the Java process will
 remain alive after the `main()` method completes:
 
-[source,java]
+[source]
 ----
 public class WordCount {
     public static void main(String[] args) {
@@ -51,14 +51,14 @@ public class WordCount {
 
 This is how you submit a Jet pipeline for execution:
 
-[source,java]
+[source]
 ----
 jet.newJob(pipeline).join();
 ----
 
 Alternatively, you can submit a Core API DAG:
 
-[source,java]
+[source]
 ----
 jet.newJob(dag).join();
 ----
@@ -75,7 +75,7 @@ To gain more control over how Jet will run your job, you can pass in
 a `JobConfig` instance. For example, you can give your job a human-
 readable name:
 
-[source,java]
+[source]
 ----
 JobConfig cfg = new JobConfig();
 cfg.setName("my job");

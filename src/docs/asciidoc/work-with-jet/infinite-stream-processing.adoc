@@ -152,7 +152,7 @@ resulting in a system that tolerates the failure of a single member at a
 time. You can tweak this setting when starting Jet, for example increase
 the backup count to two:
 
-[source,java]
+[source]
 ----
 JetConfig config = new JetConfig();
 config.getInstanceConfig().setBackupCount(2);
@@ -200,7 +200,7 @@ Fault tolerance is off by default. To activate it for a job, create a
 You can also configure
 {jet-javadoc}/config/JobConfig.html#setSnapshotIntervalMillis-long-[_snapshot interval_].
 
-[source,java]
+[source]
 ----
 JobConfig jobConfig = new JobConfig();
 jobConfig.setProcessingGuarantee(ProcessingGuarantee.EXACTLY_ONCE);
@@ -229,7 +229,7 @@ It works by ensuring that a job cannot be restarted in a
 cluster whose size isn't more than half of what it was before the job
 was suspended. Enable split-brain protection like this:
 
-[source,java]
+[source]
 ----
 jobConfig.setSplitBrainProtection(true);
 ----

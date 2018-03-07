@@ -8,7 +8,7 @@ without a Jet instance. This makes it simple to separate the
 job-describing code from the code that manages the lifecycle of Jet
 instances. To start building a DAG, you just write
 
-[source,java]
+[source]
 ----
 DAG dag = new DAG();
 ----
@@ -22,7 +22,7 @@ sections:
 
 Example:
 
-[source,java]
+[source]
 ----
 DAG dag = new DAG();
 
@@ -113,7 +113,7 @@ ordinals 0..M.
 This example shows the usage of `between()` and `from().to()` forms to
 build a DAG with one source feeding two computational vertices:
 
-[source,java]
+[source]
 ----
 DAG dag = new DAG();
 
@@ -146,7 +146,7 @@ The quintessential example of employing local-distributed edge combo
 is the two-stage aggregation. Here's a review of that setup from the
 Word Count tutorial:
 
-[source,java]
+[source]
 ----
 dag.edge(between(source, tokenizer))
    .edge(between(tokenizer, accumulate)
@@ -170,7 +170,7 @@ particular item to.
 
 This is the default routing policy, the one you get when you write
 
-[source,java]
+[source]
 ----
 dag.edge(between(source, tokenizer))
 ----
@@ -193,7 +193,7 @@ needed in some DAG setups to apply selective backpressure to individual
 upstream source processors. Activate this policy by calling
 `isolated()` on the edge:
 
-[source,java]
+[source]
 ----
 dag.edge(between(source, insertWatermarks).isolated());
 ----
@@ -211,7 +211,7 @@ member.
 
 Activate this policy by calling `broadcast()` on the edge:
 
-[source,java]
+[source]
 ----
 dag.edge(between(source, count).broadcast());
 ----
@@ -256,7 +256,7 @@ control over the partitioning strategy.
 
 We use both partitioning strategies in the Word Count example:
 
-[source,java]
+[source]
 ----
 dag.edge(between(tokenizer, accumulate)
            .partitioned(wholeItem(), Partitioner.HASH_CODE))
@@ -293,7 +293,7 @@ In the `TopNStocks` example the stream-processing job must find the
 stocks with fastest-changing prices. To achieve this a single processor
 must see the complete picture, so an all-to-one edge is employed:
 
-[source,java]
+[source]
 ----
 dag.edge(between(topNStage1, topNStage2).distributed().allToOne())
 ----
@@ -318,7 +318,7 @@ We can see a prioritized edge in action in the
 {jet-samples}/core-api/batch/tf-idf/src/main/java/TfIdf.java[TF-IDF]
 example:
 
-[source,java]
+[source]
 ----
 dag.edge(between(stopwordSource, tokenize).broadcast().priority(-1))
 ----
@@ -358,7 +358,7 @@ Edges can be configured with an
 instance, which specifies additional fine-tuning parameters. For
 example,
 
-[source,java]
+[source]
 ----
 dag.edge(between(tickerSource, generateTrades)
         .setConfig(new EdgeConfig().setQueueSize(512)));
