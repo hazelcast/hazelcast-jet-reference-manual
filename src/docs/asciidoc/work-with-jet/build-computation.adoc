@@ -8,7 +8,7 @@ transform -> drainToSink` and the natural way to build it is from source
 to sink. The {jet-javadoc}/Pipeline.html[Pipeline] API follows this
 pattern. For example,
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s1]
 ----
@@ -31,7 +31,7 @@ branch, and you mix both kinds in the same pipeline. You can merge the
 branches with joining transforms. For example, the <<hash-join,
 hash-join>> transform can join a stream stage with batch stages:
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s2]
 ----
@@ -39,7 +39,7 @@ include::{sourceDir}/BuildComputation.java[tag=s2]
 Symmetrically, you can fork the output of a stage and send it to more
 than one destination:
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s3]
 ----
@@ -94,7 +94,7 @@ stream within which Jet will aggregate the data.
 This is how a very simple batch aggregation without grouping may look
 (the list named "text" contains lines of text):
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s4]
 ----
@@ -102,7 +102,7 @@ include::{sourceDir}/BuildComputation.java[tag=s4]
 We simply counted all the lines and pushed the count to a list named
 "result". Let's count all the words instead:
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s5]
 ----
@@ -114,7 +114,7 @@ Now let's turn this into something more insigtful: a word frequency
 histogram, giving us for each distinct word the number of its
 occurrences:
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s6]
 ----
@@ -134,7 +134,7 @@ dedicated to this>>.
 
 Let's upgrade this to windowed aggregation over a stream of tweets:
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s6a]
 ----
@@ -162,7 +162,7 @@ BY. The JOIN condition is constrained to matching on the grouping key.
 Here's a simple example where we do the Word Count from two source
 lists:
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s7]
 ----
@@ -175,7 +175,7 @@ can differentiate between them and treat each one differently. Here's
 an example definition that applies different weights to the streams,
 making the stream-1 words worth ten times more than those in stream-0:
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s8]
 ----
@@ -192,7 +192,7 @@ adding to shopping cart, payments, and deliveries. You want to correlate
 all the events associated with the same user. The example below
 calculates statistics per category for each user:
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s9]
 ----
@@ -224,7 +224,7 @@ streams. The following example shows a three-way hash-join between the
 primary stream of stock trade events and two enriching streams:
 _products_ and _brokers_.
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s10]
 ----
@@ -259,8 +259,7 @@ you'll use the
 {jet-javadoc}/pipeline/StreamStage.html#hashJoinBuilder--[hash-join builder].
 For example, you may want to enrich a trade with its associated product,
 broker, and market:
-
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s11]
 ----
@@ -269,7 +268,7 @@ The data type on the hash-joined stage is `Tuple2<Trade, ItemsByTag>`.
 The next snippet shows how to use it to access the primary and enriching
 items:
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/BuildComputation.java[tag=s12]
 ----

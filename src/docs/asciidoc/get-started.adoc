@@ -74,7 +74,7 @@ output cannot be simple in-memory structures like a Java `List`; they
 must reside in the cluster so any member can access them. This is why we
 use Hazelcast structures.
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/HelloWorld.java[]
 ----

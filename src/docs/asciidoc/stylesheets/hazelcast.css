@@ -282,7 +282,7 @@ a:hover, a:focus { text-decoration: underline; }
 *:not(pre) > code.nobreak { word-wrap: normal; }
 *:not(pre) > code.nowrap { white-space: nowrap; }
 
-pre, pre > code { line-height: 1.6; color: #333333; font-family: Consolas, "Liberation Mono", Courier, monospace; font-size: 0.86667em; font-weight: normal; }
+pre, pre > code { line-height: 1.5; color: #333333; font-family: Consolas, "Liberation Mono", Courier, monospace; font-size: 0.93333em; font-weight: normal; }
 
 em em { font-style: normal; }
 
@@ -414,7 +414,7 @@ table.tableblock #preamble > .sectionbody > .paragraph:first-of-type p { font-si
 .literalblock pre, .listingblock pre:not(.highlight), .listingblock pre[class="highlight"], .listingblock pre[class^="highlight "], .listingblock pre.CodeRay, .listingblock pre.prettyprint { background: #f9f9f9; }
 .sidebarblock .literalblock pre, .sidebarblock .listingblock pre:not(.highlight), .sidebarblock .listingblock pre[class="highlight"], .sidebarblock .listingblock pre[class^="highlight "], .sidebarblock .listingblock pre.CodeRay, .sidebarblock .listingblock pre.prettyprint { background: #f2f1f1; }
 
-.literalblock pre, .literalblock pre[class], .listingblock pre, .listingblock pre[class] { border: 2px solid #d4d4d4; -webkit-border-radius: 3px; border-radius: 3px; word-wrap: break-word; padding: 0.8em; font-size: 0.86667em; }
+.literalblock pre, .literalblock pre[class], .listingblock pre, .listingblock pre[class] { border: 2px solid #d4d4d4; -webkit-border-radius: 3px; border-radius: 3px; word-wrap: break-word; padding: 0.75em; font-size: 0.86667em; }
 .literalblock pre.nowrap, .literalblock pre[class].nowrap, .listingblock pre.nowrap, .listingblock pre[class].nowrap { overflow-x: auto; white-space: pre; word-wrap: normal; }
 @media only screen and (min-width: 768px) { .literalblock pre, .literalblock pre[class], .listingblock pre, .listingblock pre[class] { font-size: 0.96667em; } }
 @media only screen and (min-width: 1280px) { .literalblock pre, .literalblock pre[class], .listingblock pre, .listingblock pre[class] { font-size: 1.06667em; } }
@@ -422,7 +422,7 @@ table.tableblock #preamble > .sectionbody > .paragraph:first-of-type p { font-si
 .literalblock.output pre { color: #f9f9f9; background-color: #333333; }
 
 .listingblock pre.highlightjs { padding: 0; }
-.listingblock pre.highlightjs > code { padding: 0.8em; -webkit-border-radius: 3px; border-radius: 3px; }
+.listingblock pre.highlightjs > code { padding: 0.75em; -webkit-border-radius: 3px; border-radius: 3px; }
 
 .listingblock > .content { position: relative; }
 
@@ -436,7 +436,7 @@ table.tableblock #preamble > .sectionbody > .paragraph:first-of-type p { font-si
 
 table.pyhltable { border-collapse: separate; border: 0; margin-bottom: 0; background: none; }
 
-table.pyhltable td { vertical-align: top; padding-top: 0; padding-bottom: 0; line-height: 1.6; }
+table.pyhltable td { vertical-align: top; padding-top: 0; padding-bottom: 0; line-height: 1.5; }
 
 table.pyhltable td.code { padding-left: .75em; padding-right: 0; }
 

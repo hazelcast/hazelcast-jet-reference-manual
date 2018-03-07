@@ -6,7 +6,8 @@
 :sectanchors:
 :sectlinks:
 :source-highlighter: coderay
-:source-language: asciidoc
+:source-indent: 0
+:source-language: java
 :stylesheet: stylesheets/hazelcast.css
 :toc: left
 :toclevels: 2

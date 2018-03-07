@@ -152,7 +152,7 @@ Deducting must undo the effect of a previous `combine`:
 
 All put together, we can define our averaging operation as follows:
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/ImplementAggregation.java[tag=s1]
 ----
@@ -191,7 +191,7 @@ and `Payment`. Note that in each case we're dealing with a simple `sum`
 applied to a field in the input item. We can perform a
 cogroup-and-aggregate transform with the following aggregate operation:
 
-[source,java,indent=0]
+[source]
 ----
 include::{sourceDir}/ImplementAggregation.java[tag=s2]
 ----
