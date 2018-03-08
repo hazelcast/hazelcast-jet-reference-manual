@@ -1,3 +1,4 @@
+@import url(https://fonts.googleapis.com/css?family=Cousine);
 /*! normalize.css v2.1.2 | MIT License | git.io/normalize */
 /* ========================================================================== HTML5 display definitions ========================================================================== */
 /** Correct `block` display not defined in IE 8/9. */
@@ -282,7 +283,7 @@ a:hover, a:focus { text-decoration: underline; }
 *:not(pre) > code.nobreak { word-wrap: normal; }
 *:not(pre) > code.nowrap { white-space: nowrap; }
 
-pre, pre > code { line-height: 1.5; color: #333333; font-family: Consolas, "Liberation Mono", Courier, monospace; font-size: 0.93333em; font-weight: normal; }
+pre, pre > code { line-height: 1.5; color: #333333; font-family: Cousine, Consolas, "Liberation Mono", Courier, monospace; font-size: 0.93333em; font-weight: normal; }
 
 em em { font-style: normal; }
 
