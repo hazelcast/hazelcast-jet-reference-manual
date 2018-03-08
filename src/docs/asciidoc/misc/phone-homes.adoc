@@ -44,11 +44,15 @@ Starting with Hazelcast Jet 0.5, you can also disable the phone home
 using the environment variable `HZ_PHONE_HOME_ENABLED`. Simply add the
 following line to your `.bash_profile`:
 
-
-    export HZ_PHONE_HOME_ENABLED=false
-
+[source,]
+----
+export HZ_PHONE_HOME_ENABLED=false
+----
 
 == Phone Home URL
 
 The URL used for phone home requests is
+[source,]
+----
 http://phonehome.hazelcast.com/ping
+----

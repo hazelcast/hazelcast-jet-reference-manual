@@ -10,7 +10,7 @@ instances. To start building a DAG, you just write
 
 [source]
 ----
-include::{sourceDir}/ExpertZone.java[tag=dag1b]
+include::{javasource}/ExpertZone.java[tag=dag1b]
 ----
 
 A good practice is to structure the DAG-building code into the following
@@ -24,7 +24,7 @@ Example:
 
 [source]
 ----
-include::{sourceDir}/ExpertZone.java[tag=dag1]
+include::{javasource}/ExpertZone.java[tag=dag1]
 ----
 
 [[creating-a-vertex]]
@@ -102,7 +102,7 @@ build a DAG with one source feeding two computational vertices:
 
 [source]
 ----
-include::{sourceDir}/ExpertZone.java[tag=dag2]
+include::{javasource}/ExpertZone.java[tag=dag2]
 Vertex v1 = dag.newVertex("v1", ...);
 Vertex v2 = dag.newVertex("v2", ...);
 
@@ -133,7 +133,7 @@ Word Count tutorial:
 
 [source]
 ----
-include::{sourceDir}/ExpertZone.java[tag=dag3]
+include::{javasource}/ExpertZone.java[tag=dag3]
 ----
 
 Note that only the edge from `accumulate` to `combine` is distributed.
@@ -237,7 +237,7 @@ We use both partitioning strategies in the Word Count example:
 
 [source]
 ----
-include::{sourceDir}/ExpertZone.java[tag=dag3b]
+include::{javasource}/ExpertZone.java[tag=dag3b]
 ----
 
 The local-partitioned edge uses partitioning by hash code and the
@@ -335,7 +335,7 @@ example,
 
 [source]
 ----
-include::{sourceDir}/ExpertZone.java[tag=dag4]
+include::{javasource}/ExpertZone.java[tag=dag4]
 ----
 
 Please refer to the Javadoc of

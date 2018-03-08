@@ -1,3 +1,6 @@
+include::attributes.adoc[]
+= Hazelcast Jet Reference Manual
+Version {jet-version}
 :icons: font
 :idprefix:
 :idseparator: -
@@ -10,15 +13,14 @@
 :source-language: java
 :stylesheet: stylesheets/hazelcast.css
 :toc: left
+:toc-title: Hazelcast Jet {jet-version} Reference Manual
 :toclevels: 2
-
-include::attributes.adoc[]
-
-= Hazelcast Jet Reference Manual
 
 Welcome to the Hazelcast Jet Reference Manual. This manual includes
 concepts, instructions, and samples to guide you on how to use Hazelcast
 Jet to build applications.
+
+image::logo_dark.png[]
 
 Hazelcast Jet is a distributed computing platform. It supports both
 finite datasets (batch processing) and infinite streams with continuous
