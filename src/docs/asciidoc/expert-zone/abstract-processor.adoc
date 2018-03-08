@@ -76,7 +76,7 @@ processor:
 
 [source]
 ----
-include::{javasource}/ExpertZone.java[tag=ItemAndSuccessorP]
+include::{javasource}/ExpertZone.java[tag=ap1]
 ----
 
 For each received `Integer` this processor emits the number and its

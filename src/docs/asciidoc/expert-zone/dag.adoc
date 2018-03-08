@@ -10,7 +10,7 @@ instances. To start building a DAG, you just write
 
 [source]
 ----
-DAG dag = new DAG();
+include::{sourceDir}/ExpertZone.java[tag=dag1b]
 ----
 
 A good practice is to structure the DAG-building code into the following
@@ -24,20 +24,7 @@ Example:
 
 [source]
 ----
-DAG dag = new DAG();
-
-// 1. Create vertices
-Vertex source = dag.newVertex("source", Sources.readFiles("."));
-Vertex transform = dag.newVertex("transform", Processors.map(
-        (String line) -> entry(line, line.length())));
-Vertex sink = dag.newVertex("sink", Sinks.writeMap("sinkMap"));
-
-// 2. Configure local parallelism
-source.localParallelism(1);
-
-// 3. Create edges
-dag.edge(between(source, transform));
-dag.edge(between(transform, sink));
+include::{sourceDir}/ExpertZone.java[tag=dag1]
 ----
 
 [[creating-a-vertex]]
@@ -115,9 +102,7 @@ build a DAG with one source feeding two computational vertices:
 
 [source]
 ----
-DAG dag = new DAG();
-
-Vertex source = dag.newVertex("source", Sources.readFiles("."));
+include::{sourceDir}/ExpertZone.java[tag=dag2]
 Vertex v1 = dag.newVertex("v1", ...);
 Vertex v2 = dag.newVertex("v2", ...);
 
@@ -148,13 +133,7 @@ Word Count tutorial:
 
 [source]
 ----
-dag.edge(between(source, tokenizer))
-   .edge(between(tokenizer, accumulate)
-           .partitioned(DistributedFunctions.wholeItem(), Partitioner.HASH_CODE))
-   .edge(between(accumulate, combine)
-           .distributed()
-           .partitioned(DistributedFunctions.entryKey()))
-   .edge(between(combine, sink));
+include::{sourceDir}/ExpertZone.java[tag=dag3]
 ----
 
 Note that only the edge from `accumulate` to `combine` is distributed.
@@ -245,7 +224,7 @@ may be running on disparate JVM implementations.
 
 Another common choice is to use Java's standard `Object.hashCode()`. It
 is often significantly faster. However, it is not a safe strategy in
-general because `hashCode()`'s contract does not require repeatable
+general because `hashCode()` 's contract does not require repeatable
 results across JVMs, or even different instances of the same JVM
 version. If a given class's Javadoc explicitly specifies the hashing
 function used, then its instances are safe to partition with
@@ -258,11 +237,7 @@ We use both partitioning strategies in the Word Count example:
 
 [source]
 ----
-dag.edge(between(tokenizer, accumulate)
-           .partitioned(wholeItem(), Partitioner.HASH_CODE))
-   .edge(between(accumulate, combine)
-           .distributed()
-           .partitioned(entryKey()))
+include::{sourceDir}/ExpertZone.java[tag=dag3b]
 ----
 
 The local-partitioned edge uses partitioning by hash code and the
@@ -360,8 +335,7 @@ example,
 
 [source]
 ----
-dag.edge(between(tickerSource, generateTrades)
-        .setConfig(new EdgeConfig().setQueueSize(512)));
+include::{sourceDir}/ExpertZone.java[tag=dag4]
 ----
 
 Please refer to the Javadoc of

@@ -14,7 +14,7 @@ to a previously created `JetInstance` as shown below:
 JetInstance jet = Jet.newJetInstance(); // or Jet.newJetClient();
 DAG dag = new DAG();
 dag.newVertex(..);
-jet.newJob(dag).execute().get();
+jet.newJob(dag).join();
 ----
 
 As hinted in the code example, the job submission API is identical
@@ -47,7 +47,7 @@ with the Job instance:
 ----
 JobConfig config = new JobConfig();
 config.addJar("..");
-jet.newJob(dag, config).execute().get();
+jet.newJob(dag, config).join();
 ----
 
 When reading and writing data to the underlying Hazelcast IMDG instance,

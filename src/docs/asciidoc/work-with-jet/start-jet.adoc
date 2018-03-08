@@ -20,6 +20,7 @@ These two instances should automatically discover each other using IP
 multicast and form a cluster. You should see a log output similar to the
 following:
 
+[source,text]
 ----
 Members [2] {
   Member [10.0.1.3]:5701 - f1e30062-e87e-4e97-83bc-6b4756ef6ea3
