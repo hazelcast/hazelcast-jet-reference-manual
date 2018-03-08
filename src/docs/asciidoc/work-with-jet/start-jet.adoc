@@ -100,7 +100,7 @@ Jet does not support canceling the job with `future.cancel()`, instead
 you must call `job.cancel()`. This is due to the mismatch in the
 semantics between `future.cancel()` on one side and `job.cancel()` plus
 `job.getStatus()` on the other: the future immediately transitions to
-"completed by cancellation", but it will take some time until the actual
+"`completed by cancellation`", but it will take some time until the actual
 job in the cluster changes to that state. Not to confuse the users with
 these differences we decided to make `future.cancel()` fail with an
 exception.

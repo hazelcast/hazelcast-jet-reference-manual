@@ -43,7 +43,7 @@ asciidoctor {
 
     backends = [ 'html5', /*'pdf',*/ 'multipage_html5', /*'epub3'*/ ]
     attributes \
-        'sourceDir' : project.sourceSets.main.java.srcDirs[0].absolutePath
+        'javasource' : project.sourceSets.main.java.srcDirs[0].absolutePath
 }
 
 build {

@@ -129,7 +129,7 @@ class JetJob {
     Pipeline buildPipeline() {
         Pipeline p = Pipeline.create();
         p.drawFrom(readList("input"))
-         // Refers to instanceVar, capturing "this", but JetJob is not
+         // Refers to instanceVar, capturing "`this`", but JetJob is not
          // Serializable so this call will fail.
          .filter(item -> item.equals(instanceVar));
         return p;
@@ -149,7 +149,7 @@ class JetJob {
     Pipeline buildPipeline() {
         Pipeline p = Pipeline.create();
         p.drawFrom(readList("input"))
-         // Refers to instanceVar, capturing "this". JetJob is declared
+         // Refers to instanceVar, capturing "`this`". JetJob is declared
          // Serializable, but has a non-serializable field and this fails.
          .filter(item -> item.equals(instanceVar));
         return p;
@@ -172,8 +172,8 @@ class JetJob {
         Pipeline p = Pipeline.create();
         String findMe = instanceVar;
         p.drawFrom(readList("input"))
-         // By referring to the local variable "findMe" we avoid
-         // capturing "this" and the job runs fine.
+         // By referring to the local variable "`findMe`" we avoid
+         // capturing "`this`" and the job runs fine.
          .filter(item -> item.equals(findMe));
         return p;
     }

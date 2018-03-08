@@ -14,7 +14,7 @@ forces here:
 While there are ways to (kind of) achieve both, there's a significant
 associated cost in terms of complexity and overall performance. Hazelcast
 Jet takes a simple approach and strictly triages stream items into
-"still on time" and "late", discarding the latter.
+"`still on time`" and "`late`", discarding the latter.
 
 {jet-javadoc}/core/WatermarkPolicy.html[`WatermarkPolicy`]
 is the abstraction that computes the value of the watermark for a
@@ -31,7 +31,7 @@ must make on the nature of the events' timestamp values and on the
 relationship between the timestamps and the locally observed wall-clock
 time.
 
-=== "With Fixed Lag"
+=== "`With Fixed Lag`"
 
 The
 {jet-javadoc}/core/WatermarkPolicies.html#withFixedLag-long-[`withFixedLag()`]
@@ -43,7 +43,7 @@ between timestamps in the stream: all events whose timestamp is more than
 the configured `lag` behind the highest timestamp are considered late.
 
 
-=== "Limiting Lag and Delay"
+=== "`Limiting Lag and Delay`"
 
 The
 {jet-javadoc}/core/WatermarkPolicies.html#limitingLagAndDelay-long-long-[`limitingLagAndDelay()`]
@@ -60,7 +60,7 @@ watermarks.
 The advantage of this policy is that it doesn't assume anything about
 the unit of measurement used for event timestamps.
 
-=== "Limiting Lag and Lull"
+=== "`Limiting Lag and Lull`"
 
 The
 {jet-javadoc}/core/WatermarkPolicies.html#limitingLagAndLull-long-long-[`limitingLagAndLull()`]
@@ -78,7 +78,7 @@ downstream is now guaranteed to advance regardless of the lull.
 
 There is, however, a subtle issue with `limitingLagAndLull()`: if there
 is any substream that never observes an item, that substream's policy
-instance won't be able to initialize its "last seen timestamp" and will
+instance won't be able to initialize its "`last seen timestamp`" and will
 cause the watermark sent to the downstream to forever lag behind all
 the actual data.
 
@@ -95,7 +95,7 @@ subtle issue with `limitingLagAndLull()`.
 
 == Watermark Throttling
 
-The policy objects presented above will return the "ideal" watermark
+The policy objects presented above will return the "`ideal`" watermark
 value according to their logic; however it would be too much overhead to
 insert a watermark item each time the ideal watermark advances
 (typically a thousand times per second).

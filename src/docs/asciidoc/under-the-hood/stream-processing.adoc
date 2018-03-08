@@ -95,7 +95,7 @@ more often than that would be just overhead.
 The edge from `insertWatermarks` to `slidingStage1` is partitioned; you
 may wonder how that works with watermark items, since
 
-1. their type is different from the "main" stream item type and they
+1. their type is different from the "`main`" stream item type and they
 don't have a partitioning key
 2. each of them must reach all downstream processors.
 

@@ -46,8 +46,8 @@ Note that IDF is a property of the word itself: it quantifies the
 relevance of each entered word to the search request as a whole. The
 list of entered words can be perceived as a list of filtering functions
 that we apply to the full set of documents. A more relevant word will
-apply a stronger filter. Specifically, common words like "the", "it",
-"on" act as pure "pass-through" filters and consequently have an IDF of
+apply a stronger filter. Specifically, common words like "`the`", "`it`",
+"`on`" act as pure "pass-through" filters and consequently have an IDF of
 zero, making them completely irrelevant to the search.
 
 TF, on the other hand, is the property of the combination of word and
@@ -75,11 +75,11 @@ the man in the black suit murdered the king
 The list of documents that contain all the above words is quite long...
 how do we decide which are the most relevant? The TF-IDF logic will make
 those stand out that have an above-average occurrence of words that are
-generally rare across all documents. For example, "murdered" occurs in
-far fewer documents than "black"... so given two documents where one has
-the same number of "murdered" as the other one has of "black", the one
-with "murdered" wins because its word is more salient in general. On the
-other hand, "suit" and "king" might have a similar IDF, so the document
+generally rare across all documents. For example, "`murdered`" occurs in
+far fewer documents than "`black`"... so given two documents where one has
+the same number of "`murdered`" as the other one has of "`black`", the one
+with "`murdered`" wins because its word is more salient in general. On the
+other hand, "`suit`" and "`king`" might have a similar IDF, so the document
 that simply contains more of both wins.
 
 Also note the limitation of this technique: a phrase is treated as just
@@ -184,7 +184,7 @@ feature to our DAG based model in the following section.
 == Translating to Jet DAG
 
 Our DAG as a whole will look relatively complex, but it can be
-understood as a "backbone" (cascade of vertices) starting from a source
+understood as a "`backbone`" (cascade of vertices) starting from a source
 and ending in a sink with several more vertices attached on the side.
 This is just the backbone:
 

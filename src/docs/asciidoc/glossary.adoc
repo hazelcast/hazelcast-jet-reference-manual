@@ -14,7 +14,7 @@ A set of functional primitives that instructs Jet how to calculate some
 aggregate function over one or more data sets. Used in the group-by,
 co-group and windowing transforms.
 
-Aggregation:: 
+Aggregation::
 The act of applying an _aggregate function_ to a stream of items. The
 result of the function can be simple, like a sum or average, or complex,
 like a collection of all aggregated items.
@@ -34,10 +34,10 @@ client library is installed in the user application.
 
 Co-Grouping::
 An operation that is a mix of an SQL JOIN and GROUP BY with specific
-restrictions. Sometimes called a "stream join". Each item of each stream
+restrictions. Sometimes called a "`stream join`". Each item of each stream
 that is being joined must be mapped to its grouping key. All items with
 the same grouping key (from all streams) are aggregated together into a
-single result. However, the result can be structured and preserve all 
+single result. However, the result can be structured and preserve all
 input items separated by their stream of origin. In that form the
 operation effectively becomes a pure JOIN with no aggregation.
 
@@ -58,7 +58,7 @@ A data item in an infinite stream typically contains a timestamp data
 field. This is its _event time_. As the stream items go by, the event
 time passes as the items' timestamps increase. A typical distributed
 stream has a certain amount of event time disorder (items aren't
-strictly ordered by their timestamp) so the "passage of event time" is a
+strictly ordered by their timestamp) so the "`passage of event time`" is a
 somewhat fuzzy concept. Jet uses the _watermark_ to superimpose order
 over the disordered stream.
 
@@ -79,7 +79,7 @@ from each of the _enriching_ streams. Items are matched by the join key.
 The name "hash-join" stems from the fact that the contents of the
 enriching streams are held in hashtables for fast lookup. Hashtables are
 replicated on each cluster member, which is why this operation is also
-known as a "replicated join".
+known as a "`replicated join`".
 
 Hazelcast IMDG::
 An In-Memory Data grid (IMDG) is a data structure that resides entirely
@@ -127,8 +127,8 @@ Partition (Network)::
 A malfunction in network connectivity that splits the cluster into two
 or more parts that are mutually unreachable, but the connections among
 nodes within each part remain intact. May cause each of the parts to
-behave as if it was "the" cluster that lost the other members. Also
-known as "split brain".
+behave as if it was "`the`" cluster that lost the other members. Also
+known as "`split brain`".
 
 Pipeline::
 Hazelcast Jet's name for the high-level description of a computation job
@@ -154,7 +154,7 @@ A window that groups an infinite stream's items by their timestamp. It
 groups together events that belong to a segment of fixed size on the
 timeline. As the time passes, the segment slides along, always extending
 from the present into the recent past. In Jet, the window doesn't
-literally slide, but hops in steps of user-defined size. ("Time" here
+literally slide, but hops in steps of user-defined size. ("`Time`" here
 refers to the stream's own notion of time, i.e., _event time_.)
 
 Source::
@@ -169,7 +169,7 @@ data. Hazelcast Jet uses a _sink connector_ to access the resource.
 Alternatively, _sink_ may refer to the vertex that hosts the connector.
 
 Skew::
-A generalization of the term "clock skew" applied to distributed stream
+A generalization of the term "`clock skew`" applied to distributed stream
 processing. In this context it refers to the deviation in _event time_
 as opposed to wall-clock time in the classical usage. Several substreams
 of a distributed stream may at the same time emit events with timestamps
@@ -195,9 +195,9 @@ of events per second and megabytes per second.
 Tumbling Window::
 A window that groups an infinite stream's items by their timestamp. It
 groups together events that belong to a segment of fixed size on the
-timeline. As the time passes, the segment "tumbles" along, never
+timeline. As the time passes, the segment "`tumbles`" along, never
 covering the same point in time twice. This means that each event
-belongs to just one tumbling window position. ("Time" here refers to the
+belongs to just one tumbling window position. ("`Time`" here refers to the
 stream's own notion of time, i.e., _event time_.)
 
 Vertex::

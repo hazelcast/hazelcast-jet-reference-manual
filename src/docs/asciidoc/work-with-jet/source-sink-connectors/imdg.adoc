@@ -217,7 +217,7 @@ JetInstance jet = Jet.newJetInstance(cfg);
 ----
 
 The default journal capacity is 10,000 and the default time-to-live is 0
-(which means "unlimited"). Since the entire event journal is kept in
+(which means "`unlimited`"). Since the entire event journal is kept in
 RAM, you should take care to adjust these values to match your use case.
 
 The configuration API for `ICache` is identical:

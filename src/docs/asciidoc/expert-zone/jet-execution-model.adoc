@@ -1,7 +1,7 @@
 [[jet-execution-model]]
 = Jet Execution Model
 
-At the heart of Jet is the 
+At the heart of Jet is the
 https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/TaskletExecutionService.java[`TaskletExecutionService`].
 It manages the threads that perform all the computation in a Jet job.
 Although this class is not formally a part of Jet's public API,
@@ -13,7 +13,7 @@ want to implement a cooperative processor.
 
 Cooperative multithreading is one of the core features of Jet and can be
 roughly compared to
-https://en.wikipedia.org/wiki/Green_threads[green threads]. 
+https://en.wikipedia.org/wiki/Green_threads[green threads].
 It is purely a library-level feature and does not involve any low-level
 system or JVM tricks; the `Processor` API is simply designed in such a
 way that the processor can do a small amount of work each time it is
@@ -53,7 +53,7 @@ sending/receiving and taking snapshots.
 
 When a tasklet is done, its worker will inspect all the other workers'
 tasklet lists to see if any of them has a longer tasklet list than its
-own. If it finds such a worker, it will "steal" one of its tasklets to
+own. If it finds such a worker, it will "`steal`" one of its tasklets to
 even out the load per thread.
 
 [[exponential-backoff]]

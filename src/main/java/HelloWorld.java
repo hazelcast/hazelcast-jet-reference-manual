@@ -14,7 +14,7 @@ import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 public class HelloWorld {
     public static void main(String[] args) {
         // Create the specification of the computation pipeline. Note
-        // it'is a pure POJO: no instance of Jet needed to create it.
+        // it's a pure POJO: no instance of Jet needed to create it.
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.<String>list("text"))
          .flatMap(word ->

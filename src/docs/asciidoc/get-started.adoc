@@ -76,7 +76,7 @@ use Hazelcast structures.
 
 [source]
 ----
-include::{sourceDir}/HelloWorld.java[]
+include::{javasource}/HelloWorld.java[]
 ----
 
 You should expect to see a lot of logging output from Jet (sent to

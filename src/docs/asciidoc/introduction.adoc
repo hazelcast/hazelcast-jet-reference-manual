@@ -144,7 +144,7 @@ snapshot of the internal processing state at regular intervals. If a
 member of the cluster fails while a job is running, Hazelcast Jet will
 detect this and restart the job on the new cluster topology. It will
 restore its internal state from the snapshot and tell the source to start
-sending data from the last "committed" position (where the snapshot was
+sending data from the last "`committed`" position (where the snapshot was
 taken).
 
 [[elasticity]]

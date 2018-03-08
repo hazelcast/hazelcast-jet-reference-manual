@@ -10,7 +10,7 @@ pattern. For example,
 
 [source]
 ----
-include::{sourceDir}/BuildComputation.java[tag=s1]
+include::{javasource}/BuildComputation.java[tag=s1]
 ----
 
 In each step, such as `drawFrom` or `drainTo`, you create a pipeline
@@ -33,7 +33,7 @@ hash-join>> transform can join a stream stage with batch stages:
 
 [source]
 ----
-include::{sourceDir}/BuildComputation.java[tag=s2]
+include::{javasource}/BuildComputation.java[tag=s2]
 ----
 
 Symmetrically, you can fork the output of a stage and send it to more
@@ -41,7 +41,7 @@ than one destination:
 
 [source]
 ----
-include::{sourceDir}/BuildComputation.java[tag=s3]
+include::{javasource}/BuildComputation.java[tag=s3]
 ----
 
 == Choose Your Data Sources and Sinks
@@ -92,23 +92,23 @@ an unbounded event stream, you must define a bounded _window_ over the
 stream within which Jet will aggregate the data.
 
 This is how a very simple batch aggregation without grouping may look
-(the list named "text" contains lines of text):
+(the list named "`text`" contains lines of text):
 
 [source]
 ----
-include::{sourceDir}/BuildComputation.java[tag=s4]
+include::{javasource}/BuildComputation.java[tag=s4]
 ----
 
 We simply counted all the lines and pushed the count to a list named
-"result". Let's count all the words instead:
+"`result`". Let's count all the words instead:
 
 [source]
 ----
-include::{sourceDir}/BuildComputation.java[tag=s5]
+include::{javasource}/BuildComputation.java[tag=s5]
 ----
 
 We split up the lines into words using a regular expression. Blank lines
-result in empty "words" so we filter these out.
+result in empty "`words`" so we filter these out.
 
 Now let's turn this into something more insigtful: a word frequency
 histogram, giving us for each distinct word the number of its
@@ -116,7 +116,7 @@ occurrences:
 
 [source]
 ----
-include::{sourceDir}/BuildComputation.java[tag=s6]
+include::{javasource}/BuildComputation.java[tag=s6]
 ----
 
 We just added a grouping key, in this case it is the word itself
@@ -136,7 +136,7 @@ Let's upgrade this to windowed aggregation over a stream of tweets:
 
 [source]
 ----
-include::{sourceDir}/BuildComputation.java[tag=s6a]
+include::{javasource}/BuildComputation.java[tag=s6a]
 ----
 
 Now we've got a Jet job that does live tracking of words currently
@@ -165,7 +165,7 @@ lists:
 
 [source]
 ----
-include::{sourceDir}/BuildComputation.java[tag=s7]
+include::{javasource}/BuildComputation.java[tag=s7]
 ----
 
 Note the `counting2()` call, this one isn't included in Jet's library.
@@ -178,7 +178,7 @@ making the stream-1 words worth ten times more than those in stream-0:
 
 [source]
 ----
-include::{sourceDir}/BuildComputation.java[tag=s8]
+include::{javasource}/BuildComputation.java[tag=s8]
 ----
 
 [[cogroup-builder]]
@@ -195,7 +195,7 @@ calculates statistics per category for each user:
 
 [source]
 ----
-include::{sourceDir}/BuildComputation.java[tag=s9]
+include::{javasource}/BuildComputation.java[tag=s9]
 ----
 
 Note the interaction between the co-group building code and the
@@ -210,7 +210,7 @@ to learn more about it.
 === Hash-Join
 
 {jet-javadoc}/pipeline/BatchStage.html#hashJoin-com.hazelcast.jet.pipeline.BatchStage-com.hazelcast.jet.pipeline.JoinClause-com.hazelcast.jet.function.DistributedBiFunction-[Hash-join]
-is a specialization of a general "join" operation, optimized for the use
+is a specialization of a general "`join`" operation, optimized for the use
 case of _data enrichment_. In this scenario there is a single,
 potentially infinite data stream (the _primary_ stream), that goes
 through a mapping transformation which attaches to each item some more
@@ -227,7 +227,7 @@ _products_ and _brokers_.
 
 [source]
 ----
-include::{sourceDir}/BuildComputation.java[tag=s10]
+include::{javasource}/BuildComputation.java[tag=s10]
 ----
 
 Products are joined on `Trade.productId` and brokers on
@@ -262,7 +262,7 @@ For example, you may want to enrich a trade with its associated product,
 broker, and market:
 [source]
 ----
-include::{sourceDir}/BuildComputation.java[tag=s11]
+include::{javasource}/BuildComputation.java[tag=s11]
 ----
 
 The data type on the hash-joined stage is `Tuple2<Trade, ItemsByTag>`.
@@ -271,6 +271,6 @@ items:
 
 [source]
 ----
-include::{sourceDir}/BuildComputation.java[tag=s12]
+include::{javasource}/BuildComputation.java[tag=s12]
 ----
 

@@ -87,7 +87,7 @@ latency variation during regular processing.
 
 == Split-Brain Protection
 
-A particularly nasty kind of failure is the "split brain": due to a very
+A particularly nasty kind of failure is the "`split brain`": due to a very
 specific pattern in the loss of network connectivity the cluster splits
 into two parts, where within each part the members see each other, but
 none of those in the other part(s). Each part by itself lives on

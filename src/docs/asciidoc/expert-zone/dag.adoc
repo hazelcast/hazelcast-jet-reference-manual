@@ -178,7 +178,7 @@ dag.edge(between(source, tokenizer))
 For each item it chooses a single destination processor with no further
 restrictions on the choice. The only guarantee given by this pattern is
 that exactly one processor will receive the item, but typically care
-will be taken to "spray" the items equally over all the reception
+will be taken to "`spray`" the items equally over all the reception
 candidates.
 
 This choice makes sense when the data does not have to be partitioned,
@@ -303,7 +303,7 @@ dag.edge(between(topNStage1, topNStage2).distributed().allToOne())
 By default the processor receives items from all inbound edges as they
 arrive. However, there are important cases where an edge must be
 consumed in full to make the processor ready to accept data from other
-edges. A major example is a "hash join" which enriches the data stream
+edges. A major example is a "`hash join`" which enriches the data stream
 with data from a lookup table. This can be modeled as a join of two data
 streams where the _enriching_ stream contains the data for the lookup
 table and must be consumed in full before consuming the stream to be

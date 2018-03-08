@@ -4,7 +4,7 @@
 The single most important kind of processing Jet does is aggregation. In
 general it is a transformation of a set of input values into a single
 output value. The function that does this transformation is called the
-"aggregate function". A basic example is `sum` applied to a set of
+"`aggregate function`". A basic example is `sum` applied to a set of
 integer numbers, but the result can also be a complex value, for example
 a list of all the input items.
 
@@ -40,7 +40,7 @@ component. The `finish` function will be `sum / count`.
 
 In addition to the mathematical side, there is also the practical one:
 you have to provide Jet with a specific mutable object, called the
-`accumulator`, which will keep the "running score" of the operation in
+`accumulator`, which will keep the "`running score`" of the operation in
 progress. For the `average` example, it would be something like
 
 [source]
@@ -84,7 +84,7 @@ which is a match for our `average` function. You'll just have to supply
 the logic on top of it.
 
 Specifically, you have to provide a set of five functions (we call them
-"primitives"):
+"`primitives`"):
 
 - `create` a new accumulator object.
 - `accumulate` the data of an item by mutating the accumulator's state.
@@ -154,7 +154,7 @@ All put together, we can define our averaging operation as follows:
 
 [source]
 ----
-include::{sourceDir}/ImplementAggregation.java[tag=s1]
+include::{javasource}/ImplementAggregation.java[tag=s1]
 ----
 
 Let's stop for a second to look at the type we got:
@@ -193,7 +193,7 @@ cogroup-and-aggregate transform with the following aggregate operation:
 
 [source]
 ----
-include::{sourceDir}/ImplementAggregation.java[tag=s2]
+include::{javasource}/ImplementAggregation.java[tag=s2]
 ----
 
 Note how we got an `AggregateOperation3` and how it captured each input

@@ -8,7 +8,7 @@ revisit this topic in more detail.
 Jet accesses data sources and sinks via its _connectors_. They are a
 computation job's point of contact with the outside world. Although the
 connectors do their best to unify the various kinds of resources under
-the same "data stream" paradigm, there are still many concerns that need
+the same "`data stream`" paradigm, there are still many concerns that need
 your attention.
 
 == Is it Infinite?
