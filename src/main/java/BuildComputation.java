@@ -222,17 +222,23 @@ class BuildComputation {
                 "trades", mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
 
         // The enriching streams: products, brokers and markets
-        BatchStage<Entry<Integer, Product>> prodEntries = p.drawFrom(Sources.map("products"));
-        BatchStage<Entry<Integer, Broker>> brokEntries = p.drawFrom(Sources.map("brokers"));
-        BatchStage<Entry<Integer, Market>> marketEntries = p.drawFrom(Sources.map("markets"));
+        BatchStage<Entry<Integer, Product>> prodEntries =
+                p.drawFrom(Sources.map("products"));
+        BatchStage<Entry<Integer, Broker>> brokEntries =
+                p.drawFrom(Sources.map("brokers"));
+        BatchStage<Entry<Integer, Market>> marketEntries =
+                p.drawFrom(Sources.map("markets"));
 
         // Obtain a hash-join builder object from the stream to be enriched
         StreamHashJoinBuilder<Trade> builder = trades.hashJoinBuilder();
 
         // Add enriching streams to the builder
-        Tag<Product> productTag = builder.add(prodEntries, joinMapEntries(Trade::productId));
-        Tag<Broker> brokerTag = builder.add(brokEntries, joinMapEntries(Trade::brokerId));
-        Tag<Market> marketTag = builder.add(marketEntries, joinMapEntries(Trade::marketId));
+        Tag<Product> productTag = builder.add(prodEntries,
+                joinMapEntries(Trade::productId));
+        Tag<Broker> brokerTag = builder.add(brokEntries,
+                joinMapEntries(Trade::brokerId));
+        Tag<Market> marketTag = builder.add(marketEntries,
+                joinMapEntries(Trade::marketId));
 
         // Build the hash join pipeline
         StreamStage<Tuple2<Trade, ItemsByTag>> joined = builder.build(Tuple2::tuple2);

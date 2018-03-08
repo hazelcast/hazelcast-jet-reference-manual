@@ -45,41 +45,9 @@ include::introduction.adoc[]
 
 include::get-started.adoc[]
 
-[[work-with-jet]]
-= Work With Jet
+include::work-with-jet/index.adoc[]
 
-:leveloffset: +1
-
-include::work-with-jet/start-jet.adoc[]
-
-include::work-with-jet/build-computation.adoc[]
-
-include::work-with-jet/implement-aggregation.adoc[]
-
-include::work-with-jet/unbounded-stream-processing.adoc[]
-
-[[source-sink-connectors]]
-= Source and Sink Connectors
-
-:leveloffset: +1
-
-include::work-with-jet/source-sink-connectors/overview.adoc[]
-
-include::work-with-jet/source-sink-connectors/imdg.adoc[]
-
-include::work-with-jet/source-sink-connectors/file-socket.adoc[]
-
-include::work-with-jet/source-sink-connectors/hdfs.adoc[]
-
-include::work-with-jet/source-sink-connectors/kafka.adoc[]
-
-:leveloffset: -1
-
-include::work-with-jet/considerations.adoc[]
-
-include::work-with-jet/log-debug.adoc[]
-
-:leveloffset: -1
+include::under-the-hood/index.adoc[]
 
 include::jet-apis.adoc[]
 
@@ -87,31 +55,8 @@ include::configuration.adoc[]
 
 include::j-u-s.adoc[]
 
-[[under-the-hood]]
-= Under the Hood
-
-:leveloffset: +1
-
-include::under-the-hood/how-distributed-computing.adoc[]
-
-include::under-the-hood/how-unbounded-stream-processing.adoc[]
-
-include::under-the-hood/stream-processing.adoc[]
-
-:leveloffset: -1
-
 include::expert-zone/index.adoc[]
 
-[appendix]
-include::misc/phone-homes.adoc[]
-
-[appendix]
-include::misc/license-questions.adoc[]
-
-[appendix]
-include::misc/faq.adoc[]
-
-[appendix]
-include::misc/common-exceptions.adoc[]
+include::misc/index.adoc[]
 
 include::glossary.adoc[]

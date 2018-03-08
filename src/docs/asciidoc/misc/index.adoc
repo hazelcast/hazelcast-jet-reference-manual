@@ -1,0 +1,12 @@
+
+[appendix]
+include::phone-homes.adoc[]
+
+[appendix]
+include::license-questions.adoc[]
+
+[appendix]
+include::faq.adoc[]
+
+[appendix]
+include::common-exceptions.adoc[]

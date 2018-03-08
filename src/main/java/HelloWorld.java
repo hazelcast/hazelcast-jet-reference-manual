@@ -13,11 +13,12 @@ import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 
 public class HelloWorld {
     public static void main(String[] args) {
-        // Create the specification of the computation pipeline. Note that it is
-        // a pure POJO: no instance of Jet is needed to create it.
+        // Create the specification of the computation pipeline. Note
+        // it'is a pure POJO: no instance of Jet needed to create it.
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.<String>list("text"))
-         .flatMap(word -> traverseArray(word.toLowerCase().split("\\W+")))
+         .flatMap(word ->
+                 traverseArray(word.toLowerCase().split("\\W+")))
          .filter(word -> !word.isEmpty())
          .groupingKey(wholeItem())
          .aggregate(counting())
@@ -35,8 +36,10 @@ public class HelloWorld {
 
             // Check the results
             Map<String, Long> counts = jet.getMap("counts");
-            System.out.println("Count of hello: " + counts.get("hello"));
-            System.out.println("Count of world: " + counts.get("world"));
+            System.out.println("Count of hello: "
+                    + counts.get("hello"));
+            System.out.println("Count of world: "
+                    + counts.get("world"));
         } finally {
             Jet.shutdownAll();
         }

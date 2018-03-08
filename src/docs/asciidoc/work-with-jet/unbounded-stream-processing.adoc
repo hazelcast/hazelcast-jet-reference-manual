@@ -1,131 +1,4 @@
-[[unbounded-stream-processing]]
-= Infinite Stream Processing
-
-Distributed processing in Hazelcast Jet has two major variants:
-batch (bounded) and stream (unbounded). Let's discuss this difference
-and some concerns specific to unbounded streams.
-
-== Bounded aka. Batch Processing
-
-Bounded stream (batch) processing is the simpler variant where you
-provide one or more pre-existing datasets and order Jet to mine them for
-interesting information. The most important workhorse in this area is
-the "join, group and aggregate" operation: you define a classifying
-function that computes a grouping key for each of the datasets and
-an aggregate operation that will be performed on all the items in each
-group, yielding one result item per distinct key.
-
-== The Importance of "Right Now"
-
-In batch jobs the data we process represents a point-in-time snapshot of
-our state of knowledge (for example, warehouse inventory where
-individual data items represent items on stock). We can recapitulate
-each business day by setting up regular snapshots and batch jobs.
-However, there is more value hiding in the freshest data &mdash; our
-business can win by reacting to minute-old or even second-old updates.
-To get there we must make a shift from the finite to the infinite: from
-the snapshot to a continuous influx of events that update our state of
-knowledge. For example, an event could pop up in our stream every time
-an item is checked in or out of the warehouse.
-
-A single word that captures the above story is _latency_: we want our
-system to minimize the latency from observing an event to acting upon
-it.
-
-== Windowing
-
-In an unbounded stream, the dimension of time is always there.  Consider
-a batch job: it may process a dataset labeled "Wednesday", but the
-computation itself doesn't have to know this. Its results will be
-understood from the outside to be "about Wednesday". An endless stream,
-on the other hand, delivers information about the reality as it is
-unfolding, in near-real time, and the computation itself must deal with
-time explicitly.
-
-Another point: in a batch it is obvious when to stop aggregating and
-emit the results: when we have exhausted the whole dataset. However,
-with unbounded streams we need a policy on how to select bounded chunks
-whose aggregate results we are interested in. This is called
- _windowing_. We imagine the window as a time interval laid over the
- time axis. A given window contains only the events that belong to that
-interval.
-
-A very basic type of window is the _tumbling window_, which can be
-imagined to advance by tumbling over each time. There is no overlap
-between the successive positions of the window. In other words, it
-splits the time-series data into batches delimited by points on the time
-axis. The result of this is very similar to running a sequence of batch
-jobs, one per time interval.
-
-A more useful and powerful policy is the _sliding window_: instead of
-splitting the data at fixed boundaries, it lets it roll in
-incrementally, new data gradually displacing the old. The window
-(pseudo)continuously slides along the time axis.
-
-Another popular policy is called the _session window_ and it's used to
-detect bursts of activity by correlating events bunched together on the
-time axis. In an analogy to a user's session with a web application,
-the session window "closes" when the specified session timeout elapses
-with no further events.
-
-[[time-ordering]]
-== Time Ordering and the Watermark
-
-Usually the time of observing an event is explicitly written in a field
-of the stream item. There is no guarantee that items will occur in the
-stream ordered by the value of that field; in fact in many cases it is
-certain that they won't. Consider events gathered from users of a mobile
-app: for all kinds of reasons the items will arrive to our datacenter
-out of order, even with significant delays due to connectivity issues.
-
-This disorder in the event stream makes it more difficult to formally
-specify a rule that tells us at which point all the data for a given
-window has been gathered, allowing us to emit the aggregated result.
-
-To approach these challenges we use the concept of the
-{jet-javadoc}/core/Watermark.html[_watermark_].
-It is a timestamped item Jet inserts into the stream that says "from
-this point on there will be no more items with timestamp less than
-this". Unfortunately, we almost never know for sure when such a
-statement becomes true and there is always a chance some events will
-arrive even later. If we do observe such an offending item, we must
-categorize it as "too late" and just filter it out.
-
-Note the tension in defining the "perfect" watermark for a given use
-case: it is bad both the more we wait and the less we wait to emit a
-given watermark. The more we wait, the higher the latency of getting the
-results of the computation; the less we wait, the worse their accuracy
-due to missed events.
-
-For these reasons Jet cannot determine the watermark on its own, you
-must decide how much disorder to accept (and expect).
-
-== Fault Tolerance and Processing Guarantees
-
-One less-than-obvious consequence of stepping up from finite to infinite
-streams is the difficulty of forever maintaining the continuity of the
-output, even in the face of changing cluster topology. A Jet node may
-leave the cluster due to an internal error, loss of networking, or
-deliberate shutdown for maintenance. This will cause the computation job
-to be suspended. Except for the obvious problem of new data pouring in
-while we're down, we have a much more fiddly issue of restarting the
-computation in a differently laid-out cluster exactly where it left off
-and neither miss anything nor process it twice. The technical term for
-this is the "exactly-once processing guarantee".
-
-Hazelcast Jet transparently coordinates the execution of submitted jobs.
-One member is assigned the role of the _coordinator_. It tells other
-members what to do and they report to it any status changes. The
-coordinator may fail and the cluster will automatically re-elect another
-one. If any other member fails, the coordinator restarts the job on the
-remaining members.
-
-In Jet, job submission works on the fire-and-forget principle: once you
-have submitted it, you can disconnect with no effect on the job. Any
-other client or Jet member can request a local `Job` instance which
-allows it to monitor and manage the job.
-
-=== Snapshotting the State of Computation
+== Snapshotting the State of Computation
 
 To be able to tolerate failures, Jet takes snapshots of the entire state
 of the computation at regular intervals. The snapshot is coordinated
@@ -139,7 +12,7 @@ members, rewind the sources to the last checkpoint, restore the state of
 processing from the last snapshot, and then seamlessly
 continue from that point.
 
-=== Level of Safety
+== Level of Safety
 
 Jet stores job metadata and snapshot data in Hazelcast `IMap`s, which
 means that you don't have to install any other system for fault
@@ -159,7 +32,7 @@ config.getInstanceConfig().setBackupCount(2);
 JetInstance = Jet.newJetInstance(config);
 ----
 
-=== Exactly-Once
+== Exactly-Once
 
 As always when guarantees are involved, the principle of the weakest
 link applies: if any part of the system is unable to provide it, the
@@ -174,7 +47,7 @@ As of version 0.5, Hazelcast Jet supports exactly-once with the source
 being either a Hazelcast `IMap` or a Kafka topic, and the sink being a
 Hazelcast `IMap`.
 
-=== At-Least-Once
+== At-Least-Once
 
 A lesser, but still useful guarantee you can configure Jet for is
 "at-least-once". In this case no stream item will be missed, but some
@@ -192,7 +65,7 @@ but use Kafka as the sink, after a job restart you may get duplicates in
 the output. As opposed to duplicating an input item, this is much more
 benign because it just means getting the exact same result twice.
 
-=== Enabling Snapshotting
+== Enabling Snapshotting
 
 Fault tolerance is off by default. To activate it for a job, create a
 `JobConfig` object and set the
@@ -212,7 +85,7 @@ and the temporary spike in the latency of the output will be greater.
 More frequent snapshots will reduce the throughput and introduce more
 latency variation during regular processing.
 
-=== Split-Brain Protection
+== Split-Brain Protection
 
 A particularly nasty kind of failure is the "split brain": due to a very
 specific pattern in the loss of network connectivity the cluster splits

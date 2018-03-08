@@ -207,9 +207,9 @@ and the aggregate operation processing them. Refer to the
 to learn more about it.
 
 [[hash-join]]
-=== hashJoin
+=== Hash-Join
 
-{jet-javadoc}/pipeline/BatchStage.html#hashJoin-com.hazelcast.jet.pipeline.BatchStage-com.hazelcast.jet.pipeline.JoinClause-com.hazelcast.jet.function.DistributedBiFunction-[`hashJoin`]
+{jet-javadoc}/pipeline/BatchStage.html#hashJoin-com.hazelcast.jet.pipeline.BatchStage-com.hazelcast.jet.pipeline.JoinClause-com.hazelcast.jet.function.DistributedBiFunction-[Hash-join]
 is a specialization of a general "join" operation, optimized for the use
 case of _data enrichment_. In this scenario there is a single,
 potentially infinite data stream (the _primary_ stream), that goes
@@ -239,7 +239,7 @@ holder of the three functions that specify how to perform a join:
 3. the projection function that transforms the enriching stream's item
 into the item that will be used for enrichment.
 
-Typically the enriching streams will be `Map.Entry`s coming from a
+Typically the enriching streams will be `Map.Entry` s coming from a
 key-value store, but you want just the entry value to appear as the
 enriching item. In that case you'll specify `Map.Entry::getValue` as the
 projection function. This is what `joinMapEntries()` does for you. It
@@ -252,7 +252,7 @@ each cluster member. That's why this operation is also known as a
 _replicated_ join. This is something to keep in mind when estimating
 the RAM requirements for a hash-join operation.
 
-==== Hash-Join With Three or More Streams Using the Builder
+==== Hash-Join With Four or More Streams Using the Builder
 
 You can hash-join a stream with up to two enriching streams using the
 API we demonstrated above. If you have more than two enriching streams,
