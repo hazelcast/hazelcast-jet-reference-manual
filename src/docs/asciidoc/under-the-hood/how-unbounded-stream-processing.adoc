@@ -130,7 +130,6 @@ If the event intervals don't overlap, a new session window is created
 for the new event.
 
 image::session-window-3.png[Session window: create a new window after session timeout,300,110]
-    width="240"/>
 
 An event may happen to belong to two existing windows if its interval
 bridges the gap between them; in that case they are combined into one.

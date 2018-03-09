@@ -14,7 +14,6 @@ import com.hazelcast.jet.pipeline.Sources;
 import com.hazelcast.jet.pipeline.StageWithGrouping;
 import com.hazelcast.jet.pipeline.StreamHashJoinBuilder;
 import com.hazelcast.jet.pipeline.StreamStage;
-import com.hazelcast.jet.pipeline.WindowDefinition;
 import datamodel.AddToCart;
 import datamodel.Broker;
 import datamodel.Delivery;
@@ -23,6 +22,8 @@ import datamodel.PageVisit;
 import datamodel.Payment;
 import datamodel.Product;
 import datamodel.Trade;
+import datamodel.Tweet;
+import datamodel.TweetWord;
 
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +33,6 @@ import static com.hazelcast.jet.Util.mapEventNewValue;
 import static com.hazelcast.jet.Util.mapPutEvents;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.aggregate.AggregateOperations.toBagsByTag;
-import static com.hazelcast.jet.function.DistributedFunctions.entryValue;
 import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 import static com.hazelcast.jet.pipeline.JoinClause.joinMapEntries;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_CURRENT;
@@ -108,21 +108,6 @@ class BuildComputation {
         //end::s6[]
     }
 
-    static void s6a() {
-        //tag::s6a[]
-        Pipeline p = Pipeline.create();
-        p.<String>drawFrom(Sources.mapJournal("tweets",
-                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT))
-         .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
-         .filter(word -> !word.isEmpty())
-         .addTimestamps()
-         .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
-         .groupingKey(wholeItem())
-         .aggregate(counting())
-         .drainTo(Sinks.list("result"));
-        //end::s6a[]
-    }
-
     //tag::s7[]
     static void wordCountTwoSources() {
         Pipeline p = Pipeline.create();
@@ -134,6 +119,15 @@ class BuildComputation {
 
         grouped1.aggregate2(grouped2, counting2())
                 .drainTo(Sinks.map("result"));
+    }
+
+    static AggregateOperation2<String, String, LongAccumulator, Long> counting2() {
+        return AggregateOperation
+                .withCreate(LongAccumulator::new)
+                .<String>andAccumulate0((acc, s) -> acc.add(1))
+                .<String>andAccumulate1((acc, s) -> acc.add(1))
+                .andCombine(LongAccumulator::add)
+                .andFinish(LongAccumulator::get);
     }
 
     private static StageWithGrouping<String, String> groupByWord(
@@ -256,13 +250,50 @@ class BuildComputation {
         //end::s12[]
     }
 
-    static AggregateOperation2<String, String, LongAccumulator, Long> counting2() {
-        return AggregateOperation
-                .withCreate(LongAccumulator::new)
-                .<String>andAccumulate0((acc, s) -> acc.add(1))
-                .<String>andAccumulate1((acc, s) -> acc.add(1))
-                .andCombine(LongAccumulator::add)
-                .andFinish(LongAccumulator::get);
+    static void s13() {
+        //tag::s13[]
+        Pipeline p = Pipeline.create();
+        p.<String>drawFrom(Sources.mapJournal("tweets",
+                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT))
+         .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
+         .filter(word -> !word.isEmpty())
+         .addTimestamps()
+         .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
+         .groupingKey(wholeItem())
+         .aggregate(counting())
+         .drainTo(Sinks.list("result"));
+        //end::s13[]
+    }
+
+    static void s14() {
+        //tag::s14[]
+        Pipeline p = Pipeline.create();
+        p.<Tweet>drawFrom(Sources.mapJournal("tweets",
+                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT))
+         .flatMap(tweet -> traverseArray(tweet.text().toLowerCase().split("\\W+"))
+                 .map(word -> new TweetWord(tweet.timestamp(), word)))
+         .filter(tweetWord -> !tweetWord.word().isEmpty())
+         .addTimestamps(TweetWord::timestamp, TimeUnit.SECONDS.toMillis(5))
+         .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
+         .groupingKey(TweetWord::word)
+         .aggregate(counting())
+         .drainTo(Sinks.list("result"));
+        //end::s14[]
+    }
+
+    static void s15() {
+        //tag::s15[]
+        Pipeline p = Pipeline.create();
+        p.<Tweet>drawFrom(Sources.mapJournal("tweets",
+                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT))
+         .addTimestamps(Tweet::timestamp, TimeUnit.SECONDS.toMillis(5))
+         .flatMap(tweet -> traverseArray(tweet.text().toLowerCase().split("\\W+")))
+         .filter(word -> !word.isEmpty())
+         .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
+         .groupingKey(wholeItem())
+         .aggregate(counting())
+         .drainTo(Sinks.list("result"));
+        //end::s15[]
     }
 }
 

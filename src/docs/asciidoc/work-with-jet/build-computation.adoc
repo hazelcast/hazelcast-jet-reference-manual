@@ -80,16 +80,91 @@ each item to another item; `filter` discards items that don't match its
 predicate; and `flatMap` transforms each item into zero or more output
 items.
 
-=== Aggregation and Grouping
+Beyond these simple transforms Jet offers the _hash-join_ for data
+enrichment and _aggregation_, the most powerful and versatile transform.
+We discuss these in the following sections.
 
-Stepping up from mapping and filtering we come to _aggregation_, the
-cornerstone of stream transforms. It computes an aggregate function
-(simple examples: sum or average) over the data items. Typically you
-don't want to agregate all the items together, but classify them by some
-key and then aggregate over each group separately. This is the
-_group-and-aggregate_ transformation. Finally, if you're processing
-an unbounded event stream, you must define a bounded _window_ over the
-stream within which Jet will aggregate the data.
+[[hash-join]]
+== Hash-Join
+
+{jet-javadoc}/pipeline/BatchStage.html#hashJoin-com.hazelcast.jet.pipeline.BatchStage-com.hazelcast.jet.pipeline.JoinClause-com.hazelcast.jet.function.DistributedBiFunction-[Hash-join]
+is a specialization of a general "`join`" operation, optimized for the use
+case of _data enrichment_. In this scenario there is a single,
+potentially infinite data stream (the _primary_ stream), that goes
+through a mapping transformation which attaches to each item some more
+items found by hashtable lookup. The hashtables have been populated
+from all the other streams (the _enriching_ streams) before the
+consumption of the primary stream started.
+
+For each enriching stream you can specify a pair of key-extracting
+functions: one for the enriching item and one for the primary item. This
+means that you can define a different join key for each of the enriching
+streams. The following example shows a three-way hash-join between the
+primary stream of stock trade events and two enriching streams:
+_products_ and _brokers_.
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s10]
+----
+
+Products are joined on `Trade.productId` and brokers on
+`Trade.brokerId`. `joinMapEntries()` returns a `JoinClause`, which is a
+holder of the three functions that specify how to perform a join:
+
+1. the key extractor for the primary stream's item
+2. the key extractor for the enriching stream's item
+3. the projection function that transforms the enriching stream's item
+into the item that will be used for enrichment.
+
+Typically the enriching streams will be `Map.Entry` s coming from a
+key-value store, but you want just the entry value to appear as the
+enriching item. In that case you'll specify `Map.Entry::getValue` as the
+projection function. This is what `joinMapEntries()` does for you. It
+takes just one function, primary stream's key extractor, and fills in
+`Entry::getKey` and `Entry::getValue` for the enriching stream key
+extractor and the projection function, respectively.
+
+In the interest of performance the entire enriching dataset resides on
+each cluster member. That's why this operation is also known as a
+_replicated_ join. This is something to keep in mind when estimating
+the RAM requirements for a hash-join operation.
+
+=== Hash-Join With Four or More Streams Using the Builder
+
+You can hash-join a stream with up to two enriching streams using the
+API we demonstrated above. If you have more than two enriching streams,
+you'll use the
+{jet-javadoc}/pipeline/StreamStage.html#hashJoinBuilder--[hash-join builder].
+For example, you may want to enrich a trade with its associated product,
+broker, and market:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s11]
+----
+
+The data type on the hash-joined stage is `Tuple2<Trade, ItemsByTag>`.
+The next snippet shows how to use it to access the primary and enriching
+items:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s12]
+----
+
+== Aggregation and Grouping
+
+Data aggregation is the cornerstone of distributed stream processing. It
+computes an aggregate function (simple examples: sum or average) over
+the data items. Typically you don't want to agregate all the items
+together, but classify them by some key and then aggregate over each
+group separately. This is the _group-and-aggregate_ transformation. You
+can simultaneously join several streams on a key and group-aggregate
+them on the same key. This is the _cogroup-and-aggregate_
+transformation. Finally, if you're processing an unbounded event stream,
+you must define a bounded _window_ over the stream within which Jet will
+aggregate the data.
 
 This is how a very simple batch aggregation without grouping may look
 (the list named "`text`" contains lines of text):
@@ -131,25 +206,6 @@ utility class, which provides you with some predefined aggregate
 operations. You can also implement your own aggregate operations; please
 refer to the section <<implement-your-aggregate-operation,
 dedicated to this>>.
-
-Let's upgrade this to windowed aggregation over a stream of tweets:
-
-[source]
-----
-include::{javasource}/BuildComputation.java[tag=s6a]
-----
-
-Now we've got a Jet job that does live tracking of words currently
-trending in tweets. The sliding window definition tells Jet to aggregate
-over the last minute and update its result every second.
-
-This example uses a very simple way to define a windowing operation,
-using the current time for timestamp. In a realistic scenario you'd be
-receiving events which contain the text of the tweet together with
-metadata such as username and timestamp. In that case you would pass a
-function that selects the timestamp to `addTimestamps()`, and you'd also
-have to deal with events coming out of order. We discuss these concerns
-<<time-ordering, later on>>.
 
 [[cogroup]]
 === Co-Aggregation
@@ -206,71 +262,59 @@ and the aggregate operation processing them. Refer to the
 <<implement-your-aggregate-operation, section on `AggregateOperation`>>
 to learn more about it.
 
-[[hash-join]]
-=== Hash-Join
+=== Windowed Aggregation
 
-{jet-javadoc}/pipeline/BatchStage.html#hashJoin-com.hazelcast.jet.pipeline.BatchStage-com.hazelcast.jet.pipeline.JoinClause-com.hazelcast.jet.function.DistributedBiFunction-[Hash-join]
-is a specialization of a general "`join`" operation, optimized for the use
-case of _data enrichment_. In this scenario there is a single,
-potentially infinite data stream (the _primary_ stream), that goes
-through a mapping transformation which attaches to each item some more
-items found by hashtable lookup. The hashtables have been populated
-from all the other streams (the _enriching_ streams) before the
-consumption of the primary stream started.
-
-For each enriching stream you can specify a pair of key-extracting
-functions: one for the enriching item and one for the primary item. This
-means that you can define a different join key for each of the enriching
-streams. The following example shows a three-way hash-join between the
-primary stream of stock trade events and two enriching streams:
-_products_ and _brokers_.
+Let's upgrade our batch Word Count to windowed aggregation over an
+endless stream of tweets:
 
 [source]
 ----
-include::{javasource}/BuildComputation.java[tag=s10]
+include::{javasource}/BuildComputation.java[tag=s13]
 ----
 
-Products are joined on `Trade.productId` and brokers on
-`Trade.brokerId`. `joinMapEntries()` returns a `JoinClause`, which is a
-holder of the three functions that specify how to perform a join:
+Now we've got a Jet job that does live tracking of words currently
+trending in tweets. The sliding window definition tells Jet to aggregate
+over the last minute and update its result every second.
 
-1. the key extractor for the primary stream's item
-2. the key extractor for the enriching stream's item
-3. the projection function that transforms the enriching stream's item
-into the item that will be used for enrichment.
+We employed the simplest way of dealing with the notion of time: we
+ignored the time when the event actually happened and just slapped the
+current time on it. Usually the event contains its own timestamp and
+Jet must honor it. To achieve that, you pass a function that selects the
+timestamp to `addTimestamps()`, but now you must also deal with events
+coming out of order. We discussed these concerns <<time-ordering, in the
+previous chapter>>.
 
-Typically the enriching streams will be `Map.Entry` s coming from a
-key-value store, but you want just the entry value to appear as the
-enriching item. In that case you'll specify `Map.Entry::getValue` as the
-projection function. This is what `joinMapEntries()` does for you. It
-takes just one function, primary stream's key extractor, and fills in
-`Entry::getKey` and `Entry::getValue` for the enriching stream key
-extractor and the projection function, respectively.
-
-In the interest of performance the entire enriching dataset resides on
-each cluster member. That's why this operation is also known as a
-_replicated_ join. This is something to keep in mind when estimating
-the RAM requirements for a hash-join operation.
-
-==== Hash-Join With Four or More Streams Using the Builder
-
-You can hash-join a stream with up to two enriching streams using the
-API we demonstrated above. If you have more than two enriching streams,
-you'll use the
-{jet-javadoc}/pipeline/StreamStage.html#hashJoinBuilder--[hash-join builder].
-For example, you may want to enrich a trade with its associated product,
-broker, and market:
-[source]
-----
-include::{javasource}/BuildComputation.java[tag=s11]
-----
-
-The data type on the hash-joined stage is `Tuple2<Trade, ItemsByTag>`.
-The next snippet shows how to use it to access the primary and enriching
-items:
+Here's an example with `Tweet` objects that carry their own timestamp:
 
 [source]
 ----
-include::{javasource}/BuildComputation.java[tag=s12]
+include::{javasource}/BuildComputation.java[tag=s14]
 ----
 
+In the line `.addTimestamps(TweetWord::timestamp,
+TimeUnit.SECONDS.toMillis(5))` we specified two things: how to extract
+the timestamp and how much event lag we want to tolerate. We said that
+an event's timestamp can be at most five seconds behind the newest event
+we already received. This also means that Jet will have to delay
+emitting a windowed result until it receives an event that's five
+seconds past the window's end, so the latency will typically be five
+seconds or more.
+
+Notice how we had to struggle a bit to hold on to the timestamp through
+the flatmapping transformation. We need two classes: `Tweet` and
+`TweetWord`. We can avoid this need if we assign timestamps earlier on:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s15]
+----
+
+This will work correctly because Jet keeps the event timestamps
+internally and correlates the input item to all the output items in a
+`flatMap` transformation, propagating the timestamp value.
+
+You should generally prefer setting timestamps as the first thing in
+a pipeline because then the source connector will handle the watermarks
+itself. The connector knows more about the structure of its source and
+can produce better watermarks, with less latency and less dropped late
+events.

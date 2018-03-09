@@ -35,8 +35,7 @@ public class WhatIsDistributedComputing {
                 lines.stream()
                      .flatMap(line -> Arrays.stream(line.toLowerCase().split("\\W+")))
                      .filter(word -> !word.isEmpty())
-                     .collect(Collectors.groupingBy(word -> word,
-                             Collectors.counting()));
+                     .collect(Collectors.groupingBy(word -> word, Collectors.counting()));
         //end::s2[]
     }
 

@@ -20,8 +20,8 @@ public class Payment extends Event {
 
     private final int amount;
 
-    public Payment(int userId, int amount) {
-        super(userId);
+    public Payment(int userId, long timestamp, int amount) {
+        super(userId, timestamp);
         this.amount = amount;
     }
 

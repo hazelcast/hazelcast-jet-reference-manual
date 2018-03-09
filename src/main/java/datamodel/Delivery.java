@@ -20,8 +20,8 @@ public class Delivery extends Event {
 
     private final int days;
 
-    public Delivery(int userId, int days) {
-        super(userId);
+    public Delivery(int userId, long timestamp, int days) {
+        super(userId, timestamp);
         this.days = days;
     }
 

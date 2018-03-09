@@ -1,23 +1,25 @@
 = How Distributed Computing Works in Jet
 
-In this section we will take a deep dive into the fundamentals of
-distributed computing and Jet's specific take on it. We will do this by
-dissecting one specific problem: the Word Count. This is how you'd
-describe it in the {jet-samples}/batch/wordcount/src/main/java/WordCount.java[Jet Pipeline API]:
+In this chapter we will take a deep dive into the fundamentals of
+distributed computing and Jet's specific take on it. If you want to
+start coding with Jet right away, you can move on to the <<work-with-jet,
+next chapter>>, but you'll find that having some intuition and insight
+into how distributed computing actually works in Jet makes a big
+difference when diagnosing your pipeline and improving its performance.
+
+We'll take one specific problem, the Word Count, dissect it and explain
+how it gets computed in a Jet cluster. Let us first see the definition
+of the computation in the Pipeline API]:
 
 [source]
 ----
 include::{javasource}/WhatIsDistributedComputing.java[tag=s1]
 ----
 
-We'll step back from this and start from the single-threaded Java code
-that solves the problem for a basic data structure such as an
-`ArrayList` and gradually move on to a formulation that allows us to
-solve it for a data source distributed over the whole cluster,
-efficiently making use of all the available CPU power.
-
-If you have some familiarity with the `java.util.stream` API, this is
-how you'd express it:
+Now let's step back from this and start from the single-threaded Java
+code that solves the problem for a basic data structure such as an
+`ArrayList`. If you have some familiarity with the `java.util.stream`
+API, this is how you'd express it:
 
 [source]
 ----
@@ -33,7 +35,7 @@ in a single thread, basically running this code:
 include::{javasource}/WhatIsDistributedComputing.java[tag=s3]
 ----
 
-The `java.util.stream` formulation helps us see the steps taken to
+The j.u.s. formulation helps us see the steps taken to
 process each data item:
 
 1. `lines.stream()`: read the items (lines of text) from the data source
@@ -43,10 +45,10 @@ avoiding empty strings (the tokenizing step).
 3. `collect()`: group equal words together and count them (the
 accumulating step).
 
-Our first move will be modeling the computation as a DAG. We'll start
-with a single-threaded model and then make several transformation steps
-to it to reach a parallelized, distributed one, discussing at each step
-the concerns that arise and how to meet them.
+Our next move is to express these steps as a DAG. We'll start with a
+single-threaded model and then make several transformations to reach a
+parallelized, distributed one, discussing at each step the concerns that
+arise and how to meet them.
 
 == Modeling Word Count in terms of a DAG
 
@@ -98,7 +100,6 @@ like this:
 
 image::wordcount-dag-queue.png[Word-counting DAG with concurrent queues shown,600,170]
 
-
 This transformation brought us a _pipelined_ architecture: while the
 tokenizer is busy with the regex work, the accumulator is updating the
 map using the data the tokenizer is done with; and the source and sink
@@ -119,7 +120,6 @@ processors doing the work of a single vertex. Let's add another
 tokenizing processor:
 
 image::wordcount-tokenizer.png[Word-counting DAG with tokenizer vertex parallelized,600,170]
-
 
 The input processor can now use all the available tokenizers as a pool
 and submit to any one whose queue has some room.
@@ -206,14 +206,14 @@ image::wordcount-distributed.png[Word-counting DAG parallelized and distributed,
 [[unbounded-stream-processing]]
 == Unbounded Stream Processing
 
-So far we've worked with an assumption of the bounded (finite)
-stream processing model: you provide Jet with one or more pre-existing
-datasets and order it to mine them for interesting information. The most
-important workhorse in this area is the "join, group and aggregate"
-operation: you define a classifying function that computes a grouping
-key for each of the datasets and an aggregate operation that will be
-performed on all the items in each group, yielding one result item per
-distinct key.
+So far we've worked with a bounded (finite) stream processing task.
+Expressed a bit more generally, you provide Jet with one or more
+pre-existing datasets and order it to mine them for interesting
+information. The most important workhorse in this area is the "join,
+group and aggregate" operation: you define a classifying function that
+computes a grouping key for each of the datasets and an aggregate
+operation that will be performed on all the items in each group,
+yielding one result item per distinct key.
 
 === The Importance of "`Right Now`"
 
@@ -324,4 +324,3 @@ In Jet, job submission works on the fire-and-forget principle: once you
 have submitted it, you can disconnect with no effect on the job. Any
 other client or Jet member can request a local `Job` instance which
 allows it to monitor and manage the job.
-

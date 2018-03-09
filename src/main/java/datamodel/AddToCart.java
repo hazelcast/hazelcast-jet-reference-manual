@@ -18,8 +18,8 @@ public class AddToCart extends Event {
 
     private final int quantity;
 
-    public AddToCart(int userId, int quantity) {
-        super(userId);
+    public AddToCart(int userId, long timestamp, int quantity) {
+        super(userId, timestamp);
         this.quantity = quantity;
     }
 

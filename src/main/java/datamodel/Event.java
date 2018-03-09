@@ -17,13 +17,19 @@
 package datamodel;
 
 public abstract class Event {
+    private final long timestamp;
     private final int userId;
 
-    Event(int userId) {
+    Event(int userId, long timestamp) {
         this.userId = userId;
+        this.timestamp = timestamp;
     }
 
     public int userId() {
         return userId;
+    }
+
+    public long timestamp() {
+        return timestamp;
     }
 }

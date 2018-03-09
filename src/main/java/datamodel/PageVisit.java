@@ -20,8 +20,8 @@ public class PageVisit extends Event {
 
     private final int loadTime;
 
-    public PageVisit(int userId, int loadTime) {
-        super(userId);
+    public PageVisit(int userId, long timestamp, int loadTime) {
+        super(userId, timestamp);
         this.loadTime = loadTime;
     }
 
