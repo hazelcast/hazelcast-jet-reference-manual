@@ -82,7 +82,7 @@ instance won't be able to initialize its "`last seen timestamp`" and will
 cause the watermark sent to the downstream to forever lag behind all
 the actual data.
 
-=== "Limiting Timestamp and Wall-Clock Lag"
+=== "`Limiting Timestamp and Wall-Clock Lag`"
 
 The
 {jet-javadoc}/core/WatermarkPolicies.html#limitingTimestampAndWallClockLag-long-long-[`limitingTimestampAndWallClockLag()`]
@@ -93,6 +93,7 @@ watermark can lag behind the local time. As long as its assumption holds,
 this policy gives straightforward results. It also doesn't suffer from the
 subtle issue with `limitingLagAndLull()`.
 
+[[watermark-throttling]]
 == Watermark Throttling
 
 The policy objects presented above will return the "`ideal`" watermark
