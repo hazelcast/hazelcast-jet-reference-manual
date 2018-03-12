@@ -9,7 +9,7 @@ include::build-computation.adoc[]
 
 include::implement-aggregation.adoc[]
 
-include::unbounded-stream-processing.adoc[]
+include::configure-fault-tolerance.adoc[]
 
 include::source-sink-connectors/index.adoc[]
 

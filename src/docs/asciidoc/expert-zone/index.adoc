@@ -1,7 +1,5 @@
 = Expert Zone
 
-== The Core API
-
 This section covers the Core API, Jet's low-level API that directly
 exposes the computation engine's raw features. If you are looking for
 the API to build your computation pipeline, please refer to the
@@ -29,6 +27,10 @@ include::jet-execution-model.adoc[]
 
 include::dag.adoc[]
 
+include::dag-tutorial.adoc[]
+
+include::unbounded-stream-topics.adoc[]
+
 include::job.adoc[]
 
 include::processor.adoc[]
@@ -42,7 +44,5 @@ include::vertices.adoc[]
 include::custom-source-sink.adoc[]
 
 include::best-practices.adoc[]
-
-include::custom-dag.adoc[]
 
 :leveloffset: -1

@@ -208,7 +208,7 @@ refer to the section <<implement-your-aggregate-operation,
 dedicated to this>>.
 
 [[cogroup]]
-=== Co-Aggregation
+== Co-Aggregation
 
 Just as we performed aggregate and group-and-aggregate operations above,
 we can perform a co-aggregate and cogroup-and-aggregate of several
@@ -238,7 +238,7 @@ include::{javasource}/BuildComputation.java[tag=s8]
 ----
 
 [[cogroup-builder]]
-====  Co-aggregate Four or More Streams Using the Builder
+===  Co-aggregate Four or More Streams Using the Builder
 
 If you need to join more than three streams, you'll have to use the
 {jet-javadoc}/pipeline/StageWithGroupingAndWindow.html#aggregateBuilder--[builder]
@@ -262,7 +262,7 @@ and the aggregate operation processing them. Refer to the
 <<implement-your-aggregate-operation, section on `AggregateOperation`>>
 to learn more about it.
 
-=== Windowed Aggregation
+== Windowed Aggregation
 
 Let's upgrade our batch Word Count to windowed aggregation over an
 endless stream of tweets:
@@ -318,3 +318,5 @@ a pipeline because then the source connector will handle the watermarks
 itself. The connector knows more about the structure of its source and
 can produce better watermarks, with less latency and less dropped late
 events.
+
+

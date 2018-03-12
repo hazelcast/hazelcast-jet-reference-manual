@@ -39,7 +39,7 @@ which can be used in both on-premise and cloud environments.
 [[architecture-overview]]
 == Architecture Overview
 
-image::architecture-overview.png[Architecture]
+image::architecture-overview.png[Architecture,align="center"]
 
 
 [[data-processing-model]]

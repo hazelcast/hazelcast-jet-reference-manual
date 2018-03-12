@@ -1,3 +1,5 @@
+= Configure Fault Tolerance
+
 == Snapshotting the State of Computation
 
 To be able to tolerate failures, Jet takes snapshots of the entire state
@@ -36,16 +38,7 @@ JetInstance = Jet.newJetInstance(config);
 
 As always when guarantees are involved, the principle of the weakest
 link applies: if any part of the system is unable to provide it, the
-system as a whole fails to provide it. The critical points are the
-sources and sinks because they are the boundary between the domain under
-Jet's control and the environment. A source must be able to consistently
-replay data to Jet from a point it asks for, and the sink must either
-support transactions or be _idempotent_, tolerating duplicate submission
-of data.
-
-As of version 0.5, Hazelcast Jet supports exactly-once with the source
-being either a Hazelcast `IMap` or a Kafka topic, and the sink being a
-Hazelcast `IMap`.
+system as a whole fails to provide it.
 
 == At-Least-Once
 
@@ -56,8 +49,7 @@ new events. Jet can provide this guarantee at a higher throughput and
 lower latency than exactly-once, and some kinds of data processing can
 gracefully tolerate it. In some other cases, however, duplicate
 processing of data items can have quite surprising consequences. There
-is more information about this in our
-<<pitfalls-alo, Under the Hood>>
+is more information about this in our <<pitfalls-alo, Under the Hood>>
 chapter.
 
 We also have an in-between case: if you configure Jet for exactly-once
@@ -65,7 +57,7 @@ but use Kafka as the sink, after a job restart you may get duplicates in
 the output. As opposed to duplicating an input item, this is much more
 benign because it just means getting the exact same result twice.
 
-== Enabling Snapshotting
+== Enable Snapshotting
 
 Fault tolerance is off by default. To activate it for a job, create a
 `JobConfig` object and set the
@@ -113,12 +105,10 @@ more than half the previous size. Since the job will keep trying to
 restart itself and by definition one cluster has no idea of the other's
 existence, it will restart as soon as the quorum value is reached.
 
-== Scaling up Jobs
+== Scale Up your Job
 
-After a job is submitted to the cluster, new nodes can be started and
-the job can be scaled up. Hazelcast Jet 0.6 introduces a new method into
-the `Job` interface for this purpose. When `Job.restart()` is invoked,
-ongoing execution of the job is interrupted and a new execution is
-scheduled. If the snapshotting mechanism enabled, the job is restarted
-from the last successful snapshot. Therefore, the restart procedure
-respects to the configured processing guarantee.
+You can let your already running job scale up after you have added new
+members to the Jet cluster: simply call `job.restart()` and Jet will
+suspend the job, rescale it to the size of the cluster, and resume it.
+You should have snapshotting enabled so the job can resum where it left
+off.

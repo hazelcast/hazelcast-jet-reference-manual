@@ -1,5 +1,248 @@
+= How to Build DAGs with the Core API
+
+== Bounded Stream (Batch) DAG
+
+Let's use the Core API to build the Word Count DAG, already described in
+an <<wourd-count-dag-model, earlier section>>):
+
+image::word-count-dag.png[Word Count DAG,250,300,align="center"]
+
+We start by instantiating the DAG class and adding the source vertex:
+
+[source]
+DAG dag = new DAG();
+Vertex source = dag.newVertex("source", SourceProcessors.readMapP("lines"));
+
+Note how we can build the DAG outside the context of any running Jet
+instances: it is a pure POJO.
+
+The source vertex will read the lines from the `IMap` and emit items of
+type `Map.Entry<Integer, String>` to the next vertex. The key of the
+entry is the line number, and the value is the line itself. The built-in
+map-reading processor will do just what we want: on each member it will
+read only the data local to that member.
+
+The next vertex is the _tokenizer_, which does a simple "flat-mapping"
+operation (transforms one input item into zero or more output items).
+The low-level support for such a processor is a part of Jet's library,
+we just need to provide the mapping function:
+
+[source]
+// (lineNum, line) -> words
+Pattern delimiter = Pattern.compile("\\W+");
+Vertex tokenize = dag.newVertex("tokenize",
+    Processors.flatMapP((Entry<Integer, String> e) ->
+        traverseArray(delimiter.split(e.getValue().toLowerCase()))
+              .filter(word -> !word.isEmpty()))
+);
+
+This creates a processor that applies the given function to each
+incoming item, obtaining zero or more output items, and emits them.
+Specifically, our processor accepts items of type `Entry<Integer,
+String>`, splits the entry value into lowercase words, and emits all
+non-empty words. The function must return a `Traverser`, which is a
+functional interface used to traverse a sequence of non-null items. Its
+purpose is equivalent to the standard Java `Iterator`, but avoids the
+cumbersome two-method API. Since a lot of support for cooperative
+multithreading in Hazelcast Jet deals with sequence traversal, this
+abstraction simplifies many of its aspects.
+
+The next vertex will do the actual word count. We can use the built-in
+`accumulateByKey` processor for this:
+
+[source]
+// word -> (word, count)
+Vertex accumulate = dag.newVertex("accumulate",
+        Processors.accumulateByKeyP(wholeItem(), counting())
+);
+
+This processor maintains a hashtable that maps each distinct key to its
+accumulated value. We specify `wholeItem()` as the _key extractor_
+function: our input item is just the word, which is also the grouping
+key. The second argument is the kind of aggregate operation we want to
+perform: counting. We are relying on Jet's out-of-the-box
+definitions here, but it is easy to define your own aggregate operations
+and key extractors. The processor emits nothing until it has received
+all the input, and at that point it emits the hashtable as a stream of
+`Entry<String, Long>`.
+
+Next is the combining step which computes the grand totals from
+individual members' contributions. This is the code:
+
+[source]
+// (word, count) -> (word, count)
+Vertex combine = dag.newVertex("combine",
+    Processors.combineByKeyP(counting())
+);
+
+`combineByKey` is designed to be used downstream of `accumulateByKey`,
+which is why it doesn't need an explicit key extractor. The aggregate
+operation must be the same as on `accumulateByKey`.
+
+The final vertex is the sink; we want to store the output in
+another `IMap`:
+
+[source]
+Vertex sink = dag.newVertex("sink", SinkProcessors.writeMapP("counts"));
+
+Now that we have all the vertices, we must connect them into a graph and
+specify the edge type as discussed in the previous section. Here's all
+the code at once:
+
+[source]
+dag.edge(between(source, tokenize))
+   .edge(between(tokenize, accumulate)
+           .partitioned(wholeItem(), Partitioner.HASH_CODE))
+   .edge(between(accumulate, combine)
+           .distributed()
+           .partitioned(entryKey()))
+   .edge(between(combine, sink));
+
+Let's take a closer look at some of the edges. First, source to
+tokenizer:
+
+[source]
+ .edge(between(tokenize, accumulate)
+       .partitioned(wholeItem(), Partitioner.HASH_CODE))
+
+We chose a _local partitioned_ edge. For each word, there will be a
+processor responsible for it on each member so that no items must travel
+across the network. In the `partitioned()` call we specify two things:
+the function that extracts the partitioning key (`wholeItem()` - same as
+the grouping key extractor), and the policy object that decides
+how to compute the partition ID from the key. Here we use the built-in
+`HASH_CODE`, which will derive the ID from `Object.hashCode()`. As long
+as the the definitions of `equals()/hashCode()` on the key object match
+our expected notion of key equality, this policy is always safe to use
+on a local edge.
+
+Next, the edge from the accumulator to the combiner:
+
+[source]
+ .edge(between(accumulate, combine)
+       .distributed()
+       .partitioned(entryKey()))
+
+It is _distributed partitioned_: for each word there is a single
+`combiner` processor in the whole cluster responsible for it and items
+will be sent over the network if needed. The partitioning key is again
+the word, but here it is the key part of the `Map.Entry<String, Long>`.
+We are using the default partitioning policy here (Hazelcast's own
+partitioning scheme). It is the slower-but-safe choice on a distributed
+edge. Detailed inspection shows that hashcode-based partitioning would
+be safe as well because all of `String`, `Long`, and `Map.Entry` have
+the hash function specified in their Javadoc.
+
+You can acces a full, self-contained Java program with the above DAG code at the
+{jet-samples}/refman/src/main/java/refman/WordCountCoreApiRefMan.java[Hazelcast Jet code samples repository].
+
+== Unbounded Stream DAG
+
+For this example we'll build a simple Jet job that monitors trading
+events on a stock market, categorizes the events by stock ticker, and
+reports the number of trades per time unit (the time window). In terms
+of DAG design, not much changes going from batch to streaming. This is
+how it looks:
+
+image::stock-exchange-dag.png[Trade monitoring DAG,300,900,align="center"]
+
+We have the same cascade of source, two-stage aggregation, and sink. The
+source part consists of `ticker-source` that loads stock names
+(tickers) from a Hazelcast IMap and `generate-trades` that retains this
+list and randomly generates an infinite stream of trade events. A
+separate vertex is inserting watermark items needed by the aggregation
+stage and on the sink side there's another mapping vertex,
+`format-output`, that transforms the window result items into lines of
+text. The `sink` vertex writes these lines to a file.
+
+[source]
+----
+WindowDefinition windowDef = WindowDefinition.slidingWindowDef(
+        SLIDING_WINDOW_LENGTH_MILLIS, SLIDE_STEP_MILLIS);
+Vertex tickerSource = dag.newVertex("ticker-source",
+        SourceProcessors.readMapP(GenerateTradesP.TICKER_MAP_NAME));
+Vertex generateTrades = dag.newVertex("generate-trades",
+        GenerateTradesP.generateTradesP(TRADES_PER_SEC_PER_MEMBER));
+Vertex insertWatermarks = dag.newVertex("insert-watermarks",
+        Processors.insertWatermarksP(
+                Trade::getTime,
+                withFixedLag(GenerateTradesP.MAX_LAG),
+                emitByFrame(windowDef)));
+Vertex slidingStage1 = dag.newVertex("sliding-stage-1",
+        Processors.accumulateByFrameP(
+                Trade::getTicker,
+                Trade::getTime, TimestampKind.EVENT,
+                windowDef,
+                counting()));
+Vertex slidingStage2 = dag.newVertex("sliding-stage-2",
+        Processors.combineToSlidingWindowP(windowDef, counting()));
+Vertex formatOutput = dag.newVertex("format-output",
+        formatOutput());
+Vertex sink = dag.newVertex("sink",
+        SinkProcessors.writeFileP(OUTPUT_DIR_NAME));
+
+tickerSource.localParallelism(1);
+generateTrades.localParallelism(1);
+
+return dag
+        .edge(between(tickerSource, generateTrades)
+                .distributed().broadcast())
+        .edge(between(generateTrades, insertWatermarks)
+                .isolated())
+        .edge(between(insertWatermarks, slidingStage1)
+                .partitioned(Trade::getTicker, HASH_CODE))
+        .edge(between(slidingStage1, slidingStage2)
+                .partitioned(Entry<String, Long>::getKey, HASH_CODE)
+                .distributed())
+        .edge(between(slidingStage2, formatOutput)
+                .isolated())
+        .edge(between(formatOutput, sink)
+                .isolated());
+----
+
+The source vertex reads a Hazelcast IMap, just like it did in the word
+counting example. Trade generating vertex uses a custom processor that
+generates mock trades. It can be reviewed
+{jet-samples}/core-api/streaming/trade-generator/src/main/java/trades/tradegenerator/GenerateTradesP.java[here].
+The implementation of `complete()` is non-trivial, but most of the
+complexity just deals with precision timing of events. For simplicity's
+sake the processor must be configured with a local parallelism of 1;
+generating a precise amount of mock traffic from parallel processors
+would take more code and coordination.
+
+The major novelty is the watermark-inserting vertex. It must be added
+in front of the windowing vertex and will insert watermark items
+according to the configured <<watermark-policy, policy>>.
+In this case we use the simplest one, `withFixedLag`, which will make
+the watermark lag behind the top observed event timestamp by a fixed
+amount. Emission of watermarks is additionally throttled, so that only
+one watermark item per frame is emitted. The windowing processors emit
+data only when the watermark reaches the next frame, so inserting it
+more often than that would be just overhead.
+
+The edge from `insertWatermarks` to `slidingStage1` is partitioned; you
+may wonder how that works with watermark items, since
+
+1. their type is different from the "`main`" stream item type and they
+don't have a partitioning key
+2. each of them must reach all downstream processors.
+
+It turns out that Jet must treat them as a special case: regardless of
+the configured edge type, watermarks are routed using the broadcast
+policy.
+
+The stage-1 processor will just forward the watermark it receives,
+along with any aggregation results whose emission it triggers, to stage
+2.
+
+The full code of this sample is in
+{jet-samples}/core-api/streaming/stock-exchange/src/main/java/StockExchange.java[StockExchange.java]
+and running it you'll get an endless stream of data accumulating on the
+disk. To spare your filesystem we've limited the execution time to 10
+seconds.
+
 [[tf-idf]]
-= Custom DAG - Inverted TF-IDF Index
+== Advanced Batch DAG &mdash; Inverted TF-IDF Index
 
 In this tutorial we'll explore what the Core API DAG model offers beyond
 the capabilities of the Pipeline API. Our DAG will feature splits,
@@ -12,9 +255,9 @@ own with minimum boilerplate.
 The full code is available at the `hazelcast-jet-code-samples`
 repository:
 
-{jet-samples}/core-api/batch/tf-idf/src/main/java/TfIdfJdkStreams.java[TfIdfJdkStreams.java]
+{jet-samples}/core-api/batch/tf-idf-core-api/src/main/java/TfIdfJdkStreams.java[TfIdfJdkStreams.java]
 
-{jet-samples}/core-api/batch/tf-idf/src/main/java/TfIdf.java[TfIdf.java]
+{jet-samples}/core-api/batch/tf-idf-core-api/src/main/java/TfIdfCoreApi.java[TfIdfCoreApi.java]
 
 Let us first introduce the problem. The inverted index is a basic data
 structure in the domain of full-text search. First used in the 1950s, it
@@ -87,7 +330,7 @@ the sum of its parts; a document may contain the exact phrase and this
 will not affect its score.
 
 [[building-inverted-index]]
-== Building the Inverted Index with Java Streams
+=== Building the Inverted Index with Java Streams
 
 To warm us up, let's see what it takes to build the inverted index with
 just thread parallelism and without the ability to scale out across
@@ -181,14 +424,14 @@ words in the tokenization phase. The same set is used to cross out words
 from the user's search phrase, as if they weren't entered. We'll add this
 feature to our DAG based model in the following section.
 
-== Translating to Jet DAG
+=== Translating to Jet DAG
 
 Our DAG as a whole will look relatively complex, but it can be
 understood as a "`backbone`" (cascade of vertices) starting from a source
 and ending in a sink with several more vertices attached on the side.
 This is just the backbone:
 
-image::tf-idf-backbone.png[Backbone of the TF-IDF DAG,250,750]
+image::tf-idf-backbone.png[Backbone of the TF-IDF DAG,250,750,align="center"]
 
 . The data source is a Hazelcast `IMap` which holds a mapping from
 document ID to its filename. The source vertex will emit all the map's
@@ -197,8 +440,8 @@ entries, but only a subset on each cluster member.
 lines in the `(docId, line)` format.
 . `tokenize` transforms each line into a sequence of its words, again
 paired with the document ID, so it emits `(docId, word)`.
-. `tf` builds a set of all distinct pairs emitted from `tokenize` and maintains the count of each pair's occurrences
-(its TF score).
+. `tf` builds a set of all distinct pairs emitted from `tokenize` and
+maintains the count of each pair's occurrences (its TF score).
 . `tf-idf` takes that set, groups the pairs by word, and calculates
 the TF-IDF scores. It emits the results to the sink, which saves them
 to a distributed `IMap`.
@@ -220,7 +463,7 @@ item to the `tokenize` vertex. We also add a vertex that takes the data
 from `doc-source` and simply counts its items; this is the total
 document count used in the TF-IDF formula. We end up with this DAG:
 
-image::tf-idf-full.png[The TF-IDF DAG,500,750]
+image::tf-idf-full.png[The TF-IDF DAG,550,750,align="center"]
 
 The choice of edge types into and out of `doc-count` may look
 surprising, so let's examine it. We start with the `doc-source` vertex,
@@ -248,7 +491,7 @@ suffer because first the CPU would be forced to sit idle, then we'd be
 late in making the next IO call while tokenizing the input. The separate
 vertex can proceed at full speed all the time.
 
-== Implementation Code
+=== Implementation Code
 
 As we announced, some of the processors in our DAG will need custom
 implementation code. Let's start from the source vertex. It is easy,
@@ -256,7 +499,7 @@ just the standard `IMap` reader:
 
 [source]
 ----
-dag.newVertex("doc-source", SourceProcessors.readMapP(DOCID_NAME));;
+dag.newVertex("doc-source", SourceProcessors.readMapP(DOCID_NAME));
 ----
 
 The stopwords-producing processor has custom code, but it's quite
