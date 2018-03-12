@@ -10,8 +10,9 @@ image::word-count-dag.png[Word Count DAG,250,300,align="center"]
 We start by instantiating the DAG class and adding the source vertex:
 
 [source]
-DAG dag = new DAG();
-Vertex source = dag.newVertex("source", SourceProcessors.readMapP("lines"));
+----
+include::{javasource}/WordCountCoreApi.java[tag=s0]
+----
 
 Note how we can build the DAG outside the context of any running Jet
 instances: it is a pure POJO.
@@ -28,13 +29,9 @@ The low-level support for such a processor is a part of Jet's library,
 we just need to provide the mapping function:
 
 [source]
-// (lineNum, line) -> words
-Pattern delimiter = Pattern.compile("\\W+");
-Vertex tokenize = dag.newVertex("tokenize",
-    Processors.flatMapP((Entry<Integer, String> e) ->
-        traverseArray(delimiter.split(e.getValue().toLowerCase()))
-              .filter(word -> !word.isEmpty()))
-);
+----
+include::{javasource}/WordCountCoreApi.java[tag=s1]
+----
 
 This creates a processor that applies the given function to each
 incoming item, obtaining zero or more output items, and emits them.
@@ -51,10 +48,9 @@ The next vertex will do the actual word count. We can use the built-in
 `accumulateByKey` processor for this:
 
 [source]
-// word -> (word, count)
-Vertex accumulate = dag.newVertex("accumulate",
-        Processors.accumulateByKeyP(wholeItem(), counting())
-);
+----
+include::{javasource}/WordCountCoreApi.java[tag=s2]
+----
 
 This processor maintains a hashtable that maps each distinct key to its
 accumulated value. We specify `wholeItem()` as the _key extractor_
@@ -70,10 +66,9 @@ Next is the combining step which computes the grand totals from
 individual members' contributions. This is the code:
 
 [source]
-// (word, count) -> (word, count)
-Vertex combine = dag.newVertex("combine",
-    Processors.combineByKeyP(counting())
-);
+----
+include::{javasource}/WordCountCoreApi.java[tag=s3]
+----
 
 `combineByKey` is designed to be used downstream of `accumulateByKey`,
 which is why it doesn't need an explicit key extractor. The aggregate
@@ -83,47 +78,31 @@ The final vertex is the sink; we want to store the output in
 another `IMap`:
 
 [source]
-Vertex sink = dag.newVertex("sink", SinkProcessors.writeMapP("counts"));
+----
+include::{javasource}/WordCountCoreApi.java[tag=s4]
+----
 
 Now that we have all the vertices, we must connect them into a graph and
 specify the edge type as discussed in the previous section. Here's all
 the code at once:
 
 [source]
-dag.edge(between(source, tokenize))
-   .edge(between(tokenize, accumulate)
-           .partitioned(wholeItem(), Partitioner.HASH_CODE))
-   .edge(between(accumulate, combine)
-           .distributed()
-           .partitioned(entryKey()))
-   .edge(between(combine, sink));
+----
+include::{javasource}/WordCountCoreApi.java[tag=s5]
+----
 
-Let's take a closer look at some of the edges. First, source to
-tokenizer:
+<1> Here we chose a _local partitioned_ edge. For each word, there will
+be a processor responsible for it on each member so that no items must
+travel across the network. In the `partitioned()` call we specify two
+things: the function that extracts the partitioning key (`wholeItem()`
+&mdash; same as the grouping key extractor), and the policy object that
+decides how to compute the partition ID from the key. Here we use the
+built-in `HASH_CODE`, which will derive the ID from `Object.hashCode()`.
+As long as the the definitions of `equals()/hashCode()` on the key
+object match our expected notion of key equality, this policy is always
+safe to use on a local edge.
 
-[source]
- .edge(between(tokenize, accumulate)
-       .partitioned(wholeItem(), Partitioner.HASH_CODE))
-
-We chose a _local partitioned_ edge. For each word, there will be a
-processor responsible for it on each member so that no items must travel
-across the network. In the `partitioned()` call we specify two things:
-the function that extracts the partitioning key (`wholeItem()` - same as
-the grouping key extractor), and the policy object that decides
-how to compute the partition ID from the key. Here we use the built-in
-`HASH_CODE`, which will derive the ID from `Object.hashCode()`. As long
-as the the definitions of `equals()/hashCode()` on the key object match
-our expected notion of key equality, this policy is always safe to use
-on a local edge.
-
-Next, the edge from the accumulator to the combiner:
-
-[source]
- .edge(between(accumulate, combine)
-       .distributed()
-       .partitioned(entryKey()))
-
-It is _distributed partitioned_: for each word there is a single
+<2> is a _distributed partitioned_ edge: for each word there is a single
 `combiner` processor in the whole cluster responsible for it and items
 will be sent over the network if needed. The partitioning key is again
 the word, but here it is the key part of the `Map.Entry<String, Long>`.
@@ -133,7 +112,8 @@ edge. Detailed inspection shows that hashcode-based partitioning would
 be safe as well because all of `String`, `Long`, and `Map.Entry` have
 the hash function specified in their Javadoc.
 
-You can acces a full, self-contained Java program with the above DAG code at the
+You can acces a full, self-contained Java program with the above DAG
+code at the
 {jet-samples}/refman/src/main/java/refman/WordCountCoreApiRefMan.java[Hazelcast Jet code samples repository].
 
 == Unbounded Stream DAG

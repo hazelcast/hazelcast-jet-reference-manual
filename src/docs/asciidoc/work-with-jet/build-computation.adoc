@@ -301,7 +301,7 @@ seconds past the window's end, so the latency will typically be five
 seconds or more.
 
 Notice how we had to struggle a bit to hold on to the timestamp through
-the flatmapping transformation. We need two classes: `Tweet` and
+the flatmapping transformation. We needed two classes: `Tweet` and
 `TweetWord`. We can avoid this need if we assign timestamps earlier on:
 
 [source]
