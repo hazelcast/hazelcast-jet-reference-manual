@@ -1,4 +1,4 @@
-= How to Build DAGs with the Core API
+= How to Build a DAG
 
 == Bounded Stream (Batch) DAG
 

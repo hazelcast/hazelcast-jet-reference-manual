@@ -55,6 +55,8 @@ include::configuration.adoc[]
 
 include::j-u-s.adoc[]
 
+include::under-the-hood.adoc[]
+
 include::expert-zone/index.adoc[]
 
 include::misc/index.adoc[]

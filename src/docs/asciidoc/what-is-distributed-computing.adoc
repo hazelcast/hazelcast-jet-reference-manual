@@ -1,3 +1,4 @@
+[[data-processing-model]]
 = How Distributed Computing Works in Jet
 
 In this chapter we will take a deep dive into the fundamentals of
@@ -6,6 +7,31 @@ start coding with Jet right away, you can move on to the <<work-with-jet,
 next chapter>>, but you'll find that having some intuition and insight
 into how distributed computing actually works in Jet makes a big
 difference when diagnosing your pipeline and improving its performance.
+
+Jet provides high performance in-memory data processing by modeling the
+computation as a _Directed Acyclic Graph (DAG)_, where vertices
+represent computation and edges represent data connections. A vertex
+receives data from its inbound edges, performs a step in the
+computation, and emits data to its outbound edges. A single vertex's
+computation work is performed in parallel by many instances of the
+`Processor` type around the cluster.
+
+One of the major reasons to divide the full computation task into
+several vertices is _data partitioning_: the ability to split the data
+stream traveling over an edge into slices which can be processed
+independently of each other. To make this work, a function must be
+defined which computes the _partitioning key_ for each item and makes
+all related items map to the same key. The computation engine can then
+route all such items to the same processor instance. This makes it easy
+to parallelize the computation: each processor will have the full
+picture for its slice of the entire stream.
+
+Edges determine how the data is routed from individual source processors
+to individual destination processors. Different edge properties offer
+precise control over the flow of data.
+
+[[word-count-dag-model]]
+== Modeling Computation as a DAG
 
 We'll take one specific problem, the Word Count, dissect it and explain
 how it gets computed in a Jet cluster. Let us first see the definition
@@ -35,8 +61,8 @@ in a single thread, basically running this code:
 include::{javasource}/WhatIsDistributedComputing.java[tag=s3]
 ----
 
-The j.u.s. formulation helps us see the steps taken to
-process each data item:
+The j.u.s. formulation helps us see the steps taken to process each data
+item:
 
 1. `lines.stream()`: read the items (lines of text) from the data source
 (we'll call this the "`source`" step).
@@ -49,9 +75,6 @@ Our next move is to express these steps as a DAG. We'll start with a
 single-threaded model and then make several transformations to reach a
 parallelized, distributed one, discussing at each step the concerns that
 arise and how to meet them.
-
-[[word-count-dag-model]]
-== Modeling Computation as a DAG
 
 We can represent the steps outlined above in a directed acyclic graph
 (DAG):

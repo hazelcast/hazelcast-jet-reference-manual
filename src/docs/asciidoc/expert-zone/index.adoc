@@ -23,13 +23,9 @@ improperly.
 
 :leveloffset: +1
 
-include::jet-execution-model.adoc[]
-
 include::dag.adoc[]
 
 include::dag-tutorial.adoc[]
-
-include::unbounded-stream-topics.adoc[]
 
 include::job.adoc[]
 
