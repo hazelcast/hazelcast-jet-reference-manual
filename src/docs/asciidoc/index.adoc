@@ -59,6 +59,6 @@ include::under-the-hood.adoc[]
 
 include::expert-zone/index.adoc[]
 
-include::misc/index.adoc[]
+include::appendix.adoc[]
 
 include::glossary.adoc[]
