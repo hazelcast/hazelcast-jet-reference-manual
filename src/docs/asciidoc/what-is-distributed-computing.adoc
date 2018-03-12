@@ -51,9 +51,10 @@ parallelized, distributed one, discussing at each step the concerns that
 arise and how to meet them.
 
 [[word-count-dag-model]]
-== Modeling Word Count in terms of a DAG
+== Modeling Computation as a DAG
 
-We can represent the steps outlined above as a DAG:
+We can represent the steps outlined above in a directed acyclic graph
+(DAG):
 
 image::wordcount-dag.png[Word-counting DAG,600,170,align="center"]
 

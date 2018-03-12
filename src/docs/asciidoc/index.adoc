@@ -51,8 +51,6 @@ include::what-is-distributed-computing.adoc[]
 
 include::work-with-jet/index.adoc[]
 
-include::jet-apis.adoc[]
-
 include::configuration.adoc[]
 
 include::j-u-s.adoc[]
