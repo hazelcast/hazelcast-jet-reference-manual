@@ -5,7 +5,7 @@ the configuration of Hazelcast Jet within Spring context.
 ## Declaring Beans by Spring beans Namespace
 
 You can declare Hazelcast Jet Objects using the default Spring beans namespace.
-Example code for a Hazelcast Jet Instance declaration is listed below.
+Here is an example code for a Hazelcast Jet Instance declaration:
 
 ```xml
 
@@ -115,8 +115,8 @@ Here is an example schema definition:
 <jet:list instance-ref="jet-client" name="my-list" id="my-list-bean"/>
 ```
 
-You can obtain underlying `HazelcastInstance` as a bean and use this bean to
-obtain other data types which Hazelcast supports.
+You can obtain the underlying `HazelcastInstance` as a bean and use this
+bean to obtain other data types which Hazelcast supports.
 
  - multiMap
  - replicatedmap
@@ -173,7 +173,7 @@ Hazelcast Jet also supports *lazy-init*, *scope* and *depends-on* bean attribute
 ## Annotation-Based Configuration 
 
 Annotation-Based Configuration does not require any XML definition. Simply create 
-a class with related annotations, eg `@Configuration`. And provide JetInstance as a
+a class with related annotations, e.g. `@Configuration` and provide JetInstance as a
 bean by annotating the method with `@Bean`. 
 
 ```java
@@ -190,21 +190,26 @@ public class AppConfig {
 
 ## Enabling SpringAware Objects
 
-You need to configure Hazelcast Jet with `<hz:spring-aware/>` tag or set 
-`SpringManagedContext` programmatically to enable spring-aware objects.
-Code samples for 
-[declarative](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/spring/src/main/java/jet/spring/XmlConfigurationWithSchemaSample.java)
-and  
-[annotation-based](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/spring/src/main/java/jet/spring/AnnotationBasedConfigurationSample.java)
-configurations are available at our Code Samples repo.
+Hazelcast IMDG has a special annotation, `@SpringAware`, which enables you 
+to initialize the object with spring context. 
 
-You can mark your custom processors with `@SpringAware` annotation which 
-gives you the ability:
+When a job is submitted 
+to the cluster, processors are created by Jet on each member. By marking 
+your processor with `@SpringAware`, you make spring context accessible to 
+your processor which gives you the ability:
 
  - to apply bean properties
  - to apply factory callbacks such as `ApplicationContextAware`, `BeanNameAware`
  - to apply bean post-processing annotations such as `InitializingBean`, `@PostConstruct`
+
+You need to configure Hazelcast Jet with `<hz:spring-aware/>` tag or set 
+`SpringManagedContext` programmatically to enable spring-aware objects.
+Code samples for 
+[declarative](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/spring/src/main/java/jet/spring/XmlConfigurationWithSchemaSample.java)
+and 
+[annotation-based](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/spring/src/main/java/jet/spring/AnnotationBasedConfigurationSample.java)
+configurations are available at our Code Samples repo.
  
- Refer to 
- [code samples](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/spring/src/main/java/jet/spring/source/CustomSourceP.java)
- for more information
+Refer to 
+[code samples](https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/spring/src/main/java/jet/spring/source/CustomSourceP.java)
+for more information.
