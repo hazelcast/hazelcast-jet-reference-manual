@@ -111,6 +111,15 @@ libraries.
 
 Apache Kafka is distributed under the terms of the http://www.apache.org/licenses/LICENSE-2.0[Apache License 2].
 
+=== Spring
+
+Hazelcast integrates with Spring and can be configured using Spring
+Context. Jet has a dependency on the libraries required to create a
+spring context.
+
+Spring is distributed under the terms of the http://www.apache.org/licenses/LICENSE-2.0[Apache License 2].
+
+
 [appendix]
 = FAQ
 
