@@ -119,14 +119,16 @@ for information on how to do this.
 
 == Spring Integration
 
-You can integrate Hazelcast Jet with Spring and this chapter explains
-the configuration of Hazelcast Jet within Spring context.
+You can configure and start a Hazelcast Jet instance as a component in
+the Spring Application Context. You can use the plain `bean` element
+and then define individual properties on a `JetConfig` instance, but
+Jet provides its own schema-based configuration which will make this
+much less verbose.
 
-=== Declaring Beans by Spring beans Namespace
+=== Approach 1: Use the Plain `bean` Element
 
-You can declare Hazelcast Jet Objects using the default Spring beans
-namespace. Here is an example code for a Hazelcast Jet Instance
-declaration:
+You can declare Hazelcast Jet objects using the default Spring beans
+namespace. Here is an example for a Hazelcast Jet Instance declaration:
 
 [source, xml]
 ----
@@ -162,16 +164,14 @@ declaration:
 </bean>
 ----
 
-=== Declaring Beans by _jet_ Namespace
+=== Approach 2: Use `jet:instance`
 
-Hazelcast Jet has its own namespace *_jet_* for bean definitions.
-You can easily add the namespace declaration
-`xmlns:jet=“http://www.hazelcast.com/schema/jet-spring”` to the
-beans element in the context file so that *_jet_* namespace shortcut
-can be used as a bean declaration. Remember to add
-`hazelcast-jet-spring.jar` to classpath.
+Hazelcast Jet provides its own Spring config schema. Add the namespace
+declaration `xmlns:jet=“http://www.hazelcast.com/schema/jet-spring”`
+to the `beans` element and then use the *_jet_* namespace prefix.
+Make sure you added `hazelcast-jet-spring.jar` to the classpath.
 
-Here is an example schema definition:
+Here's how your namespace and schema instance declarations may look:
 
 [source,xml]
 ----
@@ -191,7 +191,7 @@ Here is an example schema definition:
  </beans>
 ----
 
-==== Configuring Hazelcast Jet Instance
+==== Configuring the Hazelcast Jet Instance
 
 [source,xml]
 ----
@@ -218,7 +218,7 @@ Here is an example schema definition:
 </jet:instance>
 ----
 
-==== Configuring Hazelcsat Jet Client
+==== Configure a Jet Client
 
 [source,xml]
 ----
@@ -231,21 +231,13 @@ Here is an example schema definition:
 </jet:client>
 ----
 
-==== Hazelcast Jet Supported Type Configurations and Examples
+==== Additional Bean Types Supported by the Jet Namespace
+
+You can obtain the underlying `HazelcastInstance` from the Jet instance
+as a bean and use it to obtain these Hazelcast IMDG beans:
 
  - map
  - list
-
-[source,xml]
-----
-<jet:map instance-ref="jet-instance" name="my-map" id="my-map-bean"/>
-
-<jet:list instance-ref="jet-client" name="my-list" id="my-list-bean"/>
-----
-
-You can obtain the underlying `HazelcastInstance` as a bean and use
-this bean to obtain other data types which Hazelcast IMDG supports.
-
  - multiMap
  - replicatedmap
  - queue
@@ -259,9 +251,15 @@ this bean to obtain other data types which Hazelcast IMDG supports.
  - countDownLatch
  - lock
 
+Here are short examples for each of them:
+
 [source,xml]
 ----
 <jet:hazelcast jet-instance-ref="jet-instance" id="hazelcast-instance"/>
+
+<jet:map instance-ref="jet-instance" name="my-map" id="my-map-bean"/>
+
+<jet:list instance-ref="jet-client" name="my-list" id="my-list-bean"/>
 
 <hz:multiMap id="multiMap" instance-ref="hazelcast-instance" name="my-multiMap"/>
 
@@ -288,8 +286,8 @@ this bean to obtain other data types which Hazelcast IMDG supports.
 <hz:lock id="lock" instance-ref="hazelcast-instance" name="my-lock"/>
 ----
 
-Hazelcast Jet also supports _lazy-init_, _scope_ and _depends-on_
-bean attributes.
+Hazelcast Jet also supports _lazy-init_, _scope_ and _depends-on_ bean
+attributes.
 
 [source,xml]
 ----
@@ -304,9 +302,8 @@ bean attributes.
 === Annotation-Based Configuration
 
 Annotation-Based Configuration does not require any XML definition.
-Simply create a class with related annotations, e.g.
-`@Configuration` and provide `JetInstance` as a bean by annotating
-the method with `@Bean`.
+Simply create a configuration class annotated with `@Configuration` and
+provide a `JetInstance` as a bean by annotating the method with `@Bean`.
 
 [source,java]
 ----
