@@ -1,0 +1,64 @@
+include::attributes.adoc[]
+= Hazelcast Jet Reference Manual
+Version {jet-version}
+:icons: font
+:idprefix:
+:idseparator: -
+:imagesdir: images
+:safe-mode: SECURE
+:sectanchors:
+:sectlinks:
+:source-highlighter: coderay
+:source-indent: 0
+:source-language: java
+:stylesheet: stylesheets/hazelcast.css
+:toc: left
+:toc-title: Hazelcast Jet {jet-version} Reference Manual
+:toclevels: 2
+
+Welcome to the Hazelcast Jet Reference Manual. This manual includes
+concepts, instructions, and samples to guide you on how to use Hazelcast
+Jet to build applications.
+
+image::logo_dark.png[]
+
+Hazelcast Jet is a distributed computing platform. It supports both
+finite datasets (batch processing) and infinite streams with continuous
+operators. With Hazelcast In-Memory Data Grid (IMDG) providing storage
+functionality, Hazelcast Jet performs data-local parallel execution,
+enabling data-intensive applications to operate in real time. Using
+directed acyclic graphs (DAG) to model relationships between individual
+steps in the data processing pipeline, Hazelcast Jet is simple to deploy.
+Hazelcast Jet is an Apache 2 licensed open source project. Please also
+refer to the http://jet.hazelcast.org[Hazelcast Jet website] for
+information on its features, use cases and performance considerations.
+
+As the reader of this manual, you must be familiar with the Java
+programming language and you should have installed your preferred
+Integrated Development Environment (IDE).
+
+:leveloffset: +1
+
+include::preface.adoc[]
+
+:numbered:
+
+include::introduction.adoc[]
+
+include::get-started.adoc[]
+
+include::what-is-distributed-computing.adoc[]
+
+include::work-with-jet/index.adoc[]
+
+include::configuration.adoc[]
+
+include::j-u-s.adoc[]
+
+include::under-the-hood.adoc[]
+
+include::expert-zone/index.adoc[]
+
+include::appendix.adoc[]
+
+include::glossary.adoc[]

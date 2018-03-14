@@ -1,0 +1,335 @@
+= Hazelcast IMDG
+
+== IMap and ICache
+
+Hazelcast IMDG's `IMap` and `ICache` are very similar in the way Jet
+uses them and largely interchangeable. `IMap` has a bit more features.
+The simplest way to use them is as finite sources of their contents, but
+if you enable the Event Journal on a map/cache, you'll be able to use
+it as a source of an infinite stream of update events
+(<<receive, see below>>).
+
+The most basic usage is very simple, here are snippets to use `IMap`
+and `ICache` as a source and a sink:
+
+[source]
+----
+Pipeline p = p.create();
+ComputeStage<Entry<String, Long>> stage =
+        p.drawFrom(Sources.<String, Long>map("myMap"));
+stage.drainTo(Sinks.map("myMap"));
+----
+
+[source]
+----
+Pipeline p = p.create();
+ComputeStage<Entry<String, Long>> stage =
+        p.drawFrom(Sources.<String, Long>cache("myCache"));
+stage.drainTo(Sinks.cache("myCache"));
+----
+
+In these snippets we draw from and drain to the same kind of structure,
+but you can use any combination.
+
+=== Update Entries in IMap
+
+When you use an `IMap` as a sink, instead of just pushing the data into
+it you may have to merge the new with the existing data or delete the
+existing data. Hazelcast Jet supports this with map-updating sinks which
+rely on Hazelcast IMDG's
+http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#entry-processor[Entry Processor]
+feature. An entry processor allows you to atomically execute a piece of
+code against a map entry, in a data-local manner.
+
+The updating sinks come in three variants:
+
+1. {jet-javadoc}/Sinks.html#mapWithMerging-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBinaryOperator-[`mapWithMerging`],
+where you provide a a function that computes the map value from the
+stream item and a merging function that gets called if a value already
+exists in the map. Here's an example that concatenates string values:
++
+[source]
+----
+    Pipeline pipeline = Pipeline.create();
+    pipeline.drawFrom(Sources.map("mymap"))
+            .drainTo(
+                    Sinks.mapWithMerging(
+                            "mymap",
+                            item -> item.getKey(),
+                            item -> item.getValue(),
+                            (oldValue, newValue) -> oldValue + newValue
+                    )
+            );
+----
++
+NOTE: This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the update function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
+2. {jet-javadoc}/Sinks.html#mapWithUpdating-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBiFunction-[`mapWithUpdating`],
+where you provide a single updating function that combines the roles of
+the two functions in `mapWithMerging`. It will be called on the stream
+item and the existing value, if any. Here's an example that concatenates
+string values:
++
+[source]
+----
+    Pipeline pipeline = Pipeline.create();
+    pipeline.drawFrom(Sources.map("mymap"))
+            .drainTo(
+                    Sinks.mapWithUpdating(
+                            "mymap",
+                            item -> item.getKey(),
+                            (oldValue, item) -> (oldValue != null ? oldValue : "")
+                                                 + item.getValue()
+                    )
+            );
+----
++
+NOTE: This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the merge function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
+3. {jet-javadoc}/Sinks.html#mapWithEntryProcessor-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-[`mapWithEntryProcessor`],
+where you provide a function that returns a full-blown `EntryProcessor`
+instance that will be submitted to the map. This is the most general
+variant, but can't use batching that the other variants do and thus has
+a higher cost per item. You should use it only if you need a specialized
+entry processor that can't be expressed in terms of the other variants.
+This example takes the values of the map and submits an entry processor
+that increments the values by 5 :
+
+[source]
+----
+    Pipeline pipeline = Pipeline.create();
+    pipeline.drawFrom(Sources.map("mymap"))
+            .drainTo(
+                    Sinks.mapWithEntryProcessor(
+                            "mymap",
+                            item -> item.getKey(),
+                            item -> new IncrementEntryProcessor(5)
+                    )
+            );
+
+    static class IncrementEntryProcessor implements EntryProcessor<Integer, Integer> {
+
+        private int incrementBy;
+
+        public IncrementEntryProcessor(int incrementBy) {
+                this.incrementBy = incrementBy;
+        }
+
+        @Override
+        public Object process(Entry<Integer, Integer> entry) {
+                return entry.setValue(entry.getValue() + incrementBy);
+        }
+
+        @Override
+        public EntryBackupProcessor<Integer, Integer> getBackupProcessor() {
+                return null;
+        }
+    }
+----
+
+=== Access an External Cluster
+
+To access a Hazelcast IMDG cluster separate from the Jet cluster, you
+have to provide Hazelcast client configuration for the connection. In
+this simple example we use programmatic configuration to draw from and
+drain to remote `IMap` and `ICache`. Just for variety, we funnel the
+data from `IMap` to `ICache` and vice versa:
+
+[source]
+----
+ClientConfig cfg = new ClientConfig();
+cfg.getGroupConfig().setName("myGroup").setPassword("pAssw0rd");
+cfg.getNetworkConfig().addAddress("node1.mydomain.com", "node2.mydomain.com");
+
+Pipeline p = p.create();
+ComputeStage<Entry<String, Long>> fromMap =
+        p.drawFrom(Sources.<String, Long>remoteMap("inputMap", cfg));
+ComputeStage<Entry<String, Long>> fromCache =
+        p.drawFrom(Sources.<String, Long>remoteCache("inputCache", cfg));
+fromMap.drainTo(Sinks.remoteCache("outputCache", cfg));
+fromCache.drainTo(Sinks.remoteMap("outputMap", cfg));
+----
+
+For a full discussion on how to configure your client connection, refer
+to the
+http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#configuring-java-client[Hazelcast IMDG documentation]
+on this topic.
+
+=== Optimize Data Traffic at the Source
+
+If your use case calls for some filtering and/or transformation of the
+data you retrieve, you can optimize the traffic volume by providing a
+filtering predicate and an arbitrary transformation function to the
+source connector itself and they'll get applied on the remote side,
+before sending:
+
+[source]
+----
+Pipeline p = p.create();
+p.drawFrom(Sources.<String, Person, Integer>remoteMap(
+        "inputMap", clientConfig,
+        e -> e.getValue().getAge() > 21,
+        e -> e.getValue().getAge()));
+----
+
+The same optimization works on a local `IMap`, too, but has less impact.
+However, Hazelcast IMDG goes a step further in optimizing your filtering
+and mapping to a degree that matters even locally. If you don't need
+fully general functions, but can express your predicate via
+http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/query/Predicates.html[`Predicates`]
+or
+http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/query/PredicateBuilder.html[`PredicateBuilder`],
+they will create a specialized predicate instance that can test the
+object without deserializing it. Similarly, if the mapping you need is
+of a constrained kind where you just extract one or more object fields
+(attributes), you can specify a _projection_ instead of a general
+mapping lambda:
+http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/projection/Projections.html#singleAttribute-java.lang.String-[`Projections.singleAttribute()`]
+or http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/projection/Projections.html#multiAttribute-java.lang.String...-[
+`Projections.multiAttribute()`].
+These will extract the listed attributes without deserializing the whole
+object. For these optimizations to work, however, your objects must
+employ Hazelcast's {hz-refman}#implementing-portable-serialization[portable serialization].
+They are especially relevant if the volume of data you need in the Jet
+job is significantly less than the volume of the stored data.
+
+Note that the above feature is not available on `ICache`. It is,
+however, available on `ICache`'s event journal, which we introduce next.
+
+[[receive]]
+=== Receive an Infinite Stream of Update Events
+
+You can use `IMap`/`ICache` as sources of infinite event streams. For
+this to work you have to enable the Event Journal on your data
+structure. This is a feature you set in the Jet/IMDG instance
+configuration, which means you cannot change it while the cluster is
+running.
+
+This is how you enable the Event Journal on an `IMap`:
+
+[source]
+----
+JetConfig cfg = new JetConfig();
+cfg.getHazelcastConfig()
+   .getMapEventJournalConfig("inputMap")
+   .setEnabled(true)
+   .setCapacity(1000) // how many events to keep before evicting
+   .setTimeToLiveSeconds(10); // evict events older than this
+JetInstance jet = Jet.newJetInstance(cfg);
+----
+
+The default journal capacity is 10,000 and the default time-to-live is 0
+(which means "`unlimited`"). Since the entire event journal is kept in
+RAM, you should take care to adjust these values to match your use case.
+
+The configuration API for `ICache` is identical:
+
+[source]
+----
+cfg.getHazelcastConfig()
+   .getCacheEventJournalConfig("inputCache")
+   .setEnabled(true)
+   .setCapacity(1000)
+   .setTimeToLiveSeconds(10);
+----
+
+Once properly configured, you use Event Journal sources like this:
+
+[source]
+----
+Pipeline p = Pipeline.create();
+ComputeStage<Entry<String, Long>> fromMap =
+        p.drawFrom(Sources.<String, Long>mapJournal("inputMap", START_FROM_CURRENT));
+ComputeStage<Entry<String, Long>> fromCache =
+        p.drawFrom(Sources.<String, Long>cacheJournal("inputCache", START_FROM_CURRENT));
+----
+
+`IMap` and `ICache` are on an equal footing here. The second argument,
+`START_FROM_CURRENT` here, means "start receiving from events that occur
+after the processing starts". If you specify `START_FROM_OLDEST`, you'll
+get all the events still on record.
+
+This version of methods will only emit `ADDED` and `UPDATED` event
+types. Also, it will map the event object to simple `Map.Entry` with the
+key and new value. If you want to receive all types of events, use the
+second version of methods:
+
+[source]
+----
+ComputeStage<EventJournalMapEvent<String, Long>> allFromMap =
+        p.drawFrom(Sources.<String, Long, EventJournalMapEvent<String, Long>>mapJournal("inputMap",
+                alwaysTrue(), identity(), START_FROM_CURRENT));
+ComputeStage<EventJournalCacheEvent<String, Long>> allFromCache =
+        p.drawFrom(Sources.<String, Long, EventJournalCacheEvent<String, Long>>cacheJournal("inputCache",
+                alwaysTrue(), identity(), START_FROM_CURRENT));
+----
+
+Note the type of the stream element: `EventJournalMapEvent` and
+`EventJournalCacheEvent`. These are almost the same and have these
+methods:
+
+- `getKey()`
+- `getOldValue()`
+- `getNewValue()`
+- `getType()`
+
+The only difference is the return type of `getType()` which is specific
+to each kind of structure and gives detailed insight into what kind of
+event it reports. _Add_, _remove_ and _update_ are the basic ones, but
+there are also _evict_, _clear_, _expire_ and some others.
+
+Finally, you can get all of the above from a map/cache in another
+cluster, you just have to prepend `remote` to the source names and add a
+`ClientConfig`, for example:
+
+[source]
+----
+ComputeStage<Entry<String, Long>> fromRemoteMap = p.drawFrom(
+        Sources.<String, Long>remoteMapJournal("inputMap", clientConfig(), START_FROM_CURRENT));
+ComputeStage<Entry<String, Long>> fromRemoteCache = p.drawFrom(
+        Sources.<String, Long>remoteCacheJournal("inputCache", clientConfig(), START_FROM_CURRENT));
+----
+
+== IList
+
+Whereas `IMap` and `ICache` are the recommended choice of data sources
+and sinks in Jet jobs, Jet supports `IList` purely for convenience
+during prototyping, unit testing and similar non-production situations.
+It is not a partitioned and distributed data structure and only one
+cluster member has all the contents. In a distributed Jet job all the
+members will compete for access to the single member holding it.
+
+With that said, `IList` is very simple to use. Here's an example how to
+fill it with test data, consume it in a Jet job, dump its results into
+another list, and fetch the results (we assume you already have a Jet
+instance in the variable `jet`):
+
+[source]
+----
+IList<Integer> inputList = jet.getList("inputList");
+for (int i = 0; i < 10; i++) {
+    inputList.add(i);
+}
+
+Pipeline p = Pipeline.create();
+p.drawFrom(Sources.<Integer>list("inputList"))
+ .map(i -> "item" + i)
+ .drainTo(Sinks.list("resultList"));
+
+jet.newJob(p).join();
+
+IList<String> resultList = jet.getList("resultList");
+System.out.println("Results: " + new ArrayList<>(resultList));
+----
+
+You can access a list in an external cluster as well, by providing a
+ `ClientConfig` object:
+
+[source]
+----
+ClientConfig clientConfig = new ClientConfig();
+clientConfig.getGroupConfig().setName("myGroup").setPassword("pAssw0rd");
+clientConfig.getNetworkConfig().addAddress("node1.mydomain.com", "node2.mydomain.com");
+
+Pipeline p = Pipeline.create();
+ComputeStage<Object> stage = p.drawFrom(Sources.remoteList("inputlist", clientConfig));
+stage.drainTo(Sinks.remoteList("resultList", clientConfig));
+----

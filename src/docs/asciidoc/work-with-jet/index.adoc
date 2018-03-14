@@ -1,0 +1,20 @@
+[[work-with-jet]]
+= Work With Jet
+
+:leveloffset: +1
+
+include::start-jet.adoc[]
+
+include::build-computation.adoc[]
+
+include::implement-aggregation.adoc[]
+
+include::configure-fault-tolerance.adoc[]
+
+include::source-sink-connectors/index.adoc[]
+
+include::considerations.adoc[]
+
+include::log-debug.adoc[]
+
+:leveloffset: -1

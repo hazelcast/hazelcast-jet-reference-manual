@@ -1,20 +1,10 @@
-.project
-.classpath
-.settings/
-.idea/
 .patch
 *.iml
+*.ipr
+*.iws
 .DS_Store
-
-# PHP installation
+.gradle
+.idea
+build
+static
 vendor
-
-# generated content
-static/
-
-# temporary build files
-src/images
-copyright.txt
-index.md
-manifest.json
-title.txt

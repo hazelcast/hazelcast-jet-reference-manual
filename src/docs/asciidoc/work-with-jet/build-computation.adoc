@@ -1,0 +1,322 @@
+[[pipeline-api]]
+= Build Your Computation Pipeline
+
+== The Shape of a Pipeline
+
+The general shape of any data processing pipeline is `drawFromSource ->
+transform -> drainToSink` and the natural way to build it is from source
+to sink. The {jet-javadoc}/Pipeline.html[Pipeline] API follows this
+pattern. For example,
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s1]
+----
+
+In each step, such as `drawFrom` or `drainTo`, you create a pipeline
+_stage_. The stage resulting from a `drainTo` operation is called a
+_sink stage_ and you can't attach more stages to it. All others are
+called _compute stages_ and expect you to attach stages to them.
+
+The API differentiates between batch (bounded) and stream (unbounded)
+sources and this is reflected in the naming: there is a `BatchStage`
+and a `StreamStage`, each offering the operations appropriate to its
+kind. In this section we'll mostly use batch stages, for simplicity,
+but the API of operations common to both kinds is identical. We'll
+explain later on how to apply windowing, which is necessary to aggregate
+over unbounded streams.
+
+Your pipeline can consist of multiple sources, each starting its own
+branch, and you mix both kinds in the same pipeline. You can merge the
+branches with joining transforms. For example, the <<hash-join,
+hash-join>> transform can join a stream stage with batch stages:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s2]
+----
+
+Symmetrically, you can fork the output of a stage and send it to more
+than one destination:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s3]
+----
+
+== Choose Your Data Sources and Sinks
+
+Hazelcast Jet has support for these data sources and sinks:
+
+- Hazelcast `IMap` and `ICache`, both as a batch source of just their
+contents and their event journal as an infinite source
+- Hazelcast `IList` (batch)
+- Hadoop Distributed File System (HDFS) (batch)
+- Kafka topic (infinite stream)
+- TCP socket (infinite stream)
+- a directory on the filesystem, both as a batch source of the current
+  file contents and an infinite source of append events to the files
+
+You can access most of them via the
+{jet-javadoc}/pipeline/Sources.html[`Sources`] and
+{jet-javadoc}/pipeline/Sinks.html[`Sinks`] utility classes.
+{jet-javadoc}/KafkaSources.html[Kafka] and
+{jet-javadoc}/HdfsSources.html[HDFS] connectors are in their separate
+modules.
+
+There's a <<source-sink-connectors, dedicated section>> that discusses
+the topic of data sources and sinks in more detail.
+
+== Compose the Pipeline Transforms
+
+The simplest kind of transformation is one that can be done on each item
+individually and independent of other items. The major examples are
+{jet-javadoc}/pipeline/BatchStage.html#map-com.hazelcast.jet.function.DistributedFunction-[`map`],
+{jet-javadoc}/pipeline/BatchStage.html#filter-com.hazelcast.jet.function.DistributedPredicate-[`filter`]
+and
+{jet-javadoc}/pipeline/BatchStage.html#flatMap-com.hazelcast.jet.function.DistributedFunction-[`flatMap`].
+We already saw them in use in the previous examples. `map` transforms
+each item to another item; `filter` discards items that don't match its
+predicate; and `flatMap` transforms each item into zero or more output
+items.
+
+Beyond these simple transforms Jet offers the _hash-join_ for data
+enrichment and _aggregation_, the most powerful and versatile transform.
+We discuss these in the following sections.
+
+[[hash-join]]
+== Hash-Join
+
+{jet-javadoc}/pipeline/BatchStage.html#hashJoin-com.hazelcast.jet.pipeline.BatchStage-com.hazelcast.jet.pipeline.JoinClause-com.hazelcast.jet.function.DistributedBiFunction-[Hash-join]
+is a specialization of a general "`join`" operation, optimized for the use
+case of _data enrichment_. In this scenario there is a single,
+potentially infinite data stream (the _primary_ stream), that goes
+through a mapping transformation which attaches to each item some more
+items found by hashtable lookup. The hashtables have been populated
+from all the other streams (the _enriching_ streams) before the
+consumption of the primary stream started.
+
+For each enriching stream you can specify a pair of key-extracting
+functions: one for the enriching item and one for the primary item. This
+means that you can define a different join key for each of the enriching
+streams. The following example shows a three-way hash-join between the
+primary stream of stock trade events and two enriching streams:
+_products_ and _brokers_.
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s10]
+----
+
+Products are joined on `Trade.productId` and brokers on
+`Trade.brokerId`. `joinMapEntries()` returns a `JoinClause`, which is a
+holder of the three functions that specify how to perform a join:
+
+1. the key extractor for the primary stream's item
+2. the key extractor for the enriching stream's item
+3. the projection function that transforms the enriching stream's item
+into the item that will be used for enrichment.
+
+Typically the enriching streams will be `Map.Entry` s coming from a
+key-value store, but you want just the entry value to appear as the
+enriching item. In that case you'll specify `Map.Entry::getValue` as the
+projection function. This is what `joinMapEntries()` does for you. It
+takes just one function, primary stream's key extractor, and fills in
+`Entry::getKey` and `Entry::getValue` for the enriching stream key
+extractor and the projection function, respectively.
+
+In the interest of performance the entire enriching dataset resides on
+each cluster member. That's why this operation is also known as a
+_replicated_ join. This is something to keep in mind when estimating
+the RAM requirements for a hash-join operation.
+
+=== Hash-Join With Four or More Streams Using the Builder
+
+You can hash-join a stream with up to two enriching streams using the
+API we demonstrated above. If you have more than two enriching streams,
+you'll use the
+{jet-javadoc}/pipeline/StreamStage.html#hashJoinBuilder--[hash-join builder].
+For example, you may want to enrich a trade with its associated product,
+broker, and market:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s11]
+----
+
+The data type on the hash-joined stage is `Tuple2<Trade, ItemsByTag>`.
+The next snippet shows how to use it to access the primary and enriching
+items:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s12]
+----
+
+== Aggregation and Grouping
+
+Data aggregation is the cornerstone of distributed stream processing. It
+computes an aggregate function (simple examples: sum or average) over
+the data items. Typically you don't want to agregate all the items
+together, but classify them by some key and then aggregate over each
+group separately. This is the _group-and-aggregate_ transformation. You
+can simultaneously join several streams on a key and group-aggregate
+them on the same key. This is the _cogroup-and-aggregate_
+transformation. Finally, if you're processing an unbounded event stream,
+you must define a bounded _window_ over the stream within which Jet will
+aggregate the data.
+
+This is how a very simple batch aggregation without grouping may look
+(the list named "`text`" contains lines of text):
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s4]
+----
+
+We simply counted all the lines and pushed the count to a list named
+"`result`". Let's count all the words instead:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s5]
+----
+
+We split up the lines into words using a regular expression. Blank lines
+result in empty "`words`" so we filter these out.
+
+Now let's turn this into something more insigtful: a word frequency
+histogram, giving us for each distinct word the number of its
+occurrences:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s6]
+----
+
+We just added a grouping key, in this case it is the word itself
+(`Util.wholeItem()` returns the identity function). Now our pipeline
+produces not one, but as many distinct result items as there are words
+in the text. What we've just built up is the classical Word Count task.
+
+The definition of the aggregate operation hides behind the `counting()`
+method call. This is a static method in our
+{jet-javadoc}/aggregate/AggregateOperations.html[`AggregateOperations`]
+utility class, which provides you with some predefined aggregate
+operations. You can also implement your own aggregate operations; please
+refer to the section <<implement-your-aggregate-operation,
+dedicated to this>>.
+
+[[cogroup]]
+== Co-Aggregation
+
+Just as we performed aggregate and group-and-aggregate operations above,
+we can perform a co-aggregate and cogroup-and-aggregate of several
+stages together. In SQL terms this is analogous to a JOIN coupled with a
+GROUP BY. The JOIN condition is constrained to matching on the grouping
+key.
+
+Here's a simple example where we do the Word Count from two source
+lists:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s7]
+----
+
+Note the `counting2()` call, this one isn't included in Jet's library.
+It is like `AggregateOperations.counting()`, but for two sources. In
+this simple example both sources are treated equally (just increment the
+total count), but the point of `AggregateOperation` 's API is that you
+can differentiate between them and treat each one differently. Here's
+an example definition that applies different weights to the streams,
+making the stream-1 words worth ten times more than those in stream-0:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s8]
+----
+
+[[cogroup-builder]]
+===  Co-aggregate Four or More Streams Using the Builder
+
+If you need to join more than three streams, you'll have to use the
+{jet-javadoc}/pipeline/StageWithGroupingAndWindow.html#aggregateBuilder--[builder]
+object. For example, your goal may be correlating events coming from
+different systems, where all the systems serve the same user base. In an
+online store you may have separate streams for product page visits,
+adding to shopping cart, payments, and deliveries. You want to correlate
+all the events associated with the same user. The example below
+calculates statistics per category for each user:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s9]
+----
+
+Note the interaction between the co-aggregation building code and the
+aggregate operation-building code: the co-aggregation builder gives you
+type tags that you then pass to the aggregate operation. This
+establishes the connection between the streams contributing to the
+co-aggregate transform and the aggregate operation processing them.
+Refer to the <<implement-your-aggregate-operation, section on
+`AggregateOperation`>> to learn more about it.
+
+== Windowed Aggregation
+
+Let's upgrade our batch Word Count to windowed aggregation over an
+endless stream of tweets:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s13]
+----
+
+Now we've got a Jet job that does live tracking of words currently
+trending in tweets. The sliding window definition tells Jet to aggregate
+over the last minute and update its result every second.
+
+We employed the simplest way of dealing with the notion of time: we
+ignored the time when the event actually happened and just slapped the
+current time on it. Usually the event contains its own timestamp and
+Jet must honor it. To achieve that, you pass a function that selects the
+timestamp to `addTimestamps()`, but now you must also deal with events
+coming out of order. We discussed these concerns <<time-ordering, in the
+previous chapter>>.
+
+Here's an example with `Tweet` objects that carry their own timestamp:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s14]
+----
+
+In the line `.addTimestamps(TweetWord::timestamp,
+TimeUnit.SECONDS.toMillis(5))` we specified two things: how to extract
+the timestamp and how much event lag we want to tolerate. We said that
+an event's timestamp can be at most five seconds behind the newest event
+we already received. This also means that Jet will have to delay
+emitting a windowed result until it receives an event that's five
+seconds past the window's end, so the latency will typically be five
+seconds or more.
+
+Notice how we had to struggle a bit to hold on to the timestamp through
+the flatmapping transformation. We needed two classes: `Tweet` and
+`TweetWord`. We can avoid this need if we assign timestamps earlier on:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s15]
+----
+
+This will work correctly because Jet keeps the event timestamps
+internally and correlates the input item to all the output items in a
+`flatMap` transformation, propagating the timestamp value.
+
+You should generally prefer setting timestamps as the first thing in
+a pipeline because then the source connector will handle the watermarks
+itself. The connector knows more about the structure of its source and
+can produce better watermarks, with less latency and less dropped late
+events.
+
+
