@@ -14,18 +14,12 @@ and `ICache` as a source and a sink:
 
 [source]
 ----
-Pipeline p = p.create();
-ComputeStage<Entry<String, Long>> stage =
-        p.drawFrom(Sources.<String, Long>map("myMap"));
-stage.drainTo(Sinks.map("myMap"));
+include::{javasource}/ImdgConnectors.java[tag=s1]
 ----
 
 [source]
 ----
-Pipeline p = p.create();
-ComputeStage<Entry<String, Long>> stage =
-        p.drawFrom(Sources.<String, Long>cache("myCache"));
-stage.drainTo(Sinks.cache("myCache"));
+include::{javasource}/ImdgConnectors.java[tag=s2]
 ----
 
 In these snippets we draw from and drain to the same kind of structure,
@@ -50,19 +44,15 @@ exists in the map. Here's an example that concatenates string values:
 +
 [source]
 ----
-    Pipeline pipeline = Pipeline.create();
-    pipeline.drawFrom(Sources.map("mymap"))
-            .drainTo(
-                    Sinks.mapWithMerging(
-                            "mymap",
-                            item -> item.getKey(),
-                            item -> item.getValue(),
-                            (oldValue, newValue) -> oldValue + newValue
-                    )
-            );
+include::{javasource}/ImdgConnectors.java[tag=s3]
 ----
 +
-NOTE: This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the update function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
+NOTE: This operation is **NOT** lock-aware, it will process the entries
+regardless whethere they are locked or not. We significancly boost
+performance by applying the update function in batches, but this
+operation doesn't respect the locks. If you use this method on locked
+entries, it will break the mutual exclusion contract. Use
+`mapWithEntryProcessor` if you need the proper locking behavior.
 2. {jet-javadoc}/Sinks.html#mapWithUpdating-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBiFunction-[`mapWithUpdating`],
 where you provide a single updating function that combines the roles of
 the two functions in `mapWithMerging`. It will be called on the stream
@@ -71,19 +61,16 @@ string values:
 +
 [source]
 ----
-    Pipeline pipeline = Pipeline.create();
-    pipeline.drawFrom(Sources.map("mymap"))
-            .drainTo(
-                    Sinks.mapWithUpdating(
-                            "mymap",
-                            item -> item.getKey(),
-                            (oldValue, item) -> (oldValue != null ? oldValue : "")
-                                                 + item.getValue()
-                    )
-            );
+include::{javasource}/ImdgConnectors.java[tag=s4]
 ----
 +
-NOTE: This operation is **NOT** lock-aware, it will process the entries no matter if they are locked or not. The reason for this behavior is that under the hood, we are applying the merge function on keys in batches for performance reasons and this operation does not respect locked entries. So if you use this method on locked entries, your entries will be updated without respecting the lock and mutual exclusion contract will be broken. Use `mapWithEntryProcessor` if you need locking behavior which respects the locks on entries.
+NOTE: This operation is **NOT** lock-aware, it will process the entries
+regardless whethere they are locked or not. We significancly boost
+performance by applying the update function in batches, but this
+operation doesn't respect the locks. If you use this method on locked
+entries, it will break the mutual exclusion contract. Use
+`mapWithEntryProcessor` if you need the proper locking behavior.
+
 3. {jet-javadoc}/Sinks.html#mapWithEntryProcessor-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-[`mapWithEntryProcessor`],
 where you provide a function that returns a full-blown `EntryProcessor`
 instance that will be submitted to the map. This is the most general

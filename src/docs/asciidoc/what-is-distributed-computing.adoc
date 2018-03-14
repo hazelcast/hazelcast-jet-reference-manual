@@ -94,31 +94,13 @@ perform the same computation by running a separate thread for each step.
 Roughly speaking, these are the snippets the threads would be executing:
 
 [source]
-// Source thread
-for (String line : readLines()) {
-    emit(line);
-}
+include::{javasource}/WhatIsDistributedComputing.java[tag=s4]
 
 [source]
-// Tokenizer thread
-for (String line : receive()) {
-    for (String word : line.toLowerCase().split("\\W+")) {
-        if (!word.isEmpty()) {
-            emit(word);
-        }
-    }
-}
+include::{javasource}/WhatIsDistributedComputing.java[tag=s5]
 
 [source]
-// Accumulator thread
-Map<String, Long> counts = new HashMap<>();
-for (String word : receive()) {
-    counts.merge(word, 1L, (count, one) -> count + one);
-}
-// finally, when done receiving:
-for (Entry<String, Long> wordAndCount : counts.entrySet()) {
-    emit(wordAndCount);
-}
+include::{javasource}/WhatIsDistributedComputing.java[tag=s6]
 
 The source loop feeds the tokenizer loop over a concurrent queue, the
 tokenizer feeds the accumulator loop, and after the accumulator is done
@@ -202,16 +184,7 @@ distinct word. Here's the rough equivalent of the code the combining
 vertex executes:
 
 [source]
-// Combining vertex
-Map<String, Long> combined = new HashMap<>();
-for (Entry<String, Long> wordAndCount : receive()) {
-    combined.merge(wordAndCount.getKey(), wordAndCount.getValue(),
-                    (accCount, newCount) -> accCount + newCount);
-}
-// finally, when done receiving:
-for (Entry<String, Long> wordAndCount : combined.entrySet()) {
-    emit(wordAndCount);
-}
+include::{javasource}/WhatIsDistributedComputing.java[tag=s7]
 
 As noted above, such a scheme takes more memory due to more hashtable
 entries on each member, but it saves network traffic (an issue we didn't
@@ -454,13 +427,16 @@ to be suspended. Except for the obvious problem of new data pouring in
 while we're down, we have a much more fiddly issue of restarting the
 computation in a differently laid-out cluster exactly where it left off
 and neither miss anything nor process it twice. The technical term for
-this is the "exactly-once processing guarantee" and, as with all
-guarantees, the principle of the weakest link applies: Jet can only
-support it up to the level of support from each individual part. The
-critical components are the sources and sinks because they are the
-boundary between the domain under Jet's control and the environment. A
-source must be able to consistently replay data to Jet from a point it
-asks for, and the sink must either support transactions or be
+this is the "exactly-once processing guarantee".
+
+Jet achieves fault tolerance in streaming jobs by making a snapshot of
+the internal processing state at regular intervals. If a member of the
+cluster fails while a job is running, Jet will detect this and restart
+the job on the new cluster topology. It will restore its internal state
+from the snapshot and tell the source to start sending data from the
+last "`committed`" position (where the snapshot was taken). The data
+source must have built-in support to replay the data from the given
+checkpoint. The sink must either support transactions or be
 _idempotent_, tolerating duplicate submission of data.
 
 As of version 0.6, Hazelcast Jet supports exactly-once processing with
@@ -472,8 +448,3 @@ members what to do and they report to it any status changes. The
 coordinator may fail and the cluster will automatically re-elect another
 one. If any other member fails, the coordinator restarts the job on the
 remaining members.
-
-Job submission is a fire-and-forget action: once a client submits it,
-the job has a life of its own independent of the submitter. The
-submitter can disconnect and any other client or Jet member can request
-a local `Job` instance which allows it to monitor and manage the job.

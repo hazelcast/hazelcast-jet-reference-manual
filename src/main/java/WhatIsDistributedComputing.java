@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,78 @@ public class WhatIsDistributedComputing {
             }
         }
         //end::s3[]
+    }
+
+    static void s4() {
+        //tag::s4[]
+        // Source thread
+        for (String line : readLines()) {
+            emit(line);
+        }
+        //end::s4[]
+    }
+    private static Iterable<String> readLines() { return null; }
+    private static void emit(Object x) {}
+
+    private static class S5 {
+        static void s5() {
+            //tag::s5[]
+            // Tokenizer thread
+            for (String line : receive()) {
+                for (String word : line.toLowerCase().split("\\W+")) {
+                    if (!word.isEmpty()) {
+                        emit(word);
+                    }
+                }
+            }
+            //end::s5[]
+        }
+        private static Iterable<String> receive() { return null; }
+    }
+
+    private static class S6 {
+        static void s6() {
+            //tag::s6[]
+            // Accumulator thread
+            Map<String, Long> counts = new HashMap<>();
+            for (String word : receive()) {
+                counts.merge(word, 1L, (count, one) -> count + one);
+            }
+            // finally, when done receiving:
+            for (Entry<String, Long> wordAndCount : counts.entrySet()) {
+                emit(wordAndCount);
+            }
+            //end::s6[]
+        }
+        private static Iterable<String> receive() { return null; }
+    }
+
+    private static class S7 {
+        static void s7() {
+            //tag::s7[]
+            // Combining vertex
+            Map<String, Long> combined = new HashMap<>();
+            for (Entry<String, Long> wordAndCount : receive()) {
+                combined.merge(wordAndCount.getKey(), wordAndCount.getValue(),
+                        (accCount, newCount) -> accCount + newCount);
+            }
+            // finally, when done receiving:
+            for (Entry<String, Long> wordAndCount : combined.entrySet()) {
+                emit(wordAndCount);
+            }
+            //end::s7[]
+        }
+        private static Iterable<? extends Entry<String, Long>> receive() { return null; }
+    }
+
+    static void s8() {
+        //tag::s8[]
+        //end::s8[]
+    }
+
+    static void s9() {
+        //tag::s9[]
+        //end::s9[]
     }
 
     private static List<String> someExistingList() {

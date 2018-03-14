@@ -8,12 +8,7 @@ same JVM, they'll communicate over the network interface.
 
 [source]
 ----
-public class WordCount {
-    public static void main(String[] args) {
-        JetInstance jet = Jet.newJetInstance();
-        Jet.newJetInstance();
-    }
-}
+include::{javasource}/StartJet.java[tag=s1]
 ----
 
 These two instances should automatically discover each other using IP
@@ -35,40 +30,20 @@ remain alive after the `main()` method completes:
 
 [source]
 ----
-public class WordCount {
-    public static void main(String[] args) {
-        try {
-            JetInstance jet = Jet.newJetInstance();
-            Jet.newJetInstance();
-
-            ... work with Jet ...
-
-        } finally {
-            Jet.shutdownAll();
-        }
-    }
-}
+include::{javasource}/StartJet.java[tag=s2]
 ----
 
 This is how you submit a Jet pipeline for execution:
 
 [source]
 ----
-jet.newJob(pipeline).join();
+include::{javasource}/StartJet.java[tag=s3]
 ----
 
-Alternatively, you can submit a Core API DAG:
-
-[source]
-----
-jet.newJob(dag).join();
-----
-
-Code samples with
-{jet-samples}/refman/src/main/java/refman/WordCountRefMan.java[the pipeline]
-and
-{jet-samples}/refman/src/main/java/refman/WordCountCoreApiRefMan.java[the Core API DAG]
-are available at our Code Samples repo.
+Job submission is a fire-and-forget action: once a client submits it,
+the job has a life of its own independent of the submitter. It can
+disconnect and any other client or Jet member can obtain its own `Job`
+instance that controls the same job.
 
 == JobConfig
 
@@ -78,9 +53,7 @@ readable name:
 
 [source]
 ----
-JobConfig cfg = new JobConfig();
-cfg.setName("my job");
-jet.newJob(pipeline, cfg);
+include::{javasource}/StartJet.java[tag=s4]
 ----
 
 In the <<practical-considerations, Practical Considerations>> section

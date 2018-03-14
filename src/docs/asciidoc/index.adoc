@@ -43,8 +43,6 @@ include::preface.adoc[]
 
 :numbered:
 
-include::introduction.adoc[]
-
 include::get-started.adoc[]
 
 include::what-is-distributed-computing.adoc[]
