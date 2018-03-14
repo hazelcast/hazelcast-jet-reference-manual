@@ -102,24 +102,20 @@ connector.
 == High Availability and Fault Tolerance
 
 Jet provides highly available and fault tolerant distributed computation.
-If one of the cluster members fails and leaves the cluster during job
-execution, the job restarted on the remaining members automatically
-and transparently. Jet achieves this by maintaining in-memory copies
-of the job metadata inside the cluster. The user does not need to designate
-any node as the master.
+If one of the cluster members fails and leaves the cluster, Jet
+automatically and transparently restarts the job on the remaining
+members. Jet achieves this by maintaining consistent replicas of the job
+metadata around the cluster. You don't have to designate any node as the
+master.
 
-In case of a failure, a batch job can typically just be restarted from
-beginning as the data can easily be replayed. For streaming jobs that run
-continuously, this might not be possible so the engine must be able
-to detect a failure, recover from it, and resume processing without data loss.
-
-Jet achieves fault tolerance in streaming jobs by making a
-snapshot of the internal processing state at regular intervals. If a
-member of the cluster fails while a job is running, Hazelcast Jet will
-detect this and restart the job on the new cluster topology. It will
-restore its internal state from the snapshot and tell the source to start
-sending data from the last "`committed`" position (where the snapshot was
-taken).
+Jet achieves fault tolerance in streaming jobs by making a snapshot of
+the internal processing state at regular intervals. If a member of the
+cluster fails while a job is running, Jet will detect this and restart
+the job on the new cluster topology. It will restore its internal state
+from the snapshot and tell the source to start sending data from the
+last "`committed`" position (where the snapshot was taken). The data
+source must have built-in support to replay the data from the given
+checkpoint.
 
 [[elasticity]]
 == Elasticity

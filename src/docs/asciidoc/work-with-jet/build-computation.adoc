@@ -254,13 +254,13 @@ calculates statistics per category for each user:
 include::{javasource}/BuildComputation.java[tag=s9]
 ----
 
-Note the interaction between the co-group building code and the
-aggregate operation-building code: the co-group builder gives you type
-tags that you then pass to the aggregate operation. This establishes the
-connection between the streams contributing to the co-group transform
-and the aggregate operation processing them. Refer to the
-<<implement-your-aggregate-operation, section on `AggregateOperation`>>
-to learn more about it.
+Note the interaction between the co-aggregation building code and the
+aggregate operation-building code: the co-aggregation builder gives you
+type tags that you then pass to the aggregate operation. This
+establishes the connection between the streams contributing to the
+co-aggregate transform and the aggregate operation processing them.
+Refer to the <<implement-your-aggregate-operation, section on
+`AggregateOperation`>> to learn more about it.
 
 == Windowed Aggregation
 

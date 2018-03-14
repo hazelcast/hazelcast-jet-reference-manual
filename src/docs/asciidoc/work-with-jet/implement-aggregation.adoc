@@ -201,10 +201,9 @@ type. When we use it as an argument to a cogroup-and-aggregate
 transform, the compiler will ensure that the `ComputeStage` s we attach
 it to have the correct type and are in the correct order.
 
-On the other hand, if you use the
-<<cogroup-builder, co-group builder>>
-object, you'll construct the aggregate operation by calling
+On the other hand, if you use the <<cogroup-builder, co-aggregation
+builder>> object, you'll construct the aggregate operation by calling
 `andAccumulate(tag, accFn)` with all the tags you got from the
-co-group builder, and the static type will be just `AggregateOperation`.
-The compiler won't be able to match up the inputs to their treatment in
-the aggregate operation.
+co-aggregation builder, and the static type will be just
+`AggregateOperation`. The compiler won't be able to match up the inputs
+to their treatment in the aggregate operation.
