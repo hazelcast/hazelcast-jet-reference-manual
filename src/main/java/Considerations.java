@@ -58,7 +58,7 @@ public class Considerations {
         Pipeline buildPipeline() {
             Pipeline p = Pipeline.create();
             p.drawFrom(Sources.list("input"))
-             .filter(item -> item.equals(instanceVar));  // <1>
+             .filter(item -> item.equals(instanceVar)); // <1>
             return p;
         }
     }
@@ -68,12 +68,12 @@ public class Considerations {
     //tag::s4[]
     class JetJob2 {
         private String instanceVar;
-        private OutputStream fileOut; // a non-serializable field
+        private OutputStream fileOut; // <1>
 
         Pipeline buildPipeline() {
             Pipeline p = Pipeline.create();
             p.drawFrom(Sources.list("input"))
-             .filter(item -> item.equals(instanceVar));  // <1>
+             .filter(item -> item.equals(instanceVar)); // <2>
             return p;
         }
     }
@@ -86,9 +86,9 @@ public class Considerations {
 
         Pipeline buildPipeline() {
             Pipeline p = Pipeline.create();
-            String findMe = instanceVar;
+            String findMe = instanceVar; // <1>
             p.drawFrom(Sources.list("input"))
-             .filter(item -> item.equals(findMe));  // <1>
+             .filter(item -> item.equals(findMe)); // <2>
             return p;
         }
     }
@@ -120,7 +120,7 @@ public class Considerations {
         ContextFactory<DateTimeFormatter> contextFactory = ContextFactory.withCreateFn( // <1>
                 x -> DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
                                       .withZone(ZoneId.systemDefault()));
-        src.mapUsingContext(contextFactory,  // <2>
+        src.mapUsingContext(contextFactory, // <2>
                 (formatter, tstamp) -> formatter.format(Instant.ofEpochMilli(tstamp))); // <3>
         //end::s8[]
     }
