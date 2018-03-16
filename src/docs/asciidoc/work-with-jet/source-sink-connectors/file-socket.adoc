@@ -7,8 +7,8 @@ plain text and emit/receive data items which represent individual lines
 of text.
 
 These connectors are not fault-tolerant. On job restart they behave the
-same as on initial start. The sources don't do snapshotting. The sinks
-don't suppress duplicate data.
+as if you started a new job. The sources don't do snapshotting. The
+sinks don't suppress duplicate data.
 
 == File Sources
 
@@ -66,17 +66,22 @@ include::{javasource}/FileAndSocket.java[tag=s3]
 
 == Socket Source
 
-These connectors open a blocking client TCP/IP socket and
-send/receive data over it. As already noted, the data must be in the
-form of lines of plain text.
+The socket source opens a blocking client TCP/IP socket and receives
+data over it. The data must be lines of plain text.
 
-The socket source can be used to receive text input over a network socket.
-
-Each underlying processor of the Socket Source connector opens its
-own client socket and asks for data from it. The user supplies the
+Each underlying worker of the Socket Source connector opens its own
+client socket and asks for data from it. The user supplies the
 `host:port` connection details. The server side should ensure a
 meaningful dispersion of data among all the connected clients, but
 how it does it is outside of Jet's control.
+
+Here's a simple example:
+
+[source]
+----
+include::{javasource}/FileAndSocket.java[tag=s4]
+----
+
 
 You can study a comprehensive
 {jet-samples}/streaming/socket-connector/src/main/java/StreamTextSocket.java[code sample]
@@ -84,7 +89,14 @@ including a sample socket server using Netty.
 
 === Sink
 
-The Socket Sink also opens one client socket per processor and
-pushes lines of text into it. It is the duty of the server-side
-system to collect the data from all the concurrently connected
-clients.
+The socket sink opens a blocking client TCP/IP socket and sends data
+over it. The data must be in the form of lines of plain text. To get
+meaningful behavior, the server side must collect and combine the from
+all the concurrently connected clients.
+
+Here's a simple example:
+
+[source]
+----
+include::{javasource}/FileAndSocket.java[tag=s5]
+----

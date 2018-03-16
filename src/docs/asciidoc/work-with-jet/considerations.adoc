@@ -16,14 +16,7 @@ you can have everything in a single class and use code like this:
 
 [source]
 ----
-class JetExample {
-    static Job createJob(JetInstance jet) {
-        JobConfig jobConfig = new JobConfig();
-        jobConfig.addClass(JetExample.class);
-        return jet.newJob(createPipeline(), jobConfig);
-    }
-    ...
-}
+include::{javasource}/Considerations.java[tag=s1]
 ----
 
 If you forget to do this, or don't add all the classes involved, you
@@ -77,16 +70,7 @@ For example, write a class like this:
 
 [source]
 ----
-public class CustomJetJob {
-    public static void main(String[] args) {
-        JetInstance jet = JetBootstrap.getInstance();
-        jet.newJob(buildPipeline()).join();
-    }
-
-    static Pipeline buildPipeline() {
-        // ...
-    }
-}
+include::{javasource}/Considerations.java[tag=s2]
 ----
 
 After building the JAR, submit the job:
@@ -123,121 +107,75 @@ entire class will be serialized. For example, this will fail because
 
 [source]
 ----
-class JetJob {
-    private String instanceVar;
-
-    Pipeline buildPipeline() {
-        Pipeline p = Pipeline.create();
-        p.drawFrom(readList("input"))
-         // Refers to instanceVar, capturing "`this`", but JetJob is not
-         // Serializable so this call will fail.
-         .filter(item -> item.equals(instanceVar));
-        return p;
-    }
-}
+include::{javasource}/Considerations.java[tag=s3]
 ----
+
+<1> Refers to `instanceVar`, capturing `this`, but JetJob is not
+`Serializable` so this call will fail.
 
 Just adding `implements Serializable` to `JetJob` would be a viable
 workaround here. However, consider something just a bit different:
 
 [source]
 ----
-class JetJob {
-    private String instanceVar;
-    private OutputStream fileOut; // a non-serializable field
-
-    Pipeline buildPipeline() {
-        Pipeline p = Pipeline.create();
-        p.drawFrom(readList("input"))
-         // Refers to instanceVar, capturing "`this`". JetJob is declared
-         // Serializable, but has a non-serializable field and this fails.
-         .filter(item -> item.equals(instanceVar));
-        return p;
-    }
-}
+include::{javasource}/Considerations.java[tag=s4]
 ----
+
+<1> Refers to `instanceVar`, capturing `this`. `JetJob` is declared as
+`Serializable`, but has a non-serializable field and this fails.
 
 Even though we never refer to `fileOut`, we are still capturing the
 entire `JetJob` instance. We might mark `fileOut` as `transient`, but
 the sane approach is to avoid referring to instance variables of the
-surrounding class. This can be simply achieved by assigning to a local
+surrounding class. We can simply achieve this by assigning to a local
 variable, then referring to that variable inside the lambda:
 
 [source]
 ----
-class JetJob {
-    private String instanceVar;
-
-    Pipeline buildPipeline() {
-        Pipeline p = Pipeline.create();
-        String findMe = instanceVar;
-        p.drawFrom(readList("input"))
-         // By referring to the local variable "`findMe`" we avoid
-         // capturing "`this`" and the job runs fine.
-         .filter(item -> item.equals(findMe));
-        return p;
-    }
-}
+include::{javasource}/Considerations.java[tag=s5]
 ----
+
+<1> By referring to the local variable `findMe` we avoid capturing
+`this` and the job runs fine.
 
 Another common pitfall is capturing an instance of `DateTimeFormatter`
 or a similar non-serializable class:
 
 [source]
 ----
-DateTimeFormatter formatter =
-        DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
-                         .withZone(ZoneId.systemDefault());
-Pipeline p = Pipeline.create();
-ComputeStage<Long> src = p.drawFrom(readList("input"));
-// Captures the non-serializable formatter, so this fails
-src.map((Long tstamp) -> formatter.format(Instant.ofEpochMilli(tstamp)));
+include::{javasource}/Considerations.java[tag=s6]
 ----
+
+<1> Captures the non-serializable `formatter`, so this fails.
 
 Sometimes we can get away by using one of the preconfigured formatters
 available in the JDK:
 
 [source]
 ----
-// Accesses the static final field ISO_LOCAL_TIME. Static fields are
-// not subject to lambda capture, they are dereferenced when the code
-// runs on the target machine.
-src.map((Long tstamp) ->
-    DateTimeFormatter.ISO_LOCAL_TIME.format(
-        Instant.ofEpochMilli(tstamp).atZone(ZoneId.systemDefault())));
+include::{javasource}/Considerations.java[tag=s7]
 ----
 
+<1> Accesses the static final field `ISO_LOCAL_TIME`. Static fields are
+not subject to lambda capture, they are dereferenced when the code runs
+on the target machine.
+
 This refers to a `static final` field in the JDK, so the instance is
-available on any JVM. A similar approach is to declare our own `static
-final` field; however in that case we must add the declaring class as a
-job resource:
+available on any JVM. If this is not available, you may create a
+static final field in your own class, but you can also use
+`mapUsingContext()`. In this case you provide a serializable factory
+that Jet will ask to create an object on the target member. The object
+it returns doesn't have to be serializable. Here's an example of that:
 
 [source]
 ----
-class JetJob {
-
-    // Our own static field
-    private static final DateTimeFormatter formatter =
-            DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
-                             .withZone(ZoneId.systemDefault());
-
-    Pipeline buildPipeline() {
-        Pipeline p = Pipeline.create();
-        ComputeStage<Long> src = p.drawFrom(readList("input"));
-        src.map((Long tstamp) -> formatter.format(Instant.ofEpochMilli(tstamp)));
-        return p;
-    }
-
-    // The job will fail unless we attach the JetJob class as a
-    // resource, making the formatter instance available at the
-    // target machine.
-    void runJob(JetInstance jet) throws Exception {
-        JobConfig c = new JobConfig();
-        c.addClass(JetJob.class);
-        jet.newJob(buildPipeline(), c).join();
-    }
-}
+include::{javasource}/Considerations.java[tag=s8]
 ----
+
+<1> Create a `ContextFactory`.
+<2> Supply it to `mapUsingContext()`.
+<3> Your mapping function now gets the object the factory created.
+
 
 == Standard Java Serialization is Slow
 
@@ -257,13 +195,7 @@ register it in Jet configuration:
 
 [source]
 ----
-SerializerConfig serializerConfig = new SerializerConfig()
-        .setImplementation(new MyItemSerializer())
-        .setTypeClass(MyItem.class);
-JetConfig config = new JetConfig();
-config.getHazelcastConfig().getSerializationConfig()
-      .addSerializerConfig(serializerConfig);
-JetInstance jet = Jet.newJetInstance(config);
+include::{javasource}/Considerations.java[tag=s9]
 ----
 
 Consult the chapter on

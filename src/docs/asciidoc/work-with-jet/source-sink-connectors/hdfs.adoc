@@ -1,35 +1,29 @@
 = HDFS
 
 The Hadoop Distributed File System is a production-worthy choice for
-both a data source and sink in a batch computation job. It is a
+both a data source and a data sink in a batch computation job. It is a
 distributed, replicated storage system that handles these concerns
 automatically, exposing a simple unified view to the client.
 
 The HDFS source and sink require a configuration object of type
 https://hadoop.apache.org/docs/r2.7.3/api/org/apache/hadoop/mapred/JobConf.html[JobConf]
-which supplies the input and output paths and formats. No actual
-MapReduce job is created, this config is simply used to describe the
-required inputs and outputs. The same `JobConf` instance can be shared
-between the source and the sink.
+which supplies the input and output paths and formats. They don't
+actually create a MapReduce job, this config is simply used to describe
+the required inputs and outputs. You can share the same `JobConf`
+instance between several source/sink instances.
+
+Here's a configuration sample:
 
 [source]
 ----
-JobConf jobConfig = new JobConf();
-jobConfig.setInputFormat(TextInputFormat.class);
-jobConfig.setOutputFormat(TextOutputFormat.class);
-TextOutputFormat.setOutputPath(jobConfig, "output-path");
-TextInputFormat.addInputPath(jobConfig, "input-path");
+include::{javasource}/HdfsAndKafka.java[tag=s1]
 ----
 
 The word count pipeline can then be expressed using HDFS as follows
 
 [source]
 ----
-Pipeline p = Pipeline.create();
-p.drawFrom(HdfsSources.hdfs(jobConfig, (k, v) -> v.toString()))
- .flatMap(line -> traverseArray(delimiter.split(line.toLowerCase())).filter(w -> !w.isEmpty()))
- .groupBy(wholeItem(), counting())
- .drainTo(HdfsSinks.hdfs(jobConfig));
+include::{javasource}/HdfsAndKafka.java[tag=s2]
 ----
 
 == Data Locality When Reading
@@ -46,8 +40,8 @@ Each processor will write to a different file in the output folder
 identified by the unique processor id. The files will be in a temporary
 state until the job is completed and will be committed when the job is
 complete. For streaming jobs, they will be committed when the job is
-cancelled. We have plans to introduce a rolling sink for HDFS in the future
-to have better streaming support.
+cancelled. We have plans to introduce a rolling sink for HDFS in the
+future to have better streaming support.
 
 == Dealing with Writables
 

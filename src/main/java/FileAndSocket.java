@@ -2,6 +2,8 @@ import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
 
+import java.nio.charset.StandardCharsets;
+
 public class FileAndSocket {
     static void s1() {
         //tag::s1[]
@@ -29,11 +31,17 @@ public class FileAndSocket {
 
     static void s4() {
         //tag::s4[]
+        Pipeline p = Pipeline.create();
+        p.drawFrom(Sources.socket("localhost", 8080, StandardCharsets.UTF_8))
+         .drainTo(Sinks.logger());
         //end::s4[]
     }
 
     static void s5() {
         //tag::s5[]
+        Pipeline p = Pipeline.create();
+        p.drawFrom(Sources.list("inputList"))
+         .drainTo(Sinks.socket("localhost", 8080));
         //end::s5[]
     }
 
