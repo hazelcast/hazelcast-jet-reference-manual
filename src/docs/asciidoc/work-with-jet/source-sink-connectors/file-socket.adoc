@@ -1,58 +1,76 @@
 = File and Socket
 
-Hazelcast Jet provides a few connectors that have limited production
-use, but are simple and can be very useful in an early rapid prototyping
-phase. These are the connectors for the local file system and TCP/IP
-sockets. They assume the data is in the form of plain text and
-emit/receive data items which represent individual lines of text.
+Hazelcast Jet provides file and TCP/IP socket connectors that have
+limited production use, but are simple and can be very useful in an
+early rapid prototyping phase. They assume the data is in the form of
+plain text and emit/receive data items which represent individual lines
+of text.
 
-Some of these sources are infinite, but when used in a stream processing
-job they don't offer any fault tolerance because they are not
-replayable. The finite variant of the file source is trivially
-replayable: it just reads the same files again.
+These connectors are not fault-tolerant. On job restart they behave the
+same as on initial start. The sources don't do snapshotting. The sinks
+don't suppress duplicate data.
 
-== File
+== File Sources
 
-These connectors work with a directory in the file system on each member.
-Since each member has its own file system, these are to some extent
-distributed sources and sinks; however there is no unified view of all
-the data on all members. The user must manually distribute the source
-data and collect the sink data from all the cluster members.
+The file sources are designed to work with the local file system. They
+expect to see on each member just the files that member should read. You
+can achieve the effect of a distributed source if you manually prepare a
+different set of files on each member.
 
-=== Source
+There are two flavors of the file source: bounded and unbounded.
 
-Jet provides two main ways to use the filesystem as a source:
+Here's an example with the
+{jet-javadoc}/pipeline/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-com.hazelcast.jet.function.DistributedBiFunction-[bounded source]:
 
-1. {jet-javadoc}/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-[`Sources.files()`]: read all the files in a
-directory and complete. The files should not change while being read.
-2. {jet-javadoc}/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-[`Sources.fileWatcher()`]:
-first emit the contents of the files present in the directory and then
-continue watching the directory for further changes. Each time a
-complete line of text appears in an existing or a newly created file,
-the source emits another data item. The existing content in the files
-should not change. This source completes only if the watched directory
-is deleted.
+[source]
+----
+include::{javasource}/FileAndSocket.java[tag=s1]
+----
 
-=== Sink
+This will log on each Jet member the contents of all the files in the
+specified directory. When the source reads all the files, the job
+completes. If the files change while the job is running, the behavior
+is undefined.
+
+Here's an example with the
+{jet-javadoc}/pipeline/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-[unbounded source]:
+
+[source]
+----
+include::{javasource}/FileAndSocket.java[tag=s2]
+----
+
+It will start by logging on each member the contents of all the files in
+the directory and then will switch to watching the directory for
+changes. It will read both new files and the content added to the
+existing files. Files must be updated in an append-only fashion; if the
+existing content changes, the behavior is undefined.
+
+If you delete the watched directory, the job will complete.
+
+=== File Sink
 
 The
-{jet-javadoc}/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-[`Sources.files()`]
-sink writes output to several files in the configured directory. Each
-underlying processor writes to its own file to avoid contention.
+{jet-javadoc}/pipeline/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-[file sink]
+can work with either a local or a shared network file system. Each
+member will write to different filenames. You can achieve the effect of
+a distributed sink if you manually collect all the output files on all
+members and combine their contents.
 
-The file sink only guarantees that items have been flushed to the
-operating system on a snapshot, but it doesn't guarantee that the
-content is actually written to disk.
+Here's a small example of usage:
 
-The socket source can be used to receive text input over a network socket.
+[source]
+----
+include::{javasource}/FileAndSocket.java[tag=s3]
+----
 
-== Socket
+== Socket Source
 
 These connectors open a blocking client TCP/IP socket and
 send/receive data over it. As already noted, the data must be in the
 form of lines of plain text.
 
-=== Source
+The socket source can be used to receive text input over a network socket.
 
 Each underlying processor of the Socket Source connector opens its
 own client socket and asks for data from it. The user supplies the

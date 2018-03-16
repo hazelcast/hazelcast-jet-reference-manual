@@ -1,9 +1,26 @@
+import com.hazelcast.cache.journal.EventJournalCacheEvent;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.core.IList;
+import com.hazelcast.jet.IListJet;
+import com.hazelcast.jet.Jet;
+import com.hazelcast.jet.JetInstance;
+import com.hazelcast.jet.config.JetConfig;
+import com.hazelcast.jet.function.DistributedFunction;
+import com.hazelcast.jet.function.DistributedFunctions;
 import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
+import com.hazelcast.jet.pipeline.StreamStage;
+import com.hazelcast.map.EntryBackupProcessor;
+import com.hazelcast.map.EntryProcessor;
+import com.hazelcast.map.journal.EventJournalMapEvent;
+import datamodel.Person;
 
+import java.util.ArrayList;
 import java.util.Map.Entry;
+
+import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_CURRENT;
 
 public class ImdgConnectors {
     static void s1() {
@@ -48,43 +65,156 @@ public class ImdgConnectors {
     }
 
     static void s5() {
-        //tag::s5[]
-        //end::s5[]
+    //tag::s5[]
+    Pipeline pipeline = Pipeline.create();
+    pipeline.drawFrom(Sources.<String, Integer>map("mymap"))
+            .drainTo(Sinks.mapWithEntryProcessor("mymap",
+                    Entry::getKey,
+                    entry -> new IncrementEntryProcessor(5)
+            ));
+
+    //end::s5[]
     }
 
-    static void s6() {
-        //tag::s6[]
-        //end::s6[]
+    static
+    //tag::s6[]
+    class IncrementEntryProcessor implements EntryProcessor<String, Integer> {
+
+        private int incrementBy;
+
+        public IncrementEntryProcessor(int incrementBy) {
+            this.incrementBy = incrementBy;
+        }
+
+        @Override
+        public Object process(Entry<String, Integer> entry) {
+            return entry.setValue(entry.getValue() + incrementBy);
+        }
+
+        @Override
+        public EntryBackupProcessor<String, Integer> getBackupProcessor() {
+            return null;
+        }
     }
+    //end::s6[]
 
     static void s7() {
         //tag::s7[]
+        ClientConfig cfg = new ClientConfig();
+        cfg.getGroupConfig().setName("myGroup").setPassword("pAssw0rd");
+        cfg.getNetworkConfig().addAddress("node1.mydomain.com", "node2.mydomain.com");
+
+        Pipeline p = Pipeline.create();
+        BatchStage<Entry<String, Long>> fromMap =
+                p.drawFrom(Sources.<String, Long>remoteMap("inputMap", cfg));
+        BatchStage<Entry<String, Long>> fromCache =
+                p.drawFrom(Sources.<String, Long>remoteCache("inputCache", cfg));
+        fromMap.drainTo(Sinks.remoteCache("outputCache", cfg));
+        fromCache.drainTo(Sinks.remoteMap("outputMap", cfg));
         //end::s7[]
     }
 
     static void s8() {
+        ClientConfig clientConfig = new ClientConfig();
         //tag::s8[]
+        Pipeline p = Pipeline.create();
+        p.drawFrom(Sources.<Integer, String, Person>remoteMap(
+                "inputMap", clientConfig,
+                e -> e.getValue().getAge() > 21,
+                e -> e.getValue().getAge()));
         //end::s8[]
     }
 
     static void s9() {
         //tag::s9[]
+        JetConfig cfg = new JetConfig();
+        cfg.getHazelcastConfig()
+           .getMapEventJournalConfig("inputMap")
+           .setEnabled(true)
+           .setCapacity(1000)         // how many events to keep before evicting
+           .setTimeToLiveSeconds(10); // evict events older than this
+        JetInstance jet = Jet.newJetInstance(cfg);
         //end::s9[]
-    }
 
-    static void s10() {
         //tag::s10[]
+        cfg.getHazelcastConfig()
+           .getCacheEventJournalConfig("inputCache")
+           .setEnabled(true)
+           .setCapacity(1000)
+           .setTimeToLiveSeconds(10);
         //end::s10[]
     }
 
     static void s11() {
         //tag::s11[]
+        Pipeline p = Pipeline.create();
+        StreamStage<Entry<String, Long>> fromMap = p.drawFrom(
+                Sources.<String, Long>mapJournal("inputMap", START_FROM_CURRENT));
+        StreamStage<Entry<String, Long>> fromCache = p.drawFrom(
+                Sources.<String, Long>cacheJournal("inputCache", START_FROM_CURRENT));
         //end::s11[]
     }
 
     static void s12() {
         //tag::s12[]
+        Pipeline p = Pipeline.create();
+        StreamStage<EventJournalMapEvent<String, Long>> allFromMap = p.drawFrom(
+            Sources.<EventJournalMapEvent<String, Long>, String, Long>mapJournal(
+                "inputMap",
+                DistributedFunctions.alwaysTrue(), DistributedFunction.identity(),
+                START_FROM_CURRENT));
+        StreamStage<EventJournalCacheEvent<String, Long>> allFromCache = p.drawFrom(
+            Sources.<EventJournalCacheEvent<String, Long>, String, Long>cacheJournal(
+                "inputMap",
+                DistributedFunctions.alwaysTrue(), DistributedFunction.identity(),
+                START_FROM_CURRENT));
         //end::s12[]
     }
 
+    static void s13() {
+        ClientConfig someClientConfig = new ClientConfig();
+        //tag::s13[]
+        Pipeline p = Pipeline.create();
+        StreamStage<Entry<String, Long>> fromRemoteMap = p.drawFrom(
+            Sources.<String, Long>remoteMapJournal(
+                "inputMap", someClientConfig, START_FROM_CURRENT));
+        StreamStage<Entry<String, Long>> fromRemoteCache = p.drawFrom(
+            Sources.<String, Long>remoteCacheJournal(
+                "inputCache", someClientConfig, START_FROM_CURRENT));
+        //end::s13[]
+    }
+
+    static void s14() {
+        JetInstance jet = Jet.newJetInstance();
+        //tag::s14[]
+        IList<Integer> inputList = jet.getList("inputList");
+        for (int i = 0; i < 10; i++) {
+            inputList.add(i);
+        }
+
+        Pipeline p = Pipeline.create();
+        p.drawFrom(Sources.<Integer>list("inputList"))
+         .map(i -> "item" + i)
+         .drainTo(Sinks.list("resultList"));
+
+        jet.newJob(p).join();
+
+        IList<String> resultList = jet.getList("resultList");
+        System.out.println("Results: " + new ArrayList<>(resultList));
+        //end::s14[]
+    }
+
+    static void s15() {
+        //tag::s15[]
+        ClientConfig clientConfig = new ClientConfig();
+        clientConfig.getGroupConfig()
+                    .setName("myGroup").setPassword("pAssw0rd");
+        clientConfig.getNetworkConfig()
+                    .addAddress("node1.mydomain.com", "node2.mydomain.com");
+
+        Pipeline p = Pipeline.create();
+        p.drawFrom(Sources.remoteList("inputlist", clientConfig))
+         .drainTo(Sinks.remoteList("outputList", clientConfig));
+        //end::s15[]
+    }
 }

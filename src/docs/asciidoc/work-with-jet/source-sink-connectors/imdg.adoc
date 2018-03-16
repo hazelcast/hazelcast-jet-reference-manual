@@ -7,7 +7,7 @@ uses them and largely interchangeable. `IMap` has a bit more features.
 The simplest way to use them is as finite sources of their contents, but
 if you enable the Event Journal on a map/cache, you'll be able to use
 it as a source of an infinite stream of update events
-(<<receive, see below>>).
+(<<receive-update-events, see below>>).
 
 The most basic usage is very simple, here are snippets to use `IMap`
 and `ICache` as a source and a sink:
@@ -70,7 +70,7 @@ performance by applying the update function in batches, but this
 operation doesn't respect the locks. If you use this method on locked
 entries, it will break the mutual exclusion contract. Use
 `mapWithEntryProcessor` if you need the proper locking behavior.
-
++
 3. {jet-javadoc}/Sinks.html#mapWithEntryProcessor-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-[`mapWithEntryProcessor`],
 where you provide a function that returns a full-blown `EntryProcessor`
 instance that will be submitted to the map. This is the most general
@@ -78,38 +78,12 @@ variant, but can't use batching that the other variants do and thus has
 a higher cost per item. You should use it only if you need a specialized
 entry processor that can't be expressed in terms of the other variants.
 This example takes the values of the map and submits an entry processor
-that increments the values by 5 :
-
+that increments the values by 5:
++
 [source]
 ----
-    Pipeline pipeline = Pipeline.create();
-    pipeline.drawFrom(Sources.map("mymap"))
-            .drainTo(
-                    Sinks.mapWithEntryProcessor(
-                            "mymap",
-                            item -> item.getKey(),
-                            item -> new IncrementEntryProcessor(5)
-                    )
-            );
-
-    static class IncrementEntryProcessor implements EntryProcessor<Integer, Integer> {
-
-        private int incrementBy;
-
-        public IncrementEntryProcessor(int incrementBy) {
-                this.incrementBy = incrementBy;
-        }
-
-        @Override
-        public Object process(Entry<Integer, Integer> entry) {
-                return entry.setValue(entry.getValue() + incrementBy);
-        }
-
-        @Override
-        public EntryBackupProcessor<Integer, Integer> getBackupProcessor() {
-                return null;
-        }
-    }
+include::{javasource}/ImdgConnectors.java[tag=s5]
+include::{javasource}/ImdgConnectors.java[tag=s6]
 ----
 
 === Access an External Cluster
@@ -122,22 +96,11 @@ data from `IMap` to `ICache` and vice versa:
 
 [source]
 ----
-ClientConfig cfg = new ClientConfig();
-cfg.getGroupConfig().setName("myGroup").setPassword("pAssw0rd");
-cfg.getNetworkConfig().addAddress("node1.mydomain.com", "node2.mydomain.com");
-
-Pipeline p = p.create();
-ComputeStage<Entry<String, Long>> fromMap =
-        p.drawFrom(Sources.<String, Long>remoteMap("inputMap", cfg));
-ComputeStage<Entry<String, Long>> fromCache =
-        p.drawFrom(Sources.<String, Long>remoteCache("inputCache", cfg));
-fromMap.drainTo(Sinks.remoteCache("outputCache", cfg));
-fromCache.drainTo(Sinks.remoteMap("outputMap", cfg));
+include::{javasource}/ImdgConnectors.java[tag=s7]
 ----
 
 For a full discussion on how to configure your client connection, refer
-to the
-http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#configuring-java-client[Hazelcast IMDG documentation]
+to the {hz-refman}#configuring-java-client[Hazelcast IMDG documentation]
 on this topic.
 
 === Optimize Data Traffic at the Source
@@ -150,11 +113,7 @@ before sending:
 
 [source]
 ----
-Pipeline p = p.create();
-p.drawFrom(Sources.<String, Person, Integer>remoteMap(
-        "inputMap", clientConfig,
-        e -> e.getValue().getAge() > 21,
-        e -> e.getValue().getAge()));
+include::{javasource}/ImdgConnectors.java[tag=s8]
 ----
 
 The same optimization works on a local `IMap`, too, but has less impact.
@@ -181,7 +140,7 @@ job is significantly less than the volume of the stored data.
 Note that the above feature is not available on `ICache`. It is,
 however, available on `ICache`'s event journal, which we introduce next.
 
-[[receive]]
+[[receive-update-events]]
 === Receive an Infinite Stream of Update Events
 
 You can use `IMap`/`ICache` as sources of infinite event streams. For
@@ -194,13 +153,7 @@ This is how you enable the Event Journal on an `IMap`:
 
 [source]
 ----
-JetConfig cfg = new JetConfig();
-cfg.getHazelcastConfig()
-   .getMapEventJournalConfig("inputMap")
-   .setEnabled(true)
-   .setCapacity(1000) // how many events to keep before evicting
-   .setTimeToLiveSeconds(10); // evict events older than this
-JetInstance jet = Jet.newJetInstance(cfg);
+include::{javasource}/ImdgConnectors.java[tag=s9]
 ----
 
 The default journal capacity is 10,000 and the default time-to-live is 0
@@ -211,22 +164,14 @@ The configuration API for `ICache` is identical:
 
 [source]
 ----
-cfg.getHazelcastConfig()
-   .getCacheEventJournalConfig("inputCache")
-   .setEnabled(true)
-   .setCapacity(1000)
-   .setTimeToLiveSeconds(10);
+include::{javasource}/ImdgConnectors.java[tag=s10]
 ----
 
 Once properly configured, you use Event Journal sources like this:
 
 [source]
 ----
-Pipeline p = Pipeline.create();
-ComputeStage<Entry<String, Long>> fromMap =
-        p.drawFrom(Sources.<String, Long>mapJournal("inputMap", START_FROM_CURRENT));
-ComputeStage<Entry<String, Long>> fromCache =
-        p.drawFrom(Sources.<String, Long>cacheJournal("inputCache", START_FROM_CURRENT));
+include::{javasource}/ImdgConnectors.java[tag=s11]
 ----
 
 `IMap` and `ICache` are on an equal footing here. The second argument,
@@ -236,17 +181,13 @@ get all the events still on record.
 
 This version of methods will only emit `ADDED` and `UPDATED` event
 types. Also, it will map the event object to simple `Map.Entry` with the
-key and new value. If you want to receive all types of events, use the
-second version of methods:
+key and new value. To make a different choice, use the overloads that
+allow you to specify your own projection and filtering. For example,
+you can request all event types and full event objects:
 
 [source]
 ----
-ComputeStage<EventJournalMapEvent<String, Long>> allFromMap =
-        p.drawFrom(Sources.<String, Long, EventJournalMapEvent<String, Long>>mapJournal("inputMap",
-                alwaysTrue(), identity(), START_FROM_CURRENT));
-ComputeStage<EventJournalCacheEvent<String, Long>> allFromCache =
-        p.drawFrom(Sources.<String, Long, EventJournalCacheEvent<String, Long>>cacheJournal("inputCache",
-                alwaysTrue(), identity(), START_FROM_CURRENT));
+include::{javasource}/ImdgConnectors.java[tag=s12]
 ----
 
 Note the type of the stream element: `EventJournalMapEvent` and
@@ -269,10 +210,7 @@ cluster, you just have to prepend `remote` to the source names and add a
 
 [source]
 ----
-ComputeStage<Entry<String, Long>> fromRemoteMap = p.drawFrom(
-        Sources.<String, Long>remoteMapJournal("inputMap", clientConfig(), START_FROM_CURRENT));
-ComputeStage<Entry<String, Long>> fromRemoteCache = p.drawFrom(
-        Sources.<String, Long>remoteCacheJournal("inputCache", clientConfig(), START_FROM_CURRENT));
+include::{javasource}/ImdgConnectors.java[tag=s13]
 ----
 
 == IList
@@ -280,9 +218,9 @@ ComputeStage<Entry<String, Long>> fromRemoteCache = p.drawFrom(
 Whereas `IMap` and `ICache` are the recommended choice of data sources
 and sinks in Jet jobs, Jet supports `IList` purely for convenience
 during prototyping, unit testing and similar non-production situations.
-It is not a partitioned and distributed data structure and only one
-cluster member has all the contents. In a distributed Jet job all the
-members will compete for access to the single member holding it.
+It is not a partitioned data structure and only one cluster member has
+all the contents. In a distributed Jet job all the members will compete
+for access to the single member holding it.
 
 With that said, `IList` is very simple to use. Here's an example how to
 fill it with test data, consume it in a Jet job, dump its results into
@@ -291,32 +229,13 @@ instance in the variable `jet`):
 
 [source]
 ----
-IList<Integer> inputList = jet.getList("inputList");
-for (int i = 0; i < 10; i++) {
-    inputList.add(i);
-}
-
-Pipeline p = Pipeline.create();
-p.drawFrom(Sources.<Integer>list("inputList"))
- .map(i -> "item" + i)
- .drainTo(Sinks.list("resultList"));
-
-jet.newJob(p).join();
-
-IList<String> resultList = jet.getList("resultList");
-System.out.println("Results: " + new ArrayList<>(resultList));
+include::{javasource}/ImdgConnectors.java[tag=s14]
 ----
 
 You can access a list in an external cluster as well, by providing a
- `ClientConfig` object:
+`ClientConfig` object:
 
 [source]
 ----
-ClientConfig clientConfig = new ClientConfig();
-clientConfig.getGroupConfig().setName("myGroup").setPassword("pAssw0rd");
-clientConfig.getNetworkConfig().addAddress("node1.mydomain.com", "node2.mydomain.com");
-
-Pipeline p = Pipeline.create();
-ComputeStage<Object> stage = p.drawFrom(Sources.remoteList("inputlist", clientConfig));
-stage.drainTo(Sinks.remoteList("resultList", clientConfig));
+include::{javasource}/ImdgConnectors.java[tag=s15]
 ----
