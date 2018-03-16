@@ -45,13 +45,13 @@ include::preface.adoc[]
 
 include::get-started.adoc[]
 
-include::what-is-distributed-computing.adoc[]
-
 include::work-with-jet/index.adoc[]
 
 include::j-u-s.adoc[]
 
 include::configuration.adoc[]
+
+include::what-is-distributed-computing.adoc[]
 
 include::under-the-hood.adoc[]
 

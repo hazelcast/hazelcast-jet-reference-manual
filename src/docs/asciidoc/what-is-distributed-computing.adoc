@@ -2,11 +2,10 @@
 = How Distributed Computing Works in Jet
 
 In this chapter we will take a deep dive into the fundamentals of
-distributed computing and Jet's specific take on it. If you want to
-start coding with Jet right away, you can move on to the <<work-with-jet,
-next chapter>>, but you'll find that having some intuition and insight
-into how distributed computing actually works in Jet makes a big
-difference when diagnosing your pipeline and improving its performance.
+distributed computing and Jet's specific take on it. You'll find that
+having some intuition and insight into how distributed computing
+actually works in Jet makes a big difference when diagnosing your
+pipeline and improving its performance.
 
 Jet provides high performance in-memory data processing by modeling the
 computation as a _Directed Acyclic Graph (DAG)_, where vertices
