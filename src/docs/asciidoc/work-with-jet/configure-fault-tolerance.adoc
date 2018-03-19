@@ -1,63 +1,47 @@
 = Configure Fault Tolerance
 
-== Snapshotting the State of Computation
+Jet has features to allow an unbounded stream processing job to proceed
+correctly in the face of Jet members failing and leaving the cluster.
 
-To be able to tolerate failures, Jet takes snapshots of the entire state
-of the computation at regular intervals. The snapshot is coordinated
-across the cluster and synchronized with a checkpoint on the data
-source. The source must ensure that, in the case of a restart, it will
-be able to replay all the data it emitted after the last checkpoint.
-Each of the other components must ensure it will be able to restore its
-processing state to exactly what it was at the last snapshot. If a
-cluster member goes away, Jet will restart the job on the remaining
-members, rewind the sources to the last checkpoint, restore the state of
-processing from the last snapshot, and then seamlessly
-continue from that point.
-
-== Level of Safety
-
-Jet stores job metadata and snapshot data in Hazelcast `IMap`s, which
-means that you don't have to install any other system for fault
-tolerance. However, the fault tolerance mechanism is at most as safe as
-the `IMap` itself. Therefore, it is important to configure level of
-safety for the `IMap`. `IMap` is a replicated in-memory data structure,
-storing each key-value pair on a configurable number of cluster members.
-By default it will store one primary copy plus one backup copy,
-resulting in a system that tolerates the failure of a single member at a
-time. You can tweak this setting when starting Jet, for example increase
-the backup count to two:
-
-[source]
-----
-JetConfig config = new JetConfig();
-config.getInstanceConfig().setBackupCount(2);
-JetInstance = Jet.newJetInstance(config);
-----
+Jet takes snapshots of the entire state of the computation at regular
+intervals. It coordinates the snapshot across the cluster and
+synchronizes it with a checkpoint on the data source. The source must
+ensure that, in the case of a restart, it will be able to replay all the
+data it emitted after the last checkpoint. Each of the other components
+in the job will restore its processing state to exactly what it was at
+the last snapshot. If a cluster member goes away, Jet will restart the
+job on the remaining members, rewind the sources to the last checkpoint,
+restore the state of processing from the last snapshot, and then
+seamlessly continue from that point.
 
 == Exactly-Once
 
-As always when guarantees are involved, the principle of the weakest
-link applies: if any part of the system is unable to provide it, the
-system as a whole fails to provide it.
+"Exactly-once processing" means the output is consistent with processing
+each stream item exactly once. This is the ultimate guarantee you can
+ask for.
+
+As of version 0.6, Hazelcast Jet supports exactly-once processing with
+the source being either a Hazelcast `IMap` or a Kafka topic, and the
+sink being a Hazelcast `IMap`.
+
+If you configure Jet for exactly-once but use Kafka as the sink, after a
+job restart you may get duplicates in the output. As opposed to doubly
+processing an input item, this is more benign because it just means
+getting the exact same result twice.
 
 == At-Least-Once
 
-A lesser, but still useful guarantee you can configure Jet for is
-"at-least-once". In this case no stream item will be missed, but some
-items may get processed again after a restart, as if they represented
-new events. Jet can provide this guarantee at a higher throughput and
-lower latency than exactly-once, and some kinds of data processing can
-gracefully tolerate it. In some other cases, however, duplicate
-processing of data items can have quite surprising consequences. There
-is more information about this in our <<pitfalls-alo, Under the Hood>>
-chapter.
+"At-least-once processing" means the output is consistent with
+processing each stream item at least once. Some items may get processed
+again after a restart, as if they represented new events. This is a
+lesser guarantee that Jet can deliver at a higher throughput and lower
+latency. In some cases it is good enough.
 
-We also have an in-between case: if you configure Jet for exactly-once
-but use Kafka as the sink, after a job restart you may get duplicates in
-the output. As opposed to duplicating an input item, this is much more
-benign because it just means getting the exact same result twice.
+In some other cases, however, duplicate processing of data items can
+have quite surprising consequences. There is more information about this
+in our <<pitfalls-alo, Under the Hood>> chapter.
 
-== Enable Snapshotting
+== Enable Fault Tolerance
 
 Fault tolerance is off by default. To activate it for a job, create a
 `JobConfig` object and set the
@@ -77,33 +61,53 @@ and the temporary spike in the latency of the output will be greater.
 More frequent snapshots will reduce the throughput and introduce more
 latency variation during regular processing.
 
+== Level of Safety
+
+Jet doesn't delegate its fault tolerance to an outside system, it backs
+up the state to its own `IMap` s. `IMap` is a replicated in-memory data
+structure, storing each key-value pair on a configurable number of
+cluster members. By default it will make a single backup copy, resulting
+in a system that tolerates the failure of a single member at a time. You
+can tweak this setting when starting Jet, for example increase the
+backup count to two:
+
+[source]
+----
+JetConfig config = new JetConfig();
+config.getInstanceConfig().setBackupCount(2);
+JetInstance = Jet.newJetInstance(config);
+----
+
 == Split-Brain Protection
 
-A particularly nasty kind of failure is the "`split brain`": due to a very
-specific pattern in the loss of network connectivity the cluster splits
-into two parts, where within each part the members see each other, but
-none of those in the other part(s). Each part by itself lives on
-thinking the other members left the cluster. Now we have two
+A particularly nasty kind of failure is the "`split brain`": due to a
+very specific pattern in the loss of network connectivity the cluster
+splits into two parts, where within each part the members see each
+other, but none of those in the other part(s). Each part by itself lives
+on thinking the other members left the cluster. Now we have two
 fully-functioning Jet clusters where there was supposed to be one. Each
 one will recover and restart the same Jet job, making a mess in our
 application.
 
 Hazelcast Jet offers a mechanism to fight off this hazard:
 {jet-javadoc}/config/JobConfig.html#setSplitBrainProtection-boolean-[_split-brain protection_].
-It works by ensuring that a job cannot be restarted in a
-cluster whose size isn't more than half of what it was before the job
-was suspended. Enable split-brain protection like this:
+It works by ensuring that a job can be restarted only in a cluster whose
+size is more than half of what it was before the job was suspended.
+Enable split-brain protection like this:
 
 [source]
 ----
 jobConfig.setSplitBrainProtection(true);
 ----
 
-A loophole here is that, after the split brain has occurred, you could
-add more members to any of the sub-clusters and have them both grow to
-more than half the previous size. Since the job will keep trying to
-restart itself and by definition one cluster has no idea of the other's
-existence, it will restart as soon as the quorum value is reached.
+If there's an even number of members in your cluster, this may mean the
+job will not be able to restart at all if the cluster splits exactly
+down the middle. We recommend maintaining an odd number of members.
+
+Note also that you should ensure there is no split-brain condition at
+the moment you are introducing new members to the cluster. If that
+happens, both sub-clusters may grow to more than half of the previous
+size. This will defuse the split-brain protection mechanism.
 
 == Scale Up your Job
 
