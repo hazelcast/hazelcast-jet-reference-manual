@@ -3,10 +3,10 @@
 
 == Configuring Logging
 
-Jet, like Hazelcast IMDG does not depend on a specific logging framework
-and has built-in adapters for a variety of logging frameworks. You can
-also write a new adapter to integrate with loggers Jet doesn't natively
-support. To use one of the built-in adapters, set the
+Jet, like Hazelcast IMDG, does not depend on a specific logging
+framework and has built-in adapters for a variety of logging frameworks.
+You can also write a new adapter to integrate with loggers Jet doesn't
+natively support. To use one of the built-in adapters, set the
 `hazelcast.logging.type` property to one of the following:
 
 * `jdk`: java.util.logging (default)
@@ -15,59 +15,77 @@ support. To use one of the built-in adapters, set the
 * `slf4j`: SLF4J
 * `none`: Turn off logging
 
-For example, to configure Jet to use Log4j, you can do one of the following:
+For example, to configure Jet to use Log4j, you can do one of the
+following:
 
 [source]
-System.setProperty("hazelcast.logging.type", "log4j");
+----
+include::{javasource}/LogDebug.java[tag=s1]
+----
 
 or
 
 [source]
-JetConfig config = new JetConfig() ;
-config.getHazelcastConfig().setProperty( "hazelcast.logging.type", "log4j" );
+----
+include::{javasource}/LogDebug.java[tag=s2]
+----
 
 For more detailed information about how to configure logging, please
-refer to the
-{hz-refman}#logging-configuration[IMDG reference manual].
+refer to the {hz-refman}#logging-configuration[IMDG reference manual].
 
 == Inspecting Output of Individual Stages
 
-When building pipelines, it's often useful to see what the  output of
-each stage is. This can be achieved by using the
-{jet-javadoc}/ComputeStage.html#peek--[`peek()`]
-stage. For example:
+While debugging your pipeline you'll want to see the output of an
+individual stage. You can achieve it by using the
+{jet-javadoc}/GeneralStage.html#peek--[`peek()`] stage. For example:
 
 [source]
-p.drawFrom(Sources.<Long, String>map(...))
-   .flatMap(e -> traverseArray(delimiter.split(e.getValue().toLowerCase())))
-   .filter(word -> !word.isEmpty())
-   .groupBy(wholeItem(), counting())
-   .peek()
-   .drainTo(Sinks.map(COUNTS));
+----
+include::{javasource}/LogDebug.java[tag=s3]
+----
 
-In this pipeline, the output of the `groupBy` stage will be logged using
-the configured logging framework:
+<1> Captures all the word tokens entering the aggregating stage
 
-....
-16:05:29,650  INFO || - [com.hazelcast.jet.impl.processor.PeekWrappedP.groupByKey.cd6373be.stage2#0] hz._hzInstance_1_jet.jet.cooperative.thread-1 - [10.0.1.3]:5701 [jet] [0.6-SNAPSHOT] Output to 0: accusers=6
-16:05:29,650  INFO || - [com.hazelcast.jet.impl.processor.PeekWrappedP.groupByKey.cd6373be.stage2#0] hz._hzInstance_1_jet.jet.cooperative.thread-1 - [10.0.1.3]:5701 [jet] [0.6-SNAPSHOT] Output to 0: mutability=2
-16:05:29,650  INFO || - [com.hazelcast.jet.impl.processor.PeekWrappedP.groupByKey.cd6373be.stage2#0] hz._hzInstance_1_jet.jet.cooperative.thread-1 - [10.0.1.3]:5701 [jet] [0.6-SNAPSHOT] Output to 0: lovely=53
-....
+If you run it like this:
+
+[source]
+----
+include::{javasource}/LogDebug.java[tag=s4]
+----
+
+this is how your output may look:
+
+[source,text]
+----
+Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#1
+INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: quick
+Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#2
+INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: brown
+Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#0
+INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: the
+Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#4
+INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: dog
+Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#3
+INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: lazy
+Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#0
+INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: jumped
+Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#2
+INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: the
+Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#1
+INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: over
+Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#3
+INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: fox
+----
 
 The logger name of
-`com.hazelcast.jet.impl.processor.PeekWrappedP.groupByKey.cd6373be.stage2#0`
-can be decomposed as follows:
+`com.hazelcast.jet.impl.processor.PeekWrappedP.filter#1` consists of the
+following parts:
 
-* `com.hazelcast.jet.impl.processor.PeekWrappedP`: class of the processor
-writing the log message
-* `groupByKey.cd6373be.stage2`: Name of the vertex the processor belongs
-to
-* `#0`: the unique index (per vertex) of the processor instance
-
-Keep in mind that this can create a large amount of output when dealing
-with large volumes of data, and should strictly be used in a
-non-production environment.
+* `com.hazelcast.jet.impl.processor.PeekWrappedP`: the type of the
+processor writing the log message
+* `filter`: the name of the vertex the processor belongs to
+* `#0`: index of the processor within the vertex. The index is unique
+cluster-wide.
 
 For more information about logging when using the Core API, see the
-<<inspecting-processor-input-and-output, Best Practices>>
-section.
+<<inspecting-processor-input-and-output, Best Practices>> section.

@@ -1,43 +1,23 @@
 [[jus]]
 = Distributed Implementation of java.util.stream API
 
-Hazelcast Jet adds distributed `java.util.stream` support for Hazelcast
-IMap, ICache and IList data structures.
+You can use Java's standard
+https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html[`java.util.stream`]
+API with any Jet data source.
 
-For extensive information about `java.util.stream` API please refer to
-the official https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html[javadocs].
-
-== Simple Example
-
-[source]
-----
-JetInstance jet = Jet.newJetInstance();
-IStreamMap<String, Integer> map = jet.getMap("latitudes");
-map.put("London", 51);
-map.put("Paris", 48);
-map.put("NYC", 40);
-map.put("Sydney", -34);
-map.put("Sao Paulo", -23);
-map.put("Jakarta", -6);
-
-map.stream().filter(e -> e.getValue() < 0).forEach(System.out::println);
-----
-
-In addition to Hazelcast data structures any source processor
-can be used to create a distributed stream.
+Here's a simple example that takes an `IMap` of cities and their
+lattitudes and returns only the southern cities:
 
 [source]
 ----
-JetInstance jet = Jet.newJetInstance();
-ProcessorSupplier processorSupplier = SourceProcessors.readFilesP("path", UTF_8, "*");
+include::{javasource}/JUS.java[tag=s1]
+----
 
-IList<String> sink = DistributedStream
-        .<String>fromSource(jet, ProcessorMetaSupplier.of(processorSupplier))
-        .flatMap(line -> Arrays.stream(line.split(" ")))
-        .collect(DistributedCollectors.toIList("sink"));
+Here's how to supply an arbitrary batch data source:
 
-
-sink.forEach(System.out::println);
+[source]
+----
+include::{javasource}/JUS.java[tag=s2]
 ----
 
 Java specifies that a stream computation starts upon invoking the

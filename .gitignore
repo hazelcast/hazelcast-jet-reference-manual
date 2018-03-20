@@ -8,3 +8,4 @@
 build
 static
 vendor
+out/
