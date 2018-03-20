@@ -7,6 +7,9 @@ import com.hazelcast.jet.stream.DistributedCollectors;
 import com.hazelcast.jet.stream.DistributedStream;
 
 import java.util.Arrays;
+import java.util.Map;
+
+import static com.hazelcast.jet.stream.DistributedCollectors.toMap;
 
 public class JUS {
     static void s1() {
@@ -33,11 +36,10 @@ public class JUS {
         JetInstance jet = Jet.newJetInstance();
         try {
             //tag::s2[]
-            IList<String> sink = DistributedStream
+            DistributedStream
                     .fromSource(jet, Sources.files("books"), false)
                     .flatMap(line -> Arrays.stream(line.split("\\W+")))
-                    .collect(DistributedCollectors.toIList("sink"));
-            sink.forEach(System.out::println);
+                    .forEach(System.out::println);
             //end::s2[]
         } finally {
             Jet.shutdownAll();
@@ -45,7 +47,13 @@ public class JUS {
     }
 
     static void s3() {
+        JetInstance jet = Jet.newJetInstance();
         //tag::s3[]
+        IMapJet<String, String> map = jet.getMap("large_map"); // <1>
+        Map<String, String> result = DistributedStream
+                .fromMap(map)
+                .map(e -> e.getKey() + e.getValue())
+                .collect(toMap(v -> v, v -> v)); // <2>
         //end::s3[]
     }
 

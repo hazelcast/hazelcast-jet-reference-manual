@@ -3,63 +3,63 @@
 
 You can use Java's standard
 https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html[`java.util.stream`]
-API with any Jet data source.
+API with any Jet data source. Java specifies that a stream computation
+starts upon invoking the terminal operation on it (such as `forEach()`).
+At that point Jet converts the expression into a Core API DAG and
+submits it for execution.
 
 Here's a simple example that takes an `IMap` of cities and their
-lattitudes and returns only the southern cities:
+latitudes and returns only the southern cities:
 
 [source]
 ----
 include::{javasource}/JUS.java[tag=s1]
 ----
 
-Here's how to supply an arbitrary batch data source:
+Here's how to supply an arbitrary batch data source. In this example
+Jet will read lines of text from all the files in the given directory
+and parse them into words:
 
 [source]
 ----
 include::{javasource}/JUS.java[tag=s2]
 ----
 
-Java specifies that a stream computation starts upon invoking the
-terminal operation on it (such as `forEach()`). At that point Jet
-converts the expression into a Core API DAG and submits it for
-execution.
-
 == Distributed Collectors
 
-Like with the functional interfaces, Jet also includes distributed
-versions of the classes found in `java.util.stream.Collectors`. These
-can be reached from the
+The terminal operation of a java.util.stream expression uses a
+_collector_ such as `Collectors.toList()`. Java's collectors don't
+work in a Jet job because they aren't serializable. Jet therefore
+provides you with its own serializable collectors. You can find them in
+the
 {jet-javadoc}/stream/DistributedCollectors.html[`DistributedCollectors`]
-utility class. However, keep in mind that the collectors such as
-`toMap()`, `toCollection()`, `toList()`, and `toArray()` create a
-local data structure and load all the results into it. This works fine
-with the regular JDK streams, where everything is local, but usually
-fails badly in the context of a distributed computing job.
+utility class. Keep in mind that the collectors such as `toMap()`,
+`toCollection()`, `toList()`, and `toArray()` create a local data
+structure and load all the results into it. This works fine with the
+regular JDK streams, where everything is local, but may easily fail in
+the context of a distributed computing job.
 
-For example the following innocent-looking code can easily cause
-out-of-memory errors because the whole distributed map will need to be
-held in the memory at a single place:
+For example, the following innocent-looking code will fail with an
+`OutOfMemoryError` because it requests to load the whole contents of a
+distributed map into a single place:
 
 [source]
 ----
-// get a distributed map with 5GB per member on a 10-member cluster
-IStreamMap<String, String> map = jet.getMap("large_map");
-// now try to build a HashMap of 50GB
-Map<String, String> result = map.stream()
-                                .map(e -> e.getKey() + e.getValue())
-                                .collect(toMap(v -> v, v -> v));
+include::{javasource}/JUS.java[tag=s3]
 ----
 
+<1> `large_map` is a distributed map with 5GB per member in a 10-member cluster
+<2> attempts to build a HashMap of 50GB
+
 This is why Jet distinguishes between the standard `java.util.stream`
-collectors and the Jet-specific `Reducer`s. A `Reducer` puts the data
+collectors and the Jet-specific `Reducer` s. A `Reducer` puts the data
 into a distributed data structure and knows how to leverage its native
 partitioning scheme to optimize the access pattern across the cluster.
 
 These are some of the `Reducer` implementations provided in Jet:
 
-* `toIMap()`: Writes the data to a new Hazelcast `IMap`.
-* `groupingByToIMap()`: Performs a grouping operation and then writes
+* `toIMap()`: writes the data to a new Hazelcast `IMap`.
+* `groupingByToIMap()`: performs a grouping operation and then writes
 the results to a Hazelcast `IMap`. This uses a more efficient
 implementation than the standard `groupingBy()` collector and can make
 use of partitioning.

@@ -55,8 +55,7 @@ include::{javasource}/LogDebug.java[tag=s4]
 
 this is how your output may look:
 
-[source,text]
-----
+....
 Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#1
 INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: quick
 Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#2
@@ -75,7 +74,7 @@ Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#1
 INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: over
 Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#3
 INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: fox
-----
+....
 
 The logger name of
 `com.hazelcast.jet.impl.processor.PeekWrappedP.filter#1` consists of the
