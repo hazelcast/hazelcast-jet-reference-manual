@@ -1,36 +1,32 @@
 = Configuration
 
-You can configure Hazelcast Jet either programmatically or declaratively (XML).
+You can configure Hazelcast Jet either programmatically or
+declaratively (XML).
 
 == Programmatic Configuration
 
 Programmatic configuration is the simplest way to configure Jet. You
-http://= instantiate a {jet-javadoc}/config/JetConfig.html[`JetConfig`]
-[= instantiate a {jet-javadoc}/config/JetConfig.html[`JetConfig`]
-]object and set the desired properties. For example, the following will
-configure Jet to use only two threads for cooperative execution:
+instantiate a {jet-javadoc}/config/JetConfig.html[`JetConfig`] and set
+the desired properties. For example, the following will configure Jet to
+use only two threads in its _cooperative multithreading_ pool:
 
 [source]
 ----
-JetConfig config = new JetConfig();
-config.getInstanceConfig().setCooperativeThreadCount(2);
-JetInstance jet = Jet.newJetInstance(config);
+include::{javasource}/Configuration.java[tag=s1]
 ----
 
 == Declarative Configuration
 
 If you don't pass an explicit `JetConfig` object when constructing a Jet
-instance, it will look for an XML configuration file in the following
-locations (in that order):
+instance, it will perform the following lookup procedure:
 
-1. Check the system property `hazelcast.jet.config`. If the value is set
-   and starts with `classpath:`, Jet treats it as a classpath resource.
-   Otherwise it treats it as a file pathname.
-2. Check for the presence of `hazelcast-jet.xml` in the working
-   directory.
-3. Check for the presence of `hazelcast-jet.xml` in the classpath.
-4. If all the above checks fail, then Jet loads the default XML
-   configuration that's packaged in the Jet JAR file.
+1. Read the system property `hazelcast.jet.config`. If it starts with
+   `classpath:`, treat it as a classpath resource, otherwise it's a file
+   pathname. If it's defined but Jet can't find the file it specifies,
+   startup fails.
+2. Look for `hazelcast-jet.xml` in the working directory.
+3. Look for `hazelcast-jet.xml` in the classpath.
+4. Load the default XML configuration packaged in Jet's JAR.
 
 An example configuration looks like the following:
 
@@ -40,26 +36,26 @@ An example configuration looks like the following:
                xmlns="http://www.hazelcast.com/schema/jet-config"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <instance>
-        <!-- number of threads to use for DAG execution -->
+        <!-- number of threads in the cooperative thread pool -->
        <cooperative-thread-count>8</cooperative-thread-count>
-        <!-- frequency of flow control packets, in milliseconds -->
+        <!-- period between flow control packets in milliseconds -->
        <flow-control-period>100</flow-control-period>
-        <!-- working directory to use for placing temporary files -->
+        <!-- directory for temporary files -->
        <temp-dir>/var/tmp/jet</temp-dir>
-        <!-- number of backups for job specifics maps -->
+        <!-- number of backup copies to configure for Hazelcast IMaps used internally in a Jet job -->
        <backup-count>1</backup-count>
     </instance>
     <properties>
        <property name="custom.property">custom property</property>
     </properties>
     <edge-defaults>
-        <!-- number of available slots for each concurrent queue between two vertices -->
+        <!-- capacity of the concurrent SPSC queue between each two processors -->
        <queue-size>1024</queue-size>
 
         <!-- maximum packet size in bytes, only applies to distributed edges -->
        <packet-size-limit>16384</packet-size-limit>
 
-        <!-- target receive window size multiplier, only applies to distributed edges -->
+        <!-- receive window size multiplier, only applies to distributed edges -->
        <receive-window-multiplier>3</receive-window-multiplier>
     </edge-defaults>
     <!-- custom properties which can be read within a ProcessorSupplier -->
@@ -68,23 +64,23 @@ An example configuration looks like the following:
 
 The following are the configuration elements for Hazelcast Jet:
 
-* Cooperative Thread Count: Maximum number of cooperative threads to be
-used for execution of jobs. Its default value is
+* Cooperative Thread Count: number of threads Jet will create in its
+_cooperative multithreading_ pool. The default value is
 `Runtime.getRuntime().availableProcessors()`
-* Temp Directory: Directory where temporary files will be placed, such
-as JAR files submitted by clients. Jet will create a temp directory,
-which will be deleted on exit.
-* Flow Control Period: While executing a Jet job there is the issue of
-regulating the rate at which one member of the cluster sends data to
-another member. The receiver will regularly report to each sender how
-much more data it is allowed to send over a given DAG edge. This option
-sets the length (in milliseconds) of the interval between flow-control
-packets. Its default value is 100ms.
-* Backup Count: Sets the number of synchronous backups for storing job
-metadata and snapshots. The maximum allowed value is 6. The default
-value is 1.
-* Edge Defaults: The default values to be used for all edges. Please see
-the section on <<fine-tuning-edges, Tuning Edges>>.
+* Temp Directory: directory where Jet can create temporary files such
+as JAR files submitted by clients. Jet will create a temp directory and
+delete it on exit.
+* Flow Control Period: Jet uses a flow control mechanism between
+cluster members to prevent a slower vertex from getting overflowed with
+data from a faster upstream vertex. Each receiver regularly reports to
+each sender how much more data it may send over a given DAG edge. This
+option sets the duration (in milliseconds) of the interval between
+flow-control packets. Its default value is 100ms.
+* Backup Count: Sets the number of synchronous backups to configure on
+IMaps that Jet needs internally to store job metadata and snapshots. The
+maximum allowed value is 6. The default value is 1.
+* Edge Defaults: The default values to be used for all edges. See the
+section on <<fine-tuning-edges, Tuning Edges>>.
 
 == Configure the Underlying Hazelcast Instance
 
@@ -95,25 +91,23 @@ for specific configuration options for Hazelcast IMDG.
 
 === Programmatic
 
-The underlying Hazelcast IMDG member can be configured as follows:
+You can configure the underlying Hazelcast IMDG member as follows:
 
 [source]
-JetConfig jetConfig = new JetConfig();
-jetConfig.getHazelcastConfig().getGroupConfig().setName("test");
-JetInstance jet = Jet.newJetInstance(jetConfig);
+----
+include::{javasource}/Configuration.java[tag=s2]
+----
 
-The underlying Hazelcast IMDG client can be configured as follows:
-
+Similarly, you can also configure the underlying Hazelcast client:
 
 [source]
-ClientConfig clientConfig = new ClientConfig();
-clientConfig.getGroupConfig().setName("test");
-JetInstance jet = Jet.newJetClient(clientConfig);
+----
+include::{javasource}/Configuration.java[tag=s3]
+----
 
 === Declarative
 
-Hazelcast IMDG can also be configured declaratively as well.
-Please refer to the
+Hazelcast IMDG can also be configured declaratively. Please refer to the
 {hz-refman}#configuring-declaratively[Hazelcast Reference Manual]
 for information on how to do this.
 
@@ -121,9 +115,9 @@ for information on how to do this.
 
 You can configure and start a Hazelcast Jet instance as a component in
 the Spring Application Context. You can use the plain `bean` element
-and then define individual properties on a `JetConfig` instance, but
-Jet provides its own schema-based configuration which will make this
-much less verbose.
+and define individual properties on a `JetConfig` instance, but Jet
+provides its own schema-based configuration which will make this much
+less verbose.
 
 === Approach 1: Use the Plain `bean` Element
 

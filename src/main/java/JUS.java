@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 import static com.hazelcast.jet.stream.DistributedCollectors.toMap;
 
 public class JUS {
@@ -64,10 +65,11 @@ public class JUS {
         JetInstance jet = Jet.newJetInstance();
         //tag::s4[]
         IMap<String, Long> counts = DistributedStream.<String>fromList(
-                jet.getList("lines"))
-                .flatMap(word -> Stream.of(word.split("\\W+")))
-                .collect(DistributedCollectors.groupingByToIMap("result",
-                        w -> w,
+                jet.getList("text"))
+                .flatMap(line -> Stream.of(line.toLowerCase().split("\\W+")))
+                .filter(word -> !word.isEmpty())
+                .collect(DistributedCollectors.groupingByToIMap("counts",
+                        wholeItem(),
                         DistributedCollectors.counting()));
         //end::s4[]
     }

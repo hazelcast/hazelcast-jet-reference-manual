@@ -25,7 +25,7 @@ and parse them into words:
 include::{javasource}/JUS.java[tag=s2]
 ----
 
-== Distributed Collectors
+== Serializable Collectors
 
 The terminal operation of a java.util.stream expression uses a
 _collector_ such as `Collectors.toList()`. Java's collectors don't
@@ -40,8 +40,8 @@ regular JDK streams, where everything is local, but may easily fail in
 the context of a distributed computing job.
 
 For example, the following innocent-looking code will fail with an
-`OutOfMemoryError` because it requests to load the whole contents of a
-distributed map into a single place:
+`OutOfMemoryError` because it requests to load locally the whole
+contents of a distributed map:
 
 [source]
 ----
@@ -52,10 +52,11 @@ include::{javasource}/JUS.java[tag=s3]
 cluster
 <2> attempts to build a `HashMap` of 50GB
 
-This is why Jet distinguishes between the standard `java.util.stream`
-collectors and the Jet-specific `Reducer` s. A `Reducer` puts the data
-into a distributed data structure and knows how to leverage its native
-partitioning scheme to optimize the access pattern across the cluster.
+This is why Jet introduces another type with a similar purpose and
+allows you to use it in the terminal operation: the `Reducer`. It puts
+the data into a distributed data structure and knows how to leverage its
+native partitioning scheme to optimize the access pattern across the
+cluster.
 
 These are some of the `Reducer` implementations provided in Jet:
 
@@ -67,31 +68,31 @@ performs a grouping operation and then writes the results to a Hazelcast
 * {jet-javadoc}/stream/DistributedCollectors.html#toIList-java.lang.String-[`toIList()`]:
 Writes the data to a Hazelcast `IList`.
 
-`Reducer` behaves analogously to Pipeline API's sinks: if the reqeusted
-Hazelcast data structure doesn't exist, it creates it, but it doesn't
-clear it if it already exists.
+`Reducer` behaves analogously to Pipeline API's sinks: if the requested
+Hazelcast data structure doesn't exist, it creates it, but otherwise it
+doesn't clear it before adding more data.
 
-A distributed data structure is cluster-managed, therefore you can't
-just create one and forget about it; it will live on until you
-explicitly destroy it. This has consequences on the fit between Jet and
-the `java.util.stream` API. For example, `java.util.stream` performs
-group-and-aggregate with `Collectors.groupingBy`, which is a composite
-collector: it maintains a `HashMap` of collections and delegates to the
-"downstream" collector you provide to manage the collections that hold
-all the items with the same key. Since the outer `HashMap` is hardcoded,
-you cannot use this collector to store the results in an `IMapJet`. This
-is why Jet provides `groupingByToIMap()`.
+The durability of Hazelcast data structures has various consequences on
+the fit between Jet and the `java.util.stream` API. For example, the
+JDK performs group-and-aggregate with `Collectors.groupingBy`, which is
+a composite collector: it maintains a `HashMap` of collections and
+delegates to the "downstream" collector you provide to manage the
+collections that hold all the items with the same key. Since the outer
+`HashMap` is hardcoded, you cannot use this collector to store the
+results in an `IMapJet`. You must use `groupingByToIMap()` instead.
 
 == Word Count
 
-You can perform the <<get-started, Word Count>> operation on a Hazelcast
-`IList` filled with lines of text like this:
+You can perform the Word Count computation, the same one we used in our
+<<verify-your-setup, Getting Started>> example, on a Hazelcast `IList`
+filled with lines of text like this:
 
 [source]
 ----
 include::{javasource}/JUS.java[tag=s4]
 ----
 
-After you run this, there will be a durable Hazelcast IMap with the
-name "result" in the Jet cluster, whether or not you keep the
-reference you got as the returned value.
+After you run this, the Jet cluster will contain a durable IMap with the
+results. If you run it again with a different input, the new results
+will replace the old ones for the words contained in both inputs, but
+the old results with words not occurring in the new input will remain.
