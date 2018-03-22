@@ -1,4 +1,5 @@
 import com.hazelcast.core.IList;
+import com.hazelcast.core.IMap;
 import com.hazelcast.jet.IMapJet;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
@@ -8,6 +9,8 @@ import com.hazelcast.jet.stream.DistributedStream;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.hazelcast.jet.stream.DistributedCollectors.toMap;
 
@@ -53,12 +56,19 @@ public class JUS {
         Map<String, String> result = DistributedStream
                 .fromMap(map)
                 .map(e -> e.getKey() + e.getValue())
-                .collect(toMap(v -> v, v -> v)); // <2>
+                .collect(DistributedCollectors.toMap(v -> v, v -> v)); // <2>
         //end::s3[]
     }
 
     static void s4() {
+        JetInstance jet = Jet.newJetInstance();
         //tag::s4[]
+        IMap<String, Long> counts = DistributedStream.<String>fromList(
+                jet.getList("lines"))
+                .flatMap(word -> Stream.of(word.split("\\W+")))
+                .collect(DistributedCollectors.groupingByToIMap("result",
+                        w -> w,
+                        DistributedCollectors.counting()));
         //end::s4[]
     }
 

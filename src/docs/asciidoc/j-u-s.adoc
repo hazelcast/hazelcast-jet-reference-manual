@@ -48,8 +48,9 @@ distributed map into a single place:
 include::{javasource}/JUS.java[tag=s3]
 ----
 
-<1> `large_map` is a distributed map with 5GB per member in a 10-member cluster
-<2> attempts to build a HashMap of 50GB
+<1> `large_map` is a distributed map with 5GB per member in a 10-member
+cluster
+<2> attempts to build a `HashMap` of 50GB
 
 This is why Jet distinguishes between the standard `java.util.stream`
 collectors and the Jet-specific `Reducer` s. A `Reducer` puts the data
@@ -58,30 +59,39 @@ partitioning scheme to optimize the access pattern across the cluster.
 
 These are some of the `Reducer` implementations provided in Jet:
 
-* `toIMap()`: writes the data to a new Hazelcast `IMap`.
-* `groupingByToIMap()`: performs a grouping operation and then writes
-the results to a Hazelcast `IMap`. This uses a more efficient
-implementation than the standard `groupingBy()` collector and can make
-use of partitioning.
-* `toIList()`: Writes the data to a new Hazelcast `IList`.
+* {jet-javadoc}/stream/DistributedCollectors.html#toIMap-java.lang.String-[`toIMap()`]:
+writes the data to a Hazelcast `IMap`.
+* {jet-javadoc}/stream/DistributedCollectors.html#groupingByToIMap-java.lang.String-com.hazelcast.jet.function.DistributedFunction-[`groupingByToIMap()`]:
+performs a grouping operation and then writes the results to a Hazelcast
+`IMap`.
+* {jet-javadoc}/stream/DistributedCollectors.html#toIList-java.lang.String-[`toIList()`]:
+Writes the data to a Hazelcast `IList`.
+
+`Reducer` behaves analogously to Pipeline API's sinks: if the reqeusted
+Hazelcast data structure doesn't exist, it creates it, but it doesn't
+clear it if it already exists.
 
 A distributed data structure is cluster-managed, therefore you can't
 just create one and forget about it; it will live on until you
-explicitly destroy it. That means it's inappropriate to use as a part of
-a data item inside a larger collection, a further consequence being that
-a `Reducer` is inappropriate as a downstream collector; that's where
-the JDK-standard collectors make sense.
+explicitly destroy it. This has consequences on the fit between Jet and
+the `java.util.stream` API. For example, `java.util.stream` performs
+group-and-aggregate with `Collectors.groupingBy`, which is a composite
+collector: it maintains a `HashMap` of collections and delegates to the
+"downstream" collector you provide to manage the collections that hold
+all the items with the same key. Since the outer `HashMap` is hardcoded,
+you cannot use this collector to store the results in an `IMapJet`. This
+is why Jet provides `groupingByToIMap()`.
 
 == Word Count
 
-The word count example that was described in the
-<<get-started, Get Started>> section can be rewritten using the `java.util.stream` API as follows:
+You can perform the <<get-started, Word Count>> operation on a Hazelcast
+`IList` filled with lines of text like this:
 
 [source]
 ----
-IMap<String, Long> counts = lines
-                .stream()
-                .flatMap(word -> Stream.of(word.split("\\W+")))
-                .collect(DistributedCollectors.toIMap(w -> w, w -> 1L, (left, right) -> left + right));
+include::{javasource}/JUS.java[tag=s4]
 ----
 
+After you run this, there will be a durable Hazelcast IMap with the
+name "result" in the Jet cluster, whether or not you keep the
+reference you got as the returned value.
