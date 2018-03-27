@@ -143,6 +143,11 @@ This will test one of the jet-provided processors:
 include::{javasource}/ExpertZoneBestPractices.java[tag=s4]
 ----
 
+<1> Enabled by default
+<2> The default is 1000ms
+<3> The default is `Objects::equal`
+<4> The default is `emptyList()`
+
 === Other Utility Classes
 
 `com.hazelcast.jet.test` contains these classes that you can use as

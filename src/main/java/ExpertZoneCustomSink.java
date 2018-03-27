@@ -79,13 +79,13 @@ class WriteFilePSupplier implements ProcessorSupplier {
     }
 
     @Override
-    public void complete(Throwable error) {
-        for (WriteFileP p : processors) {
-            try {
+    public void close(Throwable error) {
+        try {
+            for (WriteFileP p : processors) {
                 p.close();
-            } catch (IOException e) {
-                throw new JetException(e);
             }
+        } catch (IOException e) {
+            throw new JetException(e);
         }
     }
 }

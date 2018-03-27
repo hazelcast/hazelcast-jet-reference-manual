@@ -59,13 +59,13 @@ class ExpertZoneBestPractices {
     static void s4() {
         //tag::s4[]
         TestSupport.verifyProcessor(mapP((String s) -> s.toUpperCase()))
-                   .disableCompleteCall()             // enabled by default
-                   .disableLogging()                  // enabled by default
-                   .disableProgressAssertion()        // enabled by default
-                   .disableSnapshots()                // enabled by default
-                   .cooperativeTimeout(2000) // default is 1000ms
-                   .outputChecker(TestSupport.SAME_ITEMS_ANY_ORDER)         // default is `Objects::equal`
-                   .input(asList("foo", "bar"))       // default is `emptyList()`
+                   .disableCompleteCall()       // <1>
+                   .disableLogging()            // <1>
+                   .disableProgressAssertion()  // <1>
+                   .disableSnapshots()          // <1>
+                   .cooperativeTimeout(2000)                         // <2>
+                   .outputChecker(TestSupport.SAME_ITEMS_ANY_ORDER)  // <3>
+                   .input(asList("foo", "bar"))                      // <4>
                    .expectOutput(asList("FOO", "BAR"));
         //end::s4[]
     }
