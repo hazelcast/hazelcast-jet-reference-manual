@@ -38,7 +38,7 @@ aggregation setup:
 
 [source]
 ----
-include::{javasource}/ExpertZone.java[tag=bp1]
+include::{javasource}/ExpertZoneBestPractices.java[tag=s1]
 ----
 
 We'd like to see what exactly we're getting from the first stage, so
@@ -46,7 +46,7 @@ we'll wrap the processor supplier with `peekInput()`:
 
 [source]
 ----
-include::{javasource}/ExpertZone.java[tag=bp2]
+include::{javasource}/ExpertZoneBestPractices.java[tag=s2]
 ----
 
 Keep in mind that logging happens on the machine running hosting the
@@ -68,7 +68,7 @@ declarations:
 
 [source]
 ----
-include::{javasource}/ExpertZone.java[tag=bp3]
+include::{javasource}/ExpertZoneBestPractices.java[tag=s3]
 ----
 
 This will create the directory `tokenize-output` which will contain one
@@ -140,7 +140,7 @@ This will test one of the jet-provided processors:
 
 [source]
 ----
-include::{javasource}/ExpertZone.java[tag=bp4]
+include::{javasource}/ExpertZoneBestPractices.java[tag=s4]
 ----
 
 === Other Utility Classes

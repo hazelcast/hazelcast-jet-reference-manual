@@ -29,17 +29,26 @@ Paralleling the above there are `tryProcessWm(ordinal, wm)` and
 == Emitting items
 
 `AbstractProcessor` has a private reference to its outbox and lets you
-access all its functionality indirectly. The `tryEmit()` methods offer your items to the outbox. If you get a `false` return value, you must stop emitting items and return from the current callback method of the processor. For example, if you called `tryEmit()` from `tryProcess0()`,
-you should return `false` so Jet will call `tryProcess0()` again later, when there's more room in the outbox. Similar to these methods there are `tryEmitToSnapshot()` and `emitFromTraverserToSnapshot()`, to be used from the `saveToSnapshot()` callback.
+access all its functionality indirectly. The `tryEmit()` methods offer
+your items to the outbox. If you get a `false` return value, you must
+stop emitting items and return from the current callback method of the
+processor. For example, if you called `tryEmit()` from `tryProcess0()`,
+you should return `false` so Jet will call `tryProcess0()` again later,
+when there's more room in the outbox. Similar to these methods there are
+`tryEmitToSnapshot()` and `emitFromTraverserToSnapshot()`, to be used
+from the `saveToSnapshot()` callback.
 
-Implementing a processor to respect the above rule is quite tricky and error-prone. Things get especially tricky when there are several items to emit, such as:
+Implementing a processor to respect the above rule is quite tricky and
+error-prone. Things get especially tricky when there are several items
+to emit, such as:
 
 - when a single input item maps to many output items
 - when the processor performs a group-by-key operation and emits each
 group as a separate item
 
-You can avoid most of the complexity if you wrap all your output in a `Traverser`. Then you can simply say `return
-emitFromTraverser(myTraverser)`. It will:
+You can avoid most of the complexity if you wrap all your output in a
+`Traverser`. Then you can simply say `return
+ emitFromTraverser(myTraverser)`. It will:
 
 1. try to emit as many items as possible
 2. return `false` if the outbox refuses an item
@@ -76,7 +85,7 @@ processor:
 
 [source]
 ----
-include::{javasource}/ExpertZone.java[tag=ap1]
+include::{javasource}/ExpertZoneAbstractProcessor.java[tag=s1]
 ----
 
 For each received `Integer` this processor emits the number and its

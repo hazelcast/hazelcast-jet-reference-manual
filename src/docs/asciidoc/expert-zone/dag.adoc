@@ -6,11 +6,11 @@ The DAG-building API is centered around the
 class. This is a pure data class and can be instantiated on its own,
 without a Jet instance. This makes it simple to separate the
 job-describing code from the code that manages the lifecycle of Jet
-instances. To start building a DAG, you just write
+instances. To start building a DAG, write
 
 [source]
 ----
-include::{javasource}/ExpertZone.java[tag=dag1b]
+include::{javasource}/ExpertZoneDag.java[tag=s1]
 ----
 
 A good practice is to structure the DAG-building code into the following
@@ -24,8 +24,12 @@ Example:
 
 [source]
 ----
-include::{javasource}/ExpertZone.java[tag=dag1]
+include::{javasource}/ExpertZoneDag.java[tag=s2]
 ----
+
+<1> Create the vertices
+<2> Configure local parallelism
+<3> Create the edges
 
 [[creating-a-vertex]]
 == Creating a Vertex
@@ -102,12 +106,7 @@ build a DAG with one source feeding two computational vertices:
 
 [source]
 ----
-include::{javasource}/ExpertZone.java[tag=dag2]
-Vertex v1 = dag.newVertex("v1", ...);
-Vertex v2 = dag.newVertex("v2", ...);
-
-dag.edge(between(source, v1));
-dag.edge(from(source, 1).to(v2));
+include::{javasource}/ExpertZoneDag.java[tag=s3]
 ----
 
 [[local-and-distributed-edge]]
@@ -122,18 +121,18 @@ edge. By default the edge is local and calling the
 method removes this restriction.
 
 With appropriate DAG design, network traffic can be minimized by
-employing local edges. They are implemented with the most
-efficient kind of concurrent queue: single-producer, single-consumer
-array-backed queue. It employs wait-free algorithms on both sides and
-avoids even the latency of `volatile` writes by using `lazySet`.
+employing local edges. They are implemented with the most efficient kind
+of concurrent queue: single-producer, single-consumer array-backed
+queue. It employs wait-free algorithms on both sides and avoids even the
+latency of `volatile` writes by using `lazySet`.
 
-The quintessential example of employing local-distributed edge combo
-is the two-stage aggregation. Here's a review of that setup from the
-Word Count tutorial:
+A good example of employing a local-distributed edge combo is two-stage
+aggregation. Here's how it looks on our <<wordcount-dag-edges, Word
+Count>> example:
 
 [source]
 ----
-include::{javasource}/ExpertZone.java[tag=dag3]
+include::{javasource}/ExpertZoneDag.java[tag=s4]
 ----
 
 Note that only the edge from `accumulate` to `combine` is distributed.
@@ -151,7 +150,7 @@ This is the default routing policy, the one you get when you write
 
 [source]
 ----
-dag.edge(between(source, tokenizer))
+include::{javasource}/ExpertZoneDag.java[tag=s5]
 ----
 
 For each item it chooses a single destination processor with no further
@@ -169,12 +168,12 @@ on each item in isolation.
 This is a more restricted kind of unicast policy: any given downstream
 processor receives data from exactly one upstream processor. This is
 needed in some DAG setups to apply selective backpressure to individual
-upstream source processors. Activate this policy by calling
-`isolated()` on the edge:
+upstream source processors. Activate this policy by calling `isolated()`
+on the edge:
 
 [source]
 ----
-dag.edge(between(source, insertWatermarks).isolated());
+include::{javasource}/ExpertZoneDag.java[tag=s6]
 ----
 
 === Broadcast
@@ -192,7 +191,7 @@ Activate this policy by calling `broadcast()` on the edge:
 
 [source]
 ----
-dag.edge(between(source, count).broadcast());
+include::{javasource}/ExpertZoneDag.java[tag=s7]
 ----
 
 === Partitioned
@@ -237,7 +236,7 @@ We use both partitioning strategies in the Word Count example:
 
 [source]
 ----
-include::{javasource}/ExpertZone.java[tag=dag3b]
+include::{javasource}/ExpertZoneDag.java[tag=s8]
 ----
 
 The local-partitioned edge uses partitioning by hash code and the
@@ -253,24 +252,25 @@ choice.
 === All-To-One
 
 The all-to-one routing policy is a special case of the `partitioned`
-policy which assigns the same partition ID to all items. The partition
-ID is randomly chosen at job initialization time. This policy makes
+policy which assigns the same partition ID to all items. Jet randomly
+chooses the partition while initializing the job. This policy makes
 sense on a distributed edge when all the items from all the members must
-be routed to the same member and the same processor instance running on
-it. Local parallelism of the target vertex should be set to 1, otherwise
-there will be idle processors that never get any items.
+go to the same member and the same processor instance running on it.
+You should always set the local parallelism of the target vertex to 1,
+otherwise there will be idle processors that never get any items.
 
 On a local edge this policy doesn't make sense since simply setting the
 local parallelism of the target vertex to 1 constrains the local choice
 to just one processor instance.
 
-In the `TopNStocks` example the stream-processing job must find the
-stocks with fastest-changing prices. To achieve this a single processor
-must see the complete picture, so an all-to-one edge is employed:
+One case where the all-to-one routing is appropriate is global
+aggregation (without grouping). A single processor must see all the
+data. Here's how we would set it between the first-stage and the
+second-stage aggregating vertex:
 
 [source]
 ----
-dag.edge(between(topNStage1, topNStage2).distributed().allToOne())
+include::{javasource}/ExpertZoneDag.java[tag=s9]
 ----
 
 == Priority
@@ -295,12 +295,12 @@ example:
 
 [source]
 ----
-dag.edge(between(stopwordSource, tokenize).broadcast().priority(-1))
+include::{javasource}/ExpertZoneDag.java[tag=s10]
 ----
 
-The `tokenize` vertex performs lookup table-based filtering of words. It
-must receive the entire lookup table before beginning to process the
-data.
+The `tokenize` vertex receives a set of _stopwords_ and filters out
+their occurrences from the input text. It must receive the entire set
+before beginning to process the text.
 
 === A Fault Tolerance Caveat
 
@@ -309,20 +309,22 @@ As explained in the section on the
 API, Jet takes regular snapshots of processor state when fault tolerance
 is enabled. A processor will get a special item in its input stream,
 called a _barrier_. When working in the _exactly once_ mode, as soon as
-it receives it, it must stop pulling the data from that stream, wait for
-the same barrier in all other streams, and then emit its state to the
-snapshot storage. This is in direct contradiction with the contract of
-edge prioritization: the processor is not allowed to consume any other
+it receives it, it must stop pulling the data from that stream and
+continue pulling from all other streams until it receives the same
+barrier in all of them, and then emit its state to the snapshot storage.
+This is in direct contradiction with the contract of edge
+ prioritization: the processor is not allowed to consume any other
 streams before having fully exhausted the prioritized ones.
 
-This is why Jet does not initiate a snapshot until all the high-priority
-edges have been fully consumed.
+For this reason Jet does not initiate a snapshot until all the
+high-priority edges have been fully consumed.
 
 Although strictly speaking this only applies to the _exactly once_ mode,
 Jet postpones taking the snapshot in _at least once_ mode as well. Even
 though the snapshot could begin early, it would still not be able to
-complete until the prioritized edges have been consumed. The result
-would be just that there are many more items processed twice after the
+complete until the processor has consumed all the prioritized edges,
+started consuming non-prioritized ones, and received the barrier in all
+of them. The result would be many more items processed twice after the
 restart.
 
 [[fine-tuning-edges]]
@@ -335,7 +337,7 @@ example,
 
 [source]
 ----
-include::{javasource}/ExpertZone.java[tag=dag4]
+include::{javasource}/ExpertZoneDag.java[tag=s11]
 ----
 
 Please refer to the Javadoc of

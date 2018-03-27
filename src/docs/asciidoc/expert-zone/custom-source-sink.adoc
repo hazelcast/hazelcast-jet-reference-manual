@@ -72,56 +72,30 @@ connections. We provide `CloseableProcessorSupplier` for this.
 Let's say we want to write a simple source that will generate numbers
 from 0 to 1,000,000 (exclusive). It is trivial to write a single
 `Processor` which can do this using `java.util.stream` and
-[`Traverser`](AbstractProcessor#page_Traverser).
+[`Traverser`](AbstractProcessor#page_Traverser):
 
 [source]
 ----
-class GenerateNumbersP extends AbstractProcessor {
-
-    private final Traverser<Integer> traverser;
-
-    GenerateNumbersP(int upperBound) {
-        traverser = Traversers.traverseStream(IntStream.range(0, upperBound).boxed());
-    }
-
-    @Override
-    public boolean complete() {
-        return emitFromTraverser(traverser);
-    }
-}
+include::{javasource}/ExpertZoneCustomSource.java[tag=s1]
 ----
 
 Now we can build our DAG and execute it:
 
 [source]
 ----
-JetInstance jet = Jet.newJetInstance();
-
-int upperBound = 10;
-DAG dag = new DAG();
-Vertex generateNumbers = dag.newVertex("generate-numbers",
-        () -> new GenerateNumbersP(upperBound));
-Vertex logInput = dag.newVertex("log-input",
-        DiagnosticProcessors.writeLogger(i -> "Received number: " + i));
-dag.edge(Edge.between(generateNumbers, logInput));
-
-try {
-    jet.newJob(dag).execute().get();
-} finally {
-    Jet.shutdownAll();
-}
+include::{javasource}/ExpertZoneCustomSource.java[tag=s2]
 ----
 
 When you run this code, you will see the output as below:
 
-----
+....
 Received number: 4
 Received number: 0
 Received number: 3
 Received number: 2
 Received number: 2
 Received number: 2
-----
+....
 
 Since we are using the default parallelism setting on this vertex,
 several instances of the source processor were created, all of which
@@ -144,45 +118,21 @@ partitioning logic:
 
 [source]
 ----
-GenerateNumbersP(int upperBound, int processorCount, int processorIndex) {
-    traverser = Traversers.traverseStream(
-            IntStream.range(0, upperBound)
-                     .filter(n -> n % processorCount == processorIndex)
-                     .boxed());
-}
+include::{javasource}/ExpertZoneCustomSource.java[tag=s3]
 ----
 
-Given this preparation, implementing `ProcessorSupplier` is trivial:
+Given this preparation, implementing `ProcessorSupplier` is easy:
 
 [source]
 ----
-class GenerateNumbersPSupplier implements ProcessorSupplier {
-
-    private final int upperBound;
-
-    GenerateNumbersPSupplier(int upperBound) {
-        this.upperBound = upperBound;
-    }
-
-    @Override @Nonnull
-    public List<? extends Processor> get(int processorCount) {
-        return IntStream.range(0, processorCount)
-                .mapToObj(index -> new GenerateNumbersP(upperBound, processorCount, index))
-                .collect(Collectors.toList());
-    }
-}
+include::{javasource}/ExpertZoneCustomSource.java[tag=s4]
 ----
 
 Let's use the custom processor supplier in our DAG-building code:
 
 [source]
 ----
-DAG dag = new DAG();
-Vertex generateNumbers = dag.newVertex("generate-numbers",
-        new GenerateNumbersPSupplier(10));
-Vertex logInput = dag.newVertex("log-input",
-        DiagnosticProcessors.writeLogger(i -> "Received number: " + i));
-dag.edge(Edge.between(generateNumbers, logInput));
+include::{javasource}/ExpertZoneCustomSource.java[tag=s5]
 ----
 
 Now we can re-run our example and see that each number indeed occurs
@@ -191,11 +141,7 @@ Jet cluster; let's see what happens when we add another member:
 
 [source]
 ----
-JetInstance jet = Jet.newJetInstance();
-Jet.newJetInstance();
-
-DAG dag = new DAG();
-...
+include::{javasource}/ExpertZoneCustomSource.java[tag=s6]
 ----
 
 Running after this change we'll see that both members are generating the
@@ -205,7 +151,7 @@ processors, resulting in identical processors on all members. We have to
 solve the same problem as we just did, but at the higher level of
 cluster-wide parallelism. For that we'll need the
 `ProcessorMetaSupplier`: an interface which acts as a factory of
-`ProcessorSupplier`s, one for each cluster member. Under the hood it is
+`ProcessorSupplier` s, one for each cluster member. Under the hood it is
 actually always the meta-supplier that's created by the DAG-building
 code; the above examples are just implicit about it for the sake of
 convenience. They result in a simple meta-supplier that reuses the
@@ -218,58 +164,16 @@ case we'll treat the address as just an opaque ID and we'll build a map
 from address to a properly configured `ProcessorSupplier`. Then we can
 simply return `map::get` as our function.
 
-
 [source]
 ----
-class GenerateNumbersPMetaSupplier implements ProcessorMetaSupplier {
-
-    private final int upperBound;
-
-    private transient int totalParallelism;
-    private transient int localParallelism;
-
-    GenerateNumbersPMetaSupplier(int upperBound) {
-        this.upperBound = upperBound;
-    }
-
-    @Override
-    public void init(@Nonnull Context context) {
-        totalParallelism = context.totalParallelism();
-        localParallelism = context.localParallelism();
-    }
-
-    @Override @Nonnull
-    public Function<Address, ProcessorSupplier> get(@Nonnull List<Address> addresses) {
-        Map<Address, ProcessorSupplier> map = new HashMap<>();
-        for (int i = 0; i < addresses.size(); i++) {
-            // We'll calculate the global index of each processor in the cluster:
-            int globalIndexBase = localParallelism * i;
-            // Capture the value of the transient field for the lambdas below:
-            int divisor = totalParallelism;
-            // processorCount will be equal to localParallelism:
-            ProcessorSupplier supplier = processorCount ->
-                    range(globalIndexBase, globalIndexBase + processorCount)
-                            .mapToObj(globalIndex ->
-                                new GenerateNumbersP(upperBound, divisor, globalIndex)
-                            ).collect(toList());
-            map.put(addresses.get(i), supplier);
-        }
-        return map::get;
-    }
-
-}
+include::{javasource}/ExpertZoneCustomSource.java[tag=s7]
 ----
 
 We change our DAG-building code to use the meta-supplier:
 
 [source]
 ----
-DAG dag = new DAG();
-Vertex generateNumbers = dag.newVertex("generate-numbers",
-        new GenerateNumbersPMetaSupplier(upperBound));
-Vertex logInput = dag.newVertex("log-input",
-        DiagnosticProcessors.writeLogger(i -> "Received number: " + i));
-dag.edge(Edge.between(generateNumbers, logInput));
+include::{javasource}/ExpertZoneCustomSource.java[tag=s8]
 ----
 
 After re-running with two Jet members, we should once again see each
@@ -288,7 +192,7 @@ this case directly implementing `Processor` is better because its
 `process()` method gets the entire `Inbox` which can be drained to a
 buffer and flushed out.
 
-== Example - File Writer
+== Example: File Writer
 
 In this example we'll implement a vertex that writes the received items
 to files. To avoid contention and conflicts, each processor must write
@@ -298,38 +202,7 @@ of extending `AbstractProcessor`:
 
 [source]
 ----
-class WriteFileP extends AbstractProcessor implements Closeable {
-
-    private final String path;
-
-    private transient BufferedWriter writer;
-
-    WriteFileP(String path) {
-        setCooperative(false);
-        this.path = path;
-    }
-
-    @Override
-    protected void init(@Nonnull Context context) throws Exception {
-        Path path = Paths.get(this.path, context.jetInstance().getName()
-                + '-' + context.globalProcessorIndex());
-        writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
-    }
-
-    @Override
-    protected boolean tryProcess(int ordinal, Object item) throws Exception {
-        writer.append(item.toString());
-        writer.newLine();
-        return true;
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (writer != null) {
-            writer.close();
-        }
-    }
-}
+include::{javasource}/ExpertZoneCustomSink.java[tag=s1]
 ----
 
 Some comments:
@@ -351,42 +224,5 @@ processor's code. This is the supplier's code:
 
 [source]
 ----
-class WriteFilePSupplier implements ProcessorSupplier {
-
-    private final String path;
-
-    private transient List<WriteFileP> processors;
-
-    WriteFilePSupplier(String path) {
-        this.path = path;
-    }
-
-    @Override
-    public void init(@Nonnull Context context) {
-        File homeDir = new File(path);
-        boolean success = homeDir.isDirectory() || homeDir.mkdirs();
-        if (!success) {
-            throw new JetException("Failed to create " + homeDir);
-        }
-    }
-
-    @Override @Nonnull
-    public List<WriteFileP> get(int count) {
-        processors = Stream.generate(() -> new WriteFileP(path))
-                           .limit(count)
-                           .collect(Collectors.toList());
-        return processors;
-    }
-
-    @Override
-    public void complete(Throwable error) {
-        for (WriteFileP p : processors) {
-            try {
-                p.close();
-            } catch (IOException e) {
-                throw new JetException(e);
-            }
-        }
-    }
-}
+include::{javasource}/ExpertZoneCustomSink.java[tag=s2]
 ----

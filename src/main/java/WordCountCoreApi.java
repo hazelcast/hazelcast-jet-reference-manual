@@ -62,9 +62,7 @@ public class WordCountCoreApi {
 
         JetInstance jet = Jet.newJetInstance();
         Jet.newJetInstance();
-
         try {
-
             IMap<Integer, String> map = jet.getMap("lines");
             map.put(0, "It was the best of times,");
             map.put(1, "it was the worst of times,");
@@ -86,7 +84,7 @@ public class WordCountCoreApi {
 
             jet.newJob(dag).join();
             System.out.println(jet.getMap("counts").entrySet());
-            //      Expected output:
+            // Expected output:
             // [heaven=1, times=2, of=12, its=2, far=1, light=1, noisiest=1,
             // the=14, other=1, incredulity=1, worst=1, hope=1, on=1, good=1, going=2,
             // like=1, we=4, was=11, best=1, nothing=1, degree=1, epoch=2, all=2,

@@ -86,6 +86,7 @@ Now that we have all the vertices, we must connect them into a graph and
 specify the edge type as discussed in the previous section. Here's the
 code:
 
+[[wordcount-dag-edges]]
 [source]
 ----
 include::{javasource}/WordCountCoreApi.java[tag=s5]
@@ -114,7 +115,7 @@ the hash function specified in their Javadoc.
 
 You can acces a full, self-contained Java program with the above DAG
 code at the
-{jet-samples}/refman/src/main/java/refman/WordCountCoreApiRefMan.java[Hazelcast Jet code samples repository].
+{jet-refman-src}/src/main/java/WordCountCoreApi.java[Hazelcast Jet Reference Manual repository].
 
 == Unbounded Stream DAG
 
@@ -133,6 +134,8 @@ side there's another mapping vertex, `format-output`, that transforms
 the window result items into lines of text. The `sink` vertex writes
 these lines to a file.
 
+Here's the DAG-building code in full:
+
 [source]
 ----
 include::{javasource}/StockExchangeCoreApi.java[tag=s1]
@@ -141,27 +144,25 @@ include::{javasource}/StockExchangeCoreApi.java[tag=s1]
 You can see quite a lot of code going into the setup of the streaming
 source. Let's zoom in on it:
 
-<1> are the filtering and mapping functions we supply directly
-to the source. Hazelcast IMDG will apply them before serializing and
-sending to Jet so this saves network traffic and CPU.
-<2> is the choice where to start from in map's event journal: the oldest
-entry still available.
-<3> is the function to apply to the event object to get its timestamp.
-<4> is the <<watermark-policy, watermark policy>>. Here we use the
-simplest kind, `limitingLag`, which will make the watermark lag behind
-the top observed event timestamp by the fixed amount we specified (3
-seconds).
-<5> is the <<watermark-throttling, watermark emission policy>> that
-tells Jet when to actually send a watermark event. Since the sliding
-window processor ignores all watermark events that belong to the same
-frame, we configure a matching policy that emits only one watermark per
-frame.
-<6> is the partition idle timeout. This is a countermeasure to
-stalling problems that occur when some of the IMap partitions don't
-receive any updates. Due to watermark coalescing this could stall the
-entire stream, but with this setting a partition will be marked as idle
-after 3 seconds of inactivity and then the rest of the system behaves as
-if it didn't exist.
+<1> filtering and mapping functions we supply directly to the source.
+Hazelcast IMDG will apply them before serializing and sending to Jet so
+this saves network traffic and CPU.
+<2> where to start from in map's event journal: the oldest entry still
+available.
+<3> function to apply to the event object to get its timestamp.
+<4> <<watermark-policy, watermark policy>>. Here we use the simplest
+kind, `limitingLag`, which will make the watermark lag behind the top
+observed event timestamp by the fixed amount we specified (3 seconds).
+<5> <<watermark-throttling, watermark emission policy>> that tells Jet
+when to actually send a watermark event. Since the sliding window
+processor ignores all watermark events that belong to the same frame, we
+configure a matching policy that emits only one watermark per frame.
+<6> partition idle timeout. This is a countermeasure to stalling
+problems that occur when some of the IMap partitions don't receive any
+updates. Due to watermark coalescing this could stall the entire stream,
+but with this setting a partition will be marked as idle after 3 seconds
+of inactivity and then the rest of the system behaves as if it didn't
+exist.
 <7> Here we use `mapUsingContextP` which allows us to create an object
 available to the processor at a late point, after all the job
 serialization-deserialization is done. In this case we need it because
@@ -242,7 +243,7 @@ user.
 
 Let's have a look at a specific search phrase:
 
-[source]
+[source,text]
 ----
 the man in the black suit murdered the king
 ----
@@ -251,11 +252,11 @@ The list of documents that contain all the above words is quite long...
 how do we decide which are the most relevant? The TF-IDF logic will make
 those stand out that have an above-average occurrence of words that are
 generally rare across all documents. For example, "`murdered`" occurs in
-far fewer documents than "`black`"... so given two documents where one has
-the same number of "`murdered`" as the other one has of "`black`", the one
-with "`murdered`" wins because its word is more salient in general. On the
-other hand, "`suit`" and "`king`" might have a similar IDF, so the document
-that simply contains more of both wins.
+far fewer documents than "`black`"... so given two documents where one
+has the same number of "`murdered`" as the other one has of "`black`",
+the one with "`murdered`" wins because its word is more salient in
+general. On the other hand, "`suit`" and "`king`" might have a similar
+IDF, so the document that simply contains more of both wins.
 
 Also note the limitation of this technique: a phrase is treated as just
 the sum of its parts; a document may contain the exact phrase and this
@@ -274,14 +275,9 @@ stream of all the words found in all the documents. We use `Map.Entry` as
 a holder of a pair of values (a 2-tuple) and here we have a pair of
 `Long docId` and `String word`:
 
-
 [source]
 ----
-Stream<Entry<Long, String>> docWords = docId2Name
-        .entrySet()
-        .parallelStream()
-        .flatMap(TfIdfJdkStreams::docLines)
-        .flatMap(this::tokenize);
+include::{javasource}/TfIdfJdkStreams.java[tag=s1]
 ----
 
 We know the number of all documents so we can compute `double
@@ -289,7 +285,7 @@ logDocCount`, the logarithm of the document count:
 
 [source]
 ----
-double logDocCount = Math.log(docId2Name.size());
+include::{javasource}/TfIdfJdkStreams.java[tag=s2]
 ----
 
 Calculating TF is very easy, just count the number of occurrences of
@@ -298,10 +294,7 @@ Long>`:
 
 [source]
 ----
-// TF map: (docId, word) -> count
-final Map<Entry<Long, String>, Long> tfMap = docWords
-        .parallel()
-        .collect(groupingBy(identity(), counting()));
+include::{javasource}/TfIdfJdkStreams.java[tag=s3]
 ----
 
 And now we build the inverted index. We start from `tfMap`, group by
@@ -312,29 +305,7 @@ entries from the `tf` map, but we need pairs `(docId, tfIDfScore)`.
 
 [source]
 ----
-invertedIndex = tfMap
-    .entrySet() // set of ((docId, word), count)
-    .parallelStream()
-    .collect(groupingBy(
-        e -> e.getKey().getValue(),
-        collectingAndThen(
-            toList(),
-            entries -> {
-                double idf = logDocCount - Math.log(entries.size());
-                return entries.stream()
-                              .map(e -> tfidfEntry(e, idf))
-                              .collect(toList());
-            }
-        )
-    ));
-
-// ((docId, word), count) -> (docId, tfIdf)
-private static Entry<Long, Double> tfidfEntry(
-        Entry<Entry<Long, String>, Long> tfEntry, Double idf
-) {
-    final Long tf = tfEntry.getValue();
-    return entry(tfEntry.getKey().getKey(), tf * idf);
-}
+include::{javasource}/TfIdfJdkStreams.java[tag=s4]
 ----
 
 The search function can be implemented with another Streams expression,
@@ -359,9 +330,9 @@ feature to our DAG based model in the following section.
 === Translating to Jet DAG
 
 Our DAG as a whole will look relatively complex, but it can be
-understood as a "`backbone`" (cascade of vertices) starting from a source
-and ending in a sink with several more vertices attached on the side.
-This is just the backbone:
+understood as a "`backbone`" (cascade of vertices) starting from a
+source and ending in a sink with several more vertices attached on the
+side. This is just the backbone:
 
 image::tf-idf-backbone.png[Backbone of the TF-IDF DAG,250,750,align="center"]
 
@@ -431,7 +402,7 @@ just the standard `IMap` reader:
 
 [source]
 ----
-dag.newVertex("doc-source", SourceProcessors.readMapP(DOCID_NAME));
+include::{javasource}/TfIdfCoreApi.java[tag=s1]
 ----
 
 The stopwords-producing processor has custom code, but it's quite
@@ -439,17 +410,12 @@ simple:
 
 [source]
 ----
-dag.newVertex("stopword-source", StopwordsP::new);
+include::{javasource}/TfIdfCoreApi.java[tag=s2]
 ----
 
 [source]
 ----
-private static class StopwordsP extends AbstractProcessor {
-    @Override
-    public boolean complete() {
-        return tryEmit(docLines("stopwords.txt").collect(toSet()));
-    }
-}
+include::{javasource}/TfIdfCoreApi.java[tag=s3]
 ----
 
 Since this is a source processor, all its action happens in
@@ -461,7 +427,7 @@ Jet's library:
 
 [source]
 ----
-dag.newVertex("doc-count", Processors.aggregateP(counting()));
+include::{javasource}/TfIdfCoreApi.java[tag=s4]
 ----
 
 The `doc-lines` processor is more of a mouthful, but still built from
@@ -469,11 +435,7 @@ existing primitives:
 
 [source]
 ----
-dag.newVertex("doc-lines",
-    Processors.nonCooperativeP(
-        Processors.flatMapP((Entry<Long, String> e) ->
-            traverseStream(docLines("books/" + e.getValue())
-                           .map(line -> entry(e.getKey(), line))))));
+include::{javasource}/TfIdfCoreApi.java[tag=s5]
 ----
 
 Let's break down this expression... `Processors.flatMap` returns a
@@ -485,31 +447,16 @@ which will declare all the created processors non-cooperative. We
 already explained why we do this: this processor will make blocking I/O
 calls.
 
-`tokenizer` is another custom vertex:
+`tokenize` is another custom vertex:
 
 [source]
 ----
-dag.newVertex("tokenize", TokenizeP::new);
+include::{javasource}/TfIdfCoreApi.java[tag=s6]
+----
 
-private static class TokenizeP extends AbstractProcessor {
-    private Set<String> stopwords;
-    private final FlatMapper<Entry<Long, String>, Entry<Long, String>> flatMapper =
-        flatMapper(e -> traverseStream(
-                   Arrays.stream(DELIMITER.split(e.getValue()))
-                         .filter(word -> !stopwords.contains(word))
-                         .map(word -> entry(e.getKey(), word))));
-
-    @Override
-    protected boolean tryProcess0(@Nonnull Object item) {
-        stopwords = (Set<String>) item;
-        return true;
-    }
-
-    @Override
-    protected boolean tryProcess1(@Nonnull Object item) {
-        return flatMapper.tryProcess((Entry<Long, String>) item);
-    }
-}
+[source]
+----
+include::{javasource}/TfIdfCoreApi.java[tag=s7]
 ----
 
 This is a processor that must deal with two different inbound edges. It
@@ -524,12 +471,11 @@ output items. If the outbox refuses a pending item, it will return
 `false`, which will make the framework call the same `tryProcess1()`
 method later, with the same input item.
 
-Let's show the code that creates the `tokenize`'s two inbound edges:
+Let's show the code that creates the `tokenize` 's two inbound edges:
 
 [source]
 ----
-dag.edge(between(stopwordSource, tokenize).broadcast().priority(-1))
-   .edge(from(docLines).to(tokenize, 1));
+include::{javasource}/TfIdfCoreApi.java[tag=s8]
 ----
 
 Especially note the `.priority(-1)` part: this ensures that there will
@@ -543,76 +489,29 @@ primitives:
 
 [source]
 ----
-dag.newVertex("tf", Processors.aggregateByKeyP(wholeItem(), counting()));
+include::{javasource}/TfIdfCoreApi.java[tag=s9]
 ----
 
 `tf-idf` is the most complex processor:
 
 [source]
 ----
-dag.newVertex("tf-idf", TfIdfP::new);
+include::{javasource}/TfIdfCoreApi.java[tag=s10]
+----
 
-private static class TfIdfP extends AbstractProcessor {
-    private double logDocCount;
-
-    private final Map<String, List<Entry<Long, Double>>> wordDocTf = new HashMap<>();
-    private final Traverser<Entry<String, List<Entry<Long, Double>>>> invertedIndexTraverser =
-            lazy(() -> traverseIterable(wordDocTf.entrySet()).map(this::toInvertedIndexEntry));
-
-    @Override
-    protected boolean tryProcess0(@Nonnull Object item) throws Exception {
-        logDocCount = Math.log((Long) item);
-        return true;
-    }
-
-    @Override
-    protected boolean tryProcess1(@Nonnull Object item) throws Exception {
-        final Entry<Entry<Long, String>, Long> e = (Entry<Entry<Long, String>, Long>) item;
-        final long docId = e.getKey().getKey();
-        final String word = e.getKey().getValue();
-        final long tf = e.getValue();
-        wordDocTf.computeIfAbsent(word, w -> new ArrayList<>())
-                 .add(entry(docId, (double) tf));
-        return true;
-    }
-
-    @Override
-    public boolean complete() {
-        return emitFromTraverser(invertedIndexTraverser);
-    }
-
-    private Entry<String, List<Entry<Long, Double>>> toInvertedIndexEntry(
-            Entry<String, List<Entry<Long, Double>>> wordDocTf
-    ) {
-        final String word = wordDocTf.getKey();
-        final List<Entry<Long, Double>> docidTfs = wordDocTf.getValue();
-        return entry(word, docScores(docidTfs));
-    }
-
-    private List<Entry<Long, Double>> docScores(List<Entry<Long, Double>> docidTfs) {
-        final double logDf = Math.log(docidTfs.size());
-        return docidTfs.stream()
-                       .map(tfe -> tfidfEntry(logDf, tfe))
-                       .collect(toList());
-    }
-
-    private Entry<Long, Double> tfidfEntry(double logDf, Entry<Long, Double> docidTf) {
-        final Long docId = docidTf.getKey();
-        final double tf = docidTf.getValue();
-        final double idf = logDocCount - logDf;
-        return entry(docId, tf * idf);
-    }
-}
+[source]
+----
+include::{javasource}/TfIdfCoreApi.java[tag=s11]
 ----
 
 This is quite a lot of code, but each of the three pieces is not too
 difficult to follow:
 
 . `tryProcess0()` accepts a single item, the total document count.
-. `tryProcess1()` performs a boilerplate `groupBy` operation,
+. `tryProcess1()` performs a boilerplate group-and-aggregate operation,
 collecting a list of items under each key.
-. `complete()` outputs the accumulated results, also applying the
-final transformation on each one: replacing the TF score with the final
+. `complete()` outputs the accumulated results, also applying the final
+transformation on each one: replacing the TF score with the final
 TF-IDF score. It relies on a _lazy_ traverser, which holds a
 `Supplier<Traverser>` and will obtain the inner traverser from it the
 first time `next()` is called. This makes it very simple to write code
@@ -622,5 +521,5 @@ Finally, our DAG is terminated by a sink vertex:
 
 [source]
 ----
-dag.newVertex("sink", SinkProcessors.writeMapP(INVERTED_INDEX));
+include::{javasource}/TfIdfCoreApi.java[tag=s12]
 ----
