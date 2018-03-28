@@ -1,6 +1,3 @@
-include::attributes.adoc[]
-= Hazelcast Jet Reference Manual
-Version {jet-version}
 :icons: font
 :idprefix:
 :idseparator: -
@@ -15,29 +12,46 @@ Version {jet-version}
 :toc: left
 :toc-title: Hazelcast Jet {jet-version} Reference Manual
 :toclevels: 2
-
-Welcome to the Hazelcast Jet Reference Manual. This manual includes
-concepts, instructions, and samples to guide you on how to use Hazelcast
-Jet to build applications.
+include::attributes.adoc[]
 
 image::logo_dark.png[]
 
-Hazelcast Jet is a distributed computing platform. It supports both
-finite datasets (batch processing) and infinite streams with continuous
-operators. With Hazelcast In-Memory Data Grid (IMDG) providing storage
-functionality, Hazelcast Jet performs data-local parallel execution,
-enabling data-intensive applications to operate in real time. Using
-directed acyclic graphs (DAG) to model relationships between individual
-steps in the data processing pipeline, Hazelcast Jet is simple to deploy.
-Hazelcast Jet is an Apache 2 licensed open source project. Please also
-refer to the http://jet.hazelcast.org[Hazelcast Jet website] for
-information on its features, use cases and performance considerations.
+:leveloffset: 1
 
-As the reader of this manual, you must be familiar with the Java
-programming language and you should have installed your preferred
-Integrated Development Environment (IDE).
+= Hazelcast Jet Reference Manual
+Version {jet-version}
 
-:leveloffset: +1
+Welcome to the Hazelcast Jet Reference Manual. This manual includes
+concepts, instructions, and samples to guide you on how to use Hazelcast
+Jet to build and execute computation jobs.
+
+As the reader of this manual you should be familiar with the Java
+programming language.
+
+= Overview
+
+1. <<get-started>> leads you through the steps to get Hazelcast Jet up
+and running on your machine. You can copy-paste the provided code to
+execute your first Jet job.
+
+2. <<work-with-jet>> introduces Jet's Pipeline API. This is the API you
+use to build the computation you want Jet to execute.
+
+3. <<jus>>, shows you how you can use Jet's implementation of JDK's
+standard `java.util.stream` API to run simple computation jobs.
+
+4. <<configuration>> explains how to configure Jet. You can tune its
+performance, level of safety in fault-tolerant jobs, configure the
+underlying IMDG cluster, etc.
+
+5. <<data-processing-model>> presents some fundamental concepts that
+make Jet work. Understanding these concepts will help you get the most
+of Hazelcast Jet.
+
+6.  <<expert-zone>> presents low-level details of Jet's execution
+engine and the Core API. You don't need this knowledge to use Jet. It is
+relevant only if you plan to implement custom processors or build the
+DAG by directly using the Core API.
 
 include::preface.adoc[]
 
@@ -52,8 +66,6 @@ include::j-u-s.adoc[]
 include::configuration.adoc[]
 
 include::what-is-distributed-computing.adoc[]
-
-include::under-the-hood.adoc[]
 
 include::expert-zone/index.adoc[]
 

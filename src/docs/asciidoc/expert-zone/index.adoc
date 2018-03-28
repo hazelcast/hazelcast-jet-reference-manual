@@ -23,6 +23,8 @@ improperly.
 
 :leveloffset: +1
 
+include::under-the-hood.adoc[]
+
 include::dag.adoc[]
 
 include::dag-tutorial.adoc[]

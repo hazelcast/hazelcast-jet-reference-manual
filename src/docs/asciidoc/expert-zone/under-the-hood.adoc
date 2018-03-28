@@ -1,9 +1,5 @@
-= Under the Hood
-
-In this chapter you'll find some details about Jet's inner workings.
-
 [[jet-execution-model]]
-== Jet's Execution Model
+= Jet's Execution Model
 
 At the heart of Jet is the
 https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/TaskletExecutionService.java[`TaskletExecutionService`].
@@ -13,7 +9,7 @@ understanding how it schedules code for execution is essential if you
 want to implement a cooperative processor.
 
 [[cooperative-multithreading]]
-=== Cooperative Multithreading
+== Cooperative Multithreading
 
 Cooperative multithreading is one of the core features of Jet and can be
 roughly compared to
@@ -36,7 +32,7 @@ longer periods, preserving the CPU cache lines.
 to make progress (by inspecting its input/output buffers).
 
 [[tasklet]]
-=== Tasklet
+== Tasklet
 
 The execution service doesn't deal with processors directly; instead it
 deals with _tasklets_.
@@ -53,7 +49,7 @@ The most important tasklet is the one driving a processor
 sending/receiving and taking snapshots.
 
 [[work-stealing]]
-=== Work Stealing
+== Work Stealing
 
 When a tasklet is done, its worker will inspect all the other workers'
 tasklet lists to see if any of them has a longer tasklet list than its
@@ -61,7 +57,7 @@ own. If it finds such a worker, it will "`steal`" one of its tasklets to
 even out the load per thread.
 
 [[exponential-backoff]]
-=== Exponential Backoff
+== Exponential Backoff
 
 If none of the worker's tasklets report having made progress, the worker
 will go to a short sleep. If this happens again after it wakes up, it
@@ -70,7 +66,7 @@ continue retrying once per millisecond to see if any tasklets can make
 progress.
 
 [[processor-tasklet]]
-=== ProcessorTasklet
+== ProcessorTasklet
 
 :jet-core:/impl/execution/ProcessorTasklet.java[`ProcessorTasklet`]
 is the one that drives a processor. It manages its inbox, outbox,
@@ -82,7 +78,7 @@ one of its processor's callbacks. It determines the processor's progress
 status and reports it to the execution service.
 
 [[non-cooperative-processor]]
-=== Non-Cooperative Processor
+== Non-Cooperative Processor
 
 If a processor declares itself as non-cooperative, the execution service
 will start a dedicated Java thread for its tasklet to run on.
@@ -93,7 +89,7 @@ Otherwise the tasklet will never be able to initiate a snapshot on the
 processor.
 
 [[running-a-jet-job]]
-== What Happens When you Submit a Job
+= What Happens When you Submit a Job
 
 When you submit a `Job` to it, Jet replicates the DAG to the whole Jet
 cluster and executes a copy of it on each member.
@@ -129,7 +125,7 @@ to back off until it can enqueue the next item. When data is sent to
 another member over the network, there is no natural backpressure, so
 Jet uses explicit signaling in the form of adaptive receive windows.
 
-== Distributed Snapshot
+= Distributed Snapshot
 
 The technique Jet uses to achieve
 <<fault-tolerance-and-processing-guarantees, fault tolerance>>
@@ -150,7 +146,7 @@ of them at separate times, but it must start taking a snapshot at a
 single point in time. There are two approaches it can take, as explained
 below.
 
-=== Exactly-Once Snapshotting
+== Exactly-Once Snapshotting
 
 With _exactly-once_ configured, as soon as the processor gets a barrier
 item in any input stream (from any upstream processor), it must stop
@@ -169,7 +165,7 @@ image::exactly-once-3.png[Exactly-once processing: forward the barrier,300,110,a
 +
 3. Snapshot done, barrier forwarded. Can resume consuming all streams.
 
-=== At-Least-Once Snapshotting
+== At-Least-Once Snapshotting
 
 With _at-least-once_ configured, the processor can keep consuming all
 the streams until it gets all the barriers, at which point it will stop
@@ -197,7 +193,7 @@ computation job stops and restarts, this state will be restored from the
 snapshot and then the source will replay `x1` and `x2`. The processor
 will think it got two new items.
 
-== Stream Skew
+= Stream Skew
 
 We <<time-ordering, explained>> how we use the concept of watermark to
 impose order onto a disordered data stream. However, items arriving out
@@ -211,7 +207,7 @@ partitioned/distributed edge, we make sure the downstream processor
 observes the correct watermark value, which is the least of watermarks
 received from the contributing substreams.
 
-=== Rules of Watermark Propagation
+== Rules of Watermark Propagation
 
 Watermark objects are sent interleaved with other stream items, but are
 handled specially:
@@ -240,7 +236,7 @@ watermark downstream. This happens at two levels:
 * between multiple queues backing single edge
 * between multiple input edges to single processor
 
-=== Idle inputs
+== Idle inputs
 
 A special object called _idle message_ can be emitted from source
 processor when the processor sees no events for configured _idle
@@ -257,12 +253,12 @@ events), the processing will stall indefinitely (unless
 is configured).
 
 [[pitfalls-alo]]
-== The Pitfalls of At-Least-Once Processing
+= The Pitfalls of At-Least-Once Processing
 
 In some cases _at-least-once_ semantics can have consequences of quite
 an unexpected magnitude, as we discuss next.
 
-=== Apparent Data Loss
+== Apparent Data Loss
 
 Imagine a very simple kind of processor: it matches up the items that
 belong to a _pair_ based on some rule. If it receives item A first, it
@@ -284,7 +280,7 @@ caused it to forget facts about some pre-barrier items. After a restart
 it will behave as though it has never observed those pre-barrier items,
 resulting in behavior equivalent to data loss.
 
-=== Non-Monotonic Watermark
+== Non-Monotonic Watermark
 
 One special case of the above story concerns watermark items. Thanks to
 watermark coalescing, processors are typically implemented against the
