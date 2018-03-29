@@ -7,22 +7,22 @@ Although the connectors do their best to unify the various kinds of
 resources under the same "`data stream`" paradigm, there are still many
 concerns that need your attention.
 
-== Is it Infinite?
+== Is it Unbounded?
 
 The first decision when building a Jet computation job is whether it
-will deal with finite or infinite data. A typical example of a finite
-resource is a persistent storage system, whereas an infinite one is
+will deal with bounded or unbounded data. A typical example of a bounded
+resource is a persistent storage system, whereas an unbounded one is
 usually like a FIFO queue, discarding old data. This is true both for
 sources and sinks.
 
-Finite data is handled by batch jobs and there are less concerns to deal
-with. Examples of finite resources are the Hazelcast `IMap`/`ICache` and
-the Hadoop Distributed File System (HDFS). In the infinite category the
-most popular choice is Kafka, but a Hazelcast `IMap`/`ICache` can also
-be used as an infinite source of update events (via the Event Journal
-feature). You can also set up an `IMap`/`ICache` as a sink for an
-infinite amount of data, either by ensuring that the size of the keyset
-will be finite or by allowing the eviction of old entries.
+Bounded data is handled in batch jobs and there are less concerns to
+deal with. Examples of finite resources are the Hazelcast `IMap`/`ICache`
+and the Hadoop Distributed File System (HDFS). In the unbounded category
+the most popular choice is Kafka, but a Hazelcast `IMap`/`ICache` can
+also be used as an infinite source of update events (via the Event
+Journal feature). You can also set up an `IMap`/`ICache` as a sink for
+an infinite amount of data, either by ensuring that the size of the
+keyset will be finite or by allowing the eviction of old entries.
 
 == Is it Replayable?
 
@@ -90,7 +90,7 @@ more detail.
 
 .Sources and Sinks
 |===
-|Resource|Javadoc|Sample|Infinite?|Replayable?|Checkpointing?|Distributed?|Data Locality
+|Resource|Javadoc|Sample|Unbounded?|Replayable?|Checkpointing?|Distributed?|Data Locality
 
 |IMap
 |{jet-javadoc}/Sources.html#map-java.lang.String-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-[Source]
