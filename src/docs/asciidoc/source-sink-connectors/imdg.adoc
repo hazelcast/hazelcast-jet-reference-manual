@@ -1,6 +1,4 @@
-= Hazelcast IMDG
-
-== IMap and ICache
+= Hazelcast IMap and ICache
 
 Hazelcast IMDG's `IMap` and `ICache` are very similar in the way Jet
 uses them and largely interchangeable. `IMap` has a bit more features.
@@ -25,7 +23,7 @@ include::{javasource}/ImdgConnectors.java[tag=s2]
 In these snippets we draw from and drain to the same kind of structure,
 but you can use any combination.
 
-=== Update Entries in IMap
+== Update Entries in IMap
 
 When you use an `IMap` as a sink, instead of just pushing the data into
 it you may have to merge the new with the existing data or delete the
@@ -86,7 +84,7 @@ include::{javasource}/ImdgConnectors.java[tag=s5]
 include::{javasource}/ImdgConnectors.java[tag=s6]
 ----
 
-=== Access an External Cluster
+== Access an External Cluster
 
 To access a Hazelcast IMDG cluster separate from the Jet cluster, you
 have to provide Hazelcast client configuration for the connection. In
@@ -103,7 +101,7 @@ For a full discussion on how to configure your client connection, refer
 to the {hz-refman}#configuring-java-client[Hazelcast IMDG documentation]
 on this topic.
 
-=== Optimize Data Traffic at the Source
+== Optimize Data Traffic at the Source
 
 If your use case calls for some filtering and/or transformation of the
 data you retrieve, you can optimize the traffic volume by providing a
@@ -141,7 +139,7 @@ Note that the above feature is not available on `ICache`. It is,
 however, available on `ICache`'s event journal, which we introduce next.
 
 [[receive-update-events]]
-=== Receive an Infinite Stream of Update Events
+== Receive an Infinite Stream of Update Events
 
 You can use `IMap`/`ICache` as sources of infinite event streams. For
 this to work you have to enable the Event Journal on your data
@@ -213,7 +211,7 @@ cluster, you just have to prepend `remote` to the source names and add a
 include::{javasource}/ImdgConnectors.java[tag=s13]
 ----
 
-== IList
+= Hazelcast IList
 
 Whereas `IMap` and `ICache` are the recommended choice of data sources
 and sinks in Jet jobs, Jet supports `IList` purely for convenience

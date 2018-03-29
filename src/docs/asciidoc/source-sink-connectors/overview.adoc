@@ -1,15 +1,11 @@
-= Overview
-
-In an <<pipeline-api, earlier section>> we briefly
-listed the resources you can use as sources and sinks of a Jet job's
-data and where they fit in the general outline of a pipeline. Now let's
-revisit this topic in more detail.
-
 Jet accesses data sources and sinks via its _connectors_. They are a
-computation job's point of contact with the outside world. Although the
-connectors do their best to unify the various kinds of resources under
-the same "`data stream`" paradigm, there are still many concerns that need
-your attention.
+computation job's point of contact with the outside world.
+
+= Concerns
+
+Although the connectors do their best to unify the various kinds of
+resources under the same "`data stream`" paradigm, there are still many
+concerns that need your attention.
 
 == Is it Infinite?
 
@@ -84,7 +80,7 @@ an error of unrestricted scope, such as `OutOfMemoryError` or
 state of the whole Jet member, jeopardizing the integrity of the data
 stored on it.
 
-== Overview of Sources and Sinks
+= Overview of Sources and Sinks
 
 The table below gives you a high-level overview of all the source and
 sink connectors we deliver with Jet. There are links to Javadoc and

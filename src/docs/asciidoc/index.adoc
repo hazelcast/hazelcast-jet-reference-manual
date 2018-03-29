@@ -63,6 +63,8 @@ include::work-with-jet/index.adoc[]
 
 include::j-u-s.adoc[]
 
+include::source-sink-connectors/index.adoc[]
+
 include::configuration.adoc[]
 
 include::what-is-distributed-computing.adoc[]

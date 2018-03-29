@@ -88,8 +88,8 @@ We discuss these in the following sections.
 == Hash-Join
 
 {jet-javadoc}/pipeline/BatchStage.html#hashJoin-com.hazelcast.jet.pipeline.BatchStage-com.hazelcast.jet.pipeline.JoinClause-com.hazelcast.jet.function.DistributedBiFunction-[Hash-join]
-is a specialization of a general "`join`" operation, optimized for the use
-case of _data enrichment_. In this scenario there is a single,
+is a specialization of a general "`join`" operation, optimized for the
+use case of _data enrichment_. In this scenario there is a single,
 potentially infinite data stream (the _primary_ stream), that goes
 through a mapping transformation which attaches to each item some more
 items found by hashtable lookup. The hashtables have been populated
@@ -108,9 +108,9 @@ _products_ and _brokers_.
 include::{javasource}/BuildComputation.java[tag=s10]
 ----
 
-Products are joined on `Trade.productId` and brokers on
-`Trade.brokerId`. `joinMapEntries()` returns a `JoinClause`, which is a
-holder of the three functions that specify how to perform a join:
+Products are joined on `Trade.productId` and brokers on `Trade.brokerId`.
+`joinMapEntries()` returns a `JoinClause`, which is a holder of the
+three functions that specify how to perform a join:
 
 1. the key extractor for the primary stream's item
 2. the key extractor for the enriching stream's item
@@ -161,10 +161,10 @@ the data items. Typically you don't want to agregate all the items
 together, but classify them by some key and then aggregate over each
 group separately. This is the _group-and-aggregate_ transformation. You
 can simultaneously join several streams on a key and group-aggregate
-them on the same key. This is the _cogroup-and-aggregate_
-transformation. Finally, if you're processing an unbounded event stream,
-you must define a bounded _window_ over the stream within which Jet will
-aggregate the data.
+them on the same key. This is the _cogroup-and-aggregate_ transformation.
+Finally, if you're processing an unbounded event stream, you must define
+a bounded _window_ over the stream within which Jet will aggregate the
+data.
 
 This is how a very simple batch aggregation without grouping may look
 (the list named "`text`" contains lines of text):

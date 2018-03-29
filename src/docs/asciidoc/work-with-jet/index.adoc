@@ -11,8 +11,6 @@ include::implement-aggregation.adoc[]
 
 include::configure-fault-tolerance.adoc[]
 
-include::source-sink-connectors/index.adoc[]
-
 include::considerations.adoc[]
 
 include::log-debug.adoc[]
