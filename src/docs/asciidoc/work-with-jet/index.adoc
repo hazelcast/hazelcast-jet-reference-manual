@@ -7,6 +7,8 @@ include::start-jet.adoc[]
 
 include::build-computation.adoc[]
 
+include::pipeline-cheatsheet.adoc[]
+
 include::implement-aggregation.adoc[]
 
 include::configure-fault-tolerance.adoc[]
