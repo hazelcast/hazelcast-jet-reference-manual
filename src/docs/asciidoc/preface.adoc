@@ -4,9 +4,9 @@
 [[naming]]
 == Naming
 
-. *Hazelcast Jet* or just *Jet* refers to the distributed data
+* *Hazelcast Jet* or just *Jet* refers to the distributed data
 processing engine provided by Hazelcast, Inc.
-. *Hazelcast IMDG* or just *Hazelcast* refers to the Hazelcast in-memory
+* *Hazelcast IMDG* or just *Hazelcast* refers to the Hazelcast in-memory
 data grid middleware. *Hazelcast* is also the name of the company
 (Hazelcast, Inc.) providing Hazelcast IMDG and Hazelcast Jet.
 

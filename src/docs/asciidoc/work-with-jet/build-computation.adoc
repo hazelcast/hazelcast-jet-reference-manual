@@ -64,7 +64,7 @@ You can access most of them via the
 {jet-javadoc}/HdfsSources.html[HDFS] connectors are in their separate
 modules.
 
-There's a <<source-sink-connectors, dedicated section>> that discusses
+There's a <<source-sink-connectors, dedicated chapter>> that discusses
 the topic of data sources and sinks in more detail.
 
 == Compose the Pipeline Transforms
@@ -80,28 +80,38 @@ each item to another item; `filter` discards items that don't match its
 predicate; and `flatMap` transforms each item into zero or more output
 items.
 
-Beyond these simple transforms Jet offers the _hash-join_ for data
-enrichment and _aggregation_, the most powerful and versatile transform.
-We discuss these in the following sections.
+== Kinds of JOIN
+
+Jet supports two kinds of join:
+
+* <<hash-join, _hash-join_>> is a many-to-one join that matches a
+foreign key in one stream with the primary key in another
+* <<cogroup, _co-group-and-aggregate_>> is a many-to-many join that
+matches the same key in all the joined streams and can simultaneously
+perform aggregation of the groups with the same key
 
 [[hash-join]]
 == Hash-Join
 
 {jet-javadoc}/pipeline/BatchStage.html#hashJoin-com.hazelcast.jet.pipeline.BatchStage-com.hazelcast.jet.pipeline.JoinClause-com.hazelcast.jet.function.DistributedBiFunction-[Hash-join]
 is a specialization of a general "`join`" operation, optimized for the
-use case of _data enrichment_. In this scenario there is a single,
-potentially infinite data stream (the _primary_ stream), that goes
-through a mapping transformation which attaches to each item some more
-items found by hashtable lookup. The hashtables have been populated
-from all the other streams (the _enriching_ streams) before the
-consumption of the primary stream started.
+use case of _data enrichment_. It is like a many-to-one SQL JOIN that
+matches a foreign key in the stream-to-be-enriched with the primary key
+in the enriching stream. You can perform several such joins in one
+operation, enriching your stream from arbitrarily many sources.
 
-For each enriching stream you can specify a pair of key-extracting
-functions: one for the enriching item and one for the primary item. This
-means that you can define a different join key for each of the enriching
-streams. The following example shows a three-way hash-join between the
-primary stream of stock trade events and two enriching streams:
-_products_ and _brokers_.
+The stream-to-be-enriched (we'll call in the _primary_ stream for short)
+can be an unbounded data stream. The _enriching streams_ must be bounded
+and Jet will consume them in full before starting to enrich the primary
+stream. It will store their contents in hashtables for fast lookup,
+which is why we call this the "hash-join".
+
+For each enriching stream you specify a pair of key-extracting functions:
+one for the enriching item and one for the primary item. This means that
+you can define a different join key for each of the enriching streams.
+The following example shows a three-way hash-join between the primary
+stream of stock trade events and two enriching streams: _products_ and
+_brokers_:
 
 [source]
 ----
@@ -125,8 +135,8 @@ takes just one function, primary stream's key extractor, and fills in
 `Entry::getKey` and `Entry::getValue` for the enriching stream key
 extractor and the projection function, respectively.
 
-In the interest of performance the entire enriching dataset resides on
-each cluster member. That's why this operation is also known as a
+In the interest of performance Jet pulls the entire enriching dataset
+into each cluster member. That's why this operation is also known as a
 _replicated_ join. This is something to keep in mind when estimating
 the RAM requirements for a hash-join operation.
 
