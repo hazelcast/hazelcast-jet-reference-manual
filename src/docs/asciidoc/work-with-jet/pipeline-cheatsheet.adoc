@@ -1,0 +1,52 @@
+[[pipeline-cheatsheet]]
+= Pipeline API Cheatsheet
+
+[cols="5s,95a", stripe="none"]
+|===
+|Transform s| Sample
+|Map
+|[source]
+----
+include::{javasource}/CheatSheet.java[tag=s1]
+----
+|Filter
+|[source]
+----
+include::{javasource}/CheatSheet.java[tag=s2]
+----
+|Flatmap
+|[source]
+----
+include::{javasource}/CheatSheet.java[tag=s3]
+----
+|Hash-Join
+|[source]
+----
+include::{javasource}/CheatSheet.java[tag=s4]
+----
+|Aggregate
+|[source]
+----
+include::{javasource}/CheatSheet.java[tag=s5]
+----
+|Group and Aggregate
+|[source]
+----
+include::{javasource}/CheatSheet.java[tag=s6]
+----
+|Windowed Group and Aggregate
+|[source]
+----
+include::{javasource}/CheatSheet.java[tag=s7]
+----
+|Join on Common Key
+|[source]
+----
+include::{javasource}/CheatSheet.java[tag=s8]
+----
+|Streaming Join on Common Key
+|[source]
+----
+include::{javasource}/CheatSheet.java[tag=s9]
+----
+|===
