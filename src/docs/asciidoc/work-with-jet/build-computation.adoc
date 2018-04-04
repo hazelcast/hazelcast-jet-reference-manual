@@ -329,4 +329,26 @@ itself. The connector knows more about the structure of its source and
 can produce better watermarks, with less latency and less dropped late
 events.
 
+== Kinds of Windows
 
+Jet supports these kinds of windows:
+
+- _tumbling_ window: a window of constant size that "tumbles" along the
+time axis: the consecutive positions of the window don't overlap. If you
+use a window size of 1 second, Jet will group together all events that
+occur within the same second and you'll get window results for intervals
+[0-1) seconds, then [1-2) seconds, and so on.
+
+- _sliding_ window: a window of a constant size that slides along the
+time axis. It slides in discrete steps of configurable size, but with
+the restriction that the window size must be divisible by the sliding
+step size. A typical setting is to slide by 1% of the window size. Jet
+outputs the aggregation result each time the window moves on. If you use
+a window of size 1 second sliding by 10 milliseconds, Jet will output
+window results for intervals [0.00-1.00) seconds, then [0.01-1.01)
+seconds, and so on.
+
+- _session_ window: it captures a burst of events separated by periods
+of quiescence. You define the "session timeout", i.e., the length of the
+quiet period that causes the window to close. If you define a grouping
+key, there is a separate, independent session window for each key.
