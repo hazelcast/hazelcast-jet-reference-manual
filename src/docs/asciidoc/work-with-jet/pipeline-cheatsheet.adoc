@@ -5,47 +5,96 @@
 |===
 |Transform s| Sample
 |Map
-|[source]
+|Applies the mapping function to each input item independently and emits
+the function's result as the output item. If the result is `null`, it
+emits nothing. Therefore this stage can also be used to implement
+filtering semantics.
+
+This example converts the input lines of text to lowercase:
+[source]
 ----
 include::{javasource}/CheatSheet.java[tag=s1]
 ----
 |Filter
-|[source]
+|Applies the filtering function to each input item to decide whether to
+pass it to the output or discard it.
+
+This example removes all empty strings from the stream:
+[source]
 ----
 include::{javasource}/CheatSheet.java[tag=s2]
 ----
 |Flatmap
-|[source]
+|Applies the supplied function to each input item independently and emits
+all the items from the `Traverser` it returns.
+
+This example splits the lines of text into individual words:
+[source]
 ----
 include::{javasource}/CheatSheet.java[tag=s3]
 ----
-|Hash-Join
-|[source]
+|Hash Join
+|Performs a many-to-one join with arbitrarily many enriching streams.
+The stream on which you invoke `hashJoin` holds foreign keys for
+the items in the enriching streams.
+
+This example enriches a stream of trades with the corresponding brokers:
+[source]
 ----
 include::{javasource}/CheatSheet.java[tag=s4]
 ----
 |Aggregate
-|[source]
+|Aggregates all the stream items with the `AggregateOperation` you
+supply.
+
+This example counts the stream items:
+[source]
 ----
 include::{javasource}/CheatSheet.java[tag=s5]
 ----
 |Group and Aggregate
-|[source]
+|Groups the items by key and performs the `AggregateOperation` you
+supply on each group.
+
+This example calculates the number of occurrences of each word in the
+stream:
+[source]
 ----
 include::{javasource}/CheatSheet.java[tag=s6]
 ----
 |Windowed Group and Aggregate
-|[source]
+|Groups the items by key and performs the `AggregateOperation` you
+supply on each group. Performs this operation on an unbounded stream,
+splitting it into bounded windows. It emits a separate result for each
+window.
+
+This example calculates the number of occurrences of each word in a
+stream of tweets within the last second:
+[source]
 ----
 include::{javasource}/CheatSheet.java[tag=s7]
 ----
 |Join on Common Key
-|[source]
+|Performs a many-to-many join of several streams on a common key.
+Applies the `AggregateOperation` you supply on each group. You can also
+specify an aggregate operation that gives you all the joined items
+without transformation.
+
+This example joins a "page visits" stream with a "payments" stream in a
+Web Shop application. For each user it gives you all the recorded page
+views and payments:
+[source]
 ----
 include::{javasource}/CheatSheet.java[tag=s8]
 ----
-|Streaming Join on Common Key
-|[source]
+|Streaming Join on a Common Key
+|Like the above, but also applies a window to the unbounded stream. It
+joins all the items belonging to the same window.
+
+This example joins two unbounded streams, "page visits" and "payments".
+For each user it gives you all the page views and payments that they
+performed within the last minute and updates the result every second:
+[source]
 ----
 include::{javasource}/CheatSheet.java[tag=s9]
 ----

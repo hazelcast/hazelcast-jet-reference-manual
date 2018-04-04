@@ -1,4 +1,3 @@
-import com.hazelcast.jet.Util;
 import com.hazelcast.jet.datamodel.TimestampedEntry;
 import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.datamodel.TwoBags;
@@ -6,7 +5,6 @@ import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sources;
 import com.hazelcast.jet.pipeline.StageWithGrouping;
-import com.hazelcast.jet.pipeline.StreamSource;
 import com.hazelcast.jet.pipeline.StreamStage;
 import com.hazelcast.jet.pipeline.StreamStageWithGrouping;
 import datamodel.Broker;
@@ -15,6 +13,7 @@ import datamodel.Payment;
 import datamodel.Trade;
 
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import static com.hazelcast.jet.Traversers.traverseArray;
 import static com.hazelcast.jet.Util.mapEventNewValue;
@@ -116,7 +115,7 @@ public class CheatSheet {
                         .addTimestamps(Payment::timestamp, 1000)
                         .groupingKey(Payment::userId);
         StreamStage<TimestampedEntry<Integer, TwoBags<PageVisit, Payment>>>
-                joined = pageVisits.window(sliding(1000, 10))
+                joined = pageVisits.window(sliding(60_000, 1000))
                                    .aggregate2(payments, toTwoBags());
         //end::s9[]
     }
