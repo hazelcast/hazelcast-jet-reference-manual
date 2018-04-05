@@ -443,3 +443,295 @@ members what to do and they report to it any status changes. The
 coordinator may fail and the cluster will automatically re-elect another
 one. If any other member fails, the coordinator restarts the job on the
 remaining members.
+
+[[jet-execution-model]]
+== Jet's Execution Model
+
+At the heart of Jet is the
+https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/TaskletExecutionService.java[`TaskletExecutionService`].
+It manages the threads that perform all the computation in a Jet job.
+Although this class is not formally a part of Jet's public API,
+understanding how it schedules code for execution is essential if you
+want to implement a cooperative processor.
+
+[[cooperative-multithreading]]
+=== Cooperative Multithreading
+
+Cooperative multithreading is one of the core features of Jet and can be
+roughly compared to
+https://en.wikipedia.org/wiki/Green_threads[green threads].
+It is purely a library-level feature and does not involve any low-level
+system or JVM tricks; the `Processor` API is simply designed in such a
+way that the processor can do a small amount of work each time it is
+invoked, then yield back to the Jet engine. The engine manages a thread
+pool of fixed size and on each thread, the processors take their turn in
+a round-robin fashion.
+
+The point of cooperative multithreading is better performance. Several
+factors contribute to this:
+
+- The overhead of context switching between processors is much lower
+since the operating system's thread scheduler is not involved.
+- The worker thread driving the processors stays on the same core for
+longer periods, preserving the CPU cache lines.
+- The worker thread has direct knowledge of the ability of a processor
+to make progress (by inspecting its input/output buffers).
+
+[[tasklet]]
+=== Tasklet
+
+The execution service doesn't deal with processors directly; instead it
+deals with _tasklets_.
+:jet-master:/impl/execution/Tasklet.java[`Tasklet`]
+is a very simple functional interface derived from the standard Java
+`Callable<ProgressState>`. The execution service manages a pool of
+worker threads, each being responsible for a list of tasklets. The
+worker thread simply invokes the `call()` methods on its tasklets in a
+round-robin fashion. The method's return value tells whether the tasklet
+made progress and whether it is now done.
+
+The most important tasklet is the one driving a processor
+(`ProcessorTasklet`); there are a few others that deal with network
+sending/receiving and taking snapshots.
+
+[[work-stealing]]
+=== Work Stealing
+
+When a tasklet is done, its worker will inspect all the other workers'
+tasklet lists to see if any of them has a longer tasklet list than its
+own. If it finds such a worker, it will "`steal`" one of its tasklets to
+even out the load per thread.
+
+[[exponential-backoff]]
+=== Exponential Backoff
+
+If none of the worker's tasklets report having made progress, the worker
+will go to a short sleep. If this happens again after it wakes up, it
+will sleep for twice as long. Once it reaches 1 ms sleep time, it will
+continue retrying once per millisecond to see if any tasklets can make
+progress.
+
+[[processor-tasklet]]
+=== ProcessorTasklet
+
+:jet-core:/impl/execution/ProcessorTasklet.java[`ProcessorTasklet`]
+is the one that drives a processor. It manages its inbox, outbox,
+inbound/outbound concurrent queues, and tracks the current processor
+state so it knows which of its callback methods to call.
+
+During each `tasklet.call()`, `ProcessorTasklet` makes one call into
+one of its processor's callbacks. It determines the processor's progress
+status and reports it to the execution service.
+
+[[non-cooperative-processor]]
+=== Non-Cooperative Processor
+
+If a processor declares itself as non-cooperative, the execution service
+will start a dedicated Java thread for its tasklet to run on.
+
+Even if it's non-cooperative, the processor's callback methods must
+still make sure they don't run for longer than a second or so at a time.
+Otherwise the tasklet will never be able to initiate a snapshot on the
+processor.
+
+[[running-a-jet-job]]
+== What Happens When you Submit a Job
+
+When you submit a `Job` to it, Jet replicates the DAG to the whole Jet
+cluster and executes a copy of it on each member.
+
+image::dag-distribution.png[DAG Distribution]
+
+Jet executes the job on a user-configurable number of threads which use
+work stealing to balance the amount of work being done on each thread.
+Each worker thread has a list of tasklets it is in charge of and as
+tasklets complete at different rates, the remaining ones are moved
+between workers to keep the load balanced.
+
+Each instance of a `Processor` is wrapped in one tasklet which the
+execution service repeatedly executes until it is done. A vertex with a
+parallelism of 8 running on 4 members would have a total of 32 tasklets
+running at the same time. Each member has the same number of tasklets
+running.
+
+image::parallelism-model.png[Tasklet execution model,800,400]
+
+When you make a request to execute a Job, the corresponding DAG and
+additional resources are deployed to the Jet cluster. Jet builds an
+execution plan for the DAG on each member, which creates the associated
+tasklets for each Vertex and connects them to their inputs and outputs.
+
+Jet uses Single Producer/Single Consumer ringbuffers to transfer the
+data between processors on the same member. They are data-type agnostic,
+so any data type can be used to transfer the data between vertices.
+
+Ringbuffers, being bounded queues, introduce natural backpressure into
+the system; if a consumer’s ringbuffer is full, the producer will have
+to back off until it can enqueue the next item. When data is sent to
+another member over the network, there is no natural backpressure, so
+Jet uses explicit signaling in the form of adaptive receive windows.
+
+== Distributed Snapshot
+
+The technique Jet uses to achieve
+<<fault-tolerance-and-processing-guarantees, fault tolerance>>
+is called a "`distributed snapshot`", described in a
+https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/Determining-Global-States-of-a-Distributed-System.pdf[paper by Chandy and Lamport].
+At regular intervals, Jet raises a global flag that says "it's time for
+another snapshot". All processors belonging to source vertices observe
+the flag, create a checkpoint on their source, and emit a barrier item
+to the downstream processors and resumes processing.
+
+As the barrier item reaches a processor, it stops what it's doing and
+emits its state to the snapshot storage. Once complete, it forwards the
+barrier item to its downstream processors.
+
+Due to parallelism, in most cases a processor receives data from more
+than one upstream processor. It will receive the barrier item from each
+of them at separate times, but it must start taking a snapshot at a
+single point in time. There are two approaches it can take, as explained
+below.
+
+=== Exactly-Once Snapshotting
+
+With _exactly-once_ configured, as soon as the processor gets a barrier
+item in any input stream (from any upstream processor), it must stop
+consuming it until it gets the same barrier item in all the streams:
+
+image::exactly-once-1.png[Exactly-once processing: received one barrier,300,110,align="center"]
+
+1. At the barrier in stream X, but not Y. Must not accept any more X
+items.
++
+image::exactly-once-2.png[Exactly-once processing: received both barriers,300,110,align="center"]
++
+2. At the barrier in both streams, taking a snapshot.
++
+image::exactly-once-3.png[Exactly-once processing: forward the barrier,300,110,align="center"]
++
+3. Snapshot done, barrier forwarded. Can resume consuming all streams.
+
+=== At-Least-Once Snapshotting
+
+With _at-least-once_ configured, the processor can keep consuming all
+the streams until it gets all the barriers, at which point it will stop
+to take the snapshot:
+
+image::at-least-once-1.png[At-Least-once processing: received one barrier,300,110,align="center"]
+
+1. At the barrier in stream X, but not Y. Carry on consuming all
+streams.
++
+image::at-least-once-2.png[At-Least-once processing: received both barriers,300,110,align="center"]
++
+2. At the barrier in both streams, already consumed `x1` and `x2`.
+Taking a snapshot.
++
+image::at-least-once-3.png[At-Least-once processing: forward the barrier,300,110,align="center"]
++
+3. Snapshot done, barrier forwarded.
+
+
+Even though `x1` and `x2` occur after the barrier, the processor
+consumed and processed them, updating its state accordingly. If the
+computation job stops and restarts, this state will be restored from the
+snapshot and then the source will replay `x1` and `x2`. The processor
+will think it got two new items.
+
+== Stream Skew
+
+We <<time-ordering, explained>> how we use the concept of watermark to
+impose order onto a disordered data stream. However, items arriving out
+of order aren't our only challenge; modern stream sources like Kafka are
+partitioned and distributed so "`the stream`" is actually a set of
+independent substreams, moving on in parallel. Substantial time
+difference may arise between events being processed on each one, but our
+system must produce coherent output as if there was only one stream. We
+meet this challenge by coalescing watermarks: as the data travels over a
+partitioned/distributed edge, we make sure the downstream processor
+observes the correct watermark value, which is the least of watermarks
+received from the contributing substreams.
+
+=== Rules of Watermark Propagation
+
+Watermark objects are sent interleaved with other stream items, but are
+handled specially:
+
+* The value of the watermark a processor emits must be strictly
+  increasing. Jet will throw an exception if it detects a non-increasing
+  watermark.
+
+* When a processor receives and handles a watermark, it is automatically
+  emitted to the outbox. Therefore there should be only one processor
+  emitting watermarks in the pipeline.
+
+* The watermark item is always broadcast, regardless of the edge type.
+  This means that all N upstream processors send their watermark to all
+  M downstream processors.
+
+* The processor will observe only the highest watermark received from
+  all upstream processors and from all upstream edges. This is called
+  _watermark coalescing_.
+
+Jet's internal class
+https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/WatermarkCoalescer.java[`WatermarkCoalescer`]
+ manages watermarks received from multiple inputs. As it receives
+watermark items from them, its duty is to decide when to forward the
+watermark downstream. This happens at two levels:
+* between multiple queues backing single edge
+* between multiple input edges to single processor
+
+=== Idle inputs
+
+A special object called _idle message_ can be emitted from source
+processor when the processor sees no events for configured _idle
+timeout_. This can happen in real life when some external partitions
+have no events while others do.
+
+When an _idle message_ is received from an input, that input will be
+excluded from watermark coalescing. This means that we will not wait to
+receive watermark from idle input. It will cause that other active
+inputs can be processed without any delay. When idle timeout is disabled
+and some processor doesn't emit any watermarks (because it sees no
+events), the processing will stall indefinitely (unless
+<<max-watermark-retention, maximum retention>>
+is configured).
+
+[[pitfalls-alo]]
+== The Pitfalls of At-Least-Once Processing
+
+In some cases _at-least-once_ semantics can have consequences of quite
+an unexpected magnitude, as we discuss next.
+
+=== Apparent Data Loss
+
+Imagine a very simple kind of processor: it matches up the items that
+belong to a _pair_ based on some rule. If it receives item A first, it
+remembers it. Later on, when it receives item B, it emits that fact
+to its outbound edge and forgets about the two items. It may also first
+receive B and wait for A.
+
+Now imagine this sequence: `A -> BARRIER -> B`. In at-least-once the
+processor may observe both A and B, emit its output, and forget about
+them, all before taking the snapshot. After the restart, item B will be
+replayed because it occurred after the last barrier, but item A won't.
+Now the processor is stuck forever in a state where it's expecting A and
+has no idea it already got it and emitted that fact.
+
+Problems similar to this may happen with any state the processor keeps
+until it has got enough information to emit the results and then forgets
+it. By the time it takes a snapshot, the post-barrier items will have
+caused it to forget facts about some pre-barrier items. After a restart
+it will behave as though it has never observed those pre-barrier items,
+resulting in behavior equivalent to data loss.
+
+=== Non-Monotonic Watermark
+
+One special case of the above story concerns watermark items. Thanks to
+watermark coalescing, processors are typically implemented against the
+invariant that the watermark value always increases. However, in
+_at-least-once_ the post-barrier watermark items will advance the
+processor's watermark value. After the job restarts and the state gets
+restored to the snapshotted point, the watermark will appear to have
+gone back, breaking the invariant. This can again lead to apparent data
+loss.

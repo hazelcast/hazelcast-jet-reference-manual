@@ -1,0 +1,39 @@
+= Overview of Jet
+
+Jet is a distributed computation engine with first-class support for
+the processing of unbounded event streams. You can perform
+<<kinds-of-windows, windowed aggregation>> of events using the events'
+own notion of time (_event time_-based stream processing). Jet also has
+first-class support for processing bounded data (batch jobs).
+
+The main programming paradigm you'll use with Jet is that of a
+_processing pipeline_, which is a network of interconnected _stages_.
+The stages form a _directed acyclic graph_ (a DAG) and the connections
+between them indicate the path along which the data flows. Data
+processing happens inside each stage. You describe the pipeline using
+the <<pipeline-api, Pipeline API>>.
+
+Internally Jet converts the pipeline to its native representation, the
+<<dag, Core API DAG>>, which describes the layout of the processing
+units and the rules for routing the data between them. It is possible to
+use the Core API to directly create the native representation, but it's
+much more complex and error-prone.
+
+A Jet job draws the data from one or more _sources_ and drains the
+results to one or more _sinks_. Jet has <<source-sink-connectors,
+connectors>> to several kinds of sources and sinks, most notably
+Hazelcast `IMap`/`ICache`, Kafka and HDFS.
+
+Jet is built on top of the Hazelcast IMDG technology and thanks to this
+the Jet cluster can natively contain its own data sources and sinks. If
+you use Jet this way, you can achieve perfect data locality and
+top-of-the-class throughputs.
+
+To run the computation, Jet uses a <<cooperative-multithreading,
+cooperative multithreading>> execution engine, which means it can run
+many processing units on the same JVM thread. The processing units are
+implemented in such a way that they don't block the thread while waiting
+for more data, or while waiting for the receiving unit to accept it. By
+not dependending on OS-level thread scheduling Jet can achieve greater
+throughput and better saturate the CPU cores. It can also scale up to
+many more processing units than the OS can deliver native threads.
