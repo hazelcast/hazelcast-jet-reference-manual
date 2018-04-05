@@ -25,6 +25,8 @@ the Jet cluster can also play the role of the data source and sink. If
 you use Jet this way, you can achieve perfect data locality and
 top-of-the-class throughputs.
 
+image::jet-architecture.png[Architecture Overview,align="center"]
+
 The main programming paradigm you'll use with Jet is that of a
 _processing pipeline_, which is a network of interconnected _stages_.
 The stages form a _directed acyclic graph_ (a DAG) and the connections
