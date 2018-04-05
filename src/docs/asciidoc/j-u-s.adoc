@@ -3,9 +3,9 @@
 
 If you're already familiar with the
 https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html[`java.util.stream`]
-API (JUS for short), you can use it to access a subset of features in
-Jet. JUS allows you to create simple transform-and-aggregate jobs on
-bounded data.
+API (JUS for short), you can use Jet's implementation of it to access a
+subset of features in Jet. JUS allows you to create simple
+transform-and-aggregate jobs on bounded data.
 
 To leverage the full power of Jet, use the Pipeline API. Among other
 things, with it you can use several sources and sinks in the same job,
