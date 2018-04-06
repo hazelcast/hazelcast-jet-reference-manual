@@ -4,6 +4,7 @@ import com.hazelcast.jet.core.Partitioner;
 import com.hazelcast.jet.core.Vertex;
 import com.hazelcast.jet.core.processor.SinkProcessors;
 import com.hazelcast.jet.core.processor.SourceProcessors;
+import com.hazelcast.jet.pipeline.Pipeline;
 
 import static com.hazelcast.jet.Util.entry;
 import static com.hazelcast.jet.core.Edge.between;
@@ -33,6 +34,12 @@ class ExpertZoneDag {
     DAG dag = new DAG();
     //end::s1[]
 
+    static void s0() {
+        Pipeline pipeline = Pipeline.create();
+        //tag::s0[]
+        DAG dag = pipeline.toDag();
+        //end::s0[]
+    }
 
     static void s2() {
         //tag::s2[]

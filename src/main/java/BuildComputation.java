@@ -1,6 +1,7 @@
 import com.hazelcast.jet.accumulator.LongAccumulator;
 import com.hazelcast.jet.aggregate.AggregateOperation;
 import com.hazelcast.jet.aggregate.AggregateOperation2;
+import com.hazelcast.jet.core.DAG;
 import com.hazelcast.jet.datamodel.BagsByTag;
 import com.hazelcast.jet.datamodel.ItemsByTag;
 import com.hazelcast.jet.datamodel.Tag;

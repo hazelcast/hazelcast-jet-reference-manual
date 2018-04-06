@@ -28,7 +28,7 @@ Jet to build and execute computation jobs.
 As the reader of this manual you should be familiar with the Java
 programming language.
 
-= What you will Find in this Manual
+= Summary of Contents
 
 . <<overview, Overview>> presents the basic concepts of Hazelast Jet
 and provides high-level orientation.
@@ -51,13 +51,13 @@ performance, level of safety in fault-tolerant jobs, configure the
 underlying IMDG cluster, etc.
 
 . <<data-processing-model>> presents some fundamental concepts that
-make Jet work. Understanding these concepts will help you get the most
-of Hazelcast Jet.
+make Jet work. Understanding them will help you get the most of
+Hazelcast Jet.
 
-.  <<expert-zone>> presents low-level details of Jet's execution
-engine and the Core API. You don't need this knowledge to use Jet. It is
-relevant only if you plan to implement custom processors or build the
-DAG by directly using the Core API.
+. <<expert-zone>> presents the material you need to understand if you
+want to successfully use the Core API. You don't need this knowledge to
+use Jet. It is relevant only if you plan to implement custom processors
+or build the DAG by directly using the Core API.
 
 include::preface.adoc[]
 

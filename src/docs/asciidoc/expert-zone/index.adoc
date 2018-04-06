@@ -27,8 +27,6 @@ include::dag.adoc[]
 
 include::dag-tutorial.adoc[]
 
-include::job.adoc[]
-
 include::processor.adoc[]
 
 include::abstract-processor.adoc[]

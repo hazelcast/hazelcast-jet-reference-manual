@@ -11,6 +11,8 @@ include::pipeline-cheatsheet.adoc[]
 
 include::implement-aggregation.adoc[]
 
+include::manage-job.adoc[]
+
 include::configure-fault-tolerance.adoc[]
 
 include::considerations.adoc[]

@@ -3,17 +3,17 @@
 
 If you're already familiar with the
 https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html[`java.util.stream`]
-API (JUS for short), you can use Jet's implementation of it to access a
-subset of features in Jet. JUS allows you to create simple
+API (j.u.s for short), you can use Jet's implementation of it to access
+a subset of features in Jet. J.u.s allows you to create simple
 transform-and-aggregate jobs on bounded data.
 
-To leverage the full power of Jet, use the Pipeline API. Among other
-things, with it you can use several sources and sinks in the same job,
-perform joins, and process unbounded event streams. You'll also avoid
-the mismatches between the JUS paradigm and the basic facts of
-distributed computing.
+To leverage the full power of Jet, use the <<pipeline-api, Pipeline
+API>>. Among other things, with it you can use several sources and sinks
+in the same job, perform joins, and process unbounded event streams.
+You'll also avoid the mismatches between the j.u.s paradigm and the
+basic facts of distributed computing.
 
-A JUS computation job starts when you invoke a terminal operation such
+A j.u.s computation job starts when you invoke a terminal operation such
 as `collect()`. At that point Jet converts the expression into a Core
 API DAG and submits it for execution.
 

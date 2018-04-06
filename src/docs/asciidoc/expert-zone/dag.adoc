@@ -1,12 +1,22 @@
 [[dag]]
 = DAG
 
-The DAG-building API is centered around the
-{jet-javadoc}/core/DAG.html[`DAG`]
+The DAG-building API is centered around the {jet-javadoc}/core/DAG.html[`DAG`]
 class. This is a pure data class and can be instantiated on its own,
 without a Jet instance. This makes it simple to separate the
 job-describing code from the code that manages the lifecycle of Jet
-instances. To start building a DAG, write
+instances.
+
+You can "compile" a Jet pipeline into a `DAG`:
+
+[source]
+----
+include::{javasource}/ExpertZoneDag.java[tag=s0]
+----
+
+Studying these DAGs may be a useful aid while learning the Core API.
+
+To start building a DAG from scratch, write
 
 [source]
 ----
