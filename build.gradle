@@ -30,9 +30,9 @@ compileJava {
 }
 
 dependencies {
-    compile 'com.hazelcast.jet:hazelcast-jet:0.6-SNAPSHOT'
-    compile 'com.hazelcast.jet:hazelcast-jet-kafka:0.6-SNAPSHOT'
-    compile 'com.hazelcast.jet:hazelcast-jet-hadoop:0.6-SNAPSHOT'
+    compile 'com.hazelcast.jet:hazelcast-jet:0.6'
+    compile 'com.hazelcast.jet:hazelcast-jet-kafka:0.6'
+    compile 'com.hazelcast.jet:hazelcast-jet-hadoop:0.6'
     compile "org.apache.hadoop:hadoop-hdfs:$hadoop_version"
     compile "org.apache.hadoop:hadoop-common:$hadoop_version"
     compile "org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop_version"
