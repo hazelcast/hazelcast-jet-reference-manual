@@ -1,4 +1,4 @@
-[[data-processing-model]]
+[[concepts]]
 = Jet Concepts
 
 In this chapter we will take a deep dive into the fundamentals of
@@ -7,13 +7,16 @@ having some intuition and insight into how distributed computing
 actually works in Jet makes a big difference when diagnosing your
 pipeline and improving its performance.
 
-Jet provides high performance in-memory data processing by modeling the
+Jet performs high performance in-memory data processing by modeling the
 computation as a _Directed Acyclic Graph (DAG)_, where vertices
-represent computation and edges represent data connections. A vertex
-receives data from its inbound edges, performs a step in the
-computation, and emits data to its outbound edges. A single vertex's
-computation work is performed in parallel by many instances of the
-`Processor` type around the cluster.
+represent computation and edges represent data flows. A vertex receives
+data from its inbound edges, performs a step in the computation, and
+emits data to its outbound edges. Both the edge and the vertex are
+distributed entities: there are many parallel instances of the
+`Processor` type that perform a single vertex's computation work on
+each cluster member. An edge between two vertices is implemented with
+many data connections, both within a member (concurrent SPSC queues) and
+between members (Hazelcast network connections).
 
 One of the major reasons to divide the full computation task into
 several vertices is _data partitioning_: the ability to split the data

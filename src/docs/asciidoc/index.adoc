@@ -50,7 +50,7 @@ that Jet provides.
 performance, level of safety in fault-tolerant jobs, configure the
 underlying IMDG cluster, etc.
 
-. <<data-processing-model>> presents some fundamental concepts that
+. <<concepts>> presents some fundamental concepts that
 make Jet work. Understanding them will help you get the most of
 Hazelcast Jet.
 
@@ -75,7 +75,7 @@ include::source-sink-connectors/index.adoc[]
 
 include::configuration.adoc[]
 
-include::how-distributed-computing-works.adoc[]
+include::jet-concepts.adoc[]
 
 include::expert-zone/index.adoc[]
 
