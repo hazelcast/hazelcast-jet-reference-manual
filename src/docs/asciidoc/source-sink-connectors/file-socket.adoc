@@ -1,4 +1,5 @@
-= File and Socket
+[[connector-files]]
+= Files
 
 Hazelcast Jet provides file and TCP/IP socket connectors that have
 limited production use, but are simple and can be very useful in an
@@ -9,6 +10,7 @@ of text.
 These connectors are not fault-tolerant. On job restart they behave the
 as if you started a new job. The sources don't do snapshotting. The
 sinks don't suppress duplicate data.
+
 
 == File Sources
 
@@ -63,6 +65,9 @@ Here's a small example of usage:
 ----
 include::{javasource}/FileAndSocket.java[tag=s3]
 ----
+
+[[connector-socket]]
+= TCP/IP Socket
 
 == Socket Source
 

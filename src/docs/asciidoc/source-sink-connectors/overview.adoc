@@ -92,7 +92,7 @@ more detail.
 |===
 |Resource|Javadoc|Sample|Unbounded?|Replayable?|Checkpointing?|Distributed?|Data Locality
 
-|IMap
+|<<connector-imdg, IMap>>
 |{jet-javadoc}/Sources.html#map-java.lang.String-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-[Source]
 
 {jet-javadoc}/Sinks.html#map-java.lang.String-[Sink]
@@ -105,7 +105,7 @@ more detail.
 
 Sink ❌
 
-|ICache
+|<<connector-imdg, ICache>>
 |{jet-javadoc}/Sources.html#cache-java.lang.String-[Source]
 
 {jet-javadoc}/Sinks.html#cache-java.lang.String-[Sink]
@@ -118,7 +118,7 @@ Sink ❌
 
 Sink ❌
 
-|IMap in another cluster
+|<<connector-imdg-external, IMap in another cluster>>
 |{jet-javadoc}/Sources.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-[Source]
 
 {jet-javadoc}/Sinks.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
@@ -129,7 +129,7 @@ Sink ❌
 |✅
 |✅
 
-|ICache in another cluster
+|<<connector-imdg-external, ICache in another cluster>>
 |{jet-javadoc}/Sources.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-[Source]
 
 {jet-javadoc}/Sinks.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
@@ -140,7 +140,7 @@ Sink ❌
 |✅
 |✅
 
-|IMap's Event Journal
+|<<connector-imdg-journal, IMap's Event Journal>>
 |{jet-javadoc}/Sources.html#mapJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
 |{jet-samples}/streaming/map-journal-source/src/main/java/MapJournalSource.java[Sample]
 |✅
@@ -150,7 +150,7 @@ Sink ❌
 |✅
 
 
-|ICache's Event Journal
+|<<connector-imdg-journal, ICache's Event Journal>>
 |{jet-javadoc}/Sources.html#cacheJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
 |
 |✅
@@ -177,7 +177,7 @@ Sink ❌
 |✅
 |❌
 
-|IList
+|<<imdg-list, IList>>
 |{jet-javadoc}/Sources.html#list-java.lang.String-[Source]
 
 {jet-javadoc}/Sinks.html#list-java.lang.String-[Sink]
@@ -199,7 +199,7 @@ Sink ❌
 |❌
 |❌
 
-|HDFS
+|<<hdfs>>
 |{jet-javadoc}/HdfsSources.html[Source]
 
 {jet-javadoc}/HdfsSinks.html[Sink]
@@ -210,7 +210,7 @@ Sink ❌
 |✅
 |✅
 
-|Kafka
+|<<kafka>>
 |{jet-javadoc}/KafkaSources.html[Source]
 
 {jet-javadoc}/KafkaSinks.html[Sink]
@@ -221,7 +221,7 @@ Sink ❌
 |✅
 |❌
 
-|Files
+|<<connector-files, Files>>
 |{jet-javadoc}/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-[Source]
 
 {jet-javadoc}/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-[Sink]
@@ -232,7 +232,7 @@ Sink ❌
 |❌
 |✅
 
-|File Watcher
+|<<connector-files, File Watcher>>
 |{jet-javadoc}/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-[Source]
 |{jet-samples}/core-api/streaming/access-stream-analyzer/src/main/java/AccessStreamAnalyzer.java[Sample (Core API)]
 |✅
@@ -241,7 +241,7 @@ Sink ❌
 |❌
 |✅
 
-|TCP Socket
+|<<connector-socket, TCP Socket>>
 |{jet-javadoc}/Sources.html#socket-java.lang.String-int-java.nio.charset.Charset-[Source]
 
 {jet-javadoc}/Sinks.html#socket-java.lang.String-int-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-[Sink]
