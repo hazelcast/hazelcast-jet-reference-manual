@@ -57,23 +57,23 @@ this is how your output may look:
 
 ....
 Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#1
-INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: quick
+INFO: [192.168.5.12]:5702 [jet] [0.7-SNAPSHOT] Output to ordinal 0: quick
 Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#2
-INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: brown
+INFO: [192.168.5.12]:5702 [jet] [0.7-SNAPSHOT] Output to ordinal 0: brown
 Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#0
-INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: the
+INFO: [192.168.5.12]:5702 [jet] [0.7-SNAPSHOT] Output to ordinal 0: the
 Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#4
-INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: dog
+INFO: [192.168.5.12]:5702 [jet] [0.7-SNAPSHOT] Output to ordinal 0: dog
 Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#3
-INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: lazy
+INFO: [192.168.5.12]:5702 [jet] [0.7-SNAPSHOT] Output to ordinal 0: lazy
 Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#0
-INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: jumped
+INFO: [192.168.5.12]:5702 [jet] [0.7-SNAPSHOT] Output to ordinal 0: jumped
 Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#2
-INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: the
+INFO: [192.168.5.12]:5702 [jet] [0.7-SNAPSHOT] Output to ordinal 0: the
 Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#1
-INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: over
+INFO: [192.168.5.12]:5702 [jet] [0.7-SNAPSHOT] Output to ordinal 0: over
 Mar 20, 2018 2:43:24 PM com.hazelcast.jet.impl.processor.PeekWrappedP.filter#3
-INFO: [192.168.5.12]:5702 [jet] [0.6-SNAPSHOT] Output to ordinal 0: fox
+INFO: [192.168.5.12]:5702 [jet] [0.7-SNAPSHOT] Output to ordinal 0: fox
 ....
 
 The logger name of
