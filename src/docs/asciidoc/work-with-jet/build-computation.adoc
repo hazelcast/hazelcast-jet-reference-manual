@@ -82,13 +82,40 @@ items.
 
 == Kinds of JOIN
 
-Jet supports two kinds of join:
+You can achieve various types of join with Jet. These are your basic
+tools:
 
 * <<hash-join, _hash-join_>> is a many-to-one join that matches a
-foreign key in one stream with the primary key in another
+foreign key in one stream with the primary key in another.
+* <<map-using-context, `map/flatMapUsingContext`>> allow you to join
+the stream data with the data in a Hazelcast `ReplicatedMap`, `IMap` or
+any other structure, including non-Hazelcast ones.
 * <<cogroup, _co-group-and-aggregate_>> is a many-to-many join that
 matches the same key in all the joined streams and can simultaneously
-perform aggregation of the groups with the same key
+perform aggregation of the groups with the same key. By using the
+appropriate output-mapping function you can achieve any kind of join:
+inner/outer/full, left and right.
+
+[[map-using-contex]]
+== Map/Filter/FlatMap using a Context Object
+
+You can assign a context object to each processor in the cluster that
+executes a transforming step in the pipeline. One interesting way to use
+this is getting access to a Hazelcast `IMap` or a similar structure so
+you can use its data to transform the stream items.
+
+You can't just fetch a `ReplicatedMap` or `IMap` instance and add it to
+the pipeline. Instead you provide a _factory_ that Jet will use to
+create the context object for each processor in the cluster that
+executes your transforming step.
+
+In this example we enrich a stream from an `ReplicatedMap`:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s16]
+----
+
 
 [[hash-join]]
 == Hash-Join
@@ -246,6 +273,19 @@ making the stream-1 words worth ten times more than those in stream-0:
 ----
 include::{javasource}/BuildComputation.java[tag=s8]
 ----
+
+=== Example: Right-Outer Join Using Co-Aggregation
+
+Here's an example that joins streams of page visits and add-to-cart
+events on the common key of user ID. It's a right-outer join, which
+means all add-to-cart events will be in the output, but page-visit
+events without a matching add-to-cart event won't.
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s7a]
+----
+
 
 [[cogroup-builder]]
 ===  Co-aggregate Four or More Streams Using the Builder
