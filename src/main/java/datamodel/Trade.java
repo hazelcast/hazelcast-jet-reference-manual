@@ -20,4 +20,8 @@ public class Trade extends Event {
     public int marketId() {
         return marketId;
     }
+
+    public String ticker() {
+        return "ticker";
+    }
 }

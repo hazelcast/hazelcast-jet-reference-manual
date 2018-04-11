@@ -1,13 +1,15 @@
 import com.hazelcast.jet.accumulator.LongAccumulator;
 import com.hazelcast.jet.aggregate.AggregateOperation;
 import com.hazelcast.jet.aggregate.AggregateOperation2;
-import com.hazelcast.jet.core.DAG;
 import com.hazelcast.jet.datamodel.BagsByTag;
 import com.hazelcast.jet.datamodel.ItemsByTag;
 import com.hazelcast.jet.datamodel.Tag;
 import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.datamodel.Tuple3;
+import com.hazelcast.jet.datamodel.TwoBags;
+import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.BatchStage;
+import com.hazelcast.jet.pipeline.ContextFactories;
 import com.hazelcast.jet.pipeline.GroupAggregateBuilder;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
@@ -30,10 +32,13 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import static com.hazelcast.jet.Traversers.traverseArray;
+import static com.hazelcast.jet.Util.entry;
 import static com.hazelcast.jet.Util.mapEventNewValue;
 import static com.hazelcast.jet.Util.mapPutEvents;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.aggregate.AggregateOperations.toBagsByTag;
+import static com.hazelcast.jet.aggregate.AggregateOperations.toTwoBags;
+import static com.hazelcast.jet.datamodel.Tuple2.tuple2;
 import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 import static com.hazelcast.jet.pipeline.JoinClause.joinMapEntries;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_CURRENT;
@@ -140,6 +145,26 @@ class BuildComputation {
                 .groupingKey(wholeItem());
     }
     //end::s7[]
+
+    static void s7a() {
+        //tag::s7a[]
+        Pipeline p = Pipeline.create();
+
+        StageWithGrouping<PageVisit, Integer> pageVisits =
+                p.drawFrom(Sources.<PageVisit>list("pageVisit"))
+                 .groupingKey(PageVisit::userId);
+        StageWithGrouping<AddToCart, Integer> addToCarts =
+                p.drawFrom(Sources.<AddToCart>list("addToCart"))
+                 .groupingKey(AddToCart::userId);
+
+        BatchStage<Entry<Integer, TwoBags<PageVisit, AddToCart>>> joined =
+                pageVisits.aggregate2(addToCarts, toTwoBags(),
+                        (userId, twoBags) -> twoBags.bag1().isEmpty()
+                                ? null : entry(userId, twoBags));
+
+        joined.drainTo(Sinks.map("result"));
+        //end::s7a[]
+    }
 
     //tag::s8[]
     private static AggregateOperation2<Object, Object, LongAccumulator, Long> counting2Weighted() {
@@ -295,6 +320,17 @@ class BuildComputation {
          .aggregate(counting())
          .drainTo(Sinks.list("result"));
         //end::s15[]
+    }
+
+    static void s16() {
+        //tag::s16[]
+        Pipeline p = Pipeline.create();
+        BatchSource<Trade> tradesSource = Sources.list("trades");
+        p.drawFrom(tradesSource)
+         .mapUsingContext(ContextFactories.replicatedMapContext("ticker-info"),
+                 (map, trade) -> tuple2(trade, map.get(trade.ticker())))
+         .drainTo(Sinks.list("result"));
+        //end::s16[]
     }
 }
 
