@@ -13,6 +13,7 @@ include::attributes.adoc[]
 :toc: left
 :toc-title: Hazelcast Jet {jet-version} Reference Manual
 :toclevels: 2
+:docinfo: shared-head
 
 image::logo_dark.png[]
 
