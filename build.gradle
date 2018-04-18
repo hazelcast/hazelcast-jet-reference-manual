@@ -51,6 +51,7 @@ asciidoctor {
 
     backends = [ 'html5', /*'pdf',*/ 'multipage_html5', /*'epub3'*/ ]
     attributes \
+        'jet-version': project.jetVersion,
         'javasource' : project.sourceSets.main.java.srcDirs[0].absolutePath
 }
 

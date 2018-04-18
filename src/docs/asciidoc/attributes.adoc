@@ -1,4 +1,3 @@
-:jet-version: 0.6
 :jet-javadoc: http://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet
 :jet-samples: https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master
 :jet-refman-src: https://github.com/hazelcast/hazelcast-jet-reference-manual/blob/master
