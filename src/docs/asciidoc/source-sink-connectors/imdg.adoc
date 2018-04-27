@@ -157,8 +157,7 @@ include::{javasource}/ImdgConnectors.java[tag=s13]
 When you use an `IMap` as a sink, instead of just pushing the data into
 it you may have to merge the new with the existing data or delete the
 existing data. Hazelcast Jet supports this with map-updating sinks which
-rely on Hazelcast IMDG's
-http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#entry-processor[Entry Processor]
+rely on Hazelcast IMDG's {hz-refman}#entry-processor[Entry Processor]
 feature. An entry processor allows you to atomically execute a piece of
 code against a map entry, in a data-local manner.
 

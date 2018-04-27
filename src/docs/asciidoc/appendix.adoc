@@ -152,4 +152,4 @@ given job.
 There are also several Hazelcast exceptions that might be thrown when
 interacting with `JetInstance`. For a description of Hazelcast IMDG
 exceptions, please refer to the
-http://docs.hazelcast.org/docs/3.9/manual/html-single/index.html#common-exception-types[IMDG Reference manual].
+{hz-refman}#common-exception-types[IMDG Reference manual].
