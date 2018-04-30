@@ -31,10 +31,10 @@ must make on the nature of the events' timestamp values and on the
 relationship between the timestamps and the locally observed wall-clock
 time.
 
-=== "`With Fixed Lag`"
+=== "`Limiting Lag`"
 
 The
-{jet-javadoc}/core/WatermarkPolicies.html#withFixedLag-long-[`withFixedLag()`]
+{jet-javadoc}/core/WatermarkPolicies.html#limitingLag-long-[`limitingLag()`]
 policy will maintain a watermark that lags behind the highest observed
 event timestamp by a configured amount. In other words, each time an event
 with the highest timestamp so far is encountered, this policy advances the
