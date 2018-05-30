@@ -17,6 +17,7 @@ apply plugin: 'java'
 ext {
     hadoopVersion = '2.7.3'
     jetVersion = '0.7-SNAPSHOT'
+    activeMQVersion = '5.15.3'
 }
 
 repositories {
@@ -38,6 +39,7 @@ dependencies {
     compile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
     compile "org.apache.hadoop:hadoop-common:$hadoopVersion"
     compile "org.apache.hadoop:hadoop-mapreduce-client-core:$hadoopVersion"
+    compile "org.apache.activemq:activemq-all:$activeMQVersion"
 }
 
 asciidoctor {
