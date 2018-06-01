@@ -1,12 +1,7 @@
-import com.hazelcast.jet.accumulator.LongAccumulator;
-import com.hazelcast.jet.aggregate.AggregateOperation;
-import com.hazelcast.jet.aggregate.AggregateOperation2;
-import com.hazelcast.jet.datamodel.BagsByTag;
 import com.hazelcast.jet.datamodel.ItemsByTag;
 import com.hazelcast.jet.datamodel.Tag;
 import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.datamodel.Tuple3;
-import com.hazelcast.jet.datamodel.TwoBags;
 import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.ContextFactories;
@@ -23,11 +18,13 @@ import datamodel.Delivery;
 import datamodel.Market;
 import datamodel.PageVisit;
 import datamodel.Payment;
+import datamodel.Person;
 import datamodel.Product;
 import datamodel.Trade;
 import datamodel.Tweet;
 import datamodel.TweetWord;
 
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
@@ -36,8 +33,7 @@ import static com.hazelcast.jet.Util.entry;
 import static com.hazelcast.jet.Util.mapEventNewValue;
 import static com.hazelcast.jet.Util.mapPutEvents;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
-import static com.hazelcast.jet.aggregate.AggregateOperations.toBagsByTag;
-import static com.hazelcast.jet.aggregate.AggregateOperations.toTwoBags;
+import static com.hazelcast.jet.aggregate.AggregateOperations.toList;
 import static com.hazelcast.jet.datamodel.Tuple2.tuple2;
 import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 import static com.hazelcast.jet.pipeline.JoinClause.joinMapEntries;
@@ -62,7 +58,7 @@ class BuildComputation {
         StreamStage<Trade> trades = p.drawFrom(Sources.mapJournal("trades",
                 mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
         BatchStage<Entry<Integer, Product>> products =
-                p.drawFrom(Sources.<Integer, Product>map("products"));
+                p.drawFrom(Sources.map("products"));
         StreamStage<Tuple2<Trade, Product>> joined = trades.hashJoin(
                 products,
                 joinMapEntries(Trade::productId),
@@ -123,17 +119,8 @@ class BuildComputation {
         StageWithGrouping<String, String> grouped1 = groupByWord(src1);
         StageWithGrouping<String, String> grouped2 = groupByWord(src2);
 
-        grouped1.aggregate2(grouped2, counting2())
-                .drainTo(Sinks.map("result"));
-    }
-
-    static AggregateOperation2<String, String, LongAccumulator, Long> counting2() {
-        return AggregateOperation
-                .withCreate(LongAccumulator::new)
-                .<String>andAccumulate0((acc, s) -> acc.add(1))
-                .<String>andAccumulate1((acc, s) -> acc.add(1))
-                .andCombine(LongAccumulator::add)
-                .andFinish(LongAccumulator::get);
+        BatchStage<Entry<String, Tuple2<Long, Long>>> coGrouped =
+                grouped1.aggregate2(counting(), grouped2, counting());
     }
 
     private static StageWithGrouping<String, String> groupByWord(
@@ -157,31 +144,20 @@ class BuildComputation {
                 p.drawFrom(Sources.<AddToCart>list("addToCart"))
                  .groupingKey(AddToCart::userId);
 
-        BatchStage<Entry<Integer, TwoBags<PageVisit, AddToCart>>> joined =
-                pageVisits.aggregate2(addToCarts, toTwoBags(),
-                        (userId, twoBags) -> twoBags.bag1().isEmpty()
-                                ? null : entry(userId, twoBags));
+        BatchStage<Entry<Integer, Tuple2<List<PageVisit>, List<AddToCart>>>> joined =
+                pageVisits.aggregate2(toList(), addToCarts, toList(),
+                        (userId, lists) -> lists.f0().isEmpty()
+                                ? null : entry(userId, lists));
 
         joined.drainTo(Sinks.map("result"));
         //end::s7a[]
     }
 
-    //tag::s8[]
-    private static AggregateOperation2<Object, Object, LongAccumulator, Long> counting2Weighted() {
-        return AggregateOperation
-                .withCreate(LongAccumulator::new)
-                .andAccumulate0((count, item) -> count.add(1))
-                .andAccumulate1((count, item) -> count.add(10))
-                .andCombine(LongAccumulator::add)
-                .andFinish(LongAccumulator::get);
-    }
-    //end::s8[]
-
     static void s9() {
         //tag::s9[]
         Pipeline p = Pipeline.create();
 
-        // Create three source streams
+        //<1>
         StageWithGrouping<PageVisit, Integer> pageVisits =
                 p.drawFrom(Sources.<PageVisit>list("pageVisit"))
                  .groupingKey(PageVisit::userId);
@@ -195,20 +171,25 @@ class BuildComputation {
                 p.drawFrom(Sources.<Delivery>list("delivery"))
                  .groupingKey(Delivery::userId);
 
-        // Obtain a builder object for the co-group transform
-        GroupAggregateBuilder<PageVisit, Integer> builder = pageVisits.aggregateBuilder();
-        Tag<PageVisit> visitTag = builder.tag0();
+        //<2>
+        GroupAggregateBuilder<Integer, List<PageVisit>> builder =
+                pageVisits.aggregateBuilder(toList());
 
-        // Add the co-grouped streams to the builder.
-        Tag<AddToCart> cartTag = builder.add(addToCarts);
-        Tag<Payment> payTag = builder.add(payments);
-        Tag<Delivery> deliveryTag = builder.add(deliveries);
+        //<3>
+        Tag<List<PageVisit>> visitTag = builder.tag0();
+        Tag<List<AddToCart>> cartTag = builder.add(addToCarts, toList());
+        Tag<List<Payment>> payTag = builder.add(payments, toList());
+        Tag<List<Delivery>> deliveryTag = builder.add(deliveries, toList());
 
-        // Build the co-group transform. The aggregate operation collects all
-        // the stream items inside an accumulator class called BagsByTag.
-        BatchStage<Entry<Integer, BagsByTag>> coGrouped = builder.build(toBagsByTag(
-                visitTag, cartTag, payTag, deliveryTag
-        ));
+        //<4>
+        BatchStage<Entry<Integer, ItemsByTag>> coGrouped = builder.build();
+        coGrouped.map(e -> {
+            ItemsByTag ibt = e.getValue();
+            return String.format("User ID %d: %d visits, %d add-to-carts," +
+                                 " %d payments, %d deliveries",
+                    e.getKey(), ibt.get(visitTag).size(), ibt.get(cartTag).size(),
+                    ibt.get(payTag).size(), ibt.get(deliveryTag).size());
+        });
         //end::s9[]
     }
 
@@ -331,6 +312,28 @@ class BuildComputation {
                  (map, trade) -> tuple2(trade, map.get(trade.ticker())))
          .drainTo(Sinks.list("result"));
         //end::s16[]
+    }
+
+    static void s17() {
+        //tag::s17[]
+        Pipeline p = Pipeline.create();
+        BatchSource<Person> personSource = Sources.list("people");
+        p.drawFrom(personSource)
+         .groupingKey(person -> person.getAge() / 5)
+         .distinct()
+         .drainTo(Sinks.list("sampleByAgeBracket"));
+        //end::s17[]
+    }
+
+    static void s18() {
+        //tag::s18[]
+        Pipeline p = Pipeline.create();
+        StreamStage<Trade> tradesNewYork = p.drawFrom(Sources.mapJournal(
+                "trades-newyork", mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
+        StreamStage<Trade> tradesTokio = p.drawFrom(Sources.mapJournal(
+                "trades-tokio", mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
+        StreamStage<Trade> merged = tradesNewYork.merge(tradesTokio);
+        //end::s18[]
     }
 }
 

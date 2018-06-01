@@ -178,9 +178,25 @@ general `AggregateOperation`.
 [[multi-aggregate]]
 == Aggregating over multiple inputs
 
-Let us now study a use case that calls for co-aggregation. We are
-interested in the behavior of users in an online shop application and
-want to gather the following statistics for each user:
+Hazelcast Jet can join several streams and simultaneously perform
+aggregation on all of them. You specify a separate aggregate operation
+for each input stream and have the opportunity to combine their results
+when done. You can use aggregate operations
+{jet-javadoc}/aggregate/AggregateOperations.html[provided in the
+library] (see the section on <<cogroup, co-aggregation>> for an example).
+
+If you cannot express your aggregation logic using this approach, you
+can also specify a custom multi-input aggregate operation that can
+combine the items into the accumulator immediately as it receives them.
+
+We'll present a simple example on how to build a custom multi-input
+aggregate operation. Note that the same logic can also be expressed
+using separate single-input operations; the point of the example is
+introducing the API.
+
+Say we are interested in the behavior of users in
+an online shop application and want to gather the following statistics
+for each user:
 
 1. total load time of the visited product pages
 2. quantity of items added to the shopping cart

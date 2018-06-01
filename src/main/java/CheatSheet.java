@@ -1,6 +1,5 @@
 import com.hazelcast.jet.datamodel.TimestampedEntry;
 import com.hazelcast.jet.datamodel.Tuple2;
-import com.hazelcast.jet.datamodel.TwoBags;
 import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sources;
@@ -12,14 +11,14 @@ import datamodel.PageVisit;
 import datamodel.Payment;
 import datamodel.Trade;
 
+import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 
 import static com.hazelcast.jet.Traversers.traverseArray;
 import static com.hazelcast.jet.Util.mapEventNewValue;
 import static com.hazelcast.jet.Util.mapPutEvents;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
-import static com.hazelcast.jet.aggregate.AggregateOperations.toTwoBags;
+import static com.hazelcast.jet.aggregate.AggregateOperations.toList;
 import static com.hazelcast.jet.function.DistributedFunctions.entryValue;
 import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 import static com.hazelcast.jet.pipeline.JoinClause.joinMapEntries;
@@ -97,8 +96,8 @@ public class CheatSheet {
         StageWithGrouping<Payment, Integer> payments =
                 p.drawFrom(Sources.<Payment>list("payment"))
                  .groupingKey(payment -> payment.userId());
-        BatchStage<Entry<Integer, TwoBags<PageVisit, Payment>>> joined =
-                pageVisits.aggregate2(payments, toTwoBags());
+        BatchStage<Entry<Integer, Tuple2<List<PageVisit>, List<Payment>>>>
+            joined = pageVisits.aggregate2(toList(), payments, toList());
         //end::s8[]
     }
 
@@ -114,9 +113,10 @@ public class CheatSheet {
                         mapPutEvents(), mapEventNewValue(), START_FROM_OLDEST))
                         .addTimestamps(Payment::timestamp, 1000)
                         .groupingKey(Payment::userId);
-        StreamStage<TimestampedEntry<Integer, TwoBags<PageVisit, Payment>>>
-                joined = pageVisits.window(sliding(60_000, 1000))
-                                   .aggregate2(payments, toTwoBags());
+        StreamStage<TimestampedEntry<Integer,
+                                    Tuple2<List<PageVisit>, List<Payment>>>>
+            joined = pageVisits.window(sliding(60_000, 1000))
+                               .aggregate2(toList(), payments, toList());
         //end::s9[]
     }
 

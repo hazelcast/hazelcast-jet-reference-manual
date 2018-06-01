@@ -116,6 +116,34 @@ In this example we enrich a stream from an `ReplicatedMap`:
 include::{javasource}/BuildComputation.java[tag=s16]
 ----
 
+[[distinct]]
+== Distinct
+
+The `distinct` operation suppresses the duplicates from a stream. If you
+perform it after adding a grouping key, it emits a single item for every
+distinct key. The operation works on both batch and stream stages. In
+the latter case it emits distinct items within a window. Two different
+windows are processed independently.
+
+In this example we have a batch of `Person` objects and we choose an
+arbitrary one from each 5-year age bracket:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s17]
+----
+
+[[merge]]
+== Merge
+
+The `merge` operation combines two pipeline stages in the simplest
+manner: it just emits all the items from both stages. In this example
+we merge the trading events from the New York and Tokyo stock exchanges:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s18]
+----
 
 [[hash-join]]
 == Hash-Join
@@ -261,18 +289,11 @@ lists:
 include::{javasource}/BuildComputation.java[tag=s7]
 ----
 
-Note the `counting2()` call, this one isn't included in Jet's library.
-It is like `AggregateOperations.counting()`, but for two sources. In
-this simple example both sources are treated equally (just increment the
-total count), but the point of `AggregateOperation` 's API is that you
-can differentiate between them and treat each one differently. Here's
-an example definition that applies different weights to the streams,
-making the stream-1 words worth ten times more than those in stream-0:
-
-[source]
-----
-include::{javasource}/BuildComputation.java[tag=s8]
-----
+Note how we supplied a separate aggregate operation for each input
+stage. The type of the result is `Entry<String, Tuple2<Long, Long>>`
+with a correspondence between the input stages and the members of the
+tuple. The result for stage-0 (the one you invoke `aggregate2` on) is
+in `tuple2.f0()` and the other stage's result is in `tuple2.f1()`.
 
 === Example: Right-Outer Join Using Co-Aggregation
 
@@ -294,8 +315,8 @@ If you need to join more than three streams, you'll have to use the
 {jet-javadoc}/pipeline/StageWithGroupingAndWindow.html#aggregateBuilder--[builder]
 object. For example, your goal may be correlating events coming from
 different systems, where all the systems serve the same user base. In an
-online store you may have separate streams for product page visits,
-adding to shopping cart, payments, and deliveries. You want to correlate
+online store you may have separate event streams for product page visits,
+adding-to-cart events, payments, and deliveries. You want to correlate
 all the events associated with the same user. The example below
 calculates statistics per category for each user:
 
@@ -304,13 +325,13 @@ calculates statistics per category for each user:
 include::{javasource}/BuildComputation.java[tag=s9]
 ----
 
-Note the interaction between the co-aggregation building code and the
-aggregate operation-building code: the co-aggregation builder gives you
-type tags that you then pass to the aggregate operation. This
-establishes the connection between the streams contributing to the
-co-aggregate transform and the aggregate operation processing them.
-Refer to the <<implement-your-aggregate-operation, section on
-`AggregateOperation`>> to learn more about it.
+<1> Create four source streams
+<2> Obtain a builder object for the co-group transform, specify the
+aggregate operation for `PageVisits`
+<3> Add the co-grouped streams to the builder, specifying the aggregate
+operation to perform on each
+<4> Build the co-group transform, retrieve the individual aggregation
+results using the tags you got in step 3
 
 == Windowed Aggregation
 
