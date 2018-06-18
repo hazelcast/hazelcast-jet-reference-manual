@@ -1,0 +1,51 @@
+= Avro
+Hazelcast Jet provides Apache Avro file source and sink for batch
+processing jobs.
+
+Avro connector is not fault-tolerant. On job restart it behaves as if
+you started a new job. The source does not do snapshotting. The sink
+does not suppress duplicate data.
+
+== Avro File Source
+
+Avro file source is designed to work with the local and shared file
+systems. For local file system, the source expect to see
+on each member just the files that member should read. You can achieve
+the effect of a distributed source if you manually prepare a different
+set of files on each member. For shared file system, the source splits
+the work so that each member will read a part of the files.
+
+Avro file source reads the files in the specified directory using the
+given datum reader supplier and emits the records to downstream.
+
+Here's an example with a
+{jet-javadoc}/avro/AvroSources.html#files-java.lang.String-java.lang.Class-[reflect datum reader]:
+
+[source]
+----
+include::{javasource}/Avro.java[tag=s1]
+----
+
+This will log on each Jet member the records of all the files in the
+specified directory. When the source reads all the files, the job
+completes. If the files change while the job is running, the behavior
+is undefined.
+
+=== Avro File Sink
+
+Avro file sink can work with either a local or a shared network file
+system. Each member will write to different filenames. You can achieve
+the effect of a distributed sink if you manually collect all the output
+files on all members and combine their contents.
+
+Avro file sink writes the records to the files using the given datum
+writer and schema suppliers. The sink always overwrites the existing
+files, does not append.
+
+Here is an example with a
+{jet-javadoc}/avro/AvroSinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedSupplier-[generic datum writer]:
+
+[source]
+----
+include::{javasource}/Avro.java[tag=s2]
+----

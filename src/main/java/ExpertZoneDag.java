@@ -45,7 +45,7 @@ class ExpertZoneDag {
         //tag::s2[]
         // <1>
         Vertex source = dag.newVertex("source",
-                SourceProcessors.readFilesP(".", UTF_8, "*", (file, line) -> line)
+                SourceProcessors.readFilesP(".", UTF_8, "*", false, (file, line) -> line)
         );
         Vertex transform = dag.newVertex("transform", mapP(
                 (String line) -> entry(line, line.length())
@@ -64,7 +64,7 @@ class ExpertZoneDag {
     static void s3() {
         //tag::s3[]
         Vertex source = dag.newVertex("source",
-                SourceProcessors.readFilesP(".", UTF_8, "*", (file, line) -> line)
+                SourceProcessors.readFilesP(".", UTF_8, "*", false, (file, line) -> line)
         );
         Vertex toUpper = dag.newVertex("toUpper", mapP((String in) -> in.toUpperCase()));
         Vertex toLower = dag.newVertex("toLower", mapP((String in) -> in.toLowerCase()));

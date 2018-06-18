@@ -36,6 +36,7 @@ compileJava {
 dependencies {
     compile "com.hazelcast.jet:hazelcast-jet-kafka:$jetVersion"
     compile "com.hazelcast.jet:hazelcast-jet-hadoop:$jetVersion"
+    compile "com.hazelcast.jet:hazelcast-jet-avro:$jetVersion"
     compile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
     compile "org.apache.hadoop:hadoop-common:$hadoopVersion"
     compile "org.apache.hadoop:hadoop-mapreduce-client-core:$hadoopVersion"

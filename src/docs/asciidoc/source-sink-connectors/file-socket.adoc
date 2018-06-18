@@ -14,15 +14,17 @@ sinks don't suppress duplicate data.
 
 == File Sources
 
-The file sources are designed to work with the local file system. They
-expect to see on each member just the files that member should read. You
-can achieve the effect of a distributed source if you manually prepare a
-different set of files on each member.
+The file sources are designed to work with the local and shared file
+systems. For local file system, the sources expect to see on each member
+just the files that member should read. You can achieve the effect of a
+distributed source if you manually prepare a different set of files on
+each member. For shared file system, the sources split the work so that
+each member will read a part of the files.
 
 There are two flavors of the file source: bounded and unbounded.
 
 Here's an example with the
-{jet-javadoc}/pipeline/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-com.hazelcast.jet.function.DistributedBiFunction-[bounded source]:
+{jet-javadoc}/pipeline/Sources.html#files-java.lang.String-[bounded source]:
 
 [source]
 ----
@@ -35,7 +37,7 @@ completes. If the files change while the job is running, the behavior
 is undefined.
 
 Here's an example with the
-{jet-javadoc}/pipeline/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-[unbounded source]:
+{jet-javadoc}/pipeline/Sources.html#fileWatcher-java.lang.String-[unbounded source]:
 
 [source]
 ----
@@ -53,7 +55,7 @@ If you delete the watched directory, the job will complete.
 === File Sink
 
 The
-{jet-javadoc}/pipeline/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-[file sink]
+{jet-javadoc}/pipeline/Sinks.html#files-java.lang.String-[file sink]
 can work with either a local or a shared network file system. Each
 member will write to different filenames. You can achieve the effect of
 a distributed sink if you manually collect all the output files on all

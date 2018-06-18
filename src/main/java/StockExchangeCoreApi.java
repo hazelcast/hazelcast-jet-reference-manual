@@ -1,5 +1,4 @@
 import com.hazelcast.jet.core.DAG;
-import com.hazelcast.jet.core.Processor;
 import com.hazelcast.jet.core.SlidingWindowPolicy;
 import com.hazelcast.jet.core.TimestampKind;
 import com.hazelcast.jet.core.Vertex;
@@ -8,7 +7,6 @@ import com.hazelcast.jet.core.processor.SinkProcessors;
 import com.hazelcast.jet.core.processor.SourceProcessors;
 import com.hazelcast.jet.datamodel.TimestampedEntry;
 import com.hazelcast.jet.function.DistributedFunction;
-import com.hazelcast.jet.function.DistributedSupplier;
 import com.hazelcast.jet.function.DistributedToLongFunction;
 import com.hazelcast.jet.pipeline.ContextFactory;
 import com.hazelcast.jet.pipeline.JournalInitialPosition;
@@ -29,6 +27,7 @@ import static com.hazelcast.jet.core.WatermarkPolicies.limitingLag;
 import static com.hazelcast.jet.core.processor.Processors.mapUsingContextP;
 import static com.hazelcast.jet.function.DistributedFunctions.alwaysTrue;
 import static com.hazelcast.jet.function.DistributedFunctions.entryKey;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -70,7 +69,7 @@ public class StockExchangeCoreApi {
                 ));
         Vertex slidingStage2 = dag.newVertex("sliding-stage-2",
             Processors.combineToSlidingWindowP(winPolicy, counting(),
-                    TimestampedEntry::new));
+                    TimestampedEntry::fromWindowResult));
         Vertex formatOutput = dag.newVertex("format-output", mapUsingContextP(    // <7>
             ContextFactory.withCreateFn(x -> DateTimeFormatter.ofPattern("HH:mm:ss.SSS")),
             (DateTimeFormatter timeFormat, TimestampedEntry<String, Long> tse) ->
@@ -79,7 +78,8 @@ public class StockExchangeCoreApi {
                                              .atZone(ZoneId.systemDefault())),
                     tse.getKey(), tse.getValue())
         ));
-        Vertex sink = dag.newVertex("sink", SinkProcessors.writeFileP(OUTPUT_DIR_NAME));
+        Vertex sink = dag.newVertex("sink",
+                SinkProcessors.writeFileP(OUTPUT_DIR_NAME, Object::toString, UTF_8, false));
 
         tradeSource.localParallelism(1);
 
