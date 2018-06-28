@@ -4,12 +4,12 @@ import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.datamodel.Tuple3;
 import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.BatchStage;
+import com.hazelcast.jet.pipeline.BatchStageWithKey;
 import com.hazelcast.jet.pipeline.ContextFactories;
 import com.hazelcast.jet.pipeline.GroupAggregateBuilder;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
-import com.hazelcast.jet.pipeline.StageWithGrouping;
 import com.hazelcast.jet.pipeline.StreamHashJoinBuilder;
 import com.hazelcast.jet.pipeline.StreamStage;
 import datamodel.AddToCart;
@@ -104,7 +104,7 @@ class BuildComputation {
         p.drawFrom(Sources.<String>list("text"))
          .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
          .filter(word -> !word.isEmpty())
-         .groupingKey(wholeItem())
+         .addKey(wholeItem())
          .aggregate(counting())
          .drainTo(Sinks.list("result"));
         //end::s6[]
@@ -116,20 +116,20 @@ class BuildComputation {
         BatchStage<String> src1 = p.drawFrom(Sources.list("src1"));
         BatchStage<String> src2 = p.drawFrom(Sources.list("src2"));
 
-        StageWithGrouping<String, String> grouped1 = groupByWord(src1);
-        StageWithGrouping<String, String> grouped2 = groupByWord(src2);
+        BatchStageWithKey<String, String> grouped1 = groupByWord(src1);
+        BatchStageWithKey<String, String> grouped2 = groupByWord(src2);
 
         BatchStage<Entry<String, Tuple2<Long, Long>>> coGrouped =
                 grouped1.aggregate2(counting(), grouped2, counting());
     }
 
-    private static StageWithGrouping<String, String> groupByWord(
+    private static BatchStageWithKey<String, String> groupByWord(
             BatchStage<String> lineSource
     ) {
         return lineSource
                 .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
                 .filter(word -> !word.isEmpty())
-                .groupingKey(wholeItem());
+                .addKey(wholeItem());
     }
     //end::s7[]
 
@@ -137,12 +137,12 @@ class BuildComputation {
         //tag::s7a[]
         Pipeline p = Pipeline.create();
 
-        StageWithGrouping<PageVisit, Integer> pageVisits =
+        BatchStageWithKey<PageVisit, Integer> pageVisits =
                 p.drawFrom(Sources.<PageVisit>list("pageVisit"))
-                 .groupingKey(PageVisit::userId);
-        StageWithGrouping<AddToCart, Integer> addToCarts =
+                 .addKey(PageVisit::userId);
+        BatchStageWithKey<AddToCart, Integer> addToCarts =
                 p.drawFrom(Sources.<AddToCart>list("addToCart"))
-                 .groupingKey(AddToCart::userId);
+                 .addKey(AddToCart::userId);
 
         BatchStage<Entry<Integer, Tuple2<List<PageVisit>, List<AddToCart>>>> joined =
                 pageVisits.aggregate2(toList(), addToCarts, toList(),
@@ -158,18 +158,18 @@ class BuildComputation {
         Pipeline p = Pipeline.create();
 
         //<1>
-        StageWithGrouping<PageVisit, Integer> pageVisits =
+        BatchStageWithKey<PageVisit, Integer> pageVisits =
                 p.drawFrom(Sources.<PageVisit>list("pageVisit"))
-                 .groupingKey(PageVisit::userId);
-        StageWithGrouping<AddToCart, Integer> addToCarts =
+                 .addKey(PageVisit::userId);
+        BatchStageWithKey<AddToCart, Integer> addToCarts =
                 p.drawFrom(Sources.<AddToCart>list("addToCart"))
-                 .groupingKey(AddToCart::userId);
-        StageWithGrouping<Payment, Integer> payments =
+                 .addKey(AddToCart::userId);
+        BatchStageWithKey<Payment, Integer> payments =
                 p.drawFrom(Sources.<Payment>list("payment"))
-                 .groupingKey(Payment::userId);
-        StageWithGrouping<Delivery, Integer> deliveries =
+                 .addKey(Payment::userId);
+        BatchStageWithKey<Delivery, Integer> deliveries =
                 p.drawFrom(Sources.<Delivery>list("delivery"))
-                 .groupingKey(Delivery::userId);
+                 .addKey(Delivery::userId);
 
         //<2>
         GroupAggregateBuilder<Integer, List<PageVisit>> builder =
@@ -266,7 +266,7 @@ class BuildComputation {
          .filter(word -> !word.isEmpty())
          .addTimestamps()
          .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
-         .groupingKey(wholeItem())
+         .addKey(wholeItem())
          .aggregate(counting())
          .drainTo(Sinks.list("result"));
         //end::s13[]
@@ -282,7 +282,7 @@ class BuildComputation {
          .filter(tweetWord -> !tweetWord.word().isEmpty())
          .addTimestamps(TweetWord::timestamp, TimeUnit.SECONDS.toMillis(5))
          .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
-         .groupingKey(TweetWord::word)
+         .addKey(TweetWord::word)
          .aggregate(counting())
          .drainTo(Sinks.list("result"));
         //end::s14[]
@@ -297,7 +297,7 @@ class BuildComputation {
          .flatMap(tweet -> traverseArray(tweet.text().toLowerCase().split("\\W+")))
          .filter(word -> !word.isEmpty())
          .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
-         .groupingKey(wholeItem())
+         .addKey(wholeItem())
          .aggregate(counting())
          .drainTo(Sinks.list("result"));
         //end::s15[]
@@ -319,7 +319,7 @@ class BuildComputation {
         Pipeline p = Pipeline.create();
         BatchSource<Person> personSource = Sources.list("people");
         p.drawFrom(personSource)
-         .groupingKey(person -> person.getAge() / 5)
+         .addKey(person -> person.getAge() / 5)
          .distinct()
          .drainTo(Sinks.list("sampleByAgeBracket"));
         //end::s17[]

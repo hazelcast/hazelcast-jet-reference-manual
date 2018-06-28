@@ -32,7 +32,7 @@ public class LogDebug {
          .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
          .filter(word -> !word.isEmpty())
          .peek() // <1>
-         .groupingKey(wholeItem())
+         .addKey(wholeItem())
          .aggregate(counting())
          .drainTo(Sinks.map("counts"));
         //end::s3[]

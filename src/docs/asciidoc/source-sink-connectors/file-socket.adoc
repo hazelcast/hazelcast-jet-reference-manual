@@ -52,7 +52,7 @@ existing content changes, the behavior is undefined.
 
 If you delete the watched directory, the job will complete.
 
-=== File Sink
+== File Sink
 
 The
 {jet-javadoc}/pipeline/Sinks.html#files-java.lang.String-[file sink]
@@ -66,6 +66,45 @@ Here's a small example of usage:
 [source]
 ----
 include::{javasource}/FileAndSocket.java[tag=s3]
+----
+
+== Avro
+
+Hazelcast jet provides Apache Avro file source and sink for batch
+processing jobs. This is a specialized version of file connector.
+Avro connector assumes the data is in the `Avro Object Container File`
+format.
+
+=== Avro File Source
+
+Avro file source reads the files in the specified directory using the
+given datum reader supplier and emits the records to downstream.
+
+Here's an example with a
+{jet-javadoc}/avro/AvroSources.html#files-java.lang.String-java.lang.Class-[reflect datum reader]:
+
+[source]
+----
+include::{javasource}/Avro.java[tag=s1]
+----
+
+This will log on each Jet member the records of all the files in the
+specified directory. When the source reads all the files, the job
+completes. If the files change while the job is running, the behavior
+is undefined.
+
+=== Avro File Sink
+
+Avro file sink writes the records to the files using the given datum
+writer and schema suppliers. The sink always overwrites the existing
+files, does not append.
+
+Here is an example with a
+{jet-javadoc}/avro/AvroSinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedSupplier-[generic datum writer]:
+
+[source]
+----
+include::{javasource}/Avro.java[tag=s2]
 ----
 
 [[connector-socket]]

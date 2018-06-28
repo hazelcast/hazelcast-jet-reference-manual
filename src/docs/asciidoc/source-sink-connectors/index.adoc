@@ -9,8 +9,6 @@ include::imdg.adoc[]
 
 include::file-socket.adoc[]
 
-include::avro.adoc[]
-
 include::jms.adoc[]
 
 include::hdfs.adoc[]

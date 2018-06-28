@@ -36,7 +36,7 @@ public class HdfsAndKafka {
         p.drawFrom(HdfsSources.hdfs(jobConfig, (k, v) -> v.toString()))
          .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+"))
                                .filter(w -> !w.isEmpty()))
-         .groupingKey(wholeItem())
+         .addKey(wholeItem())
          .aggregate(counting())
          .drainTo(HdfsSinks.hdfs(jobConfig));
         //end::s2[]
