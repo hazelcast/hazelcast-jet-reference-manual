@@ -44,11 +44,10 @@ Here's an example with the
 include::{javasource}/FileAndSocket.java[tag=s2]
 ----
 
-It will start by logging on each member the contents of all the files in
-the directory and then will switch to watching the directory for
-changes. It will read both new files and the content added to the
-existing files. Files must be updated in an append-only fashion; if the
-existing content changes, the behavior is undefined.
+It will watch the directory for changes. It will emit only new contents added
+after startup: both new files and new content appended to existing ones. Files
+must be updated in an append-only fashion; if the existing content changes, the
+behavior is undefined.
 
 If you delete the watched directory, the job will complete.
 
