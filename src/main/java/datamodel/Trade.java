@@ -24,4 +24,10 @@ public class Trade extends Event {
     public String ticker() {
         return "ticker";
     }
+
+    public long worth() { return 0; }
+
+    public Trade setStockInfo(StockInfo info) {
+        return this;
+    }
 }

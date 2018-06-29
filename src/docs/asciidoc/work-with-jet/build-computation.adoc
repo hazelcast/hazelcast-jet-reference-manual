@@ -82,39 +82,79 @@ items.
 
 == Kinds of JOIN
 
-You can achieve various types of join with Jet. These are your basic
+You can join streams in various ways with Jet. These are your basic
 tools:
 
 * <<hash-join, _hash-join_>> is a many-to-one join that matches a
 foreign key in one stream with the primary key in another.
-* <<map-using-context, `map/flatMapUsingContext`>> allow you to join
-the stream data with the data in a Hazelcast `ReplicatedMap`, `IMap` or
-any other structure, including non-Hazelcast ones.
+
+* transformations with a context object allow you to join the stream
+data with a <<map-using-imap, Hazelcast map>> and Jet <<map-using-context,
+exposes the underlying machinery>> so you can write your own code to
+join with an arbitrary outside system.
+
 * <<cogroup, _co-group-and-aggregate_>> is a many-to-many join that
 matches the same key in all the joined streams and can simultaneously
 perform aggregation of the groups with the same key. By using the
 appropriate output-mapping function you can achieve any kind of join:
 inner/outer/full, left and right.
 
-[[map-using-contex]]
-== Map/Filter/FlatMap using a Context Object
+[[map-using-imap]]
+== Enrich a Stream Using a Hazelcast Map
 
-You can assign a context object to each processor in the cluster that
-executes a transforming step in the pipeline. One interesting way to use
-this is getting access to a Hazelcast `IMap` or a similar structure so
-you can use its data to transform the stream items.
+In addition to a <<hash-join, hash-join>>, Hazelcast Jet allows you to
+enrich your stream directly from a Hazelcast `IMap` or `ReplicatedMap`.
+Since it must look up the data again for each item, performance is lower
+than with a hash-join, but the data is kept fresh this way. This matters
+especially for unbounded streaming jobs, where a hash-join would use
+data frozen in time at the beginning of the job.
 
-You can't just fetch a `ReplicatedMap` or `IMap` instance and add it to
-the pipeline. Instead you provide a _factory_ that Jet will use to
-create the context object for each processor in the cluster that
-executes your transforming step.
-
-In this example we enrich a stream from an `ReplicatedMap`:
+In this example we enrich a stream of trades with detailed stock info.
+The info is stored in a Hazelcast `IMap`:
 
 [source]
 ----
 include::{javasource}/BuildComputation.java[tag=s16]
 ----
+
+<1> Obtain the `IMap` from a Hazelcast Jet instance
+<2> Enrich the stream by setting the looked-up `StockInfo` on `Trade`
+    items. This syntax works if the setter has fluent API and returns
+    `this`.
+
+[[map-using-contex]]
+== Enrich a Stream Using an Arbitrary Context Object
+
+In the example above the syntax looks very simple, but it hides a layer
+of complexity: you can't just fetch a Hazelcast map instance and add it
+to the pipeline. It's a proxy object that's valid only in the JVM
+process where you obtained it. `mapUsingIMap` actually remembers just
+the name of the map and will obtain a map with the same name from the
+Jet cluster where the job runs.
+
+Hazelcast Jet exposes the facility used to implement `mapUsingIMap`:
+you can provide a _factory_ that Jet will use to create a context object
+for each worker in the cluster that executes your transforming step.
+You can also specify a function that extracts the key from your items.
+Even though Jet won't do any lookup or grouping by that key, it will
+set up the job so that all the items with the same key get paired with
+the same context object. For example, you may be fetching data from an
+`IMap` that's stored on some other Hazelcast cluster. In this case you
+must define a factory object that creates a Hazelcast client instance
+and fetches this map. To optimize performance, you can enable the
+near-cache on the client and you can save a lot of memory by specifying
+the key function: since Jet executes your enriching code in parallel,
+each worker has its own Hazelcast client instance, with its own
+near-cache. With the key function, each near-cache will manage its own
+subset of the keys:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s16a]
+----
+
+In a similar fashion you can integrate other external systems with a
+Jet pipeline.
 
 [[distinct]]
 == Distinct
@@ -225,10 +265,10 @@ computes an aggregate function (simple examples: sum or average) over
 the data items. Typically you don't want to agregate all the items
 together, but classify them by some key and then aggregate over each
 group separately. This is the _group-and-aggregate_ transformation. You
-can simultaneously join several streams on a key and group-aggregate
+can join several streams on a key and simultaneously group-aggregate
 them on the same key. This is the _cogroup-and-aggregate_ transformation.
-Finally, if you're processing an unbounded event stream, you must define
-a bounded _window_ over the stream within which Jet will aggregate the
+If you're processing an unbounded event stream, you must define a
+bounded _window_ over the stream within which Jet will aggregate the
 data.
 
 This is how a very simple batch aggregation without grouping may look
@@ -306,7 +346,6 @@ events without a matching add-to-cart event won't.
 ----
 include::{javasource}/BuildComputation.java[tag=s7a]
 ----
-
 
 [[cogroup-builder]]
 ===  Co-aggregate Four or More Streams Using the Builder
@@ -413,3 +452,26 @@ seconds, and so on.
 of quiescence. You define the "session timeout", i.e., the length of the
 quiet period that causes the window to close. If you define a grouping
 key, there is a separate, independent session window for each key.
+
+== Rolling Aggregation
+
+Jet supports a way to aggregate an unbounded stream without windowing:
+for each input item you get as output the current aggregation value, as
+if this item was the last one to be aggregated. You use the same
+`AggregateOperation` implementations that work with Jet's `aggregate`
+API. Note that Jet doesn't enforce processing in the order of event time;
+what you get simply accounts for all the items processed so far.
+
+This kind of aggregation is useful in jobs that monitor a stream for
+extremes or totals. For example, the worst latency ever experienced,
+the highest throughput seen, total number of transactions processed,
+and so on.
+
+In this example we get the "largest" trade seen so far in the stream
+(with the highest worth in dollars). Note that rolling aggregation
+outputs an item every time, not just after a new record-breaking trade.
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s19]
+----

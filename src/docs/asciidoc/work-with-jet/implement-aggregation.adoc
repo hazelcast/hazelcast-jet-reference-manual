@@ -83,7 +83,7 @@ package several such classes, one of them being
 which is a match for our `average` function. You'll just have to supply
 the logic on top of it.
 
-Specifically, you have to provide a set of five functions (we call them
+Specifically, you have to provide a set of six functions (we call them
 "`primitives`"):
 
 - `create` a new accumulator object.
@@ -94,19 +94,27 @@ left-hand one.
 one (undo the effects of `combine`).
 - `finish` accumulation by transforming the accumulator object into the
 final result.
+- `export` the result of aggregation in a way that's not destructive for
+the accumulator (used in rolling aggregations).
 
-So far we mentioned all of these except for `deduct`. This one is
+We already mentioned most of these above. The `deduct` primitive is
 optional and Jet can manage without it, but if you are computing a
 sliding window over an infinite stream, this primitive can give a
 significant performance boost because it allows Jet to reuse the results
 of the previous calculations.
 
+Similarly, every function that works as the `export` primitive will also
+work as `finish`, but for optimization purposes you can specify a
+different `finish` that reuses the state already allocated in the
+accumulator. Jet applies `finish` only if it will never again use that
+accumulator.
+
 If you happen to have a deeper familiarity with JDK's java.util.stream
 API, you'll find `AggregateOperation` quite similar to
 https://docs.oracle.com/javase/9/docs/api/java/util/stream/Collector.html[`Collector`],
 which is also a holder of several functional primitives. Jet's
-definitions are slightly different, though, and there's also the
-additional `deduct` primitive.
+definitions are slightly different, though, and there are the additional
+optimizing primitives we just mentioned.
 
 Let's see how this works with our `average` function. Using
 `LongLongAccumulator` we can express our `accumulate` primitive as
@@ -119,7 +127,7 @@ Let's see how this works with our `average` function. Using
 }
 ----
 
-The `finish` primitive will be
+The `export`/`finish` primitive will be
 
 [source]
 ----

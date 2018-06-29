@@ -5,10 +5,8 @@
 |===
 |Transform s| Sample
 |Map
-|Applies the mapping function to each input item independently and emits
-the function's result as the output item. If the result is `null`, it
-emits nothing. Therefore this stage can also be used to implement
-filtering semantics.
+|Apply a mapping function to each input item independently. You can also
+do filtering by mapping to `null`.
 
 This example converts the input lines of text to lowercase:
 [source]
@@ -16,33 +14,50 @@ This example converts the input lines of text to lowercase:
 include::{javasource}/CheatSheet.java[tag=s1]
 ----
 |Filter
-|Applies the filtering function to each input item to decide whether to
-pass it to the output or discard it.
+|Apply a filtering function to each input item to decide whether to
+pass it to the output.
 
 This example removes all empty strings from the stream:
 [source]
 ----
 include::{javasource}/CheatSheet.java[tag=s2]
 ----
+
 |Flatmap
-|Applies the supplied function to each input item independently and emits
-all the items from the `Traverser` it returns.
+|Map each item to arbitrarily many items using a function that returns a
+`Traverser` over the result items.
 
 This example splits the lines of text into individual words:
 [source]
 ----
 include::{javasource}/CheatSheet.java[tag=s3]
 ----
-|Hash Join
-|Performs a many-to-one join with arbitrarily many enriching streams.
+
+|Enrich by Many-to-One Join
+|Perform a many-to-one join with arbitrarily many enriching streams.
 The stream on which you invoke `hashJoin` holds foreign keys for
 the items in the enriching streams.
 
-This example enriches a stream of trades with the corresponding brokers:
+This example enriches a stream of stock trades with detailed info on the
+stock involved:
 [source]
 ----
 include::{javasource}/CheatSheet.java[tag=s4]
 ----
+
+|Enrich by Map Lookup
+|For each stream item, look up a value from a Hazelcast map and
+transform (enrich) the item using it. Similar to a hash-join with the
+map's entry set, but values don't get stale (at the expense of
+throughput).
+
+This example enriches a stream of stock trades with detailed info on the
+stock involved:
+[source]
+----
+include::{javasource}/CheatSheet.java[tag=s10]
+----
+
 |Aggregate
 |Aggregates all the stream items with the `AggregateOperation` you
 supply.
@@ -52,9 +67,10 @@ This example counts the stream items:
 ----
 include::{javasource}/CheatSheet.java[tag=s5]
 ----
+
 |Group and Aggregate
-|Groups the items by key and performs the `AggregateOperation` you
-supply on each group.
+|Group the items by key and perform an `AggregateOperation` on each
+group.
 
 This example calculates the number of occurrences of each word in the
 stream:
@@ -62,11 +78,10 @@ stream:
 ----
 include::{javasource}/CheatSheet.java[tag=s6]
 ----
+
 |Windowed Group and Aggregate
-|Groups the items by key and performs the `AggregateOperation` you
-supply on each group. Performs this operation on an unbounded stream,
-splitting it into bounded windows. It emits a separate result for each
-window.
+|Perform grouping and aggregation on an unbounded stream by splitting it
+into bounded windows.
 
 This example calculates the number of occurrences of each word in a
 stream of tweets within the last second:
@@ -74,9 +89,10 @@ stream of tweets within the last second:
 ----
 include::{javasource}/CheatSheet.java[tag=s7]
 ----
+
 |Join on Common Key
-|Performs a many-to-many join of several streams on a common key.
-Applies the `AggregateOperation` you supply on each group. You can also
+|Perform a many-to-many join of several streams on a common key.
+Apply an `AggregateOperation` on each group. As a special case, you can
 specify an aggregate operation that gives you all the joined items
 without transformation.
 
@@ -87,8 +103,9 @@ views and payments:
 ----
 include::{javasource}/CheatSheet.java[tag=s8]
 ----
+
 |Streaming Join on a Common Key
-|Like the above, but also applies a window to the unbounded stream. It
+|Like the above, but also apply a window to the unbounded stream. It
 joins all the items belonging to the same window.
 
 This example joins two unbounded streams, "page visits" and "payments".
@@ -98,4 +115,15 @@ performed within the last minute and updates the result every second:
 ----
 include::{javasource}/CheatSheet.java[tag=s9]
 ----
+
+|Rolling Aggregation
+|Keep performing the same aggregate operation forever, getting the
+current result after each item.
+
+This example tracks the largest trade observed in a stream:
+[source]
+----
+include::{javasource}/CheatSheet.java[tag=s10]
+----
+
 |===

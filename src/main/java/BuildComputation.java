@@ -7,6 +7,7 @@ import com.hazelcast.jet.datamodel.ItemsByTag;
 import com.hazelcast.jet.datamodel.Tag;
 import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.datamodel.Tuple3;
+import com.hazelcast.jet.function.DistributedComparator;
 import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.BatchStageWithKey;
@@ -40,6 +41,7 @@ import static com.hazelcast.jet.Util.entry;
 import static com.hazelcast.jet.Util.mapEventNewValue;
 import static com.hazelcast.jet.Util.mapPutEvents;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
+import static com.hazelcast.jet.aggregate.AggregateOperations.maxBy;
 import static com.hazelcast.jet.aggregate.AggregateOperations.toList;
 import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 import static com.hazelcast.jet.pipeline.JoinClause.joinMapEntries;
@@ -365,6 +367,17 @@ class BuildComputation {
                 "trades-tokio", mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
         StreamStage<Trade> merged = tradesNewYork.merge(tradesTokio);
         //end::s18[]
+    }
+
+    static void s19() {
+        //tag::s19[]
+        Pipeline p = Pipeline.create();
+        StreamSource<Trade> tradesSource = Sources.mapJournal("trades",
+                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT);
+        StreamStage<Trade> currLargestTrade =
+                p.drawFrom(tradesSource)
+                 .rollingAggregate(maxBy(DistributedComparator.comparing(Trade::worth)));
+        //end::s19[]
     }
 }
 
