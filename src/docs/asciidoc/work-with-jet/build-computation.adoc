@@ -460,7 +460,8 @@ for each input item you get as output the current aggregation value, as
 if this item was the last one to be aggregated. You use the same
 `AggregateOperation` implementations that work with Jet's `aggregate`
 API. Note that Jet doesn't enforce processing in the order of event time;
-what you get simply accounts for all the items processed so far.
+what you get accounts for the items that Jet happens to have processed
+so far.
 
 This kind of aggregation is useful in jobs that monitor a stream for
 extremes or totals. For example, the worst latency ever experienced,
