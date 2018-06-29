@@ -1,26 +1,14 @@
 import com.hazelcast.jet.Util;
-import com.hazelcast.jet.config.EdgeConfig;
-import com.hazelcast.jet.core.AbstractProcessor;
 import com.hazelcast.jet.core.DAG;
-import com.hazelcast.jet.core.Partitioner;
 import com.hazelcast.jet.core.Vertex;
-import com.hazelcast.jet.core.processor.Processors;
-import com.hazelcast.jet.core.processor.SinkProcessors;
-import com.hazelcast.jet.core.processor.SourceProcessors;
 import com.hazelcast.jet.core.test.TestSupport;
 
-import static com.hazelcast.jet.Traversers.traverseIterable;
-import static com.hazelcast.jet.Util.entry;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
-import static com.hazelcast.jet.core.Edge.between;
 import static com.hazelcast.jet.core.Edge.from;
-import static com.hazelcast.jet.core.Partitioner.HASH_CODE;
 import static com.hazelcast.jet.core.processor.DiagnosticProcessors.peekInputP;
 import static com.hazelcast.jet.core.processor.Processors.combineByKeyP;
 import static com.hazelcast.jet.core.processor.Processors.mapP;
 import static com.hazelcast.jet.core.processor.SinkProcessors.writeFileP;
-import static com.hazelcast.jet.function.DistributedFunctions.entryKey;
-import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
@@ -50,7 +38,8 @@ class ExpertZoneBestPractices {
     static void s3() {
         Vertex tokenize = null;
         //tag::s3[]
-        Vertex diagnose = dag.newVertex("diagnose", writeFileP("tokenize-output"))
+        Vertex diagnose = dag.newVertex("diagnose",
+                writeFileP("tokenize-output", Object::toString, UTF_8, false))
                              .localParallelism(1);
         dag.edge(from(tokenize, 1).to(diagnose));
         //end::s3[]

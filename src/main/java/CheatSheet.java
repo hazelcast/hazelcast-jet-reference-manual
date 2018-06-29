@@ -1,11 +1,11 @@
 import com.hazelcast.jet.datamodel.TimestampedEntry;
 import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.pipeline.BatchStage;
+import com.hazelcast.jet.pipeline.BatchStageWithKey;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sources;
-import com.hazelcast.jet.pipeline.StageWithGrouping;
 import com.hazelcast.jet.pipeline.StreamStage;
-import com.hazelcast.jet.pipeline.StreamStageWithGrouping;
+import com.hazelcast.jet.pipeline.StreamStageWithKey;
 import datamodel.Broker;
 import datamodel.PageVisit;
 import datamodel.Payment;
@@ -71,7 +71,7 @@ public class CheatSheet {
         //tag::s6[]
         BatchStage<String> words = p.drawFrom(list("words"));
         BatchStage<Entry<String, Long>> wordsAndCounts =
-                words.groupingKey(wholeItem())
+                words.addKey(wholeItem())
                      .aggregate(counting());
         //end::s6[]
     }
@@ -83,19 +83,19 @@ public class CheatSheet {
         StreamStage<TimestampedEntry<String, Long>> wordFreqs =
                 tweetWords.addTimestamps(e -> e.getKey(), 1000)
                           .window(sliding(1000, 10))
-                          .groupingKey(entryValue())
+                          .addKey(entryValue())
                           .aggregate(counting());
         //end::s7[]
     }
 
     static void s8() {
         //tag::s8[]
-        StageWithGrouping<PageVisit, Integer> pageVisits =
+        BatchStageWithKey<PageVisit, Integer> pageVisits =
                 p.drawFrom(Sources.<PageVisit>list("pageVisit"))
-                 .groupingKey(pageVisit -> pageVisit.userId());
-        StageWithGrouping<Payment, Integer> payments =
+                 .addKey(pageVisit -> pageVisit.userId());
+        BatchStageWithKey<Payment, Integer> payments =
                 p.drawFrom(Sources.<Payment>list("payment"))
-                 .groupingKey(payment -> payment.userId());
+                 .addKey(payment -> payment.userId());
         BatchStage<Entry<Integer, Tuple2<List<PageVisit>, List<Payment>>>>
             joined = pageVisits.aggregate2(toList(), payments, toList());
         //end::s8[]
@@ -103,16 +103,16 @@ public class CheatSheet {
 
     static void s9() {
         //tag::s9[]
-        StreamStageWithGrouping<PageVisit, Integer> pageVisits =
+        StreamStageWithKey<PageVisit, Integer> pageVisits =
                 p.<PageVisit>drawFrom(Sources.mapJournal("pageVisits",
                         mapPutEvents(), mapEventNewValue(), START_FROM_OLDEST))
                         .addTimestamps(PageVisit::timestamp, 1000)
-                        .groupingKey(PageVisit::userId);
-        StreamStageWithGrouping<Payment, Integer> payments =
+                        .addKey(PageVisit::userId);
+        StreamStageWithKey<Payment, Integer> payments =
                 p.<Payment>drawFrom(Sources.mapJournal("payments",
                         mapPutEvents(), mapEventNewValue(), START_FROM_OLDEST))
                         .addTimestamps(Payment::timestamp, 1000)
-                        .groupingKey(Payment::userId);
+                        .addKey(Payment::userId);
         StreamStage<TimestampedEntry<Integer,
                                     Tuple2<List<PageVisit>, List<Payment>>>>
             joined = pageVisits.window(sliding(60_000, 1000))

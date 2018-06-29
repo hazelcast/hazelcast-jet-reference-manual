@@ -14,15 +14,17 @@ sinks don't suppress duplicate data.
 
 == File Sources
 
-The file sources are designed to work with the local file system. They
-expect to see on each member just the files that member should read. You
-can achieve the effect of a distributed source if you manually prepare a
-different set of files on each member.
+The file sources are designed to work with the local and shared file
+systems. For local file system, the sources expect to see on each member
+just the files that member should read. You can achieve the effect of a
+distributed source if you manually prepare a different set of files on
+each member. For shared file system, the sources split the work so that
+each member will read a part of the files.
 
 There are two flavors of the file source: bounded and unbounded.
 
 Here's an example with the
-{jet-javadoc}/pipeline/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-com.hazelcast.jet.function.DistributedBiFunction-[bounded source]:
+{jet-javadoc}/pipeline/Sources.html#files-java.lang.String-[bounded source]:
 
 [source]
 ----
@@ -35,25 +37,24 @@ completes. If the files change while the job is running, the behavior
 is undefined.
 
 Here's an example with the
-{jet-javadoc}/pipeline/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-[unbounded source]:
+{jet-javadoc}/pipeline/Sources.html#fileWatcher-java.lang.String-[unbounded source]:
 
 [source]
 ----
 include::{javasource}/FileAndSocket.java[tag=s2]
 ----
 
-It will start by logging on each member the contents of all the files in
-the directory and then will switch to watching the directory for
-changes. It will read both new files and the content added to the
-existing files. Files must be updated in an append-only fashion; if the
-existing content changes, the behavior is undefined.
+It will watch the directory for changes. It will emit only new contents added
+after startup: both new files and new content appended to existing ones. Files
+must be updated in an append-only fashion; if the existing content changes, the
+behavior is undefined.
 
 If you delete the watched directory, the job will complete.
 
-=== File Sink
+== File Sink
 
 The
-{jet-javadoc}/pipeline/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-[file sink]
+{jet-javadoc}/pipeline/Sinks.html#files-java.lang.String-[file sink]
 can work with either a local or a shared network file system. Each
 member will write to different filenames. You can achieve the effect of
 a distributed sink if you manually collect all the output files on all
@@ -64,6 +65,45 @@ Here's a small example of usage:
 [source]
 ----
 include::{javasource}/FileAndSocket.java[tag=s3]
+----
+
+== Avro
+
+Hazelcast Jet provides Apache Avro file source and sink for batch
+processing jobs. This is a specialized version of file connector.
+Avro connector assumes the data is in the `Avro Object Container File`
+format.
+
+=== Avro File Source
+
+Avro file source reads the files in the specified directory using the
+given datum reader supplier and emits the records to downstream.
+
+Here's an example with a
+{jet-javadoc}/avro/AvroSources.html#files-java.lang.String-java.lang.Class-[reflect datum reader]:
+
+[source]
+----
+include::{javasource}/Avro.java[tag=s1]
+----
+
+This will log on each Jet member the records of all the files in the
+specified directory. When the source reads all the files, the job
+completes. If the files change while the job is running, the behavior
+is undefined.
+
+=== Avro File Sink
+
+Avro file sink writes the records to the files using the given datum
+writer and schema suppliers. The sink always overwrites the existing
+files, does not append.
+
+Here is an example with a
+{jet-javadoc}/avro/AvroSinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedSupplier-[generic datum writer]:
+
+[source]
+----
+include::{javasource}/Avro.java[tag=s2]
 ----
 
 [[connector-socket]]

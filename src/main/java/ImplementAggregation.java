@@ -29,6 +29,7 @@ public class ImplementAggregation {
                     left.set1(left.get1() - right.get1());
                     left.set2(left.get2() - right.get2());
                 })
+                .andExport(acc -> (double) acc.get1() / acc.get2())
                 .andFinish(acc -> (double) acc.get1() / acc.get2());
         //end::s1[]
     }
@@ -55,6 +56,11 @@ public class ImplementAggregation {
                     accs1[1].add(accs2[1]);
                     accs1[2].add(accs2[2]);
                 })
+                .andExport(accs -> new long[] {
+                        accs[0].get(),
+                        accs[1].get(),
+                        accs[2].get()
+                })
                 .andFinish(accs -> new long[] {
                         accs[0].get(),
                         accs[1].get(),
@@ -62,10 +68,10 @@ public class ImplementAggregation {
                 });
 
         BatchStage<Entry<Integer, long[]>> coGrouped =
-                pageVisit.groupingKey(PageVisit::userId)
+                pageVisit.addKey(PageVisit::userId)
                          .aggregate3(
-                                 addToCart.groupingKey(AddToCart::userId),
-                                 payment.groupingKey(Payment::userId),
+                                 addToCart.addKey(AddToCart::userId),
+                                 payment.addKey(Payment::userId),
                                  aggrOp);
         //end::s2[]
     }

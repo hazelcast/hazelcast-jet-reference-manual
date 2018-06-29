@@ -20,7 +20,7 @@ public class HelloWorld {
          .flatMap(word ->
                  traverseArray(word.toLowerCase().split("\\W+")))
          .filter(word -> !word.isEmpty())
-         .groupingKey(wholeItem())
+         .addKey(wholeItem())
          .aggregate(counting())
          .drainTo(Sinks.map("counts"));
 

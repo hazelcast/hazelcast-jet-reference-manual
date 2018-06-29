@@ -23,7 +23,7 @@ public class WhatIsDistributedComputing {
         p.drawFrom(Sources.<Long, String>map("book-lines"))
          .flatMap(e -> traverseArray(delimiter.split(e.getValue().toLowerCase())))
          .filter(word -> !word.isEmpty())
-         .groupingKey(wholeItem())
+         .addKey(wholeItem())
          .aggregate(AggregateOperations.counting())
          .drainTo(Sinks.map("counts"));
         //end::s1[]
