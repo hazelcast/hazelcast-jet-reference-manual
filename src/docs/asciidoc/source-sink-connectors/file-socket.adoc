@@ -70,7 +70,7 @@ include::{javasource}/FileAndSocket.java[tag=s3]
 
 == Avro
 
-Hazelcast jet provides Apache Avro file source and sink for batch
+Hazelcast Jet provides Apache Avro file source and sink for batch
 processing jobs. This is a specialized version of file connector.
 Avro connector assumes the data is in the `Avro Object Container File`
 format.
