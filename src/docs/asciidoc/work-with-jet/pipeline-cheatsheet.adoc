@@ -55,7 +55,7 @@ This example enriches a stream of stock trades with detailed info on the
 stock involved:
 [source]
 ----
-include::{javasource}/CheatSheet.java[tag=s10]
+include::{javasource}/CheatSheet.java[tag=s4a]
 ----
 
 |Aggregate
