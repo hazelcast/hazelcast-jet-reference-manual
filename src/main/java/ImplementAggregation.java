@@ -29,8 +29,7 @@ public class ImplementAggregation {
                     left.set1(left.get1() - right.get1());
                     left.set2(left.get2() - right.get2());
                 })
-                .andExport(acc -> (double) acc.get1() / acc.get2())
-                .andFinish(acc -> (double) acc.get1() / acc.get2());
+                .andExportFinish(acc -> (double) acc.get1() / acc.get2());
         //end::s1[]
     }
 
@@ -56,12 +55,7 @@ public class ImplementAggregation {
                     accs1[1].add(accs2[1]);
                     accs1[2].add(accs2[2]);
                 })
-                .andExport(accs -> new long[] {
-                        accs[0].get(),
-                        accs[1].get(),
-                        accs[2].get()
-                })
-                .andFinish(accs -> new long[] {
+                .andExportFinish(accs -> new long[] {
                         accs[0].get(),
                         accs[1].get(),
                         accs[2].get()

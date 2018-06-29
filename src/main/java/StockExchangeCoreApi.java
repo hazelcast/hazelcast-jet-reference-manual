@@ -78,8 +78,8 @@ public class StockExchangeCoreApi {
                                              .atZone(ZoneId.systemDefault())),
                     tse.getKey(), tse.getValue())
         ));
-        Vertex sink = dag.newVertex("sink",
-                SinkProcessors.writeFileP(OUTPUT_DIR_NAME, Object::toString, UTF_8, false));
+        Vertex sink = dag.newVertex("sink", SinkProcessors.writeFileP(
+                OUTPUT_DIR_NAME, Object::toString, UTF_8, false));
 
         tradeSource.localParallelism(1);
 

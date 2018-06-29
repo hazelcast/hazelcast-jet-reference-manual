@@ -1,3 +1,8 @@
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.config.NearCacheConfig;
+import com.hazelcast.core.IMap;
+import com.hazelcast.jet.Jet;
+import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.datamodel.ItemsByTag;
 import com.hazelcast.jet.datamodel.Tag;
 import com.hazelcast.jet.datamodel.Tuple2;
@@ -5,12 +10,13 @@ import com.hazelcast.jet.datamodel.Tuple3;
 import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.BatchStageWithKey;
-import com.hazelcast.jet.pipeline.ContextFactories;
+import com.hazelcast.jet.pipeline.ContextFactory;
 import com.hazelcast.jet.pipeline.GroupAggregateBuilder;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
 import com.hazelcast.jet.pipeline.StreamHashJoinBuilder;
+import com.hazelcast.jet.pipeline.StreamSource;
 import com.hazelcast.jet.pipeline.StreamStage;
 import datamodel.AddToCart;
 import datamodel.Broker;
@@ -20,6 +26,7 @@ import datamodel.PageVisit;
 import datamodel.Payment;
 import datamodel.Person;
 import datamodel.Product;
+import datamodel.StockInfo;
 import datamodel.Trade;
 import datamodel.Tweet;
 import datamodel.TweetWord;
@@ -34,7 +41,6 @@ import static com.hazelcast.jet.Util.mapEventNewValue;
 import static com.hazelcast.jet.Util.mapPutEvents;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.aggregate.AggregateOperations.toList;
-import static com.hazelcast.jet.datamodel.Tuple2.tuple2;
 import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 import static com.hazelcast.jet.pipeline.JoinClause.joinMapEntries;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_CURRENT;
@@ -304,14 +310,39 @@ class BuildComputation {
     }
 
     static void s16() {
+        JetInstance jet = Jet.newJetInstance();
         //tag::s16[]
+        IMap<String, StockInfo> stockMap = jet.getMap("stock-info"); //<1>
+        StreamSource<Trade> tradesSource = Sources.mapJournal("trades",
+                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT);
+
         Pipeline p = Pipeline.create();
-        BatchSource<Trade> tradesSource = Sources.list("trades");
         p.drawFrom(tradesSource)
-         .mapUsingContext(ContextFactories.replicatedMapContext("ticker-info"),
-                 (map, trade) -> tuple2(trade, map.get(trade.ticker())))
+         .addKey(Trade::ticker)
+         .mapUsingIMap(stockMap, Trade::setStockInfo) //<2>
          .drainTo(Sinks.list("result"));
         //end::s16[]
+    }
+
+    static void s16a() {
+        //tag::s16a[]
+        ContextFactory<IMap<String, StockInfo>> ctxFac = ContextFactory
+                .<IMap<String, StockInfo>>withCreateFn(x -> {
+                    ClientConfig cc = new ClientConfig();
+                    cc.getNearCacheConfigMap().put("stock-info", new NearCacheConfig());
+                    return Jet.newJetClient(cc).getMap("stock-info");
+                })
+                .shareLocally()
+                .nonCooperative();
+        StreamSource<Trade> tradesSource = Sources.mapJournal("trades",
+                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT);
+
+        Pipeline p = Pipeline.create();
+        p.drawFrom(tradesSource)
+         .addKey(Trade::ticker)
+         .mapUsingContext(ctxFac, (map, key, trade) -> trade.setStockInfo(map.get(key)))
+         .drainTo(Sinks.list("result"));
+        //end::s16a[]
     }
 
     static void s17() {

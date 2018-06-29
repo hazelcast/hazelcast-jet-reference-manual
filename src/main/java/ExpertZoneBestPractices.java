@@ -38,9 +38,10 @@ class ExpertZoneBestPractices {
     static void s3() {
         Vertex tokenize = null;
         //tag::s3[]
-        Vertex diagnose = dag.newVertex("diagnose",
-                writeFileP("tokenize-output", Object::toString, UTF_8, false))
-                             .localParallelism(1);
+        Vertex diagnose = dag
+                .newVertex("diagnose", writeFileP(
+                        "tokenize-output", Object::toString, UTF_8, false))
+                .localParallelism(1);
         dag.edge(from(tokenize, 1).to(diagnose));
         //end::s3[]
     }
