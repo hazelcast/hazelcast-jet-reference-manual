@@ -127,7 +127,7 @@ Sink ❌
 |✅
 |❌
 |✅
-|✅
+|❌
 
 |<<connector-imdg-external, ICache in another cluster>>
 |{jet-javadoc}/Sources.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-[Source]
@@ -138,7 +138,7 @@ Sink ❌
 |✅
 |❌
 |✅
-|✅
+|❌
 
 |<<connector-imdg-journal, IMap's Event Journal>>
 |{jet-javadoc}/Sources.html#mapJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
@@ -186,7 +186,7 @@ Sink ❌
 |✅
 |❌
 |❌
-|❌
+|✅
 
 |IList in another cluster
 |{jet-javadoc}/Sources.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-[Source]
@@ -230,7 +230,9 @@ Sink ❌
 |✅
 |❌
 |❌
-|✅
+|Local FS ✅
+
+ Shared FS ❌
 
 |<<connector-files, File Watcher>>
 |{jet-javadoc}/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-[Source]
@@ -239,7 +241,9 @@ Sink ❌
 |❌
 |❌
 |❌
-|✅
+|Local FS ✅
+
+ Shared FS ❌
 
 |<<connector-socket, TCP Socket>>
 |{jet-javadoc}/Sources.html#socket-java.lang.String-int-java.nio.charset.Charset-[Source]
