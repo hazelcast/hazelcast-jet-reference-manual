@@ -1,0 +1,53 @@
+= JDBC
+
+JDBC (Java Database Connectivity) connector can be used both as a source
+and a sink for batch processing. The connector is not fault-tolerant. On
+job restart it behaves as if you have started a new job. The source does
+not do snapshotting, the sink does not suppress duplicate data.
+
+In order to use JDBC connector, user should include a JDBC Driver in
+classpath.
+
+== Using JDBC as a Source
+
+The JDBC source opens a connection to the database for each worker of
+the source. User should supply a `ToResultSetFunction` which gets the
+connection, total parallelism and global processor index as arguments
+and produce a `ResultSet`. This result set should return a part of
+the whole result set specific to this processor. For example:
+
+[source]
+----
+include::{javasource}/JDBC.java[tag=s1]
+----
+
+Any exception thrown will fail the source. The following code snippet
+shows reading from a table and logging each row as a `Person` object:
+
+[source]
+----
+include::{javasource}/JDBC.java[tag=s2]
+----
+
+
+== Using JDBC as a Sink
+
+The JDBC sink opens a connection to the database for each worker of the
+sink. User should supply a parametrized query and a bind function. This
+function gets the `PreparedStatement` which is created for the supplied
+query and each item received as parameters. The function should not
+execute the query, call commit or any other method, it should only bind
+the parameters to the statement. The sink will use batching if it is
+supported by the driver.
+
+In case of a transient `SQLException`, processor will try to reconnect
+to the database with an up to 10 second back-off strategy. Any
+`SQLNonTransientException` will fail the job.
+
+The following code snippet shows writing the `Person` objects to a
+database table:
+
+[source]
+----
+include::{javasource}/JDBC.java[tag=s3]
+----
