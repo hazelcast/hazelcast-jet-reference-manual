@@ -17,7 +17,6 @@
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
-import com.hazelcast.jet.pipeline.ToResultSetFunction;
 
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -25,20 +24,8 @@ import java.sql.PreparedStatement;
 public class JDBC {
 
     static void s1() {
-        ToResultSetFunction function =
-        //tag::s1[]
-        (con, parallelism, index) -> {
-            PreparedStatement stmt = con.prepareStatement("SELECT * FROM PERSON WHERE MOD(id, ?) = ?)");
-            stmt.setInt(1, parallelism);
-            stmt.setInt(2, index);
-            return stmt.executeQuery();
-        };
-        //end::s1[]
-    }
-
-    static void s2() {
         String DB_CONNECTION_URL = "";
-        //tag::s2[]
+        //tag::s1[]
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.jdbc(
             () -> DriverManager.getConnection(DB_CONNECTION_URL),
@@ -50,6 +37,19 @@ public class JDBC {
             },
             resultSet ->
                 new Person(resultSet.getInt(1), resultSet.getString(2))
+        )).drainTo(Sinks.logger());
+        //end::s1[]
+    }
+
+    static void s2() {
+        String DB_CONNECTION_URL = "";
+        //tag::s2[]
+        Pipeline p = Pipeline.create();
+        p.drawFrom(Sources.jdbc(
+            DB_CONNECTION_URL,
+            "select * from PERSON",
+            resultSet ->
+                    new Person(resultSet.getInt(1), resultSet.getString(2))
         )).drainTo(Sinks.logger());
         //end::s2[]
     }

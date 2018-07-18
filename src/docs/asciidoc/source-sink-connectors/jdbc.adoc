@@ -10,19 +10,18 @@ classpath.
 
 == Using JDBC as a Source
 
-The JDBC source opens a connection to the database for each worker of
-the source. User should supply a `ToResultSetFunction` which gets the
-connection, total parallelism and global processor index as arguments
-and produce a `ResultSet`. This result set should return a part of
-the whole result set specific to this processor. For example:
+The JDBC source makes use of `ToResultSetFunction` to query the database
+in parallel. This function should return a part of the whole result set
+specific to each processor. For example:
 
 [source]
 ----
 include::{javasource}/JDBC.java[tag=s1]
 ----
 
-Any exception thrown will fail the source. The following code snippet
-shows reading from a table and logging each row as a `Person` object:
+The JDBC source can be used in a non-parallel manner. In this case, a
+single worker of the source will fetch the whole result set with a
+single query. For example:
 
 [source]
 ----
@@ -30,19 +29,55 @@ include::{javasource}/JDBC.java[tag=s2]
 ----
 
 
+The JDBC source connects to the specified database using the given
+connection supplier, queries the database and creates a result set using
+the the given result set function. It creates output objects from the
+`ResultSet` using given output function and emits them to downstream.
+
+`ToResultSetFunction` gets the created connection, total parallelism
+(local parallelism * member count) and global processor index as
+arguments and produces a result set. The parallelism and processor index
+arguments should be used to fetch a part of the whole result set
+specific to the processor. If the table itself isn't partitioned by the
+same key, then running multiple queries might not really be faster than
+using the non-parallel version, do your own testing.
+
+Output function gets the `ResultSet` and creates desired output object.
+The function is called for each row of the result set, user should not
+call `ResultSet#next()` or any other cursor-navigating functions.
+
+The source does not save any state to snapshot. If the job is restarted,
+it will re-emit all entries.
+
+Any `SQLException` will cause the job to fail. The default local
+parallelism for this processor is 1.
+
+
 == Using JDBC as a Sink
 
-The JDBC sink opens a connection to the database for each worker of the
-sink. User should supply a parametrized query and a bind function. This
-function gets the `PreparedStatement` which is created for the supplied
-query and each item received as parameters. The function should not
-execute the query, call commit or any other method, it should only bind
-the parameters to the statement. The sink will use batching if it is
-supported by the driver.
+The JDBC sink connects to the specified database using the given
+connection supplier, prepares a statement using the given update query
+and inserts/updates the items.
 
-In case of a transient `SQLException`, processor will try to reconnect
-to the database with an up to 10 second back-off strategy. Any
-`SQLNonTransientException` will fail the job.
+The update query should be a parametrized query. The bind function will
+receive a `PreparedStatement` created for this query and should bind
+parameters to it. It should not execute the query, call commit or any
+other method.
+
+The records will be committed after each batch of records and a batch
+mode will be used (if the driver supports it). Auto-commit will be
+disabled on the connection.
+
+In case of an `SQLException` the processor will automatically try to
+reconnect and the job won't fail, except for the
+`SQLNonTransientException` subclass. The default local parallelism for
+this sink is 1.
+
+No state is saved to snapshot for this sink. After the job is restarted,
+the items will likely be duplicated, providing an _at-least-once_
+guarantee. For this reason you should not use `INSERT` statement which
+can fail on duplicate primary key. Rather use an *insert-or-update*
+statement that can tolerate duplicate writes.
 
 The following code snippet shows writing the `Person` objects to a
 database table:

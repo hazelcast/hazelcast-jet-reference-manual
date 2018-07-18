@@ -67,6 +67,7 @@ Here's a small example of usage:
 include::{javasource}/FileAndSocket.java[tag=s3]
 ----
 
+[[connector-files-avro]]
 == Avro
 
 Hazelcast Jet provides Apache Avro file source and sink for batch
