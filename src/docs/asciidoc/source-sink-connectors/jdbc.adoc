@@ -1,46 +1,51 @@
 = JDBC
 
-JDBC (Java Database Connectivity) connector can be used both as a source
-and a sink for batch processing. The connector is not fault-tolerant. On
-job restart it behaves as if you have started a new job. The source does
-not do snapshotting, the sink does not suppress duplicate data.
+Jet contains both JDBC source and a sink. They can be used to read or write
+from/to relational databases or another source that supports the standard JDBC
+API.
+
+The source is only a batch-style source: it reads records that are produced by
+one SQL query and once all records are emitted, the source completes. The sink
+can work in both batch and streaming jobs.
+
+The connector is not fault-tolerant. On job restart it behaves as if you have
+started a new job. The source does not do snapshotting, the sink does not
+suppress duplicate data.
 
 In order to use JDBC connector, user should include a JDBC Driver in
 classpath.
 
-== Using JDBC as a Source
+== Using the JDBC Source
 
-The JDBC source makes use of `ToResultSetFunction` to query the database
-in parallel. This function should return a part of the whole result set
-specific to each processor. For example:
+The JDBC source comes in two versions:
+
+1. *Parallel:* You will need to provide a `ToResultSetFunction` that will
+create one query for each parallel worker to query part of the data.
+
+1. *Non-parallel:* There will be only one parallel worker that will read all
+the records.
+
+==== Example of parallel source
+
+Here we use _modulo_ operator to select a part of the keys, but any query
+returning non-overlapping subsets is possible. Note that this way might not
+actually perform better that the non-parallel version unless the underlying
+table is actually physically partitioned by this key.
 
 [source]
 ----
 include::{javasource}/JDBC.java[tag=s1]
 ----
 
-The JDBC source can be used in a non-parallel manner. In this case, a
-single worker of the source will fetch the whole result set with a
-single query. For example:
+==== Example of non-parallel source
+
+A single worker of the source will fetch the whole result set with a single
+query. You need to provide just one SQL query.
 
 [source]
 ----
 include::{javasource}/JDBC.java[tag=s2]
 ----
-
-
-The JDBC source connects to the specified database using the given
-connection supplier, queries the database and creates a result set using
-the the given result set function. It creates output objects from the
-`ResultSet` using given output function and emits them to downstream.
-
-`ToResultSetFunction` gets the created connection, total parallelism
-(local parallelism * member count) and global processor index as
-arguments and produces a result set. The parallelism and processor index
-arguments should be used to fetch a part of the whole result set
-specific to the processor. If the table itself isn't partitioned by the
-same key, then running multiple queries might not really be faster than
-using the non-parallel version, do your own testing.
 
 Output function gets the `ResultSet` and creates desired output object.
 The function is called for each row of the result set, user should not
@@ -53,7 +58,7 @@ Any `SQLException` will cause the job to fail. The default local
 parallelism for this processor is 1.
 
 
-== Using JDBC as a Sink
+== Using the JDBC Sink
 
 The JDBC sink connects to the specified database using the given
 connection supplier, prepares a statement using the given update query
