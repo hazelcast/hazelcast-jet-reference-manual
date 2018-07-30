@@ -59,16 +59,16 @@ The same optimization works on a local `IMap`, too, but has less impact.
 However, Hazelcast IMDG goes a step further in optimizing your filtering
 and mapping to a degree that matters even locally. If you don't need
 fully general functions, but can express your predicate via
-http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/query/Predicates.html[`Predicates`]
+{hz-javadoc}/query/Predicates.html[`Predicates`]
 or
-http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/query/PredicateBuilder.html[`PredicateBuilder`],
+{hz-javadoc}/com/hazelcast/query/PredicateBuilder.html[`PredicateBuilder`],
 they will create a specialized predicate instance that can test the
 object without deserializing it. Similarly, if the mapping you need is
 of a constrained kind where you just extract one or more object fields
 (attributes), you can specify a _projection_ instead of a general
 mapping lambda:
-http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/projection/Projections.html#singleAttribute-java.lang.String-[`Projections.singleAttribute()`]
-or http://docs.hazelcast.org/docs/latest/javadoc/com/hazelcast/projection/Projections.html#multiAttribute-java.lang.String...-[
+{hz-javadoc}/projection/Projections.html#singleAttribute-java.lang.String-[`Projections.singleAttribute()`]
+or {hz-javadoc}/projection/Projections.html#multiAttribute-java.lang.String...-[
 `Projections.multiAttribute()`].
 These will extract the listed attributes without deserializing the whole
 object. For these optimizations to work, however, your objects must
