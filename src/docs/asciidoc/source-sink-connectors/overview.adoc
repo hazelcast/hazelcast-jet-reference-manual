@@ -93,10 +93,10 @@ more detail.
 |Resource|Javadoc|Sample|Unbounded?|Replayable?|Checkpointing?|Distributed?|Data Locality
 
 |<<connector-imdg, IMap>>
-|{jet-javadoc}/Sources.html#map-java.lang.String-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-[Source]
+|{jet-javadoc}/pipeline/Sources.html#map-java.lang.String-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-[Source]
 
-{jet-javadoc}/Sinks.html#map-java.lang.String-[Sink]
-|{jet-samples}/batch/hazelcast-connectors/src/main/java/MapSourceAndSink.java[Sample]
+{jet-javadoc}/pipeline/Sinks.html#map-java.lang.String-[Sink]
+|{jet-samples}/hazelcast-connectors/src/main/java/MapSourceAndSinks.java[Sample]
 |❌
 |✅
 |❌
@@ -106,10 +106,10 @@ more detail.
 Sink ❌
 
 |<<connector-imdg, ICache>>
-|{jet-javadoc}/Sources.html#cache-java.lang.String-[Source]
+|{jet-javadoc}/pipeline/Sources.html#cache-java.lang.String-[Source]
 
-{jet-javadoc}/Sinks.html#cache-java.lang.String-[Sink]
-|{jet-samples}/batch/hazelcast-connectors/src/main/java/CacheSourceAndSink.java[Sample]
+{jet-javadoc}/pipeline/Sinks.html#cache-java.lang.String-[Sink]
+|{jet-samples}/hazelcast-connectors/src/main/java/CacheSourceAndSink.java[Sample]
 |❌
 |✅
 |❌
@@ -119,10 +119,10 @@ Sink ❌
 Sink ❌
 
 |<<connector-imdg-external, IMap in another cluster>>
-|{jet-javadoc}/Sources.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-[Source]
+|{jet-javadoc}/pipeline/Sources.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.query.Predicate-com.hazelcast.projection.Projection-[Source]
 
-{jet-javadoc}/Sinks.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
-|{jet-samples}/batch/hazelcast-connectors/src/main/java/RemoteMapSourceAndSink.java[Sample]
+{jet-javadoc}/pipeline/Sinks.html#remoteMap-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
+|{jet-samples}/hazelcast-connectors/src/main/java/RemoteMapSourceAndSink.java[Sample]
 |❌
 |✅
 |❌
@@ -130,9 +130,9 @@ Sink ❌
 |❌
 
 |<<connector-imdg-external, ICache in another cluster>>
-|{jet-javadoc}/Sources.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-[Source]
+|{jet-javadoc}/pipeline/Sources.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-[Source]
 
-{jet-javadoc}/Sinks.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
+{jet-javadoc}/pipeline/Sinks.html#remoteCache-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
 |
 |❌
 |✅
@@ -141,8 +141,8 @@ Sink ❌
 |❌
 
 |<<connector-imdg-journal, IMap's Event Journal>>
-|{jet-javadoc}/Sources.html#mapJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
-|{jet-samples}/streaming/map-journal-source/src/main/java/MapJournalSource.java[Sample]
+|{jet-javadoc}/pipeline/Sources.html#mapJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.pipeline.JournalInitialPosition-[Source]
+|{jet-samples}/event-journal/src/main/java/MapJournalSource.java[Sample]
 |✅
 |✅
 |✅
@@ -151,7 +151,7 @@ Sink ❌
 
 
 |<<connector-imdg-journal, ICache's Event Journal>>
-|{jet-javadoc}/Sources.html#cacheJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
+|{jet-javadoc}/pipeline/Sources.html#cacheJournal-java.lang.String-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.pipeline.JournalInitialPosition-[Source]
 |
 |✅
 |✅
@@ -160,8 +160,8 @@ Sink ❌
 |✅
 
 |Event Journal of IMap in another cluster
-|{jet-javadoc}/Sources.html#remoteMapJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
-|{jet-samples}/streaming/map-journal-source/src/main/java/RemoteMapJournalSource.java[Sample]
+|{jet-javadoc}/pipeline/Sources.html#remoteMapJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.pipeline.JournalInitialPosition-[Source]
+|{jet-samples}/event-journal/src/main/java/RemoteMapJournalSource.java[Sample]
 |✅
 |✅
 |✅
@@ -169,7 +169,7 @@ Sink ❌
 |❌
 
 |Event Journal of ICache in another cluster
-|{jet-javadoc}/Sources.html#remoteCacheJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-boolean-[Source]
+|{jet-javadoc}/pipeline/Sources.html#remoteCacheJournal-java.lang.String-com.hazelcast.client.config.ClientConfig-com.hazelcast.jet.function.DistributedPredicate-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.pipeline.JournalInitialPosition-[Source]
 |
 |✅
 |✅
@@ -178,10 +178,10 @@ Sink ❌
 |❌
 
 |<<imdg-list, IList>>
-|{jet-javadoc}/Sources.html#list-java.lang.String-[Source]
+|{jet-javadoc}/pipeline/Sources.html#list-java.lang.String-[Source]
 
-{jet-javadoc}/Sinks.html#list-java.lang.String-[Sink]
-|{jet-samples}/batch/hazelcast-connectors/src/main/java/ListSourceAndSink.java[Sample]
+{jet-javadoc}/pipeline/Sinks.html#list-java.lang.String-[Sink]
+|{jet-samples}/hazelcast-connectors/src/main/java/ListSourceAndSink.java[Sample]
 |❌
 |✅
 |❌
@@ -189,10 +189,10 @@ Sink ❌
 |✅
 
 |IList in another cluster
-|{jet-javadoc}/Sources.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-[Source]
+|{jet-javadoc}/pipeline/Sources.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-[Source]
 
-{jet-javadoc}/Sinks.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
-|
+{jet-javadoc}/pipeline/Sinks.html#remoteList-java.lang.String-com.hazelcast.client.config.ClientConfig-[Sink]
+|{jet-samples}/hazelcast-connectors/src/main/java/RemoteListSourceAndSink.java[Sample]
 |❌
 |✅
 |❌
@@ -200,10 +200,10 @@ Sink ❌
 |❌
 
 |<<hdfs>>
-|{jet-javadoc}/HdfsSources.html[Source]
+|{jet-javadoc}/hadoop/HdfsSources.html[Source]
 
-{jet-javadoc}/HdfsSinks.html[Sink]
-|{jet-samples}/batch/wordcount-hadoop/src/main/java/HadoopWordCount.java[Sample]
+{jet-javadoc}/hadoop/HdfsSinks.html[Sink]
+|{jet-samples}/hadoop/src/main/java/HadoopWordCount.java[Sample]
 |❌
 |✅
 |❌
@@ -211,10 +211,10 @@ Sink ❌
 |✅
 
 |<<kafka>>
-|{jet-javadoc}/KafkaSources.html[Source]
+|{jet-javadoc}/kafka/KafkaSources.html[Source]
 
-{jet-javadoc}/KafkaSinks.html[Sink]
-|{jet-samples}/streaming/kafka-source/src/main/java/KafkaSource.java[Source]
+{jet-javadoc}/kafka/KafkaSinks.html[Sink]
+|{jet-samples}/kafka/src/main/java/KafkaSource.java[Source]
 |✅
 |✅
 |✅
@@ -222,45 +222,94 @@ Sink ❌
 |❌
 
 |<<connector-files, Files>>
-|{jet-javadoc}/Sources.html#files-java.lang.String-java.nio.charset.Charset-java.lang.String-[Source]
+|{jet-javadoc}/pipeline/Sources.html#files-java.lang.String-[Source]
 
-{jet-javadoc}/Sinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-boolean-[Sink]
-|{jet-samples}/batch/access-log-analyzer/src/main/java/AccessLogAnalyzer.java[Sample]
+{jet-javadoc}/pipeline/Sinks.html#files-java.lang.String-[Sink]
+|{jet-samples}/file-io/src/main/java/AccessLogAnalyzer.java[Sample]
 |❌
 |✅
 |❌
 |❌
 |Local FS ✅
 
- Shared FS ❌
+ Shared FS ✅
 
 |<<connector-files, File Watcher>>
-|{jet-javadoc}/Sources.html#fileWatcher-java.lang.String-java.nio.charset.Charset-java.lang.String-[Source]
-|{jet-samples}/core-api/streaming/access-stream-analyzer/src/main/java/AccessStreamAnalyzer.java[Sample (Core API)]
+|{jet-javadoc}/pipeline/Sources.html#fileWatcher-java.lang.String-[Source]
+|{jet-samples}/file-io/src/main/java/AccessLogStreamAnalyzer.java[Sample]
 |✅
 |❌
 |❌
 |❌
 |Local FS ✅
 
- Shared FS ❌
+ Shared FS ✅
+
+|<<connector-files-avro, Avro>>
+|{jet-javadoc}/avro/AvroSources.html#files-java.lang.String-java.lang.Class-[Source]
+
+{jet-javadoc}/avro/AvroSinks.html#files-java.lang.String-com.hazelcast.jet.function.DistributedSupplier-[Sink]
+|{jet-samples}/file-io/src/main/java/avro/AvroSource.java[Source Sample]
+
+{jet-samples}/file-io/src/main/java/avro/AvroSink.java[Sink Sample]
+|❌
+|✅
+|❌
+|❌
+|Local FS ✅
+
+ Shared FS ✅
 
 |<<connector-socket, TCP Socket>>
-|{jet-javadoc}/Sources.html#socket-java.lang.String-int-java.nio.charset.Charset-[Source]
+|{jet-javadoc}/pipeline/Sources.html#socket-java.lang.String-int-java.nio.charset.Charset-[Source]
 
-{jet-javadoc}/Sinks.html#socket-java.lang.String-int-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-[Sink]
-|{jet-samples}/streaming/socket-connector/src/main/java/StreamTextSocket.java[Source]
+{jet-javadoc}/pipeline/Sinks.html#socket-java.lang.String-int-com.hazelcast.jet.function.DistributedFunction-java.nio.charset.Charset-[Sink]
+|{jet-samples}/sockets/src/main/java/StreamTextSocket.java[Source]
 
-{jet-samples}/streaming/socket-connector/src/main/java/WriteTextSocket.java[Sink]
+{jet-samples}/sockets/src/main/java/WriteTextSocket.java[Sink]
 |✅
 |❌
 |❌
 |❌
+|❌
+
+|<<jms>>
+|{jet-javadoc}/pipeline/Sources.html#jmsQueue-com.hazelcast.jet.function.DistributedSupplier-java.lang.String-[Queue Source]
+{jet-javadoc}/pipeline/Sources.html#jmsTopic-com.hazelcast.jet.function.DistributedSupplier-java.lang.String-[Topic Source]
+
+{jet-javadoc}/pipeline/Sinks.html#jmsQueue-com.hazelcast.jet.function.DistributedSupplier-java.lang.String-[Queue Sink]
+{jet-javadoc}/pipeline/Sinks.html#jmsTopic-com.hazelcast.jet.function.DistributedSupplier-java.lang.String-[Topic Sink]
+|{jet-samples}/jms/src/main/java/JmsQueueSample.java[Queue Sample]
+
+{jet-samples}/jms/src/main/java/JmsTopicSample.java[Topic Sample]
+|✅
+|❌
+|❌
+|Queue Source ✅
+
+Queue Sink ✅
+
+Topic Source ❌
+
+Topic Sink ✅
+|❌
+
+|<<jdbc>>
+|{jet-javadoc}/pipeline/Sources.html#jdbc-com.hazelcast.jet.function.DistributedSupplier-com.hazelcast.jet.pipeline.ToResultSetFunction-com.hazelcast.jet.function.DistributedFunction-[Source]
+
+{jet-javadoc}/pipeline/Sinks.html#jdbc-java.lang.String-com.hazelcast.jet.function.DistributedSupplier-com.hazelcast.jet.function.DistributedBiConsumer-[Sink]
+|{jet-samples}/jdbc/src/main/java/JdbcSource.java[Source Sample]
+
+{jet-samples}/jdbc/src/main/java/JdbcSink.java[Sink Sample]
+|❌
+|✅
+|❌
+|✅
 |❌
 
 |Application Log
-|{jet-javadoc}/Sinks.html#writeLogger-com.hazelcast.jet.function.DistributedFunction-[Sink]
-|{jet-samples}/streaming/enrichment/src/main/java/Enrichment.java[Sink]
+|{jet-javadoc}/pipeline/Sinks.html#logger-com.hazelcast.jet.function.DistributedFunction-[Sink]
+|{jet-samples}/enrichment/src/main/java/Enrichment.java[Sink]
 |N/A
 |N/A
 |❌

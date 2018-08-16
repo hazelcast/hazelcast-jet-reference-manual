@@ -7,12 +7,14 @@ include::overview.adoc[]
 
 include::imdg.adoc[]
 
-include::file-socket.adoc[]
-
-include::jms.adoc[]
+include::kafka.adoc[]
 
 include::hdfs.adoc[]
 
-include::kafka.adoc[]
+include::file-socket.adoc[]
+
+include::jdbc.adoc[]
+
+include::jms.adoc[]
 
 :leveloffset: -1
