@@ -99,63 +99,6 @@ perform aggregation of the groups with the same key. By using the
 appropriate output-mapping function you can achieve any kind of join:
 inner/outer/full, left and right.
 
-[[map-using-imap]]
-== Enrich a Stream Using a Hazelcast Map
-
-In addition to a <<hash-join, hash-join>>, Hazelcast Jet allows you to
-enrich your stream directly from a Hazelcast `IMap` or `ReplicatedMap`.
-Since it must look up the data again for each item, performance is lower
-than with a hash-join, but the data is kept fresh this way. This matters
-especially for unbounded streaming jobs, where a hash-join would use
-data frozen in time at the beginning of the job.
-
-In this example we enrich a stream of trades with detailed stock info.
-The info is stored in a Hazelcast `IMap`:
-
-[source]
-----
-include::{javasource}/BuildComputation.java[tag=s16]
-----
-
-<1> Obtain the `IMap` from a Hazelcast Jet instance
-<2> Enrich the stream by setting the looked-up `StockInfo` on `Trade`
-    items. This syntax works if the setter has fluent API and returns
-    `this`.
-
-[[map-using-contex]]
-== Enrich a Stream Using an Arbitrary Context Object
-
-In the example above the syntax looks very simple, but it hides a layer
-of complexity: you can't just fetch a Hazelcast map instance and add it
-to the pipeline. It's a proxy object that's valid only in the JVM
-process where you obtained it. `mapUsingIMap` actually remembers just
-the name of the map and will obtain a map with the same name from the
-Jet cluster where the job runs.
-
-Hazelcast Jet exposes the facility used to implement `mapUsingIMap`:
-you can provide a _factory_ that Jet will use to create a context object
-for each worker in the cluster that executes your transforming step.
-You can also specify a function that extracts the key from your items.
-Even though Jet won't do any lookup or grouping by that key, it will
-set up the job so that all the items with the same key get paired with
-the same context object. For example, you may be fetching data from an
-`IMap` that's stored on some other Hazelcast cluster. In this case you
-must define a factory object that creates a Hazelcast client instance
-and fetches this map. To optimize performance, you can enable the
-near-cache on the client and you can save a lot of memory by specifying
-the key function: since Jet executes your enriching code in parallel,
-each worker has its own Hazelcast client instance, with its own
-near-cache. With the key function, each near-cache will manage its own
-subset of the keys:
-
-[source]
-----
-include::{javasource}/BuildComputation.java[tag=s16a]
-----
-
-In a similar fashion you can integrate other external systems with a
-Jet pipeline.
-
 [[distinct]]
 == Distinct
 
@@ -257,6 +200,63 @@ items:
 ----
 include::{javasource}/BuildComputation.java[tag=s12]
 ----
+
+[[map-using-imap]]
+== Enrich a Stream Using a Hazelcast Map
+
+In addition to a <<hash-join, hash-join>>, Hazelcast Jet allows you to
+enrich your stream directly from a Hazelcast `IMap` or `ReplicatedMap`.
+Since it must look up the data again for each item, performance is lower
+than with a hash-join, but the data is kept fresh this way. This matters
+especially for unbounded streaming jobs, where a hash-join would use
+data frozen in time at the beginning of the job.
+
+In this example we enrich a stream of trades with detailed stock info.
+The info is stored in a Hazelcast `IMap`:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s16]
+----
+
+<1> Obtain the `IMap` from a Hazelcast Jet instance
+<2> Enrich the stream by setting the looked-up `StockInfo` on `Trade`
+    items. This syntax works if the setter has fluent API and returns
+    `this`.
+
+[[map-using-contex]]
+== Enrich a Stream Using an Arbitrary Context Object
+
+In the example above the syntax looks very simple, but it hides a layer
+of complexity: you can't just fetch a Hazelcast map instance and add it
+to the pipeline. It's a proxy object that's valid only in the JVM
+process where you obtained it. `mapUsingIMap` actually remembers just
+the name of the map and will obtain a map with the same name from the
+Jet cluster where the job runs.
+
+Hazelcast Jet exposes the facility used to implement `mapUsingIMap`:
+you can provide a _factory_ that Jet will use to create a context object
+for each worker in the cluster that executes your transforming step.
+You can also specify a function that extracts the key from your items.
+Even though Jet won't do any lookup or grouping by that key, it will
+set up the job so that all the items with the same key get paired with
+the same context object. For example, you may be fetching data from an
+`IMap` that's stored on some other Hazelcast cluster. In this case you
+must define a factory object that creates a Hazelcast client instance
+and fetches this map. To optimize performance, you can enable the
+near-cache on the client and you can save a lot of memory by specifying
+the key function: since Jet executes your enriching code in parallel,
+each worker has its own Hazelcast client instance, with its own
+near-cache. With the key function, each near-cache will manage its own
+subset of the keys:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s16a]
+----
+
+In a similar fashion you can integrate other external systems with a
+Jet pipeline.
 
 == Aggregation and Grouping
 
@@ -456,7 +456,7 @@ key, there is a separate, independent session window for each key.
 == Rolling Aggregation
 
 Jet supports a way to aggregate an unbounded stream without windowing:
-for each input item you get as output the current aggregation value, as
+for each input item you get the current aggregation value as output, as
 if this item was the last one to be aggregated. You use the same
 `AggregateOperation` implementations that work with Jet's `aggregate`
 API. Note that Jet doesn't enforce processing in the order of event time;
