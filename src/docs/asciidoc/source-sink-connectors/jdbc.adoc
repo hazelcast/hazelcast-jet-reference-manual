@@ -1,16 +1,16 @@
 = JDBC
 
-Jet contains both JDBC source and a sink. They can be used to read or write
-from/to relational databases or another source that supports the standard JDBC
-API.
+Jet contains both JDBC source and a sink. They can be used to read or
+write from/to relational databases or another source that supports the
+standard JDBC API.
 
-The source is only a batch-style source: it reads records that are produced by
-one SQL query and once all records are emitted, the source completes. The sink
-can work in both batch and streaming jobs.
+The source is only a batch-style source: it reads records that are
+produced by one SQL query and once all records are emitted, the source
+completes. The sink can work in both batch and streaming jobs.
 
-The connector is not fault-tolerant. On job restart it behaves as if you have
-started a new job. The source does not do snapshotting, the sink does not
-suppress duplicate data.
+The connector is not fault-tolerant. On job restart it behaves as if you
+have started a new job. The source does not do snapshotting, the sink
+does not suppress duplicate data.
 
 In order to use JDBC connector, user should include a JDBC Driver in
 classpath.
@@ -19,28 +19,28 @@ classpath.
 
 The JDBC source comes in two versions:
 
-1. *Parallel:* You will need to provide a `ToResultSetFunction` that will
+. *Parallel:* You will need to provide a `ToResultSetFunction` that will
 create one query for each parallel worker to query part of the data.
 
-1. *Non-parallel:* There will be only one parallel worker that will read all
-the records.
+. *Non-parallel:* There will be only one parallel worker that will read
+all the records.
 
-==== Example of parallel source
+=== Example of parallel source
 
-Here we use _modulo_ operator to select a part of the keys, but any query
-returning non-overlapping subsets is possible. Note that this way might not
-actually perform better that the non-parallel version unless the underlying
-table is actually physically partitioned by this key.
+Here we use _modulo_ operator to select a part of the keys, but any
+query returning non-overlapping subsets is possible. Note that this way
+might not actually perform better that the non-parallel version unless
+the underlying table is actually physically partitioned by this key.
 
 [source]
 ----
 include::{javasource}/JDBC.java[tag=s1]
 ----
 
-==== Example of non-parallel source
+=== Example of non-parallel source
 
-A single worker of the source will fetch the whole result set with a single
-query. You need to provide just one SQL query.
+A single worker of the source will fetch the whole result set with a
+single query. You need to provide just one SQL query.
 
 [source]
 ----
