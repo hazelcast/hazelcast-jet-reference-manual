@@ -62,10 +62,10 @@ public class ImplementAggregation {
                 });
 
         BatchStage<Entry<Integer, long[]>> coGrouped =
-                pageVisit.addKey(PageVisit::userId)
+                pageVisit.groupingKey(PageVisit::userId)
                          .aggregate3(
-                                 addToCart.addKey(AddToCart::userId),
-                                 payment.addKey(Payment::userId),
+                                 addToCart.groupingKey(AddToCart::userId),
+                                 payment.groupingKey(Payment::userId),
                                  aggrOp);
         //end::s2[]
     }

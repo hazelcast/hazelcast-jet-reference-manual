@@ -78,7 +78,7 @@ public class CheatSheet {
 
         Pipeline p = Pipeline.create();
         p.drawFrom(tradesSource)
-         .addKey(Trade::ticker)
+         .groupingKey(Trade::ticker)
          .mapUsingIMap(stockMap, Trade::setStockInfo)
          .drainTo(Sinks.list("result"));
         //end::s4a[]
@@ -95,7 +95,7 @@ public class CheatSheet {
         //tag::s6[]
         BatchStage<String> words = p.drawFrom(list("words"));
         BatchStage<Entry<String, Long>> wordsAndCounts =
-                words.addKey(wholeItem())
+                words.groupingKey(wholeItem())
                      .aggregate(counting());
         //end::s6[]
     }
@@ -107,7 +107,7 @@ public class CheatSheet {
         StreamStage<TimestampedEntry<String, Long>> wordFreqs =
                 tweetWords.addTimestamps(e -> e.getKey(), 1000)
                           .window(sliding(1000, 10))
-                          .addKey(entryValue())
+                          .groupingKey(entryValue())
                           .aggregate(counting());
         //end::s7[]
     }
@@ -116,10 +116,10 @@ public class CheatSheet {
         //tag::s8[]
         BatchStageWithKey<PageVisit, Integer> pageVisits =
                 p.drawFrom(Sources.<PageVisit>list("pageVisit"))
-                 .addKey(pageVisit -> pageVisit.userId());
+                 .groupingKey(pageVisit -> pageVisit.userId());
         BatchStageWithKey<Payment, Integer> payments =
                 p.drawFrom(Sources.<Payment>list("payment"))
-                 .addKey(payment -> payment.userId());
+                 .groupingKey(payment -> payment.userId());
         BatchStage<Entry<Integer, Tuple2<List<PageVisit>, List<Payment>>>>
             joined = pageVisits.aggregate2(toList(), payments, toList());
         //end::s8[]
@@ -131,12 +131,12 @@ public class CheatSheet {
                 p.<PageVisit>drawFrom(Sources.mapJournal("pageVisits",
                         mapPutEvents(), mapEventNewValue(), START_FROM_OLDEST))
                         .addTimestamps(PageVisit::timestamp, 1000)
-                        .addKey(PageVisit::userId);
+                        .groupingKey(PageVisit::userId);
         StreamStageWithKey<Payment, Integer> payments =
                 p.<Payment>drawFrom(Sources.mapJournal("payments",
                         mapPutEvents(), mapEventNewValue(), START_FROM_OLDEST))
                         .addTimestamps(Payment::timestamp, 1000)
-                        .addKey(Payment::userId);
+                        .groupingKey(Payment::userId);
         StreamStage<TimestampedEntry<Integer,
                                     Tuple2<List<PageVisit>, List<Payment>>>>
             joined = pageVisits.window(sliding(60_000, 1000))

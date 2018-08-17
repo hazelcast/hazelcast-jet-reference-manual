@@ -112,7 +112,7 @@ class BuildComputation {
         p.drawFrom(Sources.<String>list("text"))
          .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
          .filter(word -> !word.isEmpty())
-         .addKey(wholeItem())
+         .groupingKey(wholeItem())
          .aggregate(counting())
          .drainTo(Sinks.list("result"));
         //end::s6[]
@@ -137,7 +137,7 @@ class BuildComputation {
         return lineSource
                 .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
                 .filter(word -> !word.isEmpty())
-                .addKey(wholeItem());
+                .groupingKey(wholeItem());
     }
     //end::s7[]
 
@@ -147,10 +147,10 @@ class BuildComputation {
 
         BatchStageWithKey<PageVisit, Integer> pageVisits =
                 p.drawFrom(Sources.<PageVisit>list("pageVisit"))
-                 .addKey(PageVisit::userId);
+                 .groupingKey(PageVisit::userId);
         BatchStageWithKey<AddToCart, Integer> addToCarts =
                 p.drawFrom(Sources.<AddToCart>list("addToCart"))
-                 .addKey(AddToCart::userId);
+                 .groupingKey(AddToCart::userId);
 
         BatchStage<Entry<Integer, Tuple2<List<PageVisit>, List<AddToCart>>>> joined =
                 pageVisits.aggregate2(toList(), addToCarts, toList(),
@@ -168,16 +168,16 @@ class BuildComputation {
         //<1>
         BatchStageWithKey<PageVisit, Integer> pageVisits =
                 p.drawFrom(Sources.<PageVisit>list("pageVisit"))
-                 .addKey(PageVisit::userId);
+                 .groupingKey(PageVisit::userId);
         BatchStageWithKey<AddToCart, Integer> addToCarts =
                 p.drawFrom(Sources.<AddToCart>list("addToCart"))
-                 .addKey(AddToCart::userId);
+                 .groupingKey(AddToCart::userId);
         BatchStageWithKey<Payment, Integer> payments =
                 p.drawFrom(Sources.<Payment>list("payment"))
-                 .addKey(Payment::userId);
+                 .groupingKey(Payment::userId);
         BatchStageWithKey<Delivery, Integer> deliveries =
                 p.drawFrom(Sources.<Delivery>list("delivery"))
-                 .addKey(Delivery::userId);
+                 .groupingKey(Delivery::userId);
 
         //<2>
         GroupAggregateBuilder<Integer, List<PageVisit>> builder =
@@ -274,7 +274,7 @@ class BuildComputation {
          .filter(word -> !word.isEmpty())
          .addTimestamps()
          .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
-         .addKey(wholeItem())
+         .groupingKey(wholeItem())
          .aggregate(counting())
          .drainTo(Sinks.list("result"));
         //end::s13[]
@@ -290,7 +290,7 @@ class BuildComputation {
          .filter(tweetWord -> !tweetWord.word().isEmpty())
          .addTimestamps(TweetWord::timestamp, TimeUnit.SECONDS.toMillis(5))
          .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
-         .addKey(TweetWord::word)
+         .groupingKey(TweetWord::word)
          .aggregate(counting())
          .drainTo(Sinks.list("result"));
         //end::s14[]
@@ -305,7 +305,7 @@ class BuildComputation {
          .flatMap(tweet -> traverseArray(tweet.text().toLowerCase().split("\\W+")))
          .filter(word -> !word.isEmpty())
          .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
-         .addKey(wholeItem())
+         .groupingKey(wholeItem())
          .aggregate(counting())
          .drainTo(Sinks.list("result"));
         //end::s15[]
@@ -320,7 +320,7 @@ class BuildComputation {
 
         Pipeline p = Pipeline.create();
         p.drawFrom(tradesSource)
-         .addKey(Trade::ticker)
+         .groupingKey(Trade::ticker)
          .mapUsingIMap(stockMap, Trade::setStockInfo) //<2>
          .drainTo(Sinks.list("result"));
         //end::s16[]
@@ -341,7 +341,7 @@ class BuildComputation {
 
         Pipeline p = Pipeline.create();
         p.drawFrom(tradesSource)
-         .addKey(Trade::ticker)
+         .groupingKey(Trade::ticker)
          .mapUsingContext(ctxFac, (map, key, trade) -> trade.setStockInfo(map.get(key)))
          .drainTo(Sinks.list("result"));
         //end::s16a[]
@@ -352,7 +352,7 @@ class BuildComputation {
         Pipeline p = Pipeline.create();
         BatchSource<Person> personSource = Sources.list("people");
         p.drawFrom(personSource)
-         .addKey(person -> person.getAge() / 5)
+         .groupingKey(person -> person.getAge() / 5)
          .distinct()
          .drainTo(Sinks.list("sampleByAgeBracket"));
         //end::s17[]
