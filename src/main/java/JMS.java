@@ -24,7 +24,8 @@ public class JMS {
     static void s1 () {
         //tag::s1[]
         Pipeline p = Pipeline.create();
-        p.drawFrom(Sources.jmsQueue(() -> new ActiveMQConnectionFactory("tcp://localhost:61616"), "queue"))
+        p.drawFrom(Sources.jmsQueue(() -> new ActiveMQConnectionFactory(
+                "tcp://localhost:61616"), "queue"))
          .drainTo(Sinks.logger());
         //end::s1[]
     }
@@ -32,7 +33,8 @@ public class JMS {
     static void s2 () {
         //tag::s2[]
         Pipeline p = Pipeline.create();
-        p.drawFrom(Sources.jmsTopic(() -> new ActiveMQConnectionFactory("tcp://localhost:61616"), "topic"))
+        p.drawFrom(Sources.jmsTopic(() -> new ActiveMQConnectionFactory(
+                "tcp://localhost:61616"), "topic"))
          .drainTo(Sinks.logger());
         //end::s2[]
     }
@@ -41,7 +43,8 @@ public class JMS {
         //tag::s3[]
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.list("inputList"))
-         .drainTo(Sinks.jmsQueue(() -> new ActiveMQConnectionFactory("tcp://localhost:61616"), "queue"));
+         .drainTo(Sinks.jmsQueue(() -> new ActiveMQConnectionFactory(
+                 "tcp://localhost:61616"), "queue"));
         //end::s3[]
     }
 
@@ -49,7 +52,8 @@ public class JMS {
         //tag::s4[]
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.list("inputList"))
-         .drainTo(Sinks.jmsTopic(() -> new ActiveMQConnectionFactory("tcp://localhost:61616"), "topic"));
+         .drainTo(Sinks.jmsTopic(() -> new ActiveMQConnectionFactory(
+                 "tcp://localhost:61616"), "topic"));
         //end::s4[]
     }
 
