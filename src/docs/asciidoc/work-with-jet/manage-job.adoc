@@ -20,15 +20,15 @@ the job has a life of its own independent of the submitter. It can
 disconnect and any other client or Jet member can obtain its own `Job`
 instance that controls the same job.
 
-You can use the same API to submit a job from either a client machine or
-directly on an instance of a Jet cluster member. The same `Job` instance
-can be submitted for execution many times.
+You can use the same API to submit a job from either a client machine
+or directly on an instance of a Jet cluster member. The same `Pipeline`
+or `DAG` instance can be submitted for execution many times.
 
 == JobConfig
 
-To gain more control over how Jet will run your job, you can pass in
-a `JobConfig` instance. For example, you can give your job a human-
-readable name:
+To gain more control over how Jet will run your job, you can pass in a
+`JobConfig` instance. For example, you can give your job a
+human-readable name:
 
 [source]
 ----
@@ -37,17 +37,35 @@ include::{javasource}/ManageJob.java[tag=s3]
 
 In the <<practical-considerations, Practical Considerations>> section
 we'll deepen this story and explain how to use the `JobConfig` to
-to submit a job to a Jet cluster in production.
+submit a job to a Jet cluster in production.
 
 == Manage a Submitted Job
 
-`jet.newJob()` returns a {jet-javadoc}/Job.html[Job] object, which you
-can use to monitor the job and change its status. You can get the job's
-name, configuration, and submission time via `job.getName()`,
-`job.getConfig()`, and `job.getSubmissionTime()`. `job.getStatus()`
-will give you the current status of the job (running, failed, completed
-etc.). You can also call `Job.getFuture()` to block until the job
-completes and then get its final outcome (either success or failure).
+`jet.newJob()` and `jet.getJob(jobId)` return a
+{jet-javadoc}/Job.html[Job] object, which you can use to monitor the
+job and change its status:
+
+* {jet-javadoc}/Job.html#suspend--[Job.suspend]: the job will stop
+running, but its metadata will be kept and it can be resumed later. Use
+this for example if you want to restart the members one by one and you
+don't want the job to restart multiple times in the meantime
+
+* {jet-javadoc}/Job.html#resume--[Job.resume]: resumes a previously
+suspended job
+
+* {jet-javadoc}/Job.html#restart--[Job.restart]: stops and restarts the
+job to make use of new members added to the cluster (if automatic
+scaling is disabled)
+
+* {jet-javadoc}/Job.html#cancel--[Job.cancel]: the job will stop
+running and will be marked as completed. It cannot be restarted later
+
+You can also get the job's name, configuration, and submission time via
+`job.getName()`, `job.getConfig()`, and `job.getSubmissionTime()`.
+`job.getStatus()` will give you the current status of the job (running,
+failed, completed etc.). You can also call `job.getFuture()` to block
+until the job completes and then get its final outcome (either success
+or failure).
 
 Jet does not support canceling the job with `future.cancel()`, instead
 you must call `job.cancel()`. This is due to the mismatch in the
@@ -58,7 +76,7 @@ actual job in the cluster changes to that state. Not to confuse the
 users with these differences we decided to make `future.cancel()` fail
 with an exception.
 
-== Get a List of all Submitted Jobs
+== Get a List of All Submitted Jobs
 
 Jet keeps an inventory of all the jobs submitted to it, including those
 that have already completed. Access the full list with `jet.getJobs()`.
@@ -72,9 +90,8 @@ This example tells you what Jet has been up to in the last five minutes:
 include::{javasource}/ManageJob.java[tag=s4]
 ----
 
-To get a more focused list of jobs, you can call `jet.getJobs(name)` to
-get all the jobs with that name that were submitted since Jet started,
-or `jet.getJob(name)` to get just the latest such job.
+To only return all jobs submitted with a particular name, you can call
+`jet.getJobs(name)`, or `jet.getJob(name)` to get just the latest one.
 
 Here's how you can check the statistics on a job named `my-job`:
 
@@ -82,3 +99,5 @@ Here's how you can check the statistics on a job named `my-job`:
 ----
 include::{javasource}/ManageJob.java[tag=s5]
 ----
+
+*Note:* data about about completed jobs are evicted after 7 days.

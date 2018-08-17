@@ -9,7 +9,6 @@ import java.util.List;
 
 import static com.hazelcast.jet.core.JobStatus.FAILED;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.stream.Collectors.counting;
 
 public class ManageJob {
     private static JetInstance jet = Jet.newJetInstance();
@@ -42,6 +41,7 @@ public class ManageJob {
 
     static void s4() {
         //tag::s4[]
+        int total = 0;
         int completed = 0;
         int failed = 0;
         int inProgress = 0;
@@ -50,6 +50,7 @@ public class ManageJob {
             if (job.getSubmissionTime() < fiveMinutesAgo) {
                 continue;
             }
+            total++;
             switch (job.getStatus()) {
                 case COMPLETED:
                     completed++;
@@ -61,9 +62,9 @@ public class ManageJob {
                     inProgress++;
             }
             System.out.format(
-                "In the last five minutes Jet has completed %d jobs, " +
-                "%d jobs failed, and %d jobs are still running.%n",
-                completed, failed, inProgress);
+                "In the last five minutes %d jobs were submitted to Jet, of which %d already "
+                        + "completed, %d jobs failed, and %d jobs are still running.%n",
+                total, completed, failed, inProgress);
         }
         //end::s4[]
     }
@@ -72,7 +73,7 @@ public class ManageJob {
         //tag::s5[]
         List<Job> myJobs = jet.getJobs("my-job");
         long failedCount = myJobs.stream().filter(j -> j.getStatus() == FAILED).count();
-        System.out.format("Jet ran my-job %d times and it failed %d times.%n",
+        System.out.format("Jet ran 'my-job' %d times and it failed %d times.%n",
                 myJobs.size(), failedCount);
         //end::s5[]
     }

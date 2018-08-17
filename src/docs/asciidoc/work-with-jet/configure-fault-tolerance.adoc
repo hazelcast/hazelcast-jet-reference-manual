@@ -9,10 +9,10 @@ synchronizes it with a checkpoint on the data source. The source must
 ensure that, in the case of a restart, it will be able to replay all the
 data it emitted after the last checkpoint. Each of the other components
 in the job will restore its processing state to exactly what it was at
-the last snapshot. If a cluster member goes away, Jet will restart the
-job on the remaining members, rewind the sources to the last checkpoint,
-restore the state of processing from the last snapshot, and then
-seamlessly continue from that point.
+the time of the last snapshot. If a cluster member goes away, Jet will
+restart the job on the remaining members, rewind the sources to the
+last checkpoint, restore the state of processing from the last
+snapshot, and then seamlessly continue from that point.
 
 == Exactly-Once
 
@@ -21,8 +21,8 @@ each stream item exactly once. This is the ultimate guarantee you can
 ask for.
 
 As of version 0.6, Hazelcast Jet supports exactly-once processing with
-the source being either a Hazelcast `IMap` or a Kafka topic, and the
-sink being a Hazelcast `IMap`.
+the source being either a Hazelcast `IMap` journal or a Kafka topic,
+and the sink being a Hazelcast `IMap`.
 
 If you configure Jet for exactly-once but use Kafka as the sink, after a
 job restart you may get duplicates in the output. As opposed to doubly
@@ -51,9 +51,7 @@ You can also configure
 
 [source]
 ----
-JobConfig jobConfig = new JobConfig();
-jobConfig.setProcessingGuarantee(ProcessingGuarantee.EXACTLY_ONCE);
-jobConfig.setSnapshotIntervalMillis(SECONDS.toMillis(10));
+include::{javasource}/ConfigureFaultTolerance.java[tag=s1]
 ----
 
 Using less frequent snapshots, more data will have to be replayed
@@ -61,58 +59,71 @@ and the temporary spike in the latency of the output will be greater.
 More frequent snapshots will reduce the throughput and introduce more
 latency variation during regular processing.
 
+== Automatic Elasticity
+
+You can
+{jet-javadoc}/config/JobConfig.html#setAutoScaling-boolean-[configure]
+the behavior of what will happen when members are added or removed from
+the cluster.
+
+* If auto-scaling is enabled and a member is added or removed, the job
+will automatically restart. In case of member addition, it will
+restart after a delay.
+
+* If auto-scaling is disabled and a member is added, Jet takes no
+action and the job will not use the added member; you have to manually
+restart it. If a member is removed (after a shutdown or a failure), Jet
+suspends the job. You have to manually resume it.
+
+By default, auto-scaling is enabled.
+
 == Level of Safety
 
 Jet doesn't delegate its fault tolerance to an outside system, it backs
-up the state to its own `IMap` s. `IMap` is a replicated in-memory data
-structure, storing each key-value pair on a configurable number of
-cluster members. By default it will make a single backup copy, resulting
-in a system that tolerates the failure of a single member at a time. You
-can tweak this setting when starting Jet, for example increase the
-backup count to two:
+up the state to its own `IMap` objects. `IMap` is a replicated
+in-memory data structure, storing each key-value pair on a configurable
+number of cluster members. By default it will make a single backup
+copy, resulting in a system that tolerates the failure of a single
+member at a time. You can tweak this setting when starting Jet, for
+example increase the backup count to two:
 
 [source]
 ----
-JetConfig config = new JetConfig();
-config.getInstanceConfig().setBackupCount(2);
-JetInstance = Jet.newJetInstance(config);
+include::{javasource}/ConfigureFaultTolerance.java[tag=s2]
 ----
+
+_Note:_ if multiple members are lost simultaneously, some data from the
+backing IMaps can be lost. This is not currently checked and the job
+will restart with some state data from the snapshot missing, or it
+might fail if classpath resources were added and are missing. We plan
+to address this in future releases.
 
 == Split-Brain Protection
 
-A particularly nasty kind of failure is the "`split brain`": due to a
-very specific pattern in the loss of network connectivity the cluster
-splits into two parts, where within each part the members see each
-other, but none of those in the other part(s). Each part by itself lives
-on thinking the other members left the cluster. Now we have two
-fully-functioning Jet clusters where there was supposed to be one. Each
-one will recover and restart the same Jet job, making a mess in our
-application.
+A specific kind of failure is a so-called "split brain". It happens on
+network failure when a member or members think the other members left
+the cluster, but in fact they still run, but don't see each other over
+the network. Now we have two or more fully-functioning Jet clusters
+where there was supposed to be one. Each one will recover and restart
+the same Jet job, making it to run multiple times.
 
-Hazelcast Jet offers a mechanism to fight off this hazard:
-{jet-javadoc}/config/JobConfig.html#setSplitBrainProtection-boolean-[_split-brain protection_].
-It works by ensuring that a job can be restarted only in a cluster whose
-size is more than half of what it was before the job was suspended.
-Enable split-brain protection like this:
+Hazelcast Jet offers a mechanism to reduce this hazard:
+{jet-javadoc}/config/JobConfig.html#setSplitBrainProtection-boolean-[_split-brain
+protection_]. It works by ensuring that a job can be restarted only in
+a cluster whose size is more than half of what it was before the job
+was suspended. Enable split-brain protection like this:
 
 [source]
 ----
-jobConfig.setSplitBrainProtection(true);
+include::{javasource}/ConfigureFaultTolerance.java[tag=s3]
 ----
 
 If there's an even number of members in your cluster, this may mean the
-job will not be able to restart at all if the cluster splits exactly
-down the middle. We recommend maintaining an odd number of members.
+job will not be able to restart at all if the cluster splits into two
+equally-sized parts. We recommend having an odd number of members.
 
 Note also that you should ensure there is no split-brain condition at
 the moment you are introducing new members to the cluster. If that
 happens, both sub-clusters may grow to more than half of the previous
 size. This will defuse the split-brain protection mechanism.
 
-== Scale Up your Job
-
-You can let your already running job scale up after you have added new
-members to the Jet cluster: simply call `job.restart()` and Jet will
-suspend the job, rescale it to the size of the cluster, and resume it.
-You should have snapshotting enabled so the job can resum where it left
-off.
