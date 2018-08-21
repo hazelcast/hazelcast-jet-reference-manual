@@ -1,5 +1,5 @@
-[[custom-source-sink]]
-= Implement a Custom Source or Sink
+[[custom-source-sink-vertex]]
+= Implement a Custom Source or Sink Vertex
 
 The Hazelcast Jet distribution contains vertices for the sources and
 sinks exposed through the Pipeline API. You can extend Jet's support for

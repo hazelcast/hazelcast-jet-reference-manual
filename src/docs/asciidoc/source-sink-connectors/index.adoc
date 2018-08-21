@@ -17,4 +17,6 @@ include::jdbc.adoc[]
 
 include::jms.adoc[]
 
+include::source-sink-builder.adoc[]
+
 :leveloffset: -1

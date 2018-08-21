@@ -62,7 +62,8 @@ You can access most of them via the
 {jet-javadoc}/pipeline/Sinks.html[`Sinks`] utility classes.
 {jet-javadoc}/KafkaSources.html[Kafka] and
 {jet-javadoc}/HdfsSources.html[HDFS] connectors are in their separate
-modules.
+modules. You can construct your own source connector by using the
+{jet-javadoc}/pipeline/SourceBuilder.html[`SourceBuilder`].
 
 There's a <<source-sink-connectors, dedicated chapter>> that discusses
 the topic of data sources and sinks in more detail.

@@ -1,0 +1,141 @@
+[[source-sink-builder]]
+= Source and Sink Builders
+
+If Jet doesn't natively support the data source/sink you need, you can
+build a connector for it yourself by using the
+{jet-javadoc}/pipeline/SourceBuilder.html[`SourceBuilder`] and
+{jet-javadoc}/pipeline/Sinks.html[`SinkBuilder`].
+
+== Source Builder
+
+To make your custom source connector you need two basic ingredients:
+
+. an object that will hold all the state you need to keep track of
+. a stateless function, `fillBufferFn`, taking two parameters: the state
+object and a buffer object provided by Jet
+
+Jet repeatedly calls `fillBufferFn` whenever it needs more data items.
+Optimally, the function will fill the buffer with the items it can
+acquire without blocking. A hundred items at a time is enough to
+eliminate any per-call overheads within Jet. The function may block as
+well, but taking longer than a second to complete can have negative
+effects on the overall performance of the processing pipeline.
+
+=== Build a Bounded (Batch) Source
+
+In this example we build a source that emits the lines of a file:
+
+[source]
+----
+include::{javasource}/SourceSinkBuilders.java[tag=s1]
+----
+
+The file must be available on all the members of the Jet cluster for
+this to work. Only one member will actually read it, but you can't
+choose or predict which one. Note that we call `buf.close()` to mark the
+end of the bounded data stream.
+
+The code above emits a single item per `fillBufferFn` call. To ensure we
+get the best performance, we can improve it to emit the data in chunks:
+
+[source]
+----
+include::{javasource}/SourceSinkBuilders.java[tag=s1a]
+----
+
+=== Build an Unbounded (Stream) Source
+
+Here's how you can build a simple source that keeps polling a URL,
+emitting all the lines it gets in the response:
+
+[source]
+----
+include::{javasource}/SourceSinkBuilders.java[tag=s2]
+----
+
+Our state object is an instance of the Apache HTTP Client. It maintains
+a connection pool so it will reuse the same connection for all our
+requests. Note that we're making a blocking call here, but it's expected
+to respond quickly. In a more serious production setting we could
+configure timeouts on the HTTP client to limit the blocking time. We'd
+also have to add error handling so we just retry on failure instead of
+causing the whole Jet job to fail.
+
+=== Build a Stream Source with Event Timestamps
+
+To make the data usable for windowed aggregation, each event item must
+be timestamped. If the source doesn't emit timestamped events, you'll
+have to add them while building the processing pipeline. It's more
+convenient and efficient to add the timestamps right at the source. Jet
+offers you an API variant specifically tailored to this need. Let's say
+that in the above example the first 9 characters denote the event's
+timestamp. We can extract them as follows:
+
+[source]
+----
+include::{javasource}/SourceSinkBuilders.java[tag=s2a]
+----
+
+Note the line `allowedLateness(2000)`. The events aren't necessarily
+ordered by timestamp, for example they may come from many users over
+different connections and distances. On the other hand, to complete a
+windowed computation Jet must know when it has received all the events
+from a given time range. The "allowed lateness" parameter specifies
+how much (in milliseconds) an event's timestamp can lag behind the
+highest timestamp received so far. With the parameter set as above, Jet
+will wait to receive an item with `T = 01:00:02` or higher in order to
+complete the processing of events up to `T = 01:00:00`.
+
+=== Distributed Stream Source
+
+In the examples we showed so far the source was non-distributed: Jet
+will create just a single processor in the whole cluster which will
+serve all the data. This is an easy and obvious way to create a source
+connector.
+
+If you want to create a distributed source, the challenge is
+coordinating all the parallel instances so they appear as a single,
+unified source. Each instance must emit its unique slice of the whole
+data stream. Jet allows you to identify each state object you create by
+passing the {jet-javadoc}/core/Processor.Context.html[`Processor.Context`]
+to your `createFn`. You can consult the properties
+{jet-javadoc}/core/ProcessorMetaSupplier.Context.html#totalParallelism--[`totalParallelism`]
+and
+{jet-javadoc}/core/Processor.Context.html#globalProcessorIndex--[`globalProcessorIndex`]:
+Jet will call `createFn` exactly once with each `globalProcessorIndex`
+from 0 to `totalParallelism - 1` and you can use this to slice up the
+data.
+
+Here's a rudimentary example that shows how such a scheme could work:
+
+[source]
+----
+include::{javasource}/SourceSinkBuilders.java[tag=s3]
+----
+
+Note the `distributed(2)` line, here we state that we want two
+parallel processors on each Jet member.
+
+We have presented a toy example of accessing a partitioned, distributed
+data source. In the real world there are some fundamental differences.
+The data source is partitioned in advance and you cannot request the
+number of partitions that perfectly matches your topology. Instead you
+must write some logic that distributes, more or less evenly, M
+partitions over N processors.
+
+There's a specifically nasty problem hiding in this scheme: when we
+assign several partitions to a single processor and consume the data
+from each partition in chunks, the difference in the timestamp of the
+last event we fetch from partition _i_ and the first item from partition
+_j_ can be very large, much larger than the maximum lateness we
+configured. By the time it receives these events, Jet has already
+completed the processing of their window and moved on. The items must be
+dropped as "too late to process".
+
+Jet has a mechanism that mitigates this issue by individually tracking
+the highest timestamp from each partition and emitting the appropriate
+watermark items that account for the lagging partitions. This mechanism
+is available if you create a custom source processor using the Core API,
+but it's not currently exposed through the source builder. Refer to the
+section on <<custom-source-sink-vertex, custom source vertices>> and to
+the Javadoc of {jet-javadoc}/core/WatermarkSourceUtil[`WatermarkSourceUtil`].
