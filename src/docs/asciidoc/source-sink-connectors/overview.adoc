@@ -229,10 +229,10 @@ Sink ❌
 |❌
 |✅
 |❌
-|❌
+|✅
 |Local FS ✅
 
- Shared FS ✅
+ Shared FS ❌
 
 |<<connector-files, File Watcher>>
 |{jet-javadoc}/pipeline/Sources.html#fileWatcher-java.lang.String-[Source]
@@ -240,10 +240,10 @@ Sink ❌
 |✅
 |❌
 |❌
-|❌
+|✅
 |Local FS ✅
 
- Shared FS ✅
+ Shared FS ❌
 
 |<<connector-files-avro, Avro>>
 |{jet-javadoc}/avro/AvroSources.html#files-java.lang.String-java.lang.Class-[Source]
@@ -255,10 +255,10 @@ Sink ❌
 |❌
 |✅
 |❌
-|❌
+|✅
 |Local FS ✅
 
- Shared FS ✅
+ Shared FS ❌
 
 |<<connector-socket, TCP Socket>>
 |{jet-javadoc}/pipeline/Sources.html#socket-java.lang.String-int-java.nio.charset.Charset-[Source]
