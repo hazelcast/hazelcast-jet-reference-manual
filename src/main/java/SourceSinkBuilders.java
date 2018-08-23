@@ -63,7 +63,7 @@ public class SourceSinkBuilders {
 
     static void s2() {
         //tag::s2[]
-        StreamSource<String> socketSource = SourceBuilder
+        StreamSource<String> httpSource = SourceBuilder
             .stream("http-source", ctx -> HttpClients.createDefault())
             .<String>fillBufferFn((httpc, buf) ->
                 new BufferedReader(new InputStreamReader(
@@ -75,13 +75,13 @@ public class SourceSinkBuilders {
             .destroyFn(CloseableHttpClient::close)
             .build();
         Pipeline p = Pipeline.create();
-        StreamStage<String> srcStage = p.drawFrom(socketSource);
+        StreamStage<String> srcStage = p.drawFrom(httpSource);
         //end::s2[]
     }
 
     static void s2a() {
         //tag::s2a[]
-        StreamSource<String> socketSource = SourceBuilder
+        StreamSource<String> httpSource = SourceBuilder
             .timestampedStream("http-source", ctx -> HttpClients.createDefault())
             .<String>fillBufferFn((httpc, buf) ->
                 new BufferedReader(new InputStreamReader(
