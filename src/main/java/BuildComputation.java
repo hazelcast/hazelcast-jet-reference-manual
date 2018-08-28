@@ -363,9 +363,9 @@ class BuildComputation {
         Pipeline p = Pipeline.create();
         StreamStage<Trade> tradesNewYork = p.drawFrom(Sources.mapJournal(
                 "trades-newyork", mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
-        StreamStage<Trade> tradesTokio = p.drawFrom(Sources.mapJournal(
-                "trades-tokio", mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
-        StreamStage<Trade> merged = tradesNewYork.merge(tradesTokio);
+        StreamStage<Trade> tradesTokyo = p.drawFrom(Sources.mapJournal(
+                "trades-tokyo", mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
+        StreamStage<Trade> merged = tradesNewYork.merge(tradesTokyo);
         //end::s18[]
     }
 

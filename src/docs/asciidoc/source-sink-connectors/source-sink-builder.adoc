@@ -19,7 +19,7 @@ Optimally, the function will fill the buffer with the items it can
 acquire without blocking. A hundred items at a time is enough to
 eliminate any per-call overheads within Jet. The function may block as
 well (it's running inside a <<non-cooperative-processor, non-cooperative
-processor>>, but taking longer than a second to complete can have
+processor>>), but taking longer than a second to complete can have
 negative effects on the overall performance of the processing pipeline.
 
 === Build a Bounded (Batch) Source

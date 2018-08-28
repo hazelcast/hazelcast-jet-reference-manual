@@ -157,12 +157,28 @@ public class CheatSheet {
 
     static void s11() {
         //tag::s11[]
+        BatchStage<String> strings = someStrings();
+        BatchStage<String> distinctStrings = strings.distinct();
+        BatchStage<String> distinctByPrefix =
+                strings.groupingKey(s -> s.substring(0, 4)).distinct();
         //end::s11[]
+    }
+
+    private static BatchStage<String> someStrings() {
+        throw new UnsupportedOperationException();
     }
 
     static void s12() {
         //tag::s12[]
+        StreamStage<Trade> tradesNewYork = trades("new-york");
+        StreamStage<Trade> tradesTokyo = trades("tokyo");
+        StreamStage<Trade> tradesNyAndTokyo =
+                tradesNewYork.merge(tradesTokyo);
         //end::s12[]
+    }
+
+    private static StreamStage<Trade> trades(String name) {
+        throw new UnsupportedOperationException();
     }
 
     static void s13() {

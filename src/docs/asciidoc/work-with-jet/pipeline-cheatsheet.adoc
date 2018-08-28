@@ -33,6 +33,31 @@ This example splits the lines of text into individual words:
 include::{javasource}/CheatSheet.java[tag=s3]
 ----
 
+|Distinct
+|Suppress duplicate items from a stream. If you apply a grouping key,
+two items mapping to the same key will be duplicates. This operation
+applies primarily to batch streams, but also works on a windowed
+unbounded stream.
+
+This example takes a batch stage with strings and creates a stage with
+distinct strings and another where the four-character prefix of the
+strings is unique:
+[source]
+----
+include::{javasource}/CheatSheet.java[tag=s11]
+----
+
+|Merge
+|Merge the contents of two streams into one. The item type in the
+right-hand stage must be the same or a subtype of the one in the
+left-hand stage.
+
+This example merges the streams from New York and Tokyo stock exchanges:
+[source]
+----
+include::{javasource}/CheatSheet.java[tag=s12]
+----
+
 |Enrich by Many-to-One Join
 |Perform a many-to-one join with arbitrarily many enriching streams.
 The stream on which you invoke `hashJoin` holds foreign keys for
