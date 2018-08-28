@@ -23,6 +23,7 @@ import com.hazelcast.jet.core.processor.Processors;
 import com.hazelcast.jet.core.processor.SinkProcessors;
 import com.hazelcast.jet.function.DistributedBiFunction;
 import com.hazelcast.jet.function.DistributedFunction;
+import com.hazelcast.jet.pipeline.ContextFactory;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -48,8 +49,7 @@ import static com.hazelcast.jet.core.Edge.between;
 import static com.hazelcast.jet.core.Edge.from;
 import static com.hazelcast.jet.core.Partitioner.HASH_CODE;
 import static com.hazelcast.jet.core.processor.Processors.aggregateByKeyP;
-import static com.hazelcast.jet.core.processor.Processors.flatMapP;
-import static com.hazelcast.jet.core.processor.Processors.nonCooperativeP;
+import static com.hazelcast.jet.core.processor.Processors.flatMapUsingContextP;
 import static com.hazelcast.jet.core.processor.SourceProcessors.readMapP;
 import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 import static java.util.Collections.singletonList;
@@ -84,10 +84,11 @@ public class TfIdfCoreApi {
         //end::s4[]
 
         //tag::s5[]
-        Vertex docLines = dag.newVertex("doc-lines", nonCooperativeP(
-            flatMapP((Entry<Long, String> e) ->
+        Vertex docLines = dag.newVertex("doc-lines", flatMapUsingContextP(
+                ContextFactory.withCreateFn(jet -> null).nonCooperative(),
+                (Object ctx, Entry<Long, String> e) ->
                 traverseStream(docLines("books/" + e.getValue())
-                    .map(line -> entry(e.getKey(), line))))));
+                    .map(line -> entry(e.getKey(), line)))));
         //end::s5[]
 
         Vertex tokenize =
