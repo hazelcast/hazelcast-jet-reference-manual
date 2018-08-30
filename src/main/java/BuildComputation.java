@@ -43,6 +43,7 @@ import static com.hazelcast.jet.Util.mapPutEvents;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.aggregate.AggregateOperations.maxBy;
 import static com.hazelcast.jet.aggregate.AggregateOperations.toList;
+import static com.hazelcast.jet.datamodel.Tuple2.tuple2;
 import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 import static com.hazelcast.jet.pipeline.JoinClause.joinMapEntries;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_CURRENT;
@@ -129,7 +130,7 @@ class BuildComputation {
 
         BatchStage<Entry<String, Long>> coGrouped =
                 grouped1.aggregate2(counting(), grouped2, counting(),
-                        (key, vals) -> entry(key, vals.f0() + vals.f1()));
+                        (key, count0, count1) -> entry(key, count0 + count1));
     }
 
     private static BatchStageWithKey<String, String> groupByWord(
@@ -155,8 +156,8 @@ class BuildComputation {
 
         BatchStage<Entry<Integer, Tuple2<List<PageVisit>, List<AddToCart>>>> joined =
                 pageVisits.aggregate2(toList(), addToCarts, toList(),
-                        (userId, lists) -> lists.f0().isEmpty()
-                                ? null : entry(userId, lists));
+                        (userId, list0, list1) -> list0.isEmpty()
+                                ? null : entry(userId, tuple2(list0, list1)));
 
         joined.drainTo(Sinks.map("result"));
         //end::s7a[]
