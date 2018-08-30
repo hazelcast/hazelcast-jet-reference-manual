@@ -41,9 +41,6 @@ execute your first Jet job.
 . <<work-with-jet>> introduces Jet's Pipeline API. This is the API you
 use to build the computation you want Jet to execute.
 
-. <<jus>> shows you how you can use Jet's implementation of JDK's
-standard `java.util.stream` API to run simple computation jobs.
-
 . <<source-sink-connectors>> presents the source and sink connectors
 that Jet provides.
 
