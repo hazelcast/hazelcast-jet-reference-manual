@@ -127,8 +127,9 @@ class BuildComputation {
         BatchStageWithKey<String, String> grouped1 = groupByWord(src1);
         BatchStageWithKey<String, String> grouped2 = groupByWord(src2);
 
-        BatchStage<Entry<String, Tuple2<Long, Long>>> coGrouped =
-                grouped1.aggregate2(counting(), grouped2, counting());
+        BatchStage<Entry<String, Long>> coGrouped =
+                grouped1.aggregate2(counting(), grouped2, counting(),
+                        (key, vals) -> entry(key, vals.f0() + vals.f1()));
     }
 
     private static BatchStageWithKey<String, String> groupByWord(
