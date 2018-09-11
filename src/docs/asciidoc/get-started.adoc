@@ -36,15 +36,14 @@ If you prefer to use Gradle, execute the following command:
 
 [source,groovy,subs="attributes+"]
 ----
-compile 'com.hazelcast.jet:hazelcast-jet:{jet-version}'
+compile "com.hazelcast.jet:hazelcast-jet:{jet-version}"
 ----
-
 
 [[downloading]]
 == Downloading
 
-Alternatively you can download the latest http://jet.hazelcast.org/download[distribution package of
-Hazelcast Jet]
+Alternatively you can download the latest
+http://jet.hazelcast.org/download[distribution package of Hazelcast Jet]
 and add the `hazelcast-jet-<version>.jar` file to your classpath.
 
 [[distribution-package]]
@@ -71,8 +70,8 @@ the contents of a Hazelcast `IList` that contains lines of text, finds
 the number of occurrences of each word in it, and stores its results
 in a Hazelcast `IMap`. In a distributed  computation job the input and
 output cannot be simple in-memory structures like a Java `List`; they
-must reside in the cluster so any member can access them. This is why we
-use Hazelcast structures.
+must be accessible to any member of the computing cluster and must
+persist after a job ends. This is why we use Hazelcast structures.
 
 [source]
 ----

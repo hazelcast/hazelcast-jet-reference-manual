@@ -1,3 +1,4 @@
+[[overview]]
 = Overview of Jet
 
 Jet is a distributed data processing engine that treats the data as a
@@ -42,9 +43,11 @@ much more complex and error-prone.
 
 To run the computation Jet uses a <<cooperative-multithreading,
 cooperative multithreading>> execution engine, which means it can run
-many processing units on the same JVM thread. The processing units are
-implemented in such a way that they don't block the thread while waiting
-for more data, or while waiting for the receiving unit to accept it. By
-not dependending on OS-level thread scheduling Jet can achieve greater
-throughput and better saturate the CPU cores. It can also scale up to
-many more processing units than the OS can deliver native threads.
+many Core API `Processor` s on the same JVM thread. A processor
+corresponds to a standalone single-threaded task that processes a stream
+of data. The processors are implemented in such a way that they don't
+block the thread while waiting for more data, or while waiting for the
+receiving processor to accept it. By not dependending on OS-level thread
+scheduling Jet can achieve greater throughput and better saturate the
+CPU cores. It can also drive many more processors than the OS can
+manage native threads.

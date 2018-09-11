@@ -27,9 +27,10 @@ explain later on how to apply windowing, which is necessary to aggregate
 over unbounded streams.
 
 Your pipeline can consist of multiple sources, each starting its own
-branch, and you mix both kinds in the same pipeline. You can merge the
-branches with joining transforms. For example, the <<hash-join,
-hash-join>> transform can join a stream stage with batch stages:
+pipeline branch, and you are allowed to mix both kinds of stages in the
+same pipeline. You can merge the branches with joining transforms. For
+example, the <<hash-join, hash-join>> transform can join a stream stage
+with batch stages:
 
 [source]
 ----
@@ -56,14 +57,18 @@ contents and their event journal as an infinite source
 - TCP socket (infinite stream)
 - a directory on the filesystem, both as a batch source of the current
   file contents and an infinite source of append events to the files
+- any source/sink you create on your own by using the
+{jet-javadoc}/pipeline/SourceBuilder.html[`SourceBuilder`] and the
+{jet-javadoc}/pipeline/SinkBuilder.html[`SinkBuilder`].
 
-You can access most of them via the
+You can access most of these via the
 {jet-javadoc}/pipeline/Sources.html[`Sources`] and
 {jet-javadoc}/pipeline/Sinks.html[`Sinks`] utility classes.
 {jet-javadoc}/KafkaSources.html[Kafka] and
 {jet-javadoc}/HdfsSources.html[HDFS] connectors are in their separate
-modules. You can construct your own source connector by using the
-{jet-javadoc}/pipeline/SourceBuilder.html[`SourceBuilder`].
+modules. The {jet-javadoc}/pipeline/SourceBuilder.html#batch-java.lang.String-com.hazelcast.jet.function.DistributedFunction-[source]
+and {jet-javadoc}/pipeline/SinkBuilder.html#sinkBuilder-java.lang.String-com.hazelcast.jet.function.DistributedFunction-[sink]
+builder factories are in their respective classes.
 
 There's a <<source-sink-connectors, dedicated chapter>> that discusses
 the topic of data sources and sinks in more detail.
@@ -79,26 +84,8 @@ and
 We already saw them in use in the previous examples. `map` transforms
 each item to another item; `filter` discards items that don't match its
 predicate; and `flatMap` transforms each item into zero or more output
-items.
-
-== Kinds of JOIN
-
-You can join streams in various ways with Jet. These are your basic
-tools:
-
-* <<hash-join, _hash-join_>> is a many-to-one join that matches a
-foreign key in one stream with the primary key in another.
-
-* transformations with a context object allow you to join the stream
-data with a <<map-using-imap, Hazelcast map>> and Jet <<map-using-context,
-exposes the underlying machinery>> so you can write your own code to
-join with an arbitrary outside system.
-
-* <<cogroup, _co-group-and-aggregate_>> is a many-to-many join that
-matches the same key in all the joined streams and can simultaneously
-perform aggregation of the groups with the same key. By using the
-appropriate output-mapping function you can achieve any kind of join:
-inner/outer/full, left and right.
+items. You can refer to their Javadoc for finer detail and we'll move on
+to other kinds of transformations.
 
 [[distinct]]
 == Distinct
@@ -118,7 +105,7 @@ include::{javasource}/BuildComputation.java[tag=s17]
 ----
 
 [[merge]]
-== Merge
+== Merge Streams
 
 The `merge` operation combines two pipeline stages in the simplest
 manner: it just emits all the items from both stages. In this example
@@ -129,15 +116,60 @@ we merge the trading events from the New York and Tokyo stock exchanges:
 include::{javasource}/BuildComputation.java[tag=s18]
 ----
 
+== Join Streams
+
+Joining two streams means finding all items in both streams that match
+according to some rule. These are your joining tools in Jet:
+
+. <<cogroup, _Co-group-and-aggregate_>> is a many-to-many join that
+matches the same key in all the joined streams and can simultaneously
+perform aggregation of the groups of items with the same key. This is
+the most general joining facility.
+
+. <<hash-join, _Hash-join_>> is a many-to-one join that matches a
+foreign key in one stream with the primary key in another. It can join
+several streams in one step. Its main use case is enriching one stream
+with the data from one or more additional streams.
+
+. `mapUsingX` transforms enrich a stream from a dataset external to the
+Jet job. There's direct support for <<map-using-imap, Hazelcast maps>>
+and Jet <<map-using-context, exposes the underlying machinery>> as well
+so you can write your own code to join with an arbitrary external
+dataset.
+
+The hash-join is ideal for batch computations because it ingests all the
+enriching data on all members of the computing cluster, so lookup is
+both data-local and thread-local -- the fastest you can get.
+
+When you enrich directly from an `IMap` or other storage system, you
+get the advantage that the enriching dataset can change during a job.
+This is especially relevant to infinite stream processing jobs where
+you want to keep updating the enriching dataset as the job runs. You pay
+for that with slower access times. Also keep in mind that, if you run a
+fault-tolerant job and experience a restart, you may get different
+enriching data for the items you are processing again after resuming
+from the previous checkpoint.
+
+Cogroup-and-aggregate is the most powerful joining facility in Jet. You
+can join any number of streams on a common key. The key can be anything
+you can calculate from the data item. In the same step you can apply an
+aggregate function to all the grouped items, separated by the
+originating stream. The aggregate function can produce a summary value
+like an average or linear trend, but it can also keep a list of all the
+items, effectively avoiding actual aggregation. This way you can achieve
+any kind of join: inner/outer/full, left and right. The constraint, as
+already noted, is that the join condition cannot be fully general, but
+must amount to matching a computed key.
+
 [[hash-join]]
 == Hash-Join
 
 {jet-javadoc}/pipeline/BatchStage.html#hashJoin-com.hazelcast.jet.pipeline.BatchStage-com.hazelcast.jet.pipeline.JoinClause-com.hazelcast.jet.function.DistributedBiFunction-[Hash-join]
-is a specialization of a general "`join`" operation, optimized for the
-use case of _data enrichment_. It is like a many-to-one SQL JOIN that
-matches a foreign key in the stream-to-be-enriched with the primary key
-in the enriching stream. You can perform several such joins in one
-operation, enriching your stream from arbitrarily many sources.
+is a kind of join operation optimized for the use case of _data
+enrichment_. It is like a many-to-one SQL JOIN that matches a foreign
+key in the stream-to-be-enriched with the primary key in the enriching
+stream. You can perform several such joins in one operation, enriching
+your stream from arbitrarily many sources.
 
 The stream-to-be-enriched (we'll call in the _primary_ stream for short)
 can be an unbounded data stream. The _enriching streams_ must be bounded
@@ -212,6 +244,16 @@ than with a hash-join, but the data is kept fresh this way. This matters
 especially for unbounded streaming jobs, where a hash-join would use
 data frozen in time at the beginning of the job.
 
+If you use a Hazelcast map that is stored inside the Jet cluster, you
+can achieve data locality. For `ReplicatedMap` that's trivial because
+its entire contents are present on every cluster member. `IMap`, on the
+other hand, is partitioned so a given member holds only a part of the
+data. Here, too, you can achieve data locality by letting Jet send your
+data item to the member that holds that particular item's lookup key.
+This still means the data travels over the network, but it's only one
+way and highly streamlined. There's no latency inherent to a
+request-response cycle, just the bandwidth cost of network transfer.
+
 In this example we enrich a stream of trades with detailed stock info.
 The info is stored in a Hazelcast `IMap`:
 
@@ -225,7 +267,7 @@ include::{javasource}/BuildComputation.java[tag=s16]
     items. This syntax works if the setter has fluent API and returns
     `this`.
 
-[[map-using-contex]]
+[[map-using-context]]
 == Enrich a Stream Using an Arbitrary Context Object
 
 In the example above the syntax looks very simple, but it hides a layer
@@ -237,7 +279,7 @@ Jet cluster where the job runs.
 
 Hazelcast Jet exposes the facility used to implement `mapUsingIMap`:
 you can provide a _factory_ that Jet will use to create a context object
-for each worker in the cluster that executes your transforming step.
+for each `Processor` in the cluster that executes your transforming step.
 You can also specify a function that extracts the key from your items.
 Even though Jet won't do any lookup or grouping by that key, it will
 set up the job so that all the items with the same key get paired with
@@ -318,9 +360,9 @@ dedicated to this>>.
 
 Just as we performed aggregate and group-and-aggregate operations above,
 we can perform a co-aggregate and cogroup-and-aggregate of several
-stages together. In SQL terms this is analogous to a JOIN coupled with a
-GROUP BY. The JOIN condition is constrained to matching on the grouping
-key.
+stages together. In SQL terms this is analogous to a `JOIN` coupled with
+a `GROUP BY`. The `JOIN` condition is constrained to matching on the
+grouping key.
 
 Here's a simple example where we do the Word Count from two source
 lists:
