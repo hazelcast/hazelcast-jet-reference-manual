@@ -121,34 +121,50 @@ include::{javasource}/BuildComputation.java[tag=s18]
 Joining two streams means finding all items in both streams that match
 according to some rule. These are your joining tools in Jet:
 
-. <<cogroup, _Co-group-and-aggregate_>> is a many-to-many join that
-matches the same key in all the joined streams and can simultaneously
-perform aggregation of the groups of items with the same key. This is
-the most general joining facility.
-
 . <<hash-join, _Hash-join_>> is a many-to-one join that matches a
 foreign key in one stream with the primary key in another. It can join
 several streams in one step. Its main use case is enriching one stream
 with the data from one or more additional streams.
 
-. `mapUsingX` transforms enrich a stream from a dataset external to the
-Jet job. There's direct support for <<map-using-imap, Hazelcast maps>>
-and Jet <<map-using-context, exposes the underlying machinery>> as well
-so you can write your own code to join with an arbitrary external
-dataset.
+. `xUsingY` (such as <<map-using-imap, `mapUsingIMap`>> or <<map-using-context,
+`filterUsingContext`>>) enrich a stream from a dataset external to the Jet job. There's direct support
+for <<map-using-imap, Hazelcast maps>> and Jet <<map-using-context,
+exposes the underlying machinery>> as well so you can write your own
+code to join with an arbitrary external dataset.
 
-The hash-join is ideal for batch computations because it ingests all the
-enriching data on all members of the computing cluster, so lookup is
-both data-local and thread-local -- the fastest you can get.
+. <<cogroup, _Co-group-and-aggregate_>> is a many-to-many join that
+matches the same key in all the joined streams and can simultaneously
+perform aggregation of the groups of items with the same key. This is
+the most general joining facility.
 
-When you enrich directly from an `IMap` or other storage system, you
-get the advantage that the enriching dataset can change during a job.
-This is especially relevant to infinite stream processing jobs where
-you want to keep updating the enriching dataset as the job runs. You pay
-for that with slower access times. Also keep in mind that, if you run a
-fault-tolerant job and experience a restart, you may get different
-enriching data for the items you are processing again after resuming
-from the previous checkpoint.
+Hash-join's strength is speed. If you're doing data enrichment and your
+enriching dataset doesn't change for the duration of the Jet job, this
+is your best tool.
+
+If you're enriching an infinite stream and the dataset evolves over time,
+you can apply one of the `xUsingY` transforms to look up directly from
+the source. If your source is a Hazelcast map inside the Jet cluster,
+you can achieve data locality and excellent throughput. Be sure to let
+Jet extract the lookup key by calling `stage.groupingKey()` before
+applying the transform. Jet will then be able to partition the stream
+by your lookup key, which is essential for data locality.
+
+If you're looking up data from an external system (for example, a
+Hazelcast IMDG cluster), data locality is not an option, but you can
+still use caching (for example, the Hazelcast client has the _Near Cache_
+feature). You should specify the `groupingKey()` so that your cache will
+be partitioned and not duplicated on each Jet processor.
+
+When you use the `xUsingY` transform to enrich an infinite stream, your
+output will reflect the fact that the enriching dataset is changing. Two
+items with the same key may be enriched with different data. This is
+expected. However, the output may also behave erratically. Say you
+change the enriching data for some key from A to B. You expect the
+output to show a sequence ...`A-A-B-B`..., but actually you can observe
+`A-B-A-B` or even `B-B-A-A`. This is because Jet doesn't enforce the
+processing order to strictly follow the time order of events. Currently
+there is no feature in Jet that would achieve sequential consistency
+while enriching an event stream from a changing dataset.
 
 Cogroup-and-aggregate is the most powerful joining facility in Jet. You
 can join any number of streams on a common key. The key can be anything
