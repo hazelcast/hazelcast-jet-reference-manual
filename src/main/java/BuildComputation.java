@@ -322,8 +322,8 @@ class BuildComputation {
 
         Pipeline p = Pipeline.create();
         p.drawFrom(tradesSource)
-         .groupingKey(Trade::ticker)
-         .mapUsingIMap(stockMap, Trade::setStockInfo) //<2>
+         .groupingKey(Trade::ticker) // <2>
+         .mapUsingIMap(stockMap, Trade::setStockInfo) //<3>
          .drainTo(Sinks.list("result"));
         //end::s16[]
     }

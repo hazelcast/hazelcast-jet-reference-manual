@@ -38,7 +38,10 @@ and provides high-level orientation.
 and running on your machine. You can copy-paste the provided code to
 execute your first Jet job.
 
-. <<work-with-jet>> introduces Jet's Pipeline API. This is the API you
+. <<work-with-jet>> show you how to configure Jet, start a Jet cluster,
+manage jobs, etc.
+
+. <<pipeline-api>> introduces Jet's Pipeline API. This is the API you
 use to build the computation you want Jet to execute.
 
 . <<source-sink-connectors>> presents the source and sink connectors
@@ -66,6 +69,8 @@ include::overview.adoc[]
 include::get-started.adoc[]
 
 include::work-with-jet/index.adoc[]
+
+include::pipeline-api/index.adoc[]
 
 include::source-sink-connectors/index.adoc[]
 
