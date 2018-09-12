@@ -109,8 +109,7 @@ tokenizer feeds the accumulator loop, and after the accumulator is done
 receiving, it emits its results to the sink. Diagrammatically it looks
 like this:
 
-image::wordcount-dag-queue.png[Word-counting DAG with concurrent queues
-shown,600,170,align="center"]
+image::wordcount-dag-queue.png[Word-counting DAG with concurrent queues shown,600,170,align="center"]
 
 This transformation brought us a _pipelined_ architecture: while the
 tokenizer is busy with the regex work, the accumulator is updating the

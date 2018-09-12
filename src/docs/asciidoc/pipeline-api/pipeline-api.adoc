@@ -70,7 +70,7 @@ builder factories are in their respective classes.
 There's a <<source-sink-connectors, dedicated chapter>> that discusses
 the topic of data sources and sinks in more detail.
 
-= Basic Pipeline Transforms
+= Basic Transforms: map, filter, flatMap
 
 The simplest kind of transformation is one that can be done on each item
 individually and independent of other items. The major examples are
@@ -81,8 +81,8 @@ and
 We already saw them in use in the previous examples. `map` transforms
 each item to another item; `filter` discards items that don't match its
 predicate; and `flatMap` transforms each item into zero or more output
-items. You can refer to their Javadoc for finer detail and we'll move on
-to other kinds of transformations.
+items. You can refer to their Javadoc for finer detail and here we'll
+move on to other kinds of transformations.
 
 [[distinct]]
 = Suppress Duplicates
@@ -113,83 +113,23 @@ we merge the trading events from the New York and Tokyo stock exchanges:
 include::{javasource}/BuildComputation.java[tag=s18]
 ----
 
-= Join Streams
+= Enrich Your Stream
 
-Joining two streams means finding all items in both streams that match
-according to some rule and performing a computation over the matches.
-These are your joining tools in Jet:
+As the data comes in, before you perform any reasoning on it, you must
+look up and attach to each item all the knowledge you have about it. If
+the data item represents a trade event, you want the data on the
+valuable being traded, the buyer, seller, etc. We call this step _data
+enrichment_.
 
-. <<hash-join, _Hash-join_>> is a many-to-one join that matches a
-foreign key in one stream with the primary key in another. It can join
-several streams in one step. Its main use case is enriching one stream
-with the data from one or more additional streams. The enriching streams
-must be finite (i.e., a `BatchStage`).
+You've got two basic techniques to enrich your data stream:
 
-. <<cogroup, _Co-group-and-aggregate_>> is a many-to-many join that
-matches the same key in all the joined streams and can simultaneously
-perform aggregation of the groups of items with the same key. This is
-the most general joining facility.
+. <<hash-join, Hash-join>> the primary data stream with one or more
+enriching streams. If your enriching dataset doesn't change for the
+duration of the Jet job, this is your best tool.
 
-Hash-join's strength is speed. If you're doing data enrichment and your
-enriching dataset doesn't change for the duration of the Jet job, this
-is your best tool. If you're enriching an infinite stream and want to
-observe updates to the enriching dataset, consider enriching your data
-by <<enrich-by-lookup, direct lookup from the source>> instead of
-streaming in the dataset.
-
-Cogroup-and-aggregate is the most powerful joining facility in Jet. You
-can join any number of streams on a common key. The key can be anything
-you can calculate from the data item. In the same step you can apply an
-aggregate function to all the grouped items, separated by the
-originating stream. The aggregate function can produce a summary value
-like an average or linear trend, but it can also keep a list of all the
-items, effectively avoiding actual aggregation. This way you can achieve
-any kind of join: inner/outer/full, left and right. The constraint, as
-already noted, is that the join condition cannot be fully general, but
-must amount to matching a computed key.
-
-[[enrich-by-lookup]]
-= Enrich Your Data Using Direct Lookup
-
-If you're enriching an infinite stream, you most likely need to observe
-the changes that happen to the enriching dataset over the long timespan
-of the Jet job. In this case you can't use the hash-join, which
-basically takes a snapshot of the enriching dataset at the beginning of
-the job.
-
-The `xUsingY` transforms (such as <<map-using-imap, `mapUsingIMap`>> or
-<<map-using-context, `filterUsingContext`>>) can enrich a stream by
-looking up from the original data source each time. There's direct
-support for <<map-using-imap, Hazelcast maps>> and Jet <<map-using-context,
-exposes the underlying machinery>> as well so you can write your own
-code to join with an arbitrary external dataset.
-
-If your source is a Hazelcast map inside the Jet cluster, you can
-achieve data locality and excellent throughput. If you are using an
-`IMap`, be sure to let Jet extract the lookup key by calling
-`stage.groupingKey()` before applying the transform. Jet will then be
-able to partition the stream by your lookup key, which is essential for
-data locality. If you use a `ReplicatedMap`, there's no need for that
-because its entire contents are replicated on each machine in the
-cluster.
-
-If you're looking up data from an external system (for example, a
-Hazelcast IMDG cluster), data locality is not an option, but you can
-still use caching (for example, the Hazelcast client has the _Near Cache_
-feature). You should specify the `groupingKey()` so that your cache will
-be partitioned and not duplicated on each Jet processor.
-
-When you use the `xUsingY` transform to enrich an infinite stream, your
-output will reflect the fact that the enriching dataset is changing. Two
-items with the same key may be enriched with different data. This is
-expected. However, the output may also behave in a surprising way. Say
-you change the enriching data for some key from A to B. You expect to
-see a sequence ...`A-A-B-B`... in the output, but when you sort it by
-timestamp, you can observe any order, such as `A-B-A-B` or `B-B-A-A`.
-This is because Jet doesn't enforce the processing order to strictly
-follow the time order of events. Currently there is no feature in Jet
-that would achieve monotonic read consistency while enriching an event
-stream from a changing dataset.
+. <<enrich-by-lookup, Directly look up>> the data from its storage
+system. If you're enriching an infinite stream and want to observe
+updates to the enriching dataset, you should use the this approach.
 
 [[hash-join]]
 = Hash-Join
@@ -264,8 +204,51 @@ items:
 include::{javasource}/BuildComputation.java[tag=s12]
 ----
 
+[[enrich-by-lookup]]
+= Enrich Using Direct Lookup
+
+If you're enriching an infinite stream, you most likely need to observe
+the changes that happen to the enriching dataset over the long timespan
+of the Jet job. In this case you can't use the hash-join, which
+basically takes a snapshot of the enriching dataset at the beginning of
+the job.
+
+The `xUsingY` transforms (such as <<map-using-imap, `mapUsingIMap`>> or
+<<map-using-context, `filterUsingContext`>>) can enrich a stream by
+looking up from the original data source each time. There's direct
+support for <<map-using-imap, Hazelcast maps>> and Jet <<map-using-context,
+exposes the underlying machinery>> as well so you can write your own
+code to join with an arbitrary external dataset.
+
+If your source is a Hazelcast map inside the Jet cluster, you can
+achieve data locality and excellent throughput. If you are using an
+`IMap`, be sure to let Jet extract the lookup key by calling
+`stage.groupingKey()` before applying the transform. Jet will then be
+able to partition the stream by your lookup key, which is essential for
+data locality. If you use a `ReplicatedMap`, there's no need for that
+because its entire contents are replicated on each machine in the
+cluster.
+
+If you're looking up data from an external system (for example, a
+Hazelcast IMDG cluster), data locality is not an option, but you can
+still use caching (for example, the Hazelcast client has the _Near Cache_
+feature). You should specify the `groupingKey()` so that your cache will
+be partitioned and not duplicated on each Jet processor.
+
+When you use the `xUsingY` transform to enrich an infinite stream, your
+output will reflect the fact that the enriching dataset is changing. Two
+items with the same key may be enriched with different data. This is
+expected. However, the output may also behave in a surprising way. Say
+you change the enriching data for some key from A to B. You expect to
+see a sequence ...`A-A-B-B`... in the output, but when you sort it by
+timestamp, you can observe any order, such as `A-B-A-B` or `B-B-A-A`.
+This is because Jet doesn't enforce the processing order to strictly
+follow the time order of events. Currently there is no feature in Jet
+that would achieve monotonic read consistency while enriching an event
+stream from a changing dataset.
+
 [[map-using-imap]]
-= Enrich a Stream Using a Hazelcast Map
+== Look Up from Hazelcast Map
 
 In addition to a <<hash-join, hash-join>>, Hazelcast Jet allows you to
 enrich your stream directly from a Hazelcast `IMap` or `ReplicatedMap`.
@@ -300,7 +283,7 @@ include::{javasource}/BuildComputation.java[tag=s16]
     `this`.
 
 [[map-using-context]]
-= Enrich a Stream Using an Arbitrary Context Object
+== Look Up From an External System
 
 In the example above the syntax looks very simple, but it hides a layer
 of complexity: you can't just fetch a Hazelcast map instance and add it
@@ -333,7 +316,7 @@ include::{javasource}/BuildComputation.java[tag=s16a]
 In a similar fashion you can integrate other external systems with a
 Jet pipeline.
 
-= Aggregation and Grouping
+= Group and Aggregate
 
 Data aggregation is the cornerstone of distributed stream processing. It
 computes an aggregate function (simple examples: sum or average) over
@@ -388,13 +371,23 @@ refer to the section <<implement-your-aggregate-operation,
 dedicated to this>>.
 
 [[cogroup]]
-= Co-Aggregation
+= Join Streams and Aggregate in One Step
 
 Just as we performed aggregate and group-and-aggregate operations above,
 we can perform a co-aggregate and cogroup-and-aggregate of several
-stages together. In SQL terms this is analogous to a `JOIN` coupled with
-a `GROUP BY`. The `JOIN` condition is constrained to matching on the
-grouping key.
+stages together. The result is a many-to-many join that matches the same
+key in all the joined streams and can simultaneously perform aggregation
+of the groups with the same key.
+
+You can join any number of streams on a common key. The key can be
+anything you can calculate from the data item. In the same step you can
+apply an aggregate function to all the grouped items, separated by the
+originating stream. The aggregate function can produce a summary value
+like an average or linear trend, but it can also keep a list of all the
+items, effectively avoiding actual aggregation. This way you can achieve
+any kind of join: inner/outer/full, left and right. The constraint, as
+already noted, is that the join condition cannot be fully general, but
+must amount to matching a computed key.
 
 Here's a simple example where we do the Word Count from two source
 lists:
@@ -551,3 +544,4 @@ outputs an item every time, not just after a new record-breaking trade.
 ----
 include::{javasource}/BuildComputation.java[tag=s19]
 ----
+
