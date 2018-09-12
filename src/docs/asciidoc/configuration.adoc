@@ -338,7 +338,8 @@ configurations are available at our Code Samples repo.
 == Configuring TLS (Enterprise only)
 
 It is possible to configure Jet to use TLS for all member to member
-and member to client communications.
+and member to client communications. TLS requires the use of Jet
+Enterprise version.
 
 Once TLS is enabled on a member, all other members in the same cluster
 and all clients connecting to the cluster must also have TLS enabled.
