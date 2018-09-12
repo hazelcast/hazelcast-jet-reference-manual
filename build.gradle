@@ -55,10 +55,11 @@ asciidoctor {
     }
 
     backends = [ 'html5', /*'pdf', /*'epub3'*/ ]
-    attributes \
+    attributes = [
         'jet-version': project.jetVersion,
-        'hz-version': "3.10.3",
+        'hz-version': "3.10.4",
         'javasource' : project.sourceSets.main.java.srcDirs[0].absolutePath
+    ]
 }
 
 build {
