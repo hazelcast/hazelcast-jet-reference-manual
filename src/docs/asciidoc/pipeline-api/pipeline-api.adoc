@@ -50,10 +50,13 @@ Hazelcast Jet has support for these data sources and sinks:
 contents and their event journal as an infinite source
 - Hazelcast `IList` (batch)
 - Hadoop Distributed File System (HDFS) (batch)
+- Java Database Connectivity (JDBC) (batch)
+- Java Messaging Services (JMS) queue and topic (infinite stream)
 - Kafka topic (infinite stream)
 - TCP socket (infinite stream)
 - a directory on the filesystem, both as a batch source of the current
   file contents and an infinite source of append events to the files
+- Apache Avro files (batch)
 - any source/sink you create on your own by using the
 {jet-javadoc}/pipeline/SourceBuilder.html[`SourceBuilder`] and the
 {jet-javadoc}/pipeline/SinkBuilder.html[`SinkBuilder`].
@@ -61,8 +64,8 @@ contents and their event journal as an infinite source
 You can access most of these via the
 {jet-javadoc}/pipeline/Sources.html[`Sources`] and
 {jet-javadoc}/pipeline/Sinks.html[`Sinks`] utility classes.
-{jet-javadoc}/KafkaSources.html[Kafka] and
-{jet-javadoc}/HdfsSources.html[HDFS] connectors are in their separate
+{jet-javadoc}/kafka/KafkaSources.html[Kafka], {jet-javadoc}/hadoop/HdfsSources.html[HDFS] and
+{jet-javadoc}/avro/AvroSources.html[Avro] connectors are in their separate
 modules. The {jet-javadoc}/pipeline/SourceBuilder.html#batch-java.lang.String-com.hazelcast.jet.function.DistributedFunction-[source]
 and {jet-javadoc}/pipeline/SinkBuilder.html#sinkBuilder-java.lang.String-com.hazelcast.jet.function.DistributedFunction-[sink]
 builder factories are in their respective classes.
@@ -124,7 +127,7 @@ enrichment_.
 You've got two basic techniques to enrich your data stream:
 
 . <<hash-join, Hash-join>> the primary data stream with one or more
-enriching streams. If your enriching dataset doesn't change for the
+enriching datasets. If your enriching dataset doesn't change for the
 duration of the Jet job, this is your best tool.
 
 . <<enrich-by-lookup, Directly look up>> the data from its storage
@@ -138,7 +141,7 @@ updates to the enriching dataset, you should use the this approach.
 is a kind of join operation optimized for the use case of _data
 enrichment_. It is like a many-to-one SQL JOIN that matches a foreign
 key in the stream-to-be-enriched with the primary key in the enriching
-stream. You can perform several such joins in one operation, enriching
+dataset. You can perform several such joins in one operation, enriching
 your stream from arbitrarily many sources.
 
 The stream-to-be-enriched (we'll call in the _primary_ stream for short)
@@ -220,56 +223,32 @@ support for <<map-using-imap, Hazelcast maps>> and Jet <<map-using-context,
 exposes the underlying machinery>> as well so you can write your own
 code to join with an arbitrary external dataset.
 
-If your source is a Hazelcast map inside the Jet cluster, you can
-achieve data locality and excellent throughput. If you are using an
-`IMap`, be sure to let Jet extract the lookup key by calling
-`stage.groupingKey()` before applying the transform. Jet will then be
-able to partition the stream by your lookup key, which is essential for
-data locality. If you use a `ReplicatedMap`, there's no need for that
-because its entire contents are replicated on each machine in the
-cluster.
-
-If you're looking up data from an external system (for example, a
-Hazelcast IMDG cluster), data locality is not an option, but you can
-still use caching (for example, the Hazelcast client has the _Near Cache_
-feature). You should specify the `groupingKey()` so that your cache will
-be partitioned and not duplicated on each Jet processor.
-
-When you use the `xUsingY` transform to enrich an infinite stream, your
-output will reflect the fact that the enriching dataset is changing. Two
-items with the same key may be enriched with different data. This is
-expected. However, the output may also behave in a surprising way. Say
-you change the enriching data for some key from A to B. You expect to
-see a sequence ...`A-A-B-B`... in the output, but when you sort it by
-timestamp, you can observe any order, such as `A-B-A-B` or `B-B-A-A`.
-This is because Jet doesn't enforce the processing order to strictly
-follow the time order of events. Currently there is no feature in Jet
-that would achieve monotonic read consistency while enriching an event
-stream from a changing dataset.
-
 [[map-using-imap]]
 == Look Up from Hazelcast Map
 
-In addition to a <<hash-join, hash-join>>, Hazelcast Jet allows you to
+Hazelcast Jet allows you to
 enrich your stream directly from a Hazelcast `IMap` or `ReplicatedMap`.
 Since it must look up the data again for each item, performance is lower
-than with a hash-join, but the data is kept fresh this way. This matters
+than with a <<hash-join, hash-join>>, but the data is kept fresh this way. This matters
 especially for unbounded streaming jobs, where a hash-join would use
 data frozen in time at the beginning of the job.
 
-If you use a Hazelcast map that is stored inside the Jet cluster, you
-can achieve data locality. For `ReplicatedMap` that's trivial because
+If you enrich from a Hazelcast map (`IMap` or `ReplicatedMap`) 
+that is stored inside the Jet cluster, you can achieve data locality. 
+For `ReplicatedMap` that's trivial because
 its entire contents are present on every cluster member. `IMap`, on the
 other hand, is partitioned so a given member holds only a part of the
-data. You must let Jet send your data item to the member that holds that
-particular item's lookup key. This still means the data travels over the
+data. You must repartition the primary stream to colocate it with the `IMap`.
+Jet then sends your data item to the member that holds that particular item's 
+lookup key. This still means the data travels over the
 network, but it's only one way and highly streamlined. There's no
 latency inherent to a request-response cycle, just the bandwidth cost of
 network transfer.
 
 In this example we enrich a stream of trades with detailed stock info.
-The info is stored in a Hazelcast `IMap` so we use `groupingKey()` to
-let Jet partition our stream and use local `IMap` lookups:
+The stock info (the enriching dataset) is stored in a Hazelcast `IMap` 
+so we use `groupingKey()` to let Jet partition our stream and use local 
+`IMap` lookups:
 
 [source]
 ----
@@ -282,9 +261,6 @@ include::{javasource}/BuildComputation.java[tag=s16]
     items. This syntax works if the setter has fluent API and returns
     `this`.
 
-[[map-using-context]]
-== Look Up From an External System
-
 In the example above the syntax looks very simple, but it hides a layer
 of complexity: you can't just fetch a Hazelcast map instance and add it
 to the pipeline. It's a proxy object that's valid only in the JVM
@@ -292,16 +268,23 @@ process where you obtained it. `mapUsingIMap` actually remembers just
 the name of the map and will obtain a map with the same name from the
 Jet cluster where the job runs.
 
-Hazelcast Jet exposes the facility used to implement `mapUsingIMap`:
-you can provide a _factory_ that Jet will use to create a context object
+[[map-using-context]]
+== Look Up From an External System
+
+Hazelcast Jet exposes the facility to look up from an external system.
+
+In this case you must define a factory object that creates a client instance
+and fetches the data from the remote system of record. 
+
+You can provide a _factory_ that Jet will use to create a context object
 for each `Processor` in the cluster that executes your transforming step.
 You can also specify a function that extracts the key from your items.
 Even though Jet won't do any lookup or grouping by that key, it will
 set up the job so that all the items with the same key get paired with
-the same context object. For example, you may be fetching data from an
-`IMap` that's stored on some other Hazelcast cluster. In this case you
-must define a factory object that creates a Hazelcast client instance
-and fetches this map. To optimize performance, you can enable the
+the same context object. 
+
+For example, you may be fetching data from a remote Hazelcast cluster. 
+To optimize performance, you can enable the
 near-cache on the client and you can save a lot of memory by specifying
 the key function: since Jet executes your enriching code in parallel,
 each worker has its own Hazelcast client instance, with its own
