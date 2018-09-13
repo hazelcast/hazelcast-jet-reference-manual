@@ -299,6 +299,18 @@ include::{javasource}/BuildComputation.java[tag=s16a]
 In a similar fashion you can integrate other external systems with a
 Jet pipeline.
 
+When you use the `xUsingY` transform to enrich an infinite stream, your
+output will reflect the fact that the enriching dataset is changing. Two
+items with the same key may be enriched with different data. This is
+expected. However, the output may also behave in a surprising way. Say
+you change the enriching data for some key from A to B. You expect to
+see a sequence ...`A-A-B-B`... in the output, but when you sort it by
+timestamp, you can observe any order, such as `A-B-A-B` or `B-B-A-A`.
+This is because Jet doesn't enforce the processing order to strictly
+follow the time order of events. Currently there is no feature in Jet
+that would achieve monotonic read consistency while enriching an event
+stream from a changing dataset.
+
 = Group and Aggregate
 
 Data aggregation is the cornerstone of distributed stream processing. It
