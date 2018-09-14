@@ -207,7 +207,7 @@ class BuildComputation {
         //tag::s10[]
         Pipeline p = Pipeline.create();
 
-        // The stream to be enriched: trades
+        // The primary stream (stream to be enriched): trades
         StreamStage<Trade> trades = p.drawFrom(Sources.mapJournal(
                 "trades", mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
 
