@@ -3,7 +3,7 @@
 == Bounded Stream (Batch) DAG
 
 Let's use the Core API to build the Word Count DAG, already described in
-an <<wourd-count-dag-model, earlier section>>):
+an <<word-count-dag-model, earlier section>>):
 
 image::word-count-dag.png[Word Count DAG,250,300,align="center"]
 
