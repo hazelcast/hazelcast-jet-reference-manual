@@ -2,11 +2,17 @@ import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.Job;
+import com.hazelcast.jet.config.EdgeConfig;
 import com.hazelcast.jet.config.JetConfig;
 import com.hazelcast.jet.config.JobConfig;
+import com.hazelcast.jet.core.DAG;
+import com.hazelcast.jet.core.Edge;
+import com.hazelcast.jet.core.Vertex;
+import com.hazelcast.jet.core.processor.Processors;
 import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.ContextFactory;
 import com.hazelcast.jet.pipeline.Pipeline;
+import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
 import com.hazelcast.jet.server.JetBootstrap;
 import com.hazelcast.nio.serialization.Serializer;
@@ -15,6 +21,9 @@ import java.io.OutputStream;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+
+import static com.hazelcast.jet.core.Edge.between;
+import static com.hazelcast.jet.core.processor.Processors.noopP;
 
 public class Considerations {
     static
@@ -144,11 +153,26 @@ public class Considerations {
 
     static void s10() {
         //tag::s10[]
+        JetConfig cfg = new JetConfig();
+        cfg.getDefaultEdgeConfig().setQueueSize(128);
+        JetInstance jet = Jet.newJetInstance(cfg);
         //end::s10[]
     }
 
     static void s11() {
+        JetInstance jet = Jet.newJetInstance();
         //tag::s11[]
+        Pipeline p = Pipeline.create();
+        p.drawFrom(Sources.<String>list("a")).setName("source")
+         .map(String::toLowerCase)
+         .drainTo(Sinks.list("b"));
+
+        DAG dag = p.toDag();
+        dag.getOutboundEdges("source")
+           .get(0)
+           .getConfig().setQueueSize(128);
+
+        jet.newJob(dag);
         //end::s11[]
     }
 }

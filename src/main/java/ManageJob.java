@@ -62,8 +62,8 @@ public class ManageJob {
                     inProgress++;
             }
             System.out.format(
-                "In the last five minutes %d jobs were submitted to Jet, of which %d already "
-                        + "completed, %d jobs failed, and %d jobs are still running.%n",
+                "In the last five minutes %d jobs were submitted to Jet, of which %d" +
+                " already completed, %d jobs failed, and %d jobs are still running.%n",
                 total, completed, failed, inProgress);
         }
         //end::s4[]

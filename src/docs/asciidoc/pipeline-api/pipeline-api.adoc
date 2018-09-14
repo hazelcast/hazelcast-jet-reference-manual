@@ -247,7 +247,8 @@ stream:
 
 . extract the lookup key
 . find its partition ID
-. send the item to the member holding the data with that partition ID
+. send the item to the member holding the `IMap` data with that
+partition ID
 . on the target member, use the lookup key again to fetch the enriching
 data
 
