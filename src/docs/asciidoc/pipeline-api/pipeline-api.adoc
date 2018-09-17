@@ -380,14 +380,14 @@ operations. You can also implement your own aggregate operations; please
 refer to the section <<implement-your-aggregate-operation,
 dedicated to this>>.
 
-[[cogroup]]
-= Join Streams and Aggregate in One Step
-
-Just as we performed aggregate and group-and-aggregate operations above,
-we can perform a co-aggregate and cogroup-and-aggregate of several
+Just as you perform aggregate and group-and-aggregate operations,
+you can perform a co-aggregate and cogroup-and-aggregate of several
 stages together. The result is a many-to-many join that matches the same
 key in all the joined streams and can simultaneously perform aggregation
-of the groups with the same key.
+of the groups with the same key. We discuss this next.
+
+[[cogroup]]
+= Join Streams and Aggregate in One Step
 
 You can join any number of streams on a common key. The key can be
 anything you can calculate from the data item. In the same step you can

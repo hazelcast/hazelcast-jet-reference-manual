@@ -25,39 +25,7 @@ import java.time.format.DateTimeFormatter;
 import static com.hazelcast.jet.core.Edge.between;
 import static com.hazelcast.jet.core.processor.Processors.noopP;
 
-public class Considerations {
-    static
-    //tag::s1[]
-    class JetExample {
-        static Job createJob(JetInstance jet) {
-            JobConfig jobConfig = new JobConfig();
-            jobConfig.addClass(JetExample.class);
-            return jet.newJob(buildPipeline(), jobConfig);
-        }
-
-        static Pipeline buildPipeline() {
-            Pipeline p = Pipeline.create();
-            // ...
-            return p;
-        }
-    }
-    //end::s1[]
-
-    static
-    //tag::s2[]
-    class CustomJetJob {
-        public static void main(String[] args) {
-            JetInstance jet = JetBootstrap.getInstance();
-            jet.newJob(buildPipeline()).join();
-        }
-
-        static Pipeline buildPipeline() {
-            Pipeline p = Pipeline.create();
-            // ...
-            return p;
-        }
-    }
-    //end::s2[]
+public class PerformanceConsiderations {
 
     static
     //tag::s3[]

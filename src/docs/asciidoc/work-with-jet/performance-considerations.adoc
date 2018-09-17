@@ -1,0 +1,62 @@
+= Performance Considerations
+
+== Standard Java Serialization is Slow
+
+When it comes to serializing the description of a Jet job, performance
+is not critical. However, for the data passing through the pipeline,
+the cost of the serialize-deserialize cycle can easily dwarf the cost of
+actual data transfer, especially on high-end LANs typical for data
+centers. In this context the performance of Java serialization is so
+poor that it regularly becomes the bottleneck. This is due to its heavy
+usage of reflection, overheads in the serialized form, etc.
+
+Since Hazelcast IMDG faced the same problem a long time ago, we have
+mature support for optimized custom serialization and in Jet you can
+use it for stream data. In essence, you must implement a
+`StreamSerializer` for the objects you emit from your processors and
+register it in Jet configuration:
+
+[source]
+----
+include::{javasource}/PerformanceConsiderations.java[tag=s9]
+----
+
+Consult the chapter on
+{hz-refman}#custom-serialization[custom serialization]
+in Hazelcast IMDG's reference manual for more details.
+
+Note the limitation implied here: the serializers must be registered
+with Jet on startup because this is how it is supported in Hazelcast
+IMDG. There is a plan to improve this and allow serializers to be
+registered on individual Jet jobs.
+
+== Capacity of the Concurrent Queues
+
+By default, Jet runs each internal DAG vertex, roughly equivalent to
+each step of the computation (such as `map` or `aggregate`), at maximum
+parallelism (equal to the number of CPU cores). This means that even a
+single Jet job uses quite a lot of parallel tasks. Since Jet's
+cooperative _tasklets_ are very cheap to switch between, there's almost
+no overhead from this. However, every pair of tasklets that communicate
+uses a dedicated 1-to-1 concurrent queue so the number of queues scales
+with the square of the number of CPU cores. The default queue capacity
+is 1024, which translates to 4-8 kilobytes RAM overhead per tasklet pair
+and potentially a lot of data items in flight before the queues fill up.
+
+If you experience RAM shortage on the Jet cluster, consider lowering the
+queue size. This is how you set the default queue size for the whole Jet
+cluster:
+
+[source]
+----
+include::{javasource}/PerformanceConsiderations.java[tag=s10]
+----
+
+You can also set queue sizes individually on each Core API DAG edge.
+You must first convert your pipeline to the Core DAG, apply the
+configuration, and then submit the DAG for execution:
+
+[source]
+----
+include::{javasource}/PerformanceConsiderations.java[tag=s11]
+----

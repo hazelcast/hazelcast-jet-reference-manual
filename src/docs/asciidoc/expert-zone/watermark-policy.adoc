@@ -116,7 +116,7 @@ which suppresses watermark items until the watermark has advanced at least
 `minStep` ahead of the previously emitted one.
 
 [[max-watermark-retention]]
-== Maximum watermark retention on substream merge
+== Maximum Watermark Retention When Merging Substreams
 
 When two input streams are merged into one for downstream processing,
 Jet waits for the watermark to advance in all substreams in order to

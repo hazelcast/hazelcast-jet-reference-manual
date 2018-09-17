@@ -7,7 +7,7 @@ include::start-jet-submit-job.adoc[]
 
 include::configure-fault-tolerance.adoc[]
 
-include::considerations.adoc[]
+include::performance-considerations.adoc[]
 
 include::log-debug.adoc[]
 
