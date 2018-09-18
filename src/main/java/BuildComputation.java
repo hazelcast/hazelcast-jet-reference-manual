@@ -35,8 +35,10 @@ import datamodel.TweetWord;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static com.hazelcast.jet.Traversers.traverseArray;
+import static com.hazelcast.jet.Traversers.traverseStream;
 import static com.hazelcast.jet.Util.entry;
 import static com.hazelcast.jet.Util.mapEventNewValue;
 import static com.hazelcast.jet.Util.mapPutEvents;
@@ -120,17 +122,19 @@ class BuildComputation {
     }
 
     //tag::s7[]
-    static void wordCountTwoSources() {
+    static void s7() {
         Pipeline p = Pipeline.create();
-        BatchStage<String> src1 = p.drawFrom(Sources.list("src1"));
-        BatchStage<String> src2 = p.drawFrom(Sources.list("src2"));
+        BatchStageWithKey<PageVisit, Integer> pageVisits =
+                p.drawFrom(Sources.<PageVisit>list("pageVisit"))
+                 .groupingKey(PageVisit::userId);
+        BatchStageWithKey<AddToCart, Integer> addToCarts =
+                p.drawFrom(Sources.<AddToCart>list("addToCart"))
+                 .groupingKey(AddToCart::userId);
+        BatchStage<Entry<Integer, Double>> coAggregated =
+                pageVisits.aggregate2(counting(), addToCarts, counting(),
+                (userId, visitCount, addCount) ->
+                        entry(userId, (double) addCount / visitCount));
 
-        BatchStageWithKey<String, String> grouped1 = groupByWord(src1);
-        BatchStageWithKey<String, String> grouped2 = groupByWord(src2);
-
-        BatchStage<Entry<String, Long>> coGrouped =
-                grouped1.aggregate2(counting(), grouped2, counting(),
-                        (key, count0, count1) -> entry(key, count0 + count1));
     }
 
     private static BatchStageWithKey<String, String> groupByWord(
@@ -143,25 +147,46 @@ class BuildComputation {
     }
     //end::s7[]
 
-    static void s7a() {
-        //tag::s7a[]
+    static void s8() {
         Pipeline p = Pipeline.create();
 
-        BatchStageWithKey<PageVisit, Integer> pageVisits =
+        //tag::s8[]
+        BatchStageWithKey<PageVisit, Integer> pageVisit =
                 p.drawFrom(Sources.<PageVisit>list("pageVisit"))
                  .groupingKey(PageVisit::userId);
-        BatchStageWithKey<AddToCart, Integer> addToCarts =
+        BatchStageWithKey<AddToCart, Integer> addToCart =
                 p.drawFrom(Sources.<AddToCart>list("addToCart"))
                  .groupingKey(AddToCart::userId);
+        //end::s8[]
 
-        BatchStage<Entry<Integer, Tuple2<List<PageVisit>, List<AddToCart>>>> joined =
-                pageVisits.aggregate2(toList(), addToCarts, toList(),
-                        (userId, list0, list1) -> list0.isEmpty()
-                                ? null : entry(userId, tuple2(list0, list1)));
+        //tag::s8a[]
+        BatchStage<Tuple2<List<PageVisit>, List<AddToCart>>> joinedLists =
+            pageVisit.aggregate2(toList(), addToCart, toList(),
+                (userId, pageVisits, addToCarts) -> tuple2(pageVisits, addToCarts));
+        //end::s8a[]
 
-        joined.drainTo(Sinks.map("result"));
-        //end::s7a[]
+        //tag::s8b[]
+        BatchStage<Tuple2<List<PageVisit>, List<AddToCart>>> rightOuterJoined =
+                joinedLists.filter(pair -> !pair.f0().isEmpty());
+
+        //end::s8b[]
+
+        //tag::s8c[]
+        BatchStage<Tuple2<PageVisit, AddToCart>> fullJoined = joinedLists
+            .flatMap(pair -> traverseStream(
+                    nonEmptyStream(pair.f0())
+                        .flatMap(pVisit -> nonEmptyStream(pair.f1())
+                                .map(addCart -> tuple2(pVisit, addCart)))));
+        //end::s8c[]
+
+        rightOuterJoined.drainTo(Sinks.map("result"));
     }
+
+    //tag::nonEmptyStream[]
+    static <T> Stream<T> nonEmptyStream(List<T> input) {
+        return input.isEmpty() ? Stream.of((T) null) : input.stream();
+    }
+    //end::nonEmptyStream[]
 
     static void s9() {
         //tag::s9[]
@@ -267,18 +292,32 @@ class BuildComputation {
         //end::s12[]
     }
 
-    static void s13() {
-        //tag::s13[]
+    static void s13a() {
         Pipeline p = Pipeline.create();
-        p.<String>drawFrom(Sources.mapJournal("tweets",
-                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT))
-         .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
-         .filter(word -> !word.isEmpty())
-         .addTimestamps()
-         .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
-         .groupingKey(wholeItem())
-         .aggregate(counting())
-         .drainTo(Sinks.list("result"));
+        //tag::s13a[]
+        BatchStage<String> tweets = p.drawFrom(Sources.list("tweets"));
+
+        tweets.flatMap(tweet -> traverseArray(tweet.toLowerCase().split("\\W+")))
+              .filter(word -> !word.isEmpty())
+              .groupingKey(wholeItem())
+              .aggregate(counting())
+              .drainTo(Sinks.map("counts"));
+        //end::s13a[]
+    }
+
+    static void s13() {
+        Pipeline p = Pipeline.create();
+        //tag::s13[]
+        StreamStage<String> tweets = p.drawFrom(Sources.mapJournal("tweets",
+                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
+
+        tweets.flatMap(tweet -> traverseArray(tweet.toLowerCase().split("\\W+")))
+              .filter(word -> !word.isEmpty())
+              .addTimestamps()
+              .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
+              .groupingKey(wholeItem())
+              .aggregate(counting())
+              .drainTo(Sinks.list("result"));
         //end::s13[]
     }
 

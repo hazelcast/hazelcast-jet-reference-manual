@@ -387,46 +387,99 @@ key in all the joined streams and can simultaneously perform aggregation
 of the groups with the same key. We discuss this next.
 
 [[cogroup]]
-= Join Streams and Aggregate in One Step
+= Correlate And Join Streams
 
-You can join any number of streams on a common key. The key can be
-anything you can calculate from the data item. In the same step you can
+In Jet you can join any number of streams on a common key, which can
+be anything you can calculate from the data item. This works great for
+correlating the data from two or more streams. In the same step you
 apply an aggregate function to all the grouped items, separated by the
 originating stream. The aggregate function can produce a summary value
 like an average or linear trend, but it can also keep a list of all the
-items, effectively avoiding actual aggregation. This way you can achieve
-any kind of join: inner/outer/full, left and right. The constraint, as
-already noted, is that the join condition cannot be fully general, but
-must amount to matching a computed key.
+items, effectively avoiding actual aggregation. You can achieve any kind
+of join: inner/outer/full, left and right. The constraint, as already
+noted, is that the join condition cannot be fully general, but must
+amount to matching a computed key.
 
-Here's a simple example where we do the Word Count from two source
-lists:
+Here's a simple example where we calculate the ratio of page visits to
+add-to-cart actions for each user. We accumulate the event counts and
+then do the maths on them at the end:
 
 [source]
 ----
 include::{javasource}/BuildComputation.java[tag=s7]
 ----
 
-Note how we supplied a separate aggregate operation for each input
-stage. The type of the result is `Entry<String, Tuple2<Long, Long>>`
-with a correspondence between the input stages and the members of the
-tuple. The result for stage-0 (the one you invoke `aggregate2` on) is
-in `tuple2.f0()` and the other stage's result is in `tuple2.f1()`.
+Note how we supplied a separate aggregate operation for each input stage.
+We calculate the overall result based on the results obtained for each
+input stage in isolation. In some advanced use cases you may have to
+perform the "blending" of all items even in the accumulation phase. In
+that case you can supply your custom two-input aggregate operation.
 
-== Example: Right-Outer Join Using Co-Aggregation
+== Joining Without Aggregating
 
-Here's an example that joins streams of page visits and add-to-cart
-events on the common key of user ID. It's a right-outer join, which
-means all add-to-cart events will be in the output, but page-visit
-events without a matching add-to-cart event won't.
+Let's assume you have these input stages:
 
 [source]
 ----
-include::{javasource}/BuildComputation.java[tag=s7a]
+include::{javasource}/BuildComputation.java[tag=s8]
+----
+
+You may have expected to find a joining transform in the Pipeline API
+that outputs a stream of all matching pairs of items:
+
+[source]
+----
+BatchStage<Tuple2<PageVisit, AddToCart>> joined =
+    pageVisits.join(addToCarts);
+----
+
+This would more closely match the semantics of an SQL JOIN, but in the
+context of a Java API it doesn't work well. For M page visits joined
+with N add-to-carts, Jet would have to materialize M * N tuples and feed
+them into the next stage. It would also be forced to buffer all the data
+from one stream before receiving the other.
+
+To allow you to get the best performance, Jet strongly couples joining
+with aggregation and encourages you to frame your solution in these
+terms.
+
+This doesn't stop you from getting the "exploded" output with all the
+joined data, it just makes it a less straightforward option. If your use
+case can't be solved any other way than by keeping all individual items,
+you can specify `toList()` as the aggregate operation and get all the
+items in lists:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s8a]
+----
+
+If you need something else than the full join, you can filter out some
+pairs of lists. In this example we create a LEFT OUTER JOIN by removing
+the pairs with empty left-hand list:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s8b]
+----
+
+If it's also mandatory that you get a stream of all the combinations
+of matched items, you can add a flatmapping stage:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s8c]
+----
+
+We used this helper method:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=nonEmptyStream]
 ----
 
 [[cogroup-builder]]
-==  Co-aggregate Four or More Streams Using the Builder
+==  Join Four or More Streams Using the Aggregate Builder
 
 If you need to join more than three streams, you'll have to use the
 {jet-javadoc}/pipeline/StageWithGroupingAndWindow.html#aggregateBuilder--[builder]
@@ -452,8 +505,21 @@ results using the tags you got in step 3
 
 = Windowed Aggregation
 
-Let's upgrade our batch Word Count to windowed aggregation over an
-endless stream of tweets:
+The process of data aggregation takes a finite batch of data and
+produces a result. We can make it work with an infinite stream if we
+break up the stream into finite chunks. This is called _windowing_.
+
+Let's demonstrate windowing on the example of the Word Count task. If
+you have a finite batch of tweets you want to analyze for word
+frequencies, this is how the pipeline can look:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s13a]
+----
+
+To make it work for an infinite stream, you have to add two things --
+event timestamps and the specification of the window:
 
 [source]
 ----
