@@ -136,8 +136,7 @@ public class PerformanceConsiderations {
          .drainTo(Sinks.list("b"));
 
         DAG dag = p.toDag();
-        dag.getOutboundEdges("source")
-           .get(0)
+        dag.getOutboundEdges("source").get(0)
            .getConfig().setQueueSize(128);
 
         jet.newJob(dag);

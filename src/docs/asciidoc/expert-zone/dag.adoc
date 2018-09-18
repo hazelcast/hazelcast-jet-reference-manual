@@ -317,7 +317,7 @@ order. Edges with the same priority are consumed without particular
 ordering (as the data arrives).
 
 We can see a prioritized edge in action in the
-{jet-samples}/core-api/batch/tf-idf/src/main/java/TfIdf.java[TF-IDF]
+{jet-samples}/core-api/tf-idf-core-api/src/main/java/TfIdfCoreApi.java[TF-IDF]
 example:
 
 [source]
@@ -331,8 +331,7 @@ before beginning to process the text.
 
 === A Fault Tolerance Caveat
 
-As explained in the section on the
-<<snapshotting-callbacks, Processor>>
+As explained in the section on the <<snapshotting-callbacks, Processor>>
 API, Jet takes regular snapshots of processor state when fault tolerance
 is enabled. A processor will get a special item in its input stream,
 called a _barrier_. When working in the _exactly once_ mode, as soon as
