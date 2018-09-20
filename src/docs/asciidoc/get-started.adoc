@@ -2,8 +2,8 @@
 [[get-started]]
 = Get Started
 
-In this section we'll get you started using Hazelcast Jet. We'll
-show you how to set up a Java project with the proper dependencies and a
+In this section we'll get you started using Hazelcast Jet. We'll show
+you how to set up a Java project with the proper dependencies and a
 quick Hello World example to verify your setup.
 
 [[requirements]]
@@ -12,7 +12,7 @@ quick Hello World example to verify your setup.
 In the good tradition of Hazelcast products, Jet is distributed as a JAR
 with no other dependencies. It requires JRE version 8 or higher to run.
 
-== Installing Hazelcast Jet
+== Install Hazelcast Jet
 
 The easiest way to start using Hazelcast Jet is to add it as a
 dependency to your project.
@@ -35,25 +35,28 @@ If you prefer to use Gradle, execute the following command:
 
 [source,groovy,subs="attributes+"]
 ----
-compile "com.hazelcast.jet:hazelcast-jet:{jet-version}"
+compile 'com.hazelcast.jet:hazelcast-jet:{jet-version}'
 ----
 
 Alternatively you can download the latest
 http://jet.hazelcast.org/download[distribution package of Hazelcast Jet]
-and add the `hazelcast-jet-<version>.jar` file to your classpath.
+and add the `hazelcast-jet-{jet-version}.jar` file to your classpath.
 
-=== Installing Hazelcast Jet Enterprise
+== Install Hazelcast Jet Enterprise (Optional)
 
-Hazelcast Jet Enterprise is a commercial edition of Hazelcast Jet. It's built on top of
-Hazelcast Jet open source and extends it with the following features:
+Hazelcast Jet Enterprise is a commercial edition of Hazelcast Jet. It's
+built on top of Hazelcast Jet open source and extends it with the
+following features:
 
 * <<configuring-tls-enterprise-only, Security Suite>>
 * Lossless Recovery (in Jet 1.0)
 * Rolling Job Upgrades (in Jet 1.0)
-* Enterprise PaaS Deployment Environment (https://docs.pivotal.io/partners/hazelcast-jet/index.html[Pivotal Cloud Foundry], Openshift Container Platform (Jet 1.0))
+* Enterprise PaaS Deployment Environment
+(https://docs.pivotal.io/partners/hazelcast-jet/index.html[Pivotal Cloud
+Foundry], Openshift Container Platform (Jet 1.0))
 
-Hazelcast Jet Enterprise is available on a Hazelcast Maven repository. Add the following
-lines to your `pom.xml`:
+Hazelcast Jet Enterprise is available on a Hazelcast Maven repository.
+Add the following lines to your `pom.xml`:
 
 [source,xml,subs="attributes+"]
 ----
@@ -76,25 +79,22 @@ lines to your `pom.xml`:
 </dependency>
 ----
 
-Hazelcast Jet Enterprise package can also be downloaded from
+You can download the Hazelcast Jet Enterprise package from
 https://hazelcast.com/hazelcast-enterprise-download/[hazelcast.com].
 
-[[setting-the-license-key]]
-==== Setting the License Key
+=== Set the License Key
 
-To use Hazelcast Jet Enterprise, you need to set the license key 
-using one of the configuration methods shown below. Trial license 
-key can be requested at
-https://hazelcast.com/hazelcast-enterprise-download/[hazelcast.com].
+To use Hazelcast Jet Enterprise, you must set the license key using one
+of the configuration methods shown below. You can request a trial
+license key at https://hazelcast.com/hazelcast-enterprise-download/[hazelcast.com].
 
-Hazelcast Jet Enterprise license keys are required only for members.
-You do not need to set a license key for your Java clients for which you
-want to use Jet Enterprise features.
+Hazelcast Jet Enterprise license keys are required only to run the Jet
+cluster. A Jet client can access the Enterprise features without the
+license key.
 
-The license key can be configured using one of the following
-methods:
+The license key can be configured using one of the following methods:
 
-===== Using config file
+==== Hazelcast Configuration File
 
 Replace the value for the `<license-key>` tag inside the `hazelcast.xml`
 file in the config folder:
@@ -108,7 +108,7 @@ file in the config folder:
   </hazelcast>
 ----
 
-===== Using programmatic configuration
+===== Programmatic Configuration
 
 License key also can be set in the Jet config object as follows:
 
@@ -118,7 +118,7 @@ JetConfig config = new JetConfig();
 config.getHazelcastConfig().setLicenseKey( "Your Enterprise License Key" );
 ----
 
-===== Using system property
+==== System Property
 
 Set the following system property:
 
@@ -128,15 +128,17 @@ Set the following system property:
 
 === Hazelcast Jet Management Center
 
-Hazelcast Jet Management Center is a management and monitoring suite providing
-a live overview of the Hazelcast Jet cluster. It's a standalone tool
-with a web console.
+Hazelcast Jet Management Center is a management and monitoring suite
+providing a live overview of the Hazelcast Jet cluster. It's a
+standalone tool with a web console.
 
-Please see the https://docs.hazelcast.org/docs/jet-management-center/latest/manual/[Hazelcast Jet Management Center Reference Manual] for the installation instructions.
-
+Please see the
+https://docs.hazelcast.org/docs/jet-management-center/latest/manual/[Hazelcast
+Jet Management Center Reference Manual] for the installation
+instructions.
 
 [[verify-your-setup]]
-== Word Count
+== Verify Your Setup with this Word Count Example
 
 You can verify your setup by running this simple program. It processes
 the contents of a Hazelcast `IList` that contains lines of text, finds
