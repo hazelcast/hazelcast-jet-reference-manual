@@ -50,7 +50,7 @@ Hazelcast Jet open source and extends it with the following features:
 * <<configuring-tls-enterprise-only, Security Suite>>
 * Lossless Recovery (in Jet 1.0)
 * Rolling Job Upgrades (in Jet 1.0)
-* Enterprise PaaS Deployment Environment (https://docs.pivotal.io/partners/hazelcast-jet/index.html[Pivotal Cloud Foundry], Openshift Container Platform (Jet 1.0))*
+* Enterprise PaaS Deployment Environment (https://docs.pivotal.io/partners/hazelcast-jet/index.html[Pivotal Cloud Foundry], Openshift Container Platform (Jet 1.0))
 
 Hazelcast Jet Enterprise is available on a Hazelcast Maven repository. Add the following
 lines to your `pom.xml`:
@@ -82,8 +82,9 @@ https://hazelcast.com/hazelcast-enterprise-download/[hazelcast.com].
 [[setting-the-license-key]]
 ==== Setting the License Key
 
-The use of Hazelcast Jet Enterprise requires a valid Jet Enterprise
-License Key. Trial license key can be requested at
+To use Hazelcast Jet Enterprise, you need to set the license key 
+using one of the configuration methods shown below. Trial license 
+key can be requested at
 https://hazelcast.com/hazelcast-enterprise-download/[hazelcast.com].
 
 Hazelcast Jet Enterprise license keys are required only for members.
@@ -124,8 +125,6 @@ Set the following system property:
 ----
 -Dhazelcast.enterprise.license.key=Your Enterprise License Key
 ----
-
-To use Hazelcast Jet Enterprise, you need to set the provided license key using one of the configuration methods shown below.
 
 === Hazelcast Jet Management Center
 
