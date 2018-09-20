@@ -12,8 +12,7 @@ quick Hello World example to verify your setup.
 In the good tradition of Hazelcast products, Jet is distributed as a JAR
 with no other dependencies. It requires JRE version 8 or higher to run.
 
-[[maven-gradle]]
-== Using Maven and Gradle
+== Installing Hazelcast Jet
 
 The easiest way to start using Hazelcast Jet is to add it as a
 dependency to your project.
@@ -39,31 +38,106 @@ If you prefer to use Gradle, execute the following command:
 compile "com.hazelcast.jet:hazelcast-jet:{jet-version}"
 ----
 
-[[downloading]]
-== Downloading
-
 Alternatively you can download the latest
 http://jet.hazelcast.org/download[distribution package of Hazelcast Jet]
 and add the `hazelcast-jet-<version>.jar` file to your classpath.
 
-[[distribution-package]]
-=== Distribution Package
+=== Installing Hazelcast Jet Enterprise
 
-The distribution package contains the following scripts to help you get
-started with Hazelcast Jet:
+Hazelcast Jet Enterprise is a commercial edition of Hazelcast Jet. It's built on top of
+Hazelcast Jet open source and extends it with the following features:
 
-* `bin/jet-start.sh` and `bin/jet-start.bat` start a new Jet member in
-the current directory.
-* `bin/jet-stop.sh` and `bin/jet-stop.bat` stop the member started in
-the current directory.
-* `bin/jet-submit.sh` and `bin/jet-submit.bat` submit a Jet computation
-job that was packaged in a self-contained JAR file.
-* `bin/cluster.sh` provides basic functionality for Hazelcast cluster
-manager, such as changing the cluster state, shutting down the cluster
-or forcing the cluster to clean its persisted data.
+* <<configuring-tls-enterprise-only, Security Suite>>
+* Lossless Recovery (in Jet 1.0)
+* Rolling Job Upgrades (in Jet 1.0)
+* Enterprise PaaS Deployment Environment (https://docs.pivotal.io/partners/hazelcast-jet/index.html[Pivotal Cloud Foundry], Openshift Container Platform (Jet 1.0))*
+
+Hazelcast Jet Enterprise is available on a Hazelcast Maven repository. Add the following
+lines to your `pom.xml`:
+
+[source,xml,subs="attributes+"]
+----
+<repository>
+   <id>Hazelcast Private Snapshot Repository</id>
+   <url>https://repository-hazelcast-l337.forge.cloudbees.com/snapshot/</url>
+</repository>
+<repository>
+   <id>Hazelcast Private Release Repository</id>
+   <url>https://repository-hazelcast-l337.forge.cloudbees.com/release/</url>
+</repository>
+----
+
+[source,xml,subs="attributes+"]
+----
+<dependency>
+   <groupId>com.hazelcast</groupId>
+   <artifactId>hazelcast-enterprise</artifactId>
+   <version>{jet-version}</version>
+</dependency>
+----
+
+Hazelcast Jet Enterprise package can also be downloaded from
+https://hazelcast.com/hazelcast-enterprise-download/[hazelcast.com].
+
+[[setting-the-license-key]]
+==== Setting the License Key
+
+The use of Hazelcast Jet Enterprise requires a valid Jet Enterprise
+License Key. Trial license key can be requested at
+https://hazelcast.com/hazelcast-enterprise-download/[hazelcast.com].
+
+Hazelcast Jet Enterprise license keys are required only for members.
+You do not need to set a license key for your Java clients for which you
+want to use Jet Enterprise features.
+
+The license key can be configured using one of the following
+methods:
+
+===== Using config file
+
+Replace the value for the `<license-key>` tag inside the `hazelcast.xml`
+file in the config folder:
+
+[source,xml,subs="attributes+"]
+----
+  <hazelcast ..>
+      ...
+      <license-key>ENTER LICENSE KEY HERE</license-key>
+      ...
+  </hazelcast>
+----
+
+===== Using programmatic configuration
+
+License key also can be set in the Jet config object as follows:
+
+[source,java]
+----
+JetConfig config = new JetConfig();
+config.getHazelcastConfig().setLicenseKey( "Your Enterprise License Key" );
+----
+
+===== Using system property
+
+Set the following system property:
+
+----
+-Dhazelcast.enterprise.license.key=Your Enterprise License Key
+----
+
+To use Hazelcast Jet Enterprise, you need to set the provided license key using one of the configuration methods shown below.
+
+=== Hazelcast Jet Management Center
+
+Hazelcast Jet Management Center is a management and monitoring suite providing
+a live overview of the Hazelcast Jet cluster. It's a standalone tool
+with a web console.
+
+Please see the https://docs.hazelcast.org/docs/jet-management-center/latest/manual/[Hazelcast Jet Management Center Reference Manual] for the installation instructions.
+
 
 [[verify-your-setup]]
-== Verify Your Setup
+== Word Count
 
 You can verify your setup by running this simple program. It processes
 the contents of a Hazelcast `IList` that contains lines of text, finds

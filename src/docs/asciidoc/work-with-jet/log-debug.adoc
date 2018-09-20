@@ -88,3 +88,17 @@ cluster-wide.
 
 For more information about logging when using the Core API, see the
 <<inspecting-processor-input-and-output, Best Practices>> section.
+
+[[management-center]]
+= Management Center
+
+Hazelcast Jet Management Center is a management and monitoring suite providing
+a live overview of the Hazelcast Jet cluster.
+Management Center includes a tool for diagnosing data flow within the
+running Hazelcast Jet job. It provides a visualization of the computational
+stages and allows you to peek into the stats across the dataflow graph
+enabling you to diagnose bottlenecks.
+
+Please refer to the https://docs.hazelcast.org/docs/jet-management-center/latest/manual/[Hazelcast Jet Management Center Reference Manual] for installation and usage instructions.
+
+image::management-center-job-detail.png[Job Detail,align="center"]
