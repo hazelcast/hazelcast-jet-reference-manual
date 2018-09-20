@@ -395,27 +395,32 @@ correlating the data from two or more streams. In the same step you
 apply an aggregate function to all the grouped items, separated by the
 originating stream. The aggregate function can produce a summary value
 like an average or linear trend, but it can also keep a list of all the
-items, effectively avoiding actual aggregation. You can achieve any kind
-of join: inner/outer/full, left and right. The constraint, as already
-noted, is that the join condition cannot be fully general, but must
-amount to matching a computed key.
+items, effectively <<join-without-aggregating, avoiding actual aggregation>>.
+You can achieve any kind of join: inner/outer/full, left and right. The
+constraint, as already noted, is that the join condition cannot be fully
+general, but must amount to matching a computed key.
 
 Here's a simple example where we calculate the ratio of page visits to
 add-to-cart actions for each user. We accumulate the event counts and
-then do the maths on them at the end:
+then do the maths on them in the end:
 
 [source]
 ----
 include::{javasource}/BuildComputation.java[tag=s7]
 ----
 
+<1> supply the aggregate operation for `pageVisits`
+<2> supply the aggregate operation for `addToCarts`
+
 Note how we supplied a separate aggregate operation for each input stage.
 We calculate the overall result based on the results obtained for each
-input stage in isolation. In some advanced use cases you may have to
-perform the "blending" of all items even in the accumulation phase. In
-that case you can supply your custom two-input aggregate operation.
+input stage in isolation. You also have the option of constructing a
+two-input aggregate operation that has immediate access to all the items.
+Refer to the <<implement-your-aggregate-operation, section on
+`AggregateOperation`>>.
 
-== Joining Without Aggregating
+[[join-without-aggregating]]
+== Join Without Aggregating
 
 Let's assume you have these input stages:
 
@@ -429,8 +434,7 @@ that outputs a stream of all matching pairs of items:
 
 [source]
 ----
-BatchStage<Tuple2<PageVisit, AddToCart>> joined =
-    pageVisits.join(addToCarts);
+BatchStage<Tuple2<PageVisit, AddToCart>> joined = pageVisits.join(addToCarts);
 ----
 
 This would more closely match the semantics of an SQL JOIN, but in the
@@ -463,8 +467,8 @@ the pairs with empty left-hand list:
 include::{javasource}/BuildComputation.java[tag=s8b]
 ----
 
-If it's also mandatory that you get a stream of all the combinations
-of matched items, you can add a flatmapping stage:
+If you specifically need to get a stream of all the combinations of
+matched items, you can add a flatmapping stage:
 
 [source]
 ----
@@ -568,8 +572,8 @@ internally and correlates the input item to all the output items in a
 `flatMap` transformation, propagating the timestamp value.
 
 You should generally prefer setting timestamps as the first thing in
-a pipeline because then the source connector will handle the watermarks
-itself. The connector knows more about the structure of its source and
+a pipeline because then the source integration will handle the watermarks
+itself. The integration knows more about the structure of its source and
 can produce better watermarks, with less latency and less dropped late
 events.
 

@@ -121,8 +121,8 @@ class BuildComputation {
         //end::s6[]
     }
 
-    //tag::s7[]
     static void s7() {
+        //tag::s7[]
         Pipeline p = Pipeline.create();
         BatchStageWithKey<PageVisit, Integer> pageVisits =
                 p.drawFrom(Sources.<PageVisit>list("pageVisit"))
@@ -131,21 +131,12 @@ class BuildComputation {
                 p.drawFrom(Sources.<AddToCart>list("addToCart"))
                  .groupingKey(AddToCart::userId);
         BatchStage<Entry<Integer, Double>> coAggregated =
-                pageVisits.aggregate2(counting(), addToCarts, counting(),
-                (userId, visitCount, addCount) ->
-                        entry(userId, (double) addCount / visitCount));
-
+                pageVisits.aggregate2(counting(),            // <1>
+                    addToCarts, counting(),                  // <2>
+                    (userId, visitCount, addCount) ->
+                            entry(userId, (double) addCount / visitCount));
+        //end::s7[]
     }
-
-    private static BatchStageWithKey<String, String> groupByWord(
-            BatchStage<String> lineSource
-    ) {
-        return lineSource
-                .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
-                .filter(word -> !word.isEmpty())
-                .groupingKey(wholeItem());
-    }
-    //end::s7[]
 
     static void s8() {
         Pipeline p = Pipeline.create();
