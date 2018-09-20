@@ -52,10 +52,10 @@ be pulling its data.
 
 A `file` source/sink is another example of a non-distributed data
 source, but with a different twist: it's more of a "manually
-distributed" resource. In a <<file-sources, local mode>>, 
-each member will access its own local filesystem. 
-To use it as a source, you have to prepare the files on each machine so 
-each Jet member gets its part of the data. When used as a sink, you'll 
+distributed" resource. In a <<file-sources, local mode>>,
+each member will access its own local filesystem.
+To use it as a source, you have to prepare the files on each machine so
+each Jet member gets its part of the data. When used as a sink, you'll
 have to manually gather all the pieces that Jet created around the cluster.
 
 == What about Data Locality?

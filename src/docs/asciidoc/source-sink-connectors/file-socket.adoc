@@ -28,7 +28,7 @@ Here's an example with the
 
 [source]
 ----
-include::{javasource}/FileAndSocket.java[tag=s1]
+include::{javasource}/integration/FileAndSocket.java[tag=s1]
 ----
 
 This will log on each Jet member the contents of all the files in the
@@ -41,7 +41,7 @@ Here's an example with the
 
 [source]
 ----
-include::{javasource}/FileAndSocket.java[tag=s2]
+include::{javasource}/integration/FileAndSocket.java[tag=s2]
 ----
 
 It will watch the directory for changes. It will emit only new contents added
@@ -64,7 +64,7 @@ Here's a small example of usage:
 
 [source]
 ----
-include::{javasource}/FileAndSocket.java[tag=s3]
+include::{javasource}/integration/FileAndSocket.java[tag=s3]
 ----
 
 [[connector-files-avro]]
@@ -85,7 +85,7 @@ Here's an example with a
 
 [source]
 ----
-include::{javasource}/Avro.java[tag=s1]
+include::{javasource}/integration/Avro.java[tag=s1]
 ----
 
 This will log on each Jet member the records of all the files in the
@@ -104,7 +104,7 @@ Here is an example with a
 
 [source]
 ----
-include::{javasource}/Avro.java[tag=s2]
+include::{javasource}/integration/Avro.java[tag=s2]
 ----
 
 [[connector-socket]]
@@ -125,7 +125,7 @@ Here's a simple example:
 
 [source]
 ----
-include::{javasource}/FileAndSocket.java[tag=s4]
+include::{javasource}/integration/FileAndSocket.java[tag=s4]
 ----
 
 
@@ -144,5 +144,5 @@ Here's a simple example:
 
 [source]
 ----
-include::{javasource}/FileAndSocket.java[tag=s5]
+include::{javasource}/integration/FileAndSocket.java[tag=s5]
 ----

@@ -34,7 +34,7 @@ the underlying table is actually physically partitioned by this key.
 
 [source]
 ----
-include::{javasource}/JDBC.java[tag=s1]
+include::{javasource}/integration/JDBC.java[tag=s1]
 ----
 
 === Example of non-parallel source
@@ -44,7 +44,7 @@ single query. You need to provide just one SQL query.
 
 [source]
 ----
-include::{javasource}/JDBC.java[tag=s2]
+include::{javasource}/integration/JDBC.java[tag=s2]
 ----
 
 Output function gets the `ResultSet` and creates desired output object.
@@ -89,5 +89,5 @@ database table:
 
 [source]
 ----
-include::{javasource}/JDBC.java[tag=s3]
+include::{javasource}/integration/JDBC.java[tag=s3]
 ----

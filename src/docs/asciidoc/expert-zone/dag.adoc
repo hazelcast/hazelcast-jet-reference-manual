@@ -11,7 +11,7 @@ You can "compile" a Jet pipeline into a `DAG`:
 
 [source]
 ----
-include::{javasource}/ExpertZoneDag.java[tag=s0]
+include::{javasource}/expertzone/Dag.java[tag=s0]
 ----
 
 Studying these DAGs may be a useful aid while learning the Core API.
@@ -20,7 +20,7 @@ To start building a DAG from scratch, write
 
 [source]
 ----
-include::{javasource}/ExpertZoneDag.java[tag=s1]
+include::{javasource}/expertzone/Dag.java[tag=s1]
 ----
 
 A good practice is to structure the DAG-building code into the following
@@ -34,7 +34,7 @@ Example:
 
 [source]
 ----
-include::{javasource}/ExpertZoneDag.java[tag=s2]
+include::{javasource}/expertzone/Dag.java[tag=s2]
 ----
 
 <1> Create the vertices
@@ -128,7 +128,7 @@ build a DAG with one source feeding two computational vertices:
 
 [source]
 ----
-include::{javasource}/ExpertZoneDag.java[tag=s3]
+include::{javasource}/expertzone/Dag.java[tag=s3]
 ----
 
 [[local-and-distributed-edge]]
@@ -154,7 +154,7 @@ Count>> example:
 
 [source]
 ----
-include::{javasource}/ExpertZoneDag.java[tag=s4]
+include::{javasource}/expertzone/Dag.java[tag=s4]
 ----
 
 Note that only the edge from `accumulate` to `combine` is distributed.
@@ -172,7 +172,7 @@ This is the default routing policy, the one you get when you write
 
 [source]
 ----
-include::{javasource}/ExpertZoneDag.java[tag=s5]
+include::{javasource}/expertzone/Dag.java[tag=s5]
 ----
 
 For each item it chooses a single destination processor with no further
@@ -198,7 +198,7 @@ Activate this policy by calling `isolated()` on the edge:
 
 [source]
 ----
-include::{javasource}/ExpertZoneDag.java[tag=s6]
+include::{javasource}/expertzone/Dag.java[tag=s6]
 ----
 
 === Broadcast
@@ -216,7 +216,7 @@ Activate this policy by calling `broadcast()` on the edge:
 
 [source]
 ----
-include::{javasource}/ExpertZoneDag.java[tag=s7]
+include::{javasource}/expertzone/Dag.java[tag=s7]
 ----
 
 === Partitioned
@@ -266,7 +266,7 @@ We use both partitioning strategies in the Word Count example:
 
 [source]
 ----
-include::{javasource}/ExpertZoneDag.java[tag=s8]
+include::{javasource}/expertzone/Dag.java[tag=s8]
 ----
 
 Note that the local-partitioned edge uses partitioning by hash code and
@@ -297,7 +297,7 @@ second-stage aggregating vertex:
 
 [source]
 ----
-include::{javasource}/ExpertZoneDag.java[tag=s9]
+include::{javasource}/expertzone/Dag.java[tag=s9]
 ----
 
 == Priority
@@ -322,7 +322,7 @@ example:
 
 [source]
 ----
-include::{javasource}/ExpertZoneDag.java[tag=s10]
+include::{javasource}/expertzone/Dag.java[tag=s10]
 ----
 
 The `tokenize` vertex receives a set of _stopwords_ and filters out
@@ -363,7 +363,7 @@ example,
 
 [source]
 ----
-include::{javasource}/ExpertZoneDag.java[tag=s11]
+include::{javasource}/expertzone/Dag.java[tag=s11]
 ----
 
 Please refer to the Javadoc of

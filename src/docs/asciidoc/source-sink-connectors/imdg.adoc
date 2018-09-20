@@ -13,12 +13,12 @@ and `ICache` as a source and a sink:
 
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s1]
+include::{javasource}/integration/ImdgConnectors.java[tag=s1]
 ----
 
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s2]
+include::{javasource}/integration/ImdgConnectors.java[tag=s2]
 ----
 
 In these snippets we draw from and drain to the same kind of structure,
@@ -35,7 +35,7 @@ data from `IMap` to `ICache` and vice versa:
 
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s7]
+include::{javasource}/integration/ImdgConnectors.java[tag=s7]
 ----
 
 For a full discussion on how to configure your client connection, refer
@@ -52,7 +52,7 @@ before sending:
 
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s8]
+include::{javasource}/integration/ImdgConnectors.java[tag=s8]
 ----
 
 The same optimization works on a local `IMap`, too, but has less impact.
@@ -92,7 +92,7 @@ This is how you enable the Event Journal on an `IMap`:
 
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s9]
+include::{javasource}/integration/ImdgConnectors.java[tag=s9]
 ----
 
 The default journal capacity is 10,000 and the default time-to-live is 0
@@ -103,14 +103,14 @@ The configuration API for `ICache` is identical:
 
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s10]
+include::{javasource}/integration/ImdgConnectors.java[tag=s10]
 ----
 
 Once properly configured, you use Event Journal sources like this:
 
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s11]
+include::{javasource}/integration/ImdgConnectors.java[tag=s11]
 ----
 
 `IMap` and `ICache` are on an equal footing here. The second argument,
@@ -126,7 +126,7 @@ you can request all event types and full event objects:
 
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s12]
+include::{javasource}/integration/ImdgConnectors.java[tag=s12]
 ----
 
 Note the type of the stream element: `EventJournalMapEvent` and
@@ -149,7 +149,7 @@ cluster, you just have to prepend `remote` to the source names and add a
 
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s13]
+include::{javasource}/integration/ImdgConnectors.java[tag=s13]
 ----
 
 == Update Entries in IMap
@@ -170,7 +170,7 @@ exists in the map. Here's an example that concatenates string values:
 +
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s3]
+include::{javasource}/integration/ImdgConnectors.java[tag=s3]
 ----
 +
 NOTE: This operation is **NOT** lock-aware, it will process the entries
@@ -187,7 +187,7 @@ string values:
 +
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s4]
+include::{javasource}/integration/ImdgConnectors.java[tag=s4]
 ----
 +
 NOTE: This operation is **NOT** lock-aware, it will process the entries
@@ -208,8 +208,8 @@ that increments the values by 5:
 +
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s5]
-include::{javasource}/ImdgConnectors.java[tag=s6]
+include::{javasource}/integration/ImdgConnectors.java[tag=s5]
+include::{javasource}/integration/ImdgConnectors.java[tag=s6]
 ----
 
 [[imdg-list]]
@@ -229,7 +229,7 @@ instance in the variable `jet`):
 
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s14]
+include::{javasource}/integration/ImdgConnectors.java[tag=s14]
 ----
 
 You can access a list in an external cluster as well, by providing a
@@ -237,5 +237,5 @@ You can access a list in an external cluster as well, by providing a
 
 [source]
 ----
-include::{javasource}/ImdgConnectors.java[tag=s15]
+include::{javasource}/integration/ImdgConnectors.java[tag=s15]
 ----

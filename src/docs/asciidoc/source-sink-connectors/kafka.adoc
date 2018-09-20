@@ -11,7 +11,7 @@ to `t3`:
 
 [source]
 ----
-include::{javasource}/HdfsAndKafka.java[tag=s3]
+include::{javasource}/integration/HdfsAndKafka.java[tag=s3]
 ----
 
 == Using Kafka as a Source

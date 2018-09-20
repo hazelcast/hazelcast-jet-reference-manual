@@ -1,3 +1,5 @@
+package integration;
+
 import com.hazelcast.jet.hadoop.HdfsSinks;
 import com.hazelcast.jet.hadoop.HdfsSources;
 import com.hazelcast.jet.kafka.KafkaSinks;

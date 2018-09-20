@@ -76,14 +76,14 @@ from 0 to 1,000,000 (exclusive). It is trivial to write a single
 
 [source]
 ----
-include::{javasource}/ExpertZoneCustomSource.java[tag=s1]
+include::{javasource}/expertzone/CustomSource.java[tag=s1]
 ----
 
 Now we can build our DAG and execute it:
 
 [source]
 ----
-include::{javasource}/ExpertZoneCustomSource.java[tag=s2]
+include::{javasource}/expertzone/CustomSource.java[tag=s2]
 ----
 
 When you run this code, you will see the output as below:
@@ -118,21 +118,21 @@ partitioning logic:
 
 [source]
 ----
-include::{javasource}/ExpertZoneCustomSource.java[tag=s3]
+include::{javasource}/expertzone/CustomSource.java[tag=s3]
 ----
 
 Given this preparation, implementing `ProcessorSupplier` is easy:
 
 [source]
 ----
-include::{javasource}/ExpertZoneCustomSource.java[tag=s4]
+include::{javasource}/expertzone/CustomSource.java[tag=s4]
 ----
 
 Let's use the custom processor supplier in our DAG-building code:
 
 [source]
 ----
-include::{javasource}/ExpertZoneCustomSource.java[tag=s5]
+include::{javasource}/expertzone/CustomSource.java[tag=s5]
 ----
 
 Now we can re-run our example and see that each number indeed occurs
@@ -141,7 +141,7 @@ Jet cluster; let's see what happens when we add another member:
 
 [source]
 ----
-include::{javasource}/ExpertZoneCustomSource.java[tag=s6]
+include::{javasource}/expertzone/CustomSource.java[tag=s6]
 ----
 
 Running after this change we'll see that both members are generating the
@@ -166,14 +166,14 @@ simply return `map::get` as our function.
 
 [source]
 ----
-include::{javasource}/ExpertZoneCustomSource.java[tag=s7]
+include::{javasource}/expertzone/CustomSource.java[tag=s7]
 ----
 
 We change our DAG-building code to use the meta-supplier:
 
 [source]
 ----
-include::{javasource}/ExpertZoneCustomSource.java[tag=s8]
+include::{javasource}/expertzone/CustomSource.java[tag=s8]
 ----
 
 After re-running with two Jet members, we should once again see each
@@ -202,7 +202,7 @@ of extending `AbstractProcessor`:
 
 [source]
 ----
-include::{javasource}/ExpertZoneCustomSink.java[tag=s1]
+include::{javasource}/expertzone/CustomSink.java[tag=s1]
 ----
 
 Some comments:
@@ -224,5 +224,5 @@ processor's code. This is the supplier's code:
 
 [source]
 ----
-include::{javasource}/ExpertZoneCustomSink.java[tag=s2]
+include::{javasource}/expertzone/CustomSink.java[tag=s2]
 ----

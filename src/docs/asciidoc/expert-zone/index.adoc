@@ -1,3 +1,4 @@
+[[expert-zone]]
 = Expert Zone -- The Core API
 
 This section covers the Core API, Jet's low-level API that directly

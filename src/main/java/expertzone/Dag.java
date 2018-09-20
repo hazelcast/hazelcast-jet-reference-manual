@@ -1,3 +1,5 @@
+package expertzone;
+
 import com.hazelcast.jet.config.EdgeConfig;
 import com.hazelcast.jet.core.DAG;
 import com.hazelcast.jet.core.Partitioner;
@@ -15,7 +17,7 @@ import static com.hazelcast.jet.function.DistributedFunctions.entryKey;
 import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-class ExpertZoneDag {
+class Dag {
 
     private static Vertex
             input,

@@ -16,14 +16,14 @@ Here's a configuration sample:
 
 [source]
 ----
-include::{javasource}/HdfsAndKafka.java[tag=s1]
+include::{javasource}/integration/HdfsAndKafka.java[tag=s1]
 ----
 
 The word count pipeline can then be expressed using HDFS as follows
 
 [source]
 ----
-include::{javasource}/HdfsAndKafka.java[tag=s2]
+include::{javasource}/integration/HdfsAndKafka.java[tag=s2]
 ----
 
 == Data Locality When Reading

@@ -1,3 +1,5 @@
+package expertzone;
+
 import com.hazelcast.jet.Util;
 import com.hazelcast.jet.core.DAG;
 import com.hazelcast.jet.core.Vertex;
@@ -12,7 +14,7 @@ import static com.hazelcast.jet.core.processor.SinkProcessors.writeFileP;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
-class ExpertZoneBestPractices {
+class BestPractices {
 
     private static
     //tag::s1[]

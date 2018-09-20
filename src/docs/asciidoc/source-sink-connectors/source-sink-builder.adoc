@@ -28,7 +28,7 @@ In this example we build a source that emits the lines of a file:
 
 [source]
 ----
-include::{javasource}/SourceSinkBuilders.java[tag=s1]
+include::{javasource}/integration/SourceSinkBuilders.java[tag=s1]
 ----
 <1> here we pass `createFn`, the factory of state objects
 <2> the main logic goes to `fillBufferFn`
@@ -43,7 +43,7 @@ get the best performance, we can improve it to emit the data in chunks:
 
 [source]
 ----
-include::{javasource}/SourceSinkBuilders.java[tag=s1a]
+include::{javasource}/integration/SourceSinkBuilders.java[tag=s1a]
 ----
 
 === Build an Unbounded (Stream) Source
@@ -53,7 +53,7 @@ emitting all the lines it gets in the response:
 
 [source]
 ----
-include::{javasource}/SourceSinkBuilders.java[tag=s2]
+include::{javasource}/integration/SourceSinkBuilders.java[tag=s2]
 ----
 
 Our state object is an instance of the Apache HTTP Client. It maintains
@@ -76,7 +76,7 @@ timestamp. We can extract them as follows:
 
 [source]
 ----
-include::{javasource}/SourceSinkBuilders.java[tag=s2a]
+include::{javasource}/integration/SourceSinkBuilders.java[tag=s2a]
 ----
 
 Note the line `allowedLateness(2000)`. The events aren't necessarily
@@ -112,7 +112,7 @@ Here's a rudimentary example that shows how such a scheme could work:
 
 [source]
 ----
-include::{javasource}/SourceSinkBuilders.java[tag=s3]
+include::{javasource}/integration/SourceSinkBuilders.java[tag=s3]
 ----
 <1> we request two parallel processors on each Jet member
 
@@ -160,7 +160,7 @@ This is a simple example with a file sink:
 
 [source]
 ----
-include::{javasource}/SourceSinkBuilders.java[tag=s4]
+include::{javasource}/integration/SourceSinkBuilders.java[tag=s4]
 ----
 
 This will create the file `output.txt` on each member, so the overall
@@ -179,7 +179,7 @@ do explicit buffering and flushing:
 
 [source]
 ----
-include::{javasource}/SourceSinkBuilders.java[tag=s5]
+include::{javasource}/integration/SourceSinkBuilders.java[tag=s5]
 ----
 
 In this case we don't need the `destroyFn` because we keep the file

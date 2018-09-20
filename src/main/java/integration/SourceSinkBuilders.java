@@ -1,3 +1,5 @@
+package integration;
+
 import com.hazelcast.jet.core.Processor;
 import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.BatchStage;
@@ -26,7 +28,7 @@ public class SourceSinkBuilders {
         BatchSource<String> fileSource = SourceBuilder
             .batch("file-source", x ->                               //<1>
                     new BufferedReader(new FileReader("input.txt")))
-            .<String>fillBufferFn((in, buf) -> {                     //<2>
+            .<String>fillBufferFn((in, buf) -> {                          //<2>
                 String line = in.readLine();
                 if (line != null) {
                     buf.add(line);

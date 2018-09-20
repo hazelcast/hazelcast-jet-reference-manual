@@ -28,11 +28,11 @@ and a JMS topic using ActiveMQ JMS Client.
 
 [source]
 ----
-include::{javasource}/JMS.java[tag=s1]
+include::{javasource}/integration/JMS.java[tag=s1]
 ----
 [source]
 ----
-include::{javasource}/JMS.java[tag=s2]
+include::{javasource}/integration/JMS.java[tag=s2]
 ----
 
 The JMS topic is a non-distributed source, if messages are consumed by
@@ -58,9 +58,9 @@ using ActiveMQ JMS Client.
 
 [source]
 ----
-include::{javasource}/JMS.java[tag=s3]
+include::{javasource}/integration/JMS.java[tag=s3]
 ----
 [source]
 ----
-include::{javasource}/JMS.java[tag=s4]
+include::{javasource}/integration/JMS.java[tag=s4]
 ----
