@@ -1,3 +1,4 @@
+[[fault-tolerance]]
 = Configure Fault Tolerance
 
 Jet has features to allow an unbounded stream processing job to proceed

@@ -111,7 +111,7 @@ accumulator.
 
 If you happen to have a deeper familiarity with JDK's java.util.stream
 API, you'll find `AggregateOperation` quite similar to
-https://docs.oracle.com/javase/9/docs/api/java/util/stream/Collector.html[`Collector`],
+{jdk-javadoc}/java/util/stream/Collector.html[`Collector`],
 which is also a holder of several functional primitives. Jet's
 definitions are slightly different, though, and there are the additional
 optimizing primitives we just mentioned.

@@ -48,6 +48,7 @@ include::{javasource}/BuildComputation.java[tag=s1]
 Refer to the chapter on the <<pipeline-api, Pipeline API>> for full
 details.
 
+[[serializable-lambda]]
 = Watch out for Capturing Lambdas
 
 A typical Jet pipeline involves lambda expressions. Since the whole

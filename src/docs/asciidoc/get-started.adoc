@@ -85,3 +85,48 @@ You should expect to see a lot of logging output from Jet (sent to
 Count of hello: 4
 Count of world: 5
 ----
+
+[[java-util-stream]]
+== Reuse Your java.util.stream Knowledge
+
+If you've already used Java's Stream API, you'll find many similarities
+in Jet's Pipeline API. They both construct a processing pipeline by
+adding processing steps (stages). Both are FP-oriented APIs with lambdas
+playing a key role. Simple transformations like map/filter even look
+exactly the same. The main concern is knowing where the similiarities
+end. Here are some typical gotchas if the Stream API has set some
+expectations for you:
+
+- All lambdas in Jet <<serializable-lambda, get serialized>> so they can
+be sent to remote cluster members. If your lambda captures a variable
+from the surrounding scope, that variable's contents must be serialized
+as well. If you refer to an instance variable, the entire instance
+holding it must be serialized. It's quite easy to accidentally capture
+and serialize the entire `this` object.
+
+- The pipeline you construct doesn't execute itself, you must explicitly
+{jet-javadoc}/JetInstance.html#newJob-com.hazelcast.jet.pipeline.Pipeline-[submit]
+it to a Jet cluster.
+
+- Since you're submitting the computation to an external system, you
+don't get the result in the return value of a method call. The pipeline
+explicitly specifies where it will store the results (to a
+<<pipeline-source-sink, data sink>>).
+
+- Whereas in the Stream API aggregation is the terminal step, the one
+that immediately makes your pipeline execute, in Jet it is just another
+transformation (an intermediate step).
+
+If you have ever written your own
+{jdk-javadoc}/java/util/stream/Collector.html[Collector] for the
+Stream API, you'll find that Jet's <<implement-your-aggregate-operation,
+AggregateOperation>> is quite similar and you can transfer your skill
+to it.
+
+Finally you'll notice that Jet's Pipeline API is much more powerful than
+the Stream API. Here are a few highlights:
+
+- <<cogroup, joining streams>>
+- <<windowed-aggregation, windowed aggregation over infinite streams>>
+- <<fault-tolerance, fault tolerance>>
+- <<source-sink-connectors, connectors to 3rd party systems>>

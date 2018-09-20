@@ -42,6 +42,7 @@ than one destination:
 include::{javasource}/BuildComputation.java[tag=s3]
 ----
 
+[[pipeline-source-sink]]
 = Choose Your Data Sources and Sinks
 
 Hazelcast Jet has support for these data sources and sinks:
@@ -507,6 +508,7 @@ operation to perform on each
 <4> Build the co-group transform, retrieve the individual aggregation
 results using the tags you got in step 3
 
+[[windowed-aggregation]]
 = Windowed Aggregation
 
 The process of data aggregation takes a finite batch of data and

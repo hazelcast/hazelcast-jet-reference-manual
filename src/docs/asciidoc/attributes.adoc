@@ -4,3 +4,4 @@
 :jet-core: https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet
 :hz-refman: http://docs.hazelcast.org/docs/{hz-version}/manual/html-single/index.html
 :hz-javadoc: http://docs.hazelcast.org/docs/{hz-version}/javadoc/com/hazelcast
+:jdk-javadoc: https://docs.oracle.com/javase/9/docs/api
