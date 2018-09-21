@@ -320,7 +320,7 @@ class BuildComputation {
          .flatMap(tweet -> traverseArray(tweet.text().toLowerCase().split("\\W+"))
                  .map(word -> new TweetWord(tweet.timestamp(), word)))
          .filter(tweetWord -> !tweetWord.word().isEmpty())
-         .addTimestamps(TweetWord::timestamp, TimeUnit.SECONDS.toMillis(5))
+         .addTimestamps(TweetWord::timestamp, SECONDS.toMillis(5))
          .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
          .groupingKey(TweetWord::word)
          .aggregate(counting())
@@ -333,7 +333,7 @@ class BuildComputation {
         Pipeline p = Pipeline.create();
         p.<Tweet>drawFrom(Sources.mapJournal("tweets",
                 mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT))
-         .addTimestamps(Tweet::timestamp, TimeUnit.SECONDS.toMillis(5))
+         .addTimestamps(Tweet::timestamp, SECONDS.toMillis(5))
          .flatMap(tweet -> traverseArray(tweet.text().toLowerCase().split("\\W+")))
          .filter(word -> !word.isEmpty())
          .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))

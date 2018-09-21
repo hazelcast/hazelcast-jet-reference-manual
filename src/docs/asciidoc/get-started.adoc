@@ -138,7 +138,7 @@ Jet Management Center Reference Manual] for the installation
 instructions.
 
 [[verify-your-setup]]
-== Verify Your Setup with this Word Count Example
+== Verify Your Setup With a Word Count Example
 
 You can verify your setup by running this simple program. It processes
 the contents of a Hazelcast `IList` that contains lines of text, finds
@@ -177,7 +177,7 @@ be sent to remote cluster members. If your lambda captures a variable
 from the surrounding scope, that variable's contents must be serialized
 as well. If you refer to an instance variable, the entire instance
 holding it must be serialized. It's quite easy to accidentally capture
-and serialize the entire `this` object.
+and serialize the entire `this` object and everything it refers to.
 
 - The pipeline you construct doesn't execute itself, you must explicitly
 {jet-javadoc}/JetInstance.html#newJob-com.hazelcast.jet.pipeline.Pipeline-[submit]

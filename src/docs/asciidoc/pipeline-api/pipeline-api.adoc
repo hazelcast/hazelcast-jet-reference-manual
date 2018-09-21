@@ -388,7 +388,7 @@ key in all the joined streams and can simultaneously perform aggregation
 of the groups with the same key. We discuss this next.
 
 [[cogroup]]
-= Correlate And Join Streams
+= Correlate and Join Streams
 
 In Jet you can join any number of streams on a common key, which can
 be anything you can calculate from the data item. This works great for
@@ -541,8 +541,8 @@ ignored the time when the event actually happened and just slapped the
 current time on it. Usually the event contains its own timestamp and
 Jet must honor it. To achieve that, you pass a function that selects the
 timestamp to `addTimestamps()`, but now you must also deal with events
-coming out of order. We discussed these concerns <<time-ordering, in the
-previous chapter>>.
+coming out of order. We discuss these concerns in the <<time-ordering,
+Jet Concepts chapter>>.
 
 Here's an example with `Tweet` objects that carry their own timestamp:
 
@@ -551,14 +551,13 @@ Here's an example with `Tweet` objects that carry their own timestamp:
 include::{javasource}/BuildComputation.java[tag=s14]
 ----
 
-In the line `.addTimestamps(TweetWord::timestamp,
-TimeUnit.SECONDS.toMillis(5))` we specified two things: how to extract
-the timestamp and how much event lag we want to tolerate. We said that
-an event's timestamp can be at most five seconds behind the newest event
-we already received. This also means that Jet will have to delay
-emitting a windowed result until it receives an event that's five
-seconds past the window's end, so the latency will typically be five
-seconds or more.
+In the line `.addTimestamps(TweetWord::timestamp, SECONDS.toMillis(5))`
+we specified two things: how to extract the timestamp and how much event
+lag we want to tolerate. We said that an event's timestamp can be at
+most five seconds behind the newest event we already received. This also
+means that Jet will have to delay emitting a windowed result until it
+receives an event that's five seconds past the window's end, so the
+latency will typically be five seconds or more.
 
 Notice how we had to struggle a bit to hold on to the timestamp through
 the flatmapping transformation. We needed two classes: `Tweet` and
@@ -570,14 +569,16 @@ include::{javasource}/BuildComputation.java[tag=s15]
 ----
 
 This will work correctly because Jet keeps the event timestamps
-internally and correlates the input item to all the output items in a
-`flatMap` transformation, propagating the timestamp value.
+internally and correlates the input item with all the output items of a
+transformation such as `flatMap` and `filter`, propagating the timestamp
+value.
 
-You should generally prefer setting timestamps as the first thing in
-a pipeline because then the source integration will handle the watermarks
-itself. The integration knows more about the structure of its source and
-can produce better watermarks, with less latency and less dropped late
-events.
+When you set the timestamps as the first thing after a source stage,
+Jet is able to push the timestamping logic into the source. Some sources,
+especially partitioned ones such as Kafka, have advanced logic that
+keeps track of the timestamps on each partition and knows how to
+reconcile the temporary differences in timestamps that occur between
+them. This often results in less latency and less events dropped as late.
 
 = Kinds of Windows
 
@@ -614,13 +615,15 @@ what you get accounts for the items that Jet happens to have processed
 so far.
 
 This kind of aggregation is useful in jobs that monitor a stream for
-extremes or totals. For example, the worst latency ever experienced,
-the highest throughput seen, total number of transactions processed,
-and so on.
+extremes or totals. For example, if you have a stream of web server
+monitoring metrics, you can keep track of the worst latency ever
+experienced, the highest throughput seen, total number of transactions
+processed, and so on.
 
-In this example we get the "largest" trade seen so far in the stream
-(with the highest worth in dollars). Note that rolling aggregation
-outputs an item every time, not just after a new record-breaking trade.
+In the following example we process a stream of trading events and get
+the "largest" trade seen so far (with the highest worth in dollars).
+Note that the rolling aggregation outputs an item every time, not just
+after a new record-breaking trade.
 
 [source]
 ----
