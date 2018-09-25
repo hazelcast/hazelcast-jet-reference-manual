@@ -192,16 +192,80 @@ explicitly specifies where it will store the results (to a
 that immediately makes your pipeline execute, in Jet it is just another
 transformation (an intermediate step).
 
+Finally, you'll notice that Jet's Pipeline API is much more powerful
+than the Stream API. Here are a few highlights:
+
+- <<cogroup, joining streams>>
+- <<windowed-aggregation, windowed aggregation over infinite streams>>
+- <<fault-tolerance, fault tolerance>>
+- <<source-sink-connectors, connectors to 3rd party systems>>
+
+=== Example: List Transformation
+
+Here's a simple example of list transformation with the Stream API:
+
+[source]
+----
+include::{javasource}/GetStarted.java[tag=s1a]
+----
+
+Here's the equivalent in Jet. Note that we're transforming Hazelcast
+`IList` s:
+
+[source]
+----
+include::{javasource}/GetStarted.java[tag=s1b]
+----
+
+=== Example: Grouping and Aggregation
+
+Here's an example of grouping and aggregation with the Stream API. We
+compute a histogram of words by their length:
+
+[source]
+----
+include::{javasource}/GetStarted.java[tag=s2a]
+----
+
+And here's how to aggregate in Jet:
+
+[source]
+----
+include::{javasource}/GetStarted.java[tag=s2b]
+----
+
+Note that the result of `aggregate` is just another pipeline stage, you
+can apply more transforms to it before draining to the sink.
+
+=== Example: Collector vs. AggregateOperation
+
 If you have ever written your own
 {jdk-javadoc}/java/util/stream/Collector.html[Collector] for the
 Stream API, you'll find that Jet's <<implement-your-aggregate-operation,
 AggregateOperation>> is quite similar and you can transfer your skill
 to it.
 
-Finally you'll notice that Jet's Pipeline API is much more powerful than
-the Stream API. Here are a few highlights:
+Here's a Stream API collector that computes the sum of input items:
 
-- <<cogroup, joining streams>>
-- <<windowed-aggregation, windowed aggregation over infinite streams>>
-- <<fault-tolerance, fault tolerance>>
-- <<source-sink-connectors, connectors to 3rd party systems>>
+[source]
+----
+include::{javasource}/GetStarted.java[tag=s3a]
+----
+
+And here's Jet's aggregate operation doing the same:
+
+[source]
+----
+include::{javasource}/GetStarted.java[tag=s3b]
+----
+
+Compared to `Collector`, `AggregateOperation` defines two more
+primitives:
+
+- `deduct` reverses a previous `combine`. It's an optional primitive and
+serves to optimize sliding window aggregation.
+- `export` is similar to `finish` and here we actually define both using
+the same lambda. The difference is that `export` must preserve the
+accumulator's state and `finish` doesn't. There are opportunities for
+optimizations in `finish` that would be incompatible with our rolling
+aggregation (which must use `export`).
