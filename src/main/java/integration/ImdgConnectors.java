@@ -7,7 +7,6 @@ import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.config.JetConfig;
 import com.hazelcast.jet.function.DistributedFunction;
-import com.hazelcast.jet.function.DistributedFunctions;
 import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
@@ -21,14 +20,15 @@ import datamodel.Person;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
+import static com.hazelcast.jet.function.DistributedFunction.identity;
+import static com.hazelcast.jet.function.DistributedPredicate.alwaysTrue;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_CURRENT;
 
 public class ImdgConnectors {
     static void s1() {
         //tag::s1[]
         Pipeline p = Pipeline.create();
-        BatchStage<Entry<String, Long>> stage =
-                p.drawFrom(Sources.<String, Long>map("myMap"));
+        BatchStage<Entry<String, Long>> stage = p.drawFrom(Sources.map("myMap"));
         stage.drainTo(Sinks.map("myMap"));
         //end::s1[]
     }
@@ -36,8 +36,7 @@ public class ImdgConnectors {
     static void s2() {
         //tag::s2[]
         Pipeline p = Pipeline.create();
-        BatchStage<Entry<String, Long>> stage =
-                p.drawFrom(Sources.<String, Long>cache("inCache"));
+        BatchStage<Entry<String, Long>> stage = p.drawFrom(Sources.cache("inCache"));
         stage.drainTo(Sinks.cache("outCache"));
         //end::s2[]
     }
@@ -107,9 +106,9 @@ public class ImdgConnectors {
 
         Pipeline p = Pipeline.create();
         BatchStage<Entry<String, Long>> fromMap =
-                p.drawFrom(Sources.<String, Long>remoteMap("inputMap", cfg));
+                p.drawFrom(Sources.remoteMap("inputMap", cfg));
         BatchStage<Entry<String, Long>> fromCache =
-                p.drawFrom(Sources.<String, Long>remoteCache("inputCache", cfg));
+                p.drawFrom(Sources.remoteCache("inputCache", cfg));
         fromMap.drainTo(Sinks.remoteCache("outputCache", cfg));
         fromCache.drainTo(Sinks.remoteMap("outputMap", cfg));
         //end::s7[]
@@ -150,9 +149,9 @@ public class ImdgConnectors {
         //tag::s11[]
         Pipeline p = Pipeline.create();
         StreamStage<Entry<String, Long>> fromMap = p.drawFrom(
-                Sources.<String, Long>mapJournal("inputMap", START_FROM_CURRENT));
+                Sources.mapJournal("inputMap", START_FROM_CURRENT));
         StreamStage<Entry<String, Long>> fromCache = p.drawFrom(
-                Sources.<String, Long>cacheJournal("inputCache", START_FROM_CURRENT));
+                Sources.cacheJournal("inputCache", START_FROM_CURRENT));
         //end::s11[]
     }
 
@@ -160,15 +159,11 @@ public class ImdgConnectors {
         //tag::s12[]
         Pipeline p = Pipeline.create();
         StreamStage<EventJournalMapEvent<String, Long>> allFromMap = p.drawFrom(
-            Sources.<EventJournalMapEvent<String, Long>, String, Long>mapJournal(
-                "inputMap",
-                DistributedFunctions.alwaysTrue(), DistributedFunction.identity(),
-                START_FROM_CURRENT));
+            Sources.mapJournal("inputMap",
+                    alwaysTrue(), identity(), START_FROM_CURRENT));
         StreamStage<EventJournalCacheEvent<String, Long>> allFromCache = p.drawFrom(
-            Sources.<EventJournalCacheEvent<String, Long>, String, Long>cacheJournal(
-                "inputMap",
-                DistributedFunctions.alwaysTrue(), DistributedFunction.identity(),
-                START_FROM_CURRENT));
+            Sources.cacheJournal("inputMap",
+                    alwaysTrue(), identity(), START_FROM_CURRENT));
         //end::s12[]
     }
 
@@ -177,11 +172,11 @@ public class ImdgConnectors {
         //tag::s13[]
         Pipeline p = Pipeline.create();
         StreamStage<Entry<String, Long>> fromRemoteMap = p.drawFrom(
-            Sources.<String, Long>remoteMapJournal(
-                "inputMap", someClientConfig, START_FROM_CURRENT));
+            Sources.remoteMapJournal("inputMap",
+                    someClientConfig, START_FROM_CURRENT));
         StreamStage<Entry<String, Long>> fromRemoteCache = p.drawFrom(
-            Sources.<String, Long>remoteCacheJournal(
-                "inputCache", someClientConfig, START_FROM_CURRENT));
+            Sources.remoteCacheJournal("inputCache",
+                    someClientConfig, START_FROM_CURRENT));
         //end::s13[]
     }
 
