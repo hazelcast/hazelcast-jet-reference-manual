@@ -294,7 +294,7 @@ Topic Sink ✅
 |❌
 
 |<<jdbc>>
-|{jet-javadoc}/pipeline/Sources.html#jdbc-com.hazelcast.jet.function.DistributedSupplier-com.hazelcast.jet.pipeline.ToResultSetFunction-com.hazelcast.jet.function.DistributedFunction-[Source]
+|{jet-javadoc}/pipeline/Sources.html#jdbc-com.hazelcast.jet.function.DistributedSupplier-com.hazelcast.jet.function.ToResultSetFunction-com.hazelcast.jet.function.DistributedFunction-[Source]
 
 {jet-javadoc}/pipeline/Sinks.html#jdbc-java.lang.String-com.hazelcast.jet.function.DistributedSupplier-com.hazelcast.jet.function.DistributedBiConsumer-[Sink]
 |{jet-samples}/jdbc/src/main/java/JdbcSource.java[Source Sample]
