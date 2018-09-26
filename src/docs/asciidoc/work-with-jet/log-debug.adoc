@@ -1,7 +1,7 @@
 [[logging-and-debugging]]
-= Logging and Debugging
+= Monitor Execution and Diagnose Problems
 
-== Configuring Logging
+== Configure Logging
 
 Jet, like Hazelcast IMDG, does not depend on a specific logging
 framework and has built-in adapters for a variety of logging frameworks.
@@ -33,7 +33,7 @@ include::{javasource}/LogDebug.java[tag=s2]
 For more detailed information about how to configure logging, please
 refer to the {hz-refman}#logging-configuration[IMDG reference manual].
 
-== Inspecting Output of Individual Stages
+== Inspect Output of Individual Stages
 
 While debugging your pipeline you'll want to see the output of an
 individual stage. You can achieve it by using the

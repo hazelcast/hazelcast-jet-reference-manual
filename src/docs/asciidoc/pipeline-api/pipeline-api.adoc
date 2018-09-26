@@ -316,11 +316,11 @@ When you use the `xUsingY` transform to enrich an infinite stream, your
 output will reflect the fact that the enriching dataset is changing. Two
 items with the same key may be enriched with different data. This is
 expected. However, the output may also behave in a surprising way. Say
-you change the enriching data for some key from A to B. You expect to
+you update the enriching data for some key from A to B. You expect to
 see a sequence ...`A-A-B-B`... in the output, but when you sort it by
 timestamp, you can observe any order, such as `A-B-A-B` or `B-B-A-A`.
 This is because Jet doesn't enforce the processing order to strictly
-follow the time order of events.
+follow the timestamp order of events.
 
 In effect, your lookups will be _eventually consistent_, but won't have
 the _monotonic read_ consistency. Currently there is no feature in Jet
@@ -369,9 +369,10 @@ include::{javasource}/BuildComputation.java[tag=s6]
 ----
 
 We just added a grouping key, in this case it is the word itself
-(`Util.wholeItem()` returns the identity function). Now our pipeline
-produces not one, but as many distinct result items as there are words
-in the text. What we've just built up is the classical Word Count task.
+(`DistributedFunctions.wholeItem()` returns the identity function). Now
+our pipeline produces not one, but as many distinct result items as
+there are words in the text. What we've just built up is the classical
+Word Count task.
 
 The definition of the aggregate operation hides behind the `counting()`
 method call. This is a static method in our
@@ -534,14 +535,16 @@ include::{javasource}/BuildComputation.java[tag=s13]
 
 Now we've got a Jet job that does live tracking of words currently
 trending in tweets. The sliding window definition tells Jet to aggregate
-over the last minute and update its result every second.
+the events that occurred within the last minute and update this result
+every second.
 
 We employed the simplest way of dealing with the notion of time: we
 ignored the time when the event actually happened and just slapped the
 current time on it. Usually the event contains its own timestamp and
-Jet must honor it. To achieve that, you pass a function that selects the
-timestamp to `addTimestamps()`, but now you must also deal with events
-coming out of order. We discuss these concerns in the <<time-ordering,
+Jet must honor it. To achieve that you must pass a function that
+extracts the timestamp from the event. When you do that, you must also
+deal with the fact that events can arrive in an order different from
+their timestamp order. We discuss these concerns in the <<time-ordering,
 Jet Concepts chapter>>.
 
 Here's an example with `Tweet` objects that carry their own timestamp:
@@ -553,11 +556,11 @@ include::{javasource}/BuildComputation.java[tag=s14]
 
 In the line `.addTimestamps(TweetWord::timestamp, SECONDS.toMillis(5))`
 we specified two things: how to extract the timestamp and how much event
-lag we want to tolerate. We said that an event's timestamp can be at
-most five seconds behind the newest event we already received. This also
-means that Jet will have to delay emitting a windowed result until it
-receives an event that's five seconds past the window's end, so the
-latency will typically be five seconds or more.
+lag we want to tolerate. We said that the timestamp of an event we
+receive can be at most five seconds behind the highest timestamp we
+already received. This also means that Jet will have to delay emitting a
+windowed result until it receives an event that's five seconds past the
+window's end, so the latency will typically be five seconds or more.
 
 Notice how we had to struggle a bit to hold on to the timestamp through
 the flatmapping transformation. We needed two classes: `Tweet` and
@@ -568,10 +571,10 @@ the flatmapping transformation. We needed two classes: `Tweet` and
 include::{javasource}/BuildComputation.java[tag=s15]
 ----
 
-This will work correctly because Jet keeps the event timestamps
-internally and correlates the input item with all the output items of a
-transformation such as `flatMap` and `filter`, propagating the timestamp
-value.
+Now the `flatMap` stage emits just the words as strings. This will work
+correctly because Jet keeps the event timestamps internally and
+correlates the input item with all the output items of a transformation
+such as `flatMap` and `filter`, propagating the timestamp value.
 
 When you set the timestamps as the first thing after a source stage,
 Jet is able to push the timestamping logic into the source. Some sources,
@@ -590,13 +593,12 @@ use a window size of 1 second, Jet will group together all events that
 occur within the same second and you'll get window results for intervals
 [0-1) seconds, then [1-2) seconds, and so on.
 
-- _sliding_ window: a window of a constant size that slides along the
-time axis. It slides in discrete steps of configurable size, but with
-the restriction that the window size must be divisible by the sliding
-step size. A typical setting is to slide by 1% of the window size. Jet
-outputs the aggregation result each time the window moves on. If you use
-a window of size 1 second sliding by 10 milliseconds, Jet will output
-window results for intervals [0.00-1.00) seconds, then [0.01-1.01)
+- _sliding_ window: a window of constant size that slides along the
+time axis. It slides in discrete steps that are a fraction of the
+window's length. A typical setting is to slide by 1% of the window size.
+Jet outputs the aggregation result each time the window moves on. If you
+use a window of size 1 second sliding by 10 milliseconds, Jet will
+output window results for intervals [0.00-1.00) seconds, then [0.01-1.01)
 seconds, and so on.
 
 - _session_ window: it captures a burst of events separated by periods

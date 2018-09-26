@@ -264,8 +264,7 @@ primitives:
 
 - `deduct` reverses a previous `combine`. It's an optional primitive and
 serves to optimize sliding window aggregation.
-- `export` is similar to `finish` and here we actually define both using
-the same lambda. The difference is that `export` must preserve the
-accumulator's state and `finish` doesn't. There are opportunities for
-optimizations in `finish` that would be incompatible with our rolling
-aggregation (which must use `export`).
+- `export` is similar to `finish`, the difference being that `export`
+must preserve the accumulator's state and `finish` doesn't. Jet uses
+`finish` wherever applicable as it can be implemented more optimally.
+In this example we use the same lambda for both primitives.

@@ -103,8 +103,9 @@ sliding window over an infinite stream, this primitive can give a
 significant performance boost because it allows Jet to reuse the results
 of the previous calculations.
 
-Similarly, every function that works as the `export` primitive will also
-work as `finish`, but for optimization purposes you can specify a
+In a similar fashion Jet discerns between the `export` and `finish`
+primitives for optimization purposes. Every function that works as the
+`export` primitive will also work as `finish`, but you can specify a
 different `finish` that reuses the state already allocated in the
 accumulator. Jet applies `finish` only if it will never again use that
 accumulator.

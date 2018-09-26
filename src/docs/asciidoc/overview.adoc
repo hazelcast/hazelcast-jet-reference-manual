@@ -9,9 +9,8 @@ dividing the stream into a sequence of subsets (windows) and applying
 the aggregate function over each window.
 
 With unbounded event streams there arises the issue of failures in the
-cluster. Jet can <<configure-fault-tolerance, tolerate failures>> of
-individual members without loss, offering the _exactly-once_ processing
-guarantee.
+cluster. Jet can <<fault-tolerance, tolerate failures>> of individual
+members without loss, offering the _exactly-once_ processing guarantee.
 
 You deploy Jet to a cluster of machines and then submit your processing
 jobs to it. Jet will automatically make all the cluster members

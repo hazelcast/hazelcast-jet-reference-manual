@@ -37,6 +37,7 @@ public class GetStarted {
         //tag::s1b[]
         JetInstance jet = newJetInstance();
         IList<String> strings = jet.getList("strings");
+        strings.addAll(Arrays.asList("a", "b"));
         IList<String> uppercased = jet.getList("uppercased");
 
         Pipeline pipeline = Pipeline.create();
@@ -65,6 +66,7 @@ public class GetStarted {
         //tag::s2b[]
         JetInstance jet = newJetInstance();
         IList<String> strings = jet.getList("strings");
+        strings.addAll(Arrays.asList("a", "b", "aa", "bb"));
         IMap<Integer, Long> histogram = jet.getMap("histogram");
 
         Pipeline pipeline = Pipeline.create();
