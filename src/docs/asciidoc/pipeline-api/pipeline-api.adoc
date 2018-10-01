@@ -335,29 +335,41 @@ the data items. Typically you don't want to agregate all the items
 together, but classify them by some key and then aggregate over each
 group separately. This is the _group-and-aggregate_ transformation. You
 can join several streams on a key and simultaneously group-aggregate
-them on the same key. This is the _cogroup-and-aggregate_ transformation.
-If you're processing an unbounded event stream, you must define a
-bounded _window_ over the stream within which Jet will aggregate the
-data.
+them on the same key. This is the <<cogroup, _cogroup-and-aggregate_>>
+transformation. If you're processing an unbounded event stream, you must
+define a bounded <<windowed-aggregation, _window_>> over the stream
+within which Jet will aggregate the data.
 
 This is how a very simple batch aggregation without grouping may look
-(the list named "`text`" contains lines of text):
+(the list named `text` contains lines of text):
 
 [source]
 ----
 include::{javasource}/BuildComputation.java[tag=s4]
 ----
 
-We simply counted all the lines and pushed the count to a list named
-"`result`". Let's count all the words instead:
+We count all the lines and push the count to a list named "`result`".
+Add this code to try it out:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s4a]
+----
+
+The program will print `2` because we added two items to the `text` list.
+
+TIP: To get cleaner output, without Jet's logging, add
+`System.setProperty("hazelcast.logging.type", "none");` to the top.
+
+Let's count all the words instead:
 
 [source]
 ----
 include::{javasource}/BuildComputation.java[tag=s5]
 ----
 
-We split up the lines into words using a regular expression. Blank lines
-result in empty "`words`" so we filter these out.
+We split up the lines into words using a regular expression. The program
+prints `6` now because there are six words in the input.
 
 Now let's turn this into something more insigtful: a word frequency
 histogram, giving us for each distinct word the number of its
@@ -368,25 +380,24 @@ occurrences:
 include::{javasource}/BuildComputation.java[tag=s6]
 ----
 
-We just added a grouping key, in this case it is the word itself
+We added a grouping key, in this case it is the word itself
 (`DistributedFunctions.wholeItem()` returns the identity function). Now
-our pipeline produces not one, but as many distinct result items as
-there are words in the text. What we've just built up is the classical
-Word Count task.
+the program will perform the counting aggregation on each group of equal
+words. It will print
+
+----
+bar=2
+foo=4
+----
+
+What we've just built up is the classical Word Count task.
 
 The definition of the aggregate operation hides behind the `counting()`
 method call. This is a static method in our
 {jet-javadoc}/aggregate/AggregateOperations.html[`AggregateOperations`]
 utility class, which provides you with some predefined aggregate
-operations. You can also implement your own aggregate operations; please
-refer to the section <<implement-your-aggregate-operation,
-dedicated to this>>.
-
-Just as you perform aggregate and group-and-aggregate operations,
-you can perform a co-aggregate and cogroup-and-aggregate of several
-stages together. The result is a many-to-many join that matches the same
-key in all the joined streams and can simultaneously perform aggregation
-of the groups with the same key. We discuss this next.
+operations. You can also implement your own aggregate operations; refer
+to the section <<implement-your-aggregate-operation, dedicated to this>>.
 
 [[cogroup]]
 = Correlate and Join Streams
@@ -397,10 +408,10 @@ correlating the data from two or more streams. In the same step you
 apply an aggregate function to all the grouped items, separated by the
 originating stream. The aggregate function can produce a summary value
 like an average or linear trend, but it can also keep a list of all the
-items, effectively <<join-without-aggregating, avoiding actual aggregation>>.
-You can achieve any kind of join: inner/outer/full, left and right. The
-constraint, as already noted, is that the join condition cannot be fully
-general, but must amount to matching a computed key.
+items, effectively <<join-without-aggregating, avoiding actual
+aggregation>>. You can achieve any kind of join: inner/outer/full, left
+and right. The constraint, as already noted, is that the join condition
+cannot be fully general, but must amount to matching a computed key.
 
 Here's a simple example where we calculate the ratio of page visits to
 add-to-cart actions for each user. We accumulate the event counts and
@@ -410,16 +421,31 @@ then do the maths on them in the end:
 ----
 include::{javasource}/BuildComputation.java[tag=s7]
 ----
+<1> Start Jet, acquire source and sink lists from it
+<2> Fill the source lists (the numbers `1` and `2` are user IDs)
+<3> Construct the pipeline
+<4> Supply the aggregate operation for `pageVisits`
+<5> Supply the aggregate operation for `addToCarts`
+<6> Run the job, print the results
 
-<1> supply the aggregate operation for `pageVisits`
-<2> supply the aggregate operation for `addToCarts`
+The way we prepared the data, user `1` made two visits and added one
+item to the shopping cart; user `2` made one visit and added one item.
+Given that, we should expect to see the following output:
+
+----
+1=0.5
+2=1.0
+----
 
 Note how we supplied a separate aggregate operation for each input stage.
 We calculate the overall result based on the results obtained for each
-input stage in isolation. You also have the option of constructing a
-two-input aggregate operation that has immediate access to all the items.
-Refer to the <<implement-your-aggregate-operation, section on
-`AggregateOperation`>>.
+input stage in isolation. We have a full code sample at our
+{jet-samples}/co-group/src/main/java/BatchCoGroup.java[code samples
+repository].
+
+You also have the option of constructing a two-input aggregate operation
+that has immediate access to all the items. Refer to the
+<<implement-your-aggregate-operation, section on `AggregateOperation`>>.
 
 [[join-without-aggregating]]
 == Join Without Aggregating
@@ -507,7 +533,7 @@ aggregate operation for `PageVisits`
 <3> Add the co-grouped streams to the builder, specifying the aggregate
 operation to perform on each
 <4> Build the co-group transform, retrieve the individual aggregation
-results using the tags you got in step 3
+results using the tags you got in step 3 (`ibt` is an `ItemsByTag`)
 
 [[windowed-aggregation]]
 = Windowed Aggregation

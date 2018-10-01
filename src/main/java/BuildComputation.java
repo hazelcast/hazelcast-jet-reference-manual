@@ -1,5 +1,6 @@
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.config.NearCacheConfig;
+import com.hazelcast.core.IList;
 import com.hazelcast.core.IMap;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
@@ -34,7 +35,6 @@ import datamodel.TweetWord;
 
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static com.hazelcast.jet.Traversers.traverseArray;
@@ -50,6 +50,7 @@ import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
 import static com.hazelcast.jet.pipeline.JoinClause.joinMapEntries;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_CURRENT;
 import static com.hazelcast.jet.pipeline.WindowDefinition.sliding;
+import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -89,52 +90,89 @@ class BuildComputation {
         //end::s3[]
     }
 
-    static void s4() {
+    static Pipeline s4() {
         //tag::s4[]
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.list("text"))
          .aggregate(counting())
          .drainTo(Sinks.list("result"));
         //end::s4[]
+        return p;
     }
 
-    static void s5() {
+    static void s4ab() {
+        //tag::s4b[]
+        System.setProperty("hazelcast.logging.type", "none");
+        //end::s4b[]
+        Pipeline p = s4();
+        //tag::s4a[]
+        JetInstance jet = Jet.newJetInstance();
+        jet.getList("text").addAll(asList("foo foo bar", "foo bar foo"));
+        jet.newJob(p).join();
+        jet.getList("result").forEach(System.out::println);
+        Jet.shutdownAll();
+        //end::s4a[]
+    }
+
+    static Pipeline s5() {
         //tag::s5[]
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.<String>list("text"))
          .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
-         .filter(word -> !word.isEmpty())
          .aggregate(counting())
          .drainTo(Sinks.list("result"));
         //end::s5[]
+        return p;
     }
 
-    static void s6() {
+    static Pipeline s6() {
         //tag::s6[]
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.<String>list("text"))
          .flatMap(line -> traverseArray(line.toLowerCase().split("\\W+")))
-         .filter(word -> !word.isEmpty())
          .groupingKey(wholeItem())
          .aggregate(counting())
          .drainTo(Sinks.list("result"));
         //end::s6[]
+        return p;
     }
 
-    static void s7() {
+//    static void s7() {
+    public static void main(String... args) {
         //tag::s7[]
+        // <1>
+        JetInstance jet = Jet.newJetInstance();
+        IList<PageVisit> pageVisits = jet.getList("pageVisit");
+        IList<AddToCart> addToCarts = jet.getList("addToCart");
+        IList<Entry<Integer, Double>> results = jet.getList("result");
+
+        // <2>
+        pageVisits.add(new PageVisit(1));
+        pageVisits.add(new PageVisit(1));
+        addToCarts.add(new AddToCart(1));
+
+        pageVisits.add(new PageVisit(2));
+        addToCarts.add(new AddToCart(2));
+
+        // <3>
         Pipeline p = Pipeline.create();
-        BatchStageWithKey<PageVisit, Integer> pageVisits =
-                p.drawFrom(Sources.<PageVisit>list("pageVisit"))
-                 .groupingKey(PageVisit::userId);
-        BatchStageWithKey<AddToCart, Integer> addToCarts =
-                p.drawFrom(Sources.<AddToCart>list("addToCart"))
-                 .groupingKey(AddToCart::userId);
+        BatchStageWithKey<PageVisit, Integer> pageVisit =
+                p.drawFrom(Sources.list(pageVisits))
+                 .groupingKey(pv -> pv.userId());
+        BatchStageWithKey<AddToCart, Integer> addToCart =
+                p.drawFrom(Sources.list(addToCarts))
+                 .groupingKey(atc -> atc.userId());
         BatchStage<Entry<Integer, Double>> coAggregated =
-                pageVisits.aggregate2(counting(),            // <1>
-                    addToCarts, counting(),                  // <2>
+                pageVisit.aggregate2(counting(),            // <4>
+                    addToCart, counting(),                  // <5>
                     (userId, visitCount, addCount) ->
                             entry(userId, (double) addCount / visitCount));
+
+        // <6>
+        coAggregated.drainTo(Sinks.list(results));
+        jet.newJob(p).join();
+        results.forEach(System.out::println);
+        Jet.shutdownAll();
         //end::s7[]
     }
 
@@ -157,7 +195,7 @@ class BuildComputation {
         //end::s8a[]
 
         //tag::s8b[]
-        BatchStage<Tuple2<List<PageVisit>, List<AddToCart>>> rightOuterJoined =
+        BatchStage<Tuple2<List<PageVisit>, List<AddToCart>>> leftOuterJoined =
                 joinedLists.filter(pair -> !pair.f0().isEmpty());
 
         //end::s8b[]
@@ -170,7 +208,7 @@ class BuildComputation {
                                 .map(addCart -> tuple2(pVisit, addCart)))));
         //end::s8c[]
 
-        rightOuterJoined.drainTo(Sinks.map("result"));
+        leftOuterJoined.drainTo(Sinks.map("result"));
     }
 
     //tag::nonEmptyStream[]
@@ -208,14 +246,11 @@ class BuildComputation {
         Tag<List<Delivery>> deliveryTag = builder.add(deliveries, toList());
 
         //<4>
-        BatchStage<Entry<Integer, ItemsByTag>> coGrouped = builder.build();
-        coGrouped.map(e -> {
-            ItemsByTag ibt = e.getValue();
-            return String.format("User ID %d: %d visits, %d add-to-carts," +
-                                 " %d payments, %d deliveries",
-                    e.getKey(), ibt.get(visitTag).size(), ibt.get(cartTag).size(),
-                    ibt.get(payTag).size(), ibt.get(deliveryTag).size());
-        });
+        BatchStage<String> coGrouped = builder.build((key, ibt) ->
+                String.format("User ID %d: %d visits, %d add-to-carts," +
+                                " %d payments, %d deliveries",
+                        key, ibt.get(visitTag).size(), ibt.get(cartTag).size(),
+                        ibt.get(payTag).size(), ibt.get(deliveryTag).size()));
         //end::s9[]
     }
 

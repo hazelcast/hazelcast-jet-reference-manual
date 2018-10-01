@@ -16,7 +16,9 @@
 
 package datamodel;
 
-public abstract class Event {
+import java.io.Serializable;
+
+public abstract class Event implements Serializable {
     private final long timestamp;
     private final int userId;
 

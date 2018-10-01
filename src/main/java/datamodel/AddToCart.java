@@ -23,6 +23,10 @@ public class AddToCart extends Event {
         this.quantity = quantity;
     }
 
+    public AddToCart(int userId) {
+        this(userId, 0, 0);
+    }
+
     public int quantity() {
         return quantity;
     }

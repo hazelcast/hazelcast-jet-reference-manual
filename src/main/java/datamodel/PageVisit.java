@@ -25,6 +25,10 @@ public class PageVisit extends Event {
         this.loadTime = loadTime;
     }
 
+    public PageVisit(int userId) {
+        this(userId, 0, 0);
+    }
+
     public int loadTime() {
         return loadTime;
     }
