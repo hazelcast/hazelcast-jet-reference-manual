@@ -164,7 +164,7 @@ code against a map entry, in a data-local manner.
 The updating sinks come in three variants:
 
 1. {jet-javadoc}/Sinks.html#mapWithMerging-java.lang.String-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedFunction-com.hazelcast.jet.function.DistributedBinaryOperator-[`mapWithMerging`],
-where you provide a a function that computes the map value from the
+where you provide a function that computes the map value from the
 stream item and a merging function that gets called if a value already
 exists in the map. Here's an example that concatenates string values:
 +
@@ -174,7 +174,7 @@ include::{javasource}/integration/ImdgConnectors.java[tag=s3]
 ----
 +
 NOTE: This operation is **NOT** lock-aware, it will process the entries
-regardless whethere they are locked or not. We significancly boost
+regardless whether they are locked or not. We significantly boost
 performance by applying the update function in batches, but this
 operation doesn't respect the locks. If you use this method on locked
 entries, it will break the mutual exclusion contract. Use
@@ -191,7 +191,7 @@ include::{javasource}/integration/ImdgConnectors.java[tag=s4]
 ----
 +
 NOTE: This operation is **NOT** lock-aware, it will process the entries
-regardless whethere they are locked or not. We significancly boost
+regardless whether they are locked or not. We significantly boost
 performance by applying the update function in batches, but this
 operation doesn't respect the locks. If you use this method on locked
 entries, it will break the mutual exclusion contract. Use

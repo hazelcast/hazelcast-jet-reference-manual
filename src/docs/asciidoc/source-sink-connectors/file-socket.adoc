@@ -137,7 +137,7 @@ including a sample socket server using Netty.
 
 The socket sink opens a blocking client TCP/IP socket and sends data
 over it. The data must be in the form of lines of plain text. To get
-meaningful behavior, the server side must collect and combine the from
+meaningful behavior, the server side must collect and combine them from
 all the concurrently connected clients.
 
 Here's a simple example:

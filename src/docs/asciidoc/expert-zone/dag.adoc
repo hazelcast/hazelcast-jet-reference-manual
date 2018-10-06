@@ -287,7 +287,7 @@ You should always set the local parallelism of the target vertex to 1,
 otherwise there will be idle processors that never get any items.
 
 On a local edge this policy doesn't make sense since simply setting the
-local parallelism of the target vertex to 1 constrains the local choice
+local parallelism of the target vertex to 1 constraints the local choice
 to just one processor instance.
 
 One case where the all-to-one routing is appropriate is global
