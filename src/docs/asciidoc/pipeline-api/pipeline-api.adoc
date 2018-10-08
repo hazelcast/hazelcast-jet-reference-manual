@@ -136,7 +136,7 @@ the duration of the Jet job, this is your best tool.
 . <<enrich-by-lookup, Directly look up>> the enriching data for each
 item by contacting the system that stores it. If you're enriching an
 infinite stream and want to observe updates to the enriching dataset,
-you should use the this approach.
+you should use this approach.
 
 [[hash-join]]
 = Hash-Join
@@ -331,7 +331,7 @@ a changing dataset.
 
 Data aggregation is the cornerstone of distributed stream processing. It
 computes an aggregate function (simple examples: sum or average) over
-the data items. Typically you don't want to agregate all the items
+the data items. Typically you don't want to aggregate all the items
 together, but classify them by some key and then aggregate over each
 group separately. This is the _group-and-aggregate_ transformation. You
 can join several streams on a key and simultaneously group-aggregate
