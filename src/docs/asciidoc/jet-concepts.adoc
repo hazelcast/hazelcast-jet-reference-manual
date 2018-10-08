@@ -133,7 +133,7 @@ tokenizing processor:
 image::wordcount-tokenizer.png[Word-counting DAG with tokenizer vertex parallelized,600,170,align="center"]
 
 The input processor can now use all the available tokenizers as a pool
-and submit to anyone whose queue has some room.
+and submit to any whose queue has some room.
 
 The next step is parallelizing the accumulator vertex, but this is
 trickier: accumulators count word occurrences so using them as a pool
@@ -398,7 +398,7 @@ exactly the event interval.
 image::session-window-1.png[Session window: single event,250,200,align="center"]
 
 
-A following event under the same key belongs to this window if its
+A following event under the same key belongs to this window iff its
 interval overlaps it. The window is extended to cover the entire
 interval of the new event.
 
