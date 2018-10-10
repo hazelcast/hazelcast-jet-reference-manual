@@ -485,13 +485,13 @@ to make progress (by inspecting its input/output buffers).
 
 The execution service doesn't deal with processors directly; instead it
 deals with _tasklets_.
-:jet-master:/impl/execution/Tasklet.java[`Tasklet`]
-is a very simple functional interface derived from the standard Java
-`Callable<ProgressState>`. The execution service manages a pool of
-worker threads, each being responsible for a list of tasklets. The
-worker thread simply invokes the `call()` methods on its tasklets in a
-round-robin fashion. The method's return value tells whether the tasklet
-made progress and whether it is now done.
+{jet-core}/impl/execution/Tasklet.java[`Tasklet`] is a very simple
+functional interface derived from the standard Java `Callable<ProgressState>`.
+The execution service manages a pool of worker threads, each being
+responsible for a list of tasklets. The worker thread simply invokes the
+`call()` methods on its tasklets in a round-robin fashion. The method's
+return value tells whether the tasklet made progress and whether it is
+now done.
 
 The most important tasklet is the one driving a processor
 (`ProcessorTasklet`); there are a few others that deal with network
@@ -509,7 +509,7 @@ progress.
 [[processor-tasklet]]
 === ProcessorTasklet
 
-:jet-core:/impl/execution/ProcessorTasklet.java[`ProcessorTasklet`]
+{jet-core}/impl/execution/ProcessorTasklet.java[`ProcessorTasklet`]
 is the one that drives a processor. It manages its inbox, outbox,
 inbound/outbound concurrent queues, and tracks the current processor
 state so it knows which of its callback methods to call.
@@ -669,10 +669,11 @@ handled specially:
   _watermark coalescing_.
 
 Jet's internal class
-https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/WatermarkCoalescer.java[`WatermarkCoalescer`]
- manages watermarks received from multiple inputs. As it receives
+{jet-core}/impl/execution/WatermarkCoalescer.java[`WatermarkCoalescer`]
+manages watermarks received from multiple inputs. As it receives
 watermark items from them, its duty is to decide when to forward the
 watermark downstream. This happens at two levels:
+
 * between multiple queues backing single edge
 * between multiple input edges to single processor
 
