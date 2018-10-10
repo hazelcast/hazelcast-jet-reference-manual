@@ -497,14 +497,6 @@ The most important tasklet is the one driving a processor
 (`ProcessorTasklet`); there are a few others that deal with network
 sending/receiving and taking snapshots.
 
-[[work-stealing]]
-=== Work Stealing
-
-When a tasklet is done, its worker will inspect all the other workers'
-tasklet lists to see if any of them has a longer tasklet list than its
-own. If it finds such a worker, it will "`steal`" one of its tasklets to
-even out the load per thread.
-
 [[exponential-backoff]]
 === Exponential Backoff
 
