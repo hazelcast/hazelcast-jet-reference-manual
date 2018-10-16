@@ -8,19 +8,20 @@ import com.hazelcast.jet.pipeline.Sink;
 import com.hazelcast.jet.pipeline.SourceBuilder;
 import com.hazelcast.jet.pipeline.StreamSource;
 import com.hazelcast.jet.pipeline.StreamStage;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 
 import static com.hazelcast.jet.pipeline.SinkBuilder.sinkBuilder;
 import static com.hazelcast.jet.pipeline.Sources.list;
+import static java.net.http.HttpClient.newHttpClient;
+import static java.net.http.HttpResponse.BodyHandlers.ofLines;
 
 public class SourceSinkBuilders {
     static void s1() {
@@ -66,15 +67,14 @@ public class SourceSinkBuilders {
     static void s2() {
         //tag::s2[]
         StreamSource<String> httpSource = SourceBuilder
-            .stream("http-source", ctx -> HttpClients.createDefault())
+            .stream("http-source", ctx -> newHttpClient())
             .<String>fillBufferFn((httpc, buf) ->
-                new BufferedReader(new InputStreamReader(
-                    httpc.execute(new HttpGet("localhost:8008"))
-                         .getEntity().getContent()))
-                    .lines()
-                    .forEach(buf::add)
+                    httpc.send(HttpRequest.newBuilder()
+                                          .uri(URI.create("http://localhost:8008"))
+                                          .build(), ofLines())
+                         .body()
+                         .forEach(buf::add)
                 )
-            .destroyFn(CloseableHttpClient::close)
             .build();
         Pipeline p = Pipeline.create();
         StreamStage<String> srcStage = p.drawFrom(httpSource);
@@ -84,27 +84,26 @@ public class SourceSinkBuilders {
     static void s2a() {
         //tag::s2a[]
         StreamSource<String> httpSource = SourceBuilder
-            .timestampedStream("http-source", ctx -> HttpClients.createDefault())
-            .<String>fillBufferFn((httpc, buf) ->
-                new BufferedReader(new InputStreamReader(
-                    httpc.execute(new HttpGet("localhost:8008"))
-                         .getEntity().getContent()))
-                    .lines()
-                    .forEach(item -> {
-                        long timestamp = Long.valueOf(item.substring(0, 9));
-                        buf.add(item.substring(9), timestamp);
-                    })
+            .timestampedStream("http-source", ctx -> newHttpClient())
+                .<String>fillBufferFn((httpc, buf) ->
+                        httpc.send(HttpRequest.newBuilder()
+                                              .uri(URI.create("http://localhost:8008"))
+                                              .build(), ofLines())
+                             .body()
+                             .forEach(item -> {
+                                 long timestamp = Long.valueOf(item.substring(0, 9));
+                                 buf.add(item.substring(9), timestamp);
+                             })
                 )
-            .destroyFn(CloseableHttpClient::close)
-            .allowedLateness(2000)
-            .build();
+                .allowedLateness(2000)
+                .build();
         //end::s2a[]
     }
 
     static void s3() {
         //tag::s3[]
         class SourceState {
-            final CloseableHttpClient client = HttpClients.createDefault();
+            final HttpClient client = HttpClient.newHttpClient();
             final int myIndex;
             final int numProcessors;
 
@@ -114,18 +113,16 @@ public class SourceSinkBuilders {
             }
         }
         StreamSource<String> socketSource = SourceBuilder
-            .stream("http-source", SourceState::new)
-            .<String>fillBufferFn((st, buf) ->
-                new BufferedReader(new InputStreamReader(
-                    st.client.execute(new HttpGet(String.format(
-                            "localhost:8008?index=%d&count=%d", st.myIndex, st.numProcessors)))
-                         .getEntity().getContent()))
-                    .lines()
-                    .forEach(buf::add)
+                .stream("http-source", SourceState::new)
+                .<String>fillBufferFn((st, buf) ->
+                        st.client.send(HttpRequest.newBuilder()
+                                                  .uri(URI.create("http://localhost:8008"))
+                                                  .build(), ofLines())
+                                 .body()
+                                 .forEach(buf::add)
                 )
-            .destroyFn(st -> st.client.close())
-            .distributed(2)  //<1>
-            .build();
+                .distributed(2)  //<1>
+                .build();
         //end::s3[]
     }
 
