@@ -266,3 +266,229 @@ serves to optimize sliding window aggregation.
 must preserve the accumulator's state and `finish` doesn't. Jet uses
 `finish` wherever applicable as it can be implemented more optimally.
 In this example we use the same lambda for both primitives.
+
+
+== Deployment using Docker
+You can deploy your Hazelcast Jet projects using the Docker containers.
+Hazelcast Jet has the following images on Docker:
+
+- Hazelcast Jet
+- Hazelcast Jet Enterprise
+- Hazelcast Jet Management Center
+
+After you pull an image from the Docker registry, you can run your 
+image to start the Hazelcast Jet Management Center or a Hazelcast Jet 
+instance with its default configuration. All repositories 
+provide the latest stable releases but you can pull a specific release too. 
+You can also specify environment variables when running the image.
+
+If you want to start a customized Hazelcast Jet instance, you can extend 
+the Hazelcast Jet image by providing your own configuration file.
+This feature is provided as a Hazelcast Jet plugin. Please see their own 
+GitHub repos at https://github.com/hazelcast/hazelcast-jet-docker[Hazelcast Jet Docker] 
+and https://github.com/hazelcast/hazelcast-jet-management-center-docker[Hazelcast Jet Management Center Docker]
+for details on configurations and usages.
+
+== Deployment using Kubernetes
+
+Hazelcast Jet provides Kubernetes-ready Docker images which you can easily
+deploy into Kubernetes environments. 
+
+Hazelcast Jet Kubernetes-ready Docker images uses https://github.com/hazelcast/hazelcast-kubernetes[Hazelcast Kubernetes]
+plugin to discover other Hazelcast Jet members in the Kubernetes environment 
+by interacting with the Kubernetes API. Using Kubernetes API requires granting 
+certain permissions. Therefore, you may need to create Role Based Access
+Control definition, `rbac.yaml`, with the following content. 
+You can check https://github.com/hazelcast/hazelcast-kubernetes[Hazelcast Kubernetes] plugin for
+more details on this manner.
+
+`rbac.yaml`
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: default-cluster
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: default
+```
+
+The required permissions above can be granted with the following command: 
+
+```bash
+kubectl apply -f rbac.yaml
+```
+
+Then Hazelcast Jet needs to be configured to use Kubernetes Discovery 
+to discover others members.
+
+`hazelcast-jet-config.yaml`
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hazelcast-jet-configuration
+data:
+  hazelcast.xml: |-
+    <?xml version="1.0" encoding="UTF-8"?>
+    <hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.10.xsd"
+                   xmlns="http://www.hazelcast.com/schema/config"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <properties>
+        <property name="hazelcast.discovery.enabled">true</property>
+      </properties>
+      <network>
+        <join>
+          <multicast enabled="false"/>
+          <tcp-ip enabled="false" />
+          <discovery-strategies>
+            <discovery-strategy enabled="true" class="com.hazelcast.kubernetes.HazelcastKubernetesDiscoveryStrategy">
+              <properties>
+               <property name="service-name">hazelcast-jet-service</property>
+               <property name="namespace">default</property>
+              </properties>
+            </discovery-strategy>
+          </discovery-strategies>
+        </join>
+      </network>
+    </hazelcast>
+```
+
+The following command will create a ConfigMap object in the Kubernetes Cluster 
+and this object holds our Kubernetes Discovery enabled Hazelcast Jet configuration. 
+We will use this configuration when we are creating our pods in the following section. 
+
+```bash
+kubectl apply -f hazelcast-jet-config.yaml
+```
+
+We will create a StatefulSet, which manages Pods that are based on an identical 
+container spec, and our Service, which is an abstraction which defines a logical 
+set of Pods and a policy by which to access them, with the following content.
+
+`hazelcast-jet.yaml`
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hazelcast-jet
+  labels:
+    app: hazelcast-jet
+spec:
+  replicas: 2
+  serviceName: hazelcast-jet-service
+  selector:
+    matchLabels:
+      app: hazelcast-jet
+  template:
+    metadata:
+      labels:
+        app: hazelcast-jet
+    spec:
+      containers:
+      - name: hazelcast-jet
+        image: hazelcast/hazelcast-jet:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: hazelcast-jet
+          containerPort: 5701
+        livenessProbe:
+          httpGet:
+            path: /hazelcast/health/node-state
+            port: 5701
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /hazelcast/health/node-state
+            port: 5701
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 1
+        volumeMounts:
+        - name: hazelcast-jet-storage
+          mountPath: /data/hazelcast-jet
+        env:
+        - name: JAVA_OPTS
+          value: "-Dhazelcast.rest.enabled=true -Dhazelcast.config=/data/hazelcast-jet/hazelcast.xml"
+      volumes:
+      - name: hazelcast-jet-storage
+        configMap:
+          name: hazelcast-jet-configuration
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hazelcast-jet-service
+spec:
+  selector:
+    app: hazelcast-jet
+  ports:
+  - protocol: TCP
+    port: 5701
+```
+
+```bash
+kubectl apply -f hazelcast-jet.yaml
+```
+
+After that you can inspect pod logs to see that they formed a cluster with the following command:
+
+```bash
+kubectl logs hazelcast-jet-0
+```
+
+It should output a log similar to the one below: 
+
+```bash
+....
+Nov 15, 2018 9:39:15 AM com.hazelcast.internal.cluster.ClusterService
+INFO: [172.17.0.2]:5701 [dev] [0.7] 
+
+Members {size:2, ver:2} [
+	Member [172.17.0.2]:5701 - d935437e-143e-4e3f-81d6-f3ece16eb23e this
+	Member [172.17.0.6]:5701 - 88472d6c-1cae-4b0d-9681-f6da6199bc9c
+]
+....
+```
+
+For more detailed deployment information and how to submit Hazelcast 
+Jet jobs to your cluster, check out the https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/integration/kubernetes[Kubernetes Integration] 
+code sample.
+
+== Deployment using Helm
+
+Hazelcast Jet provides Helm charts which is an easy way to package 
+and deploy applications on Kubernetes. 
+
+In order to deploy Hazelcast Jet with Helm, the Hazelcast Helm Charts 
+repository need to be added to Helm with the following command :
+
+```bash
+helm repo add hazelcast https://hazelcast.github.io/charts/
+``` 
+```bash
+helm repo update
+``` 
+
+Then, you can install the chart by:
+
+```bash
+helm install hazelcast/hazelcast-jet
+``` 
+
+Check out https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet[Hazelcast Jet Helm Chart]
+page for more detailed configuration and https://github.com/hazelcast/charts#troubleshooting-in-kubernetes-environments[Troubleshooting in Kubernetes Environments] 
+section if you encounter any issues.
