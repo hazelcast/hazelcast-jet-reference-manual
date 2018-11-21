@@ -44,6 +44,9 @@ An example configuration looks like the following:
        <temp-dir>/var/tmp/jet</temp-dir>
         <!-- number of backup copies to configure for Hazelcast IMaps used internally in a Jet job -->
        <backup-count>1</backup-count>
+        <!-- the delay after which auto-scaled jobs will restart if a new member is added to the
+        cluster. The default is 10 seconds. Has no effect on jobs with auto scaling disabled -->
+        <scale-up-delay-millis>10000</scale-up-delay-millis>
     </instance>
     <properties>
        <property name="custom.property">custom property</property>
@@ -233,7 +236,7 @@ as a bean and use it to obtain these Hazelcast IMDG beans:
  - map
  - list
  - multiMap
- - replicatedmap
+ - replicatedMap
  - queue
  - topic
  - set

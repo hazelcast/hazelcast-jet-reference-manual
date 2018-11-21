@@ -339,11 +339,11 @@ it receives it, it must stop pulling the data from that stream and
 continue pulling from all other streams until it receives the same
 barrier in all of them, and then emit its state to the snapshot storage.
 This is in direct contradiction with the contract of edge
- prioritization: the processor is not allowed to consume any other
+prioritization: the processor is not allowed to consume any other
 streams before having fully exhausted the prioritized ones.
 
 For this reason Jet does not initiate a snapshot until all the
-high-priority edges have been fully consumed.
+higher-priority edges have been fully consumed.
 
 Although strictly speaking this only applies to the _exactly once_ mode,
 Jet postpones taking the snapshot in _at least once_ mode as well. Even

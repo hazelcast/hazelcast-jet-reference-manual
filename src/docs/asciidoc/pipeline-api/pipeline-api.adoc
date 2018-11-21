@@ -151,7 +151,7 @@ your stream from arbitrarily many sources.
 The stream-to-be-enriched (we'll call in the _primary_ stream for short)
 can be an unbounded data stream. The _enriching streams_ must be bounded
 and Jet will consume them in full before starting to enrich the primary
-stream. It will store their contents in hashtables for fast lookup,
+stream. It will store their contents in hash tables for fast lookup,
 which is why we call this the "hash-join".
 
 For each enriching stream you specify a pair of key-extracting functions:
@@ -371,7 +371,7 @@ include::{javasource}/BuildComputation.java[tag=s5]
 We split up the lines into words using a regular expression. The program
 prints `6` now because there are six words in the input.
 
-Now let's turn this into something more insigtful: a word frequency
+Now let's turn this into something more insightful: a word frequency
 histogram, giving us for each distinct word the number of its
 occurrences:
 

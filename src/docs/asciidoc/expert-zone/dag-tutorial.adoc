@@ -113,7 +113,7 @@ edge. Detailed inspection shows that hashcode-based partitioning would
 be safe as well because all of `String`, `Long`, and `Map.Entry` have
 the hash function specified in their Javadoc.
 
-You can acces a full, self-contained Java program with the above DAG
+You can access a full, self-contained Java program with the above DAG
 code at the
 {jet-refman-src}/src/main/java/WordCountCoreApi.java[Hazelcast Jet Reference Manual repository].
 
