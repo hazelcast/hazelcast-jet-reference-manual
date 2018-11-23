@@ -277,13 +277,13 @@ Hazelcast Jet has the following images on Docker:
 - Hazelcast Jet Management Center
 
 After you pull an image from the Docker registry, you can run your 
-image to start the Hazelcast Jet Management Center or a Hazelcast Jet 
+image to start the Jet Management Center or a Jet 
 instance with its default configuration. All repositories 
-provide the latest stable releases but you can pull a specific release too. 
+provide the latest stable releases but you can pull a specific release, too. 
 You can also specify environment variables when running the image.
 
-If you want to start a customized Hazelcast Jet instance, you can extend 
-the Hazelcast Jet image by providing your own configuration file.
+If you want to start customized instances of Jet or Jet Management Center, you can extend 
+the the above listed images by providing your own configuration file.
 This feature is provided as a Hazelcast Jet plugin. Please see their own 
 GitHub repos at https://github.com/hazelcast/hazelcast-jet-docker[Hazelcast Jet Docker] 
 and https://github.com/hazelcast/hazelcast-jet-management-center-docker[Hazelcast Jet Management Center Docker]
@@ -292,17 +292,17 @@ for details on configurations and usages.
 == Deployment using Kubernetes
 
 Hazelcast Jet provides Kubernetes-ready Docker images which you can easily
-deploy into Kubernetes environments. 
-
-Hazelcast Jet Kubernetes-ready Docker images uses https://github.com/hazelcast/hazelcast-kubernetes[Hazelcast Kubernetes]
+deploy into Kubernetes environments.These images use the https://github.com/hazelcast/hazelcast-kubernetes[Hazelcast Kubernetes]
 plugin to discover other Hazelcast Jet members in the Kubernetes environment 
-by interacting with the Kubernetes API. Using Kubernetes API requires granting 
-certain permissions. Therefore, you may need to create Role Based Access
-Control definition, `rbac.yaml`, with the following content. 
+by interacting with the Kubernetes API. 
+
+Using Kubernetes API requires granting certain permissions. Therefore, 
+you need to create Role Based Access Control definition, (`rbac.yaml`), with the following content. 
 You can check https://github.com/hazelcast/hazelcast-kubernetes[Hazelcast Kubernetes] plugin for
 more details on this manner.
 
-`rbac.yaml`
+Here is the content of `rbac.yaml`:
+
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -318,16 +318,17 @@ subjects:
   namespace: default
 ```
 
-The required permissions above can be granted with the following command: 
+You can grant the required permissions stated above using the following command: 
 
 ```bash
 kubectl apply -f rbac.yaml
 ```
 
-Then Hazelcast Jet needs to be configured to use Kubernetes Discovery 
-to discover others members.
+Then, you need to configure Hazelcast Jet to use Kubernetes Discovery to discover 
+other members, to do so create a file named (`hazelcast-jet-config.yaml`) with the contents
+as shown below.
 
-`hazelcast-jet-config.yaml`
+Here is the content of `hazelcast-jet-config.yaml`:
 
 ```yaml
 apiVersion: v1
@@ -360,19 +361,20 @@ data:
     </hazelcast>
 ```
 
-The following command will create a ConfigMap object in the Kubernetes Cluster 
-and this object holds our Kubernetes Discovery enabled Hazelcast Jet configuration. 
-We will use this configuration when we are creating our pods in the following section. 
+The following command will create a ConfigMap object in the Kubernetes Cluster.
 
 ```bash
 kubectl apply -f hazelcast-jet-config.yaml
 ```
 
-We will create a StatefulSet, which manages Pods that are based on an identical 
-container spec, and our Service, which is an abstraction which defines a logical 
-set of Pods and a policy by which to access them, with the following content.
+This object holds our Kubernetes Discovery enabled Hazelcast Jet configuration. 
+You will use this configuration when you create pods as explanied below. 
 
-`hazelcast-jet.yaml`
+You need to create a StatefulSet, which manages pods that are based on an identical container spec,
+and a Service, which is an abstraction defining a logical set of pods and a policy using which to access them. 
+These two should be defined in the (`hazelcast-jet.yaml`) file, as shown below
+
+Here is the content of `hazelcast-jet.yaml`:
 
 ```yaml
 apiVersion: apps/v1
@@ -440,11 +442,14 @@ spec:
     port: 5701
 ```
 
+After creating the (`hazelcast-jet.yaml`) file with the content above, 
+run the following command to create the Service and StatefulSet:
+
 ```bash
 kubectl apply -f hazelcast-jet.yaml
 ```
 
-After that you can inspect pod logs to see that they formed a cluster with the following command:
+After that, you can inspect the pod logs to see that they formed a cluster using the following command:
 
 ```bash
 kubectl logs hazelcast-jet-0
@@ -464,31 +469,33 @@ Members {size:2, ver:2} [
 ....
 ```
 
-For more detailed deployment information and how to submit Hazelcast 
-Jet jobs to your cluster, check out the https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/integration/kubernetes[Kubernetes Integration] 
-code sample.
-
+For more details about deployment and information on how to submit the Hazelcast
+Jet jobs to your cluster, see the https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/integration/kubernetes[Kubernetes Integration] 
+code sample
 == Deployment using Helm
 
-Hazelcast Jet provides Helm charts which is an easy way to package 
+You can deploy Hazelcast Jet using the Helm charts. These charts provide an easy way to package 
 and deploy applications on Kubernetes. 
 
-In order to deploy Hazelcast Jet with Helm, the Hazelcast Helm Charts 
-repository need to be added to Helm with the following command :
+To deploy Hazelcast Jet using Helm, you need to add the Hazelcast Helm Charts
+repository to Helm using the following command:
 
 ```bash
 helm repo add hazelcast https://hazelcast.github.io/charts/
 ``` 
+
+Then, update information of available charts locally from chart repositories using the following command:
+
 ```bash
 helm repo update
 ``` 
 
-Then, you can install the chart by:
+Then, you can install the chart using the following command:
 
 ```bash
 helm install hazelcast/hazelcast-jet
 ``` 
 
-Check out https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet[Hazelcast Jet Helm Chart]
-page for more detailed configuration and https://github.com/hazelcast/charts#troubleshooting-in-kubernetes-environments[Troubleshooting in Kubernetes Environments] 
+See https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet[Hazelcast Jet Helm Chart]
+for more details on configuration and the https://github.com/hazelcast/charts#troubleshooting-in-kubernetes-environments[Troubleshooting in Kubernetes Environments] 
 section if you encounter any issues.
