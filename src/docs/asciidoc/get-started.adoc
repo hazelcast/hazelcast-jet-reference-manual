@@ -499,3 +499,28 @@ helm install hazelcast/hazelcast-jet
 See https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet[Hazelcast Jet Helm Chart]
 for more details on configuration and the https://github.com/hazelcast/charts#troubleshooting-in-kubernetes-environments[Troubleshooting in Kubernetes Environments] 
 section if you encounter any issues.
+
+## Scaling Hazelcast Jet cluster in Kubernetes
+
+Hazelcast Jet cluster is easily scalable within Kubernetes. You can use the standard `kubectl scale` (See https://kubernetes.io/docs/tasks/run-application/scale-stateful-set/#scaling-statefulsets[Scaling StatefulSets] for more information.) command to change the cluster size.
+
+Note however that, by default, Hazelcast Jet is configured to `TERMINATE` on receiving the `SIGTERM` signal from Kubernetes,
+ which means that a container stops quickly, but the cluster's data safety relies on the backup stored by other Hazelcast Jet members.
+If you suddenly scale down by more than your `backup-count` property (1 by default), you may lose the cluster data. 
+
+The other option is to use the `GRACEFUL` shutdown, which triggers the partition migration before shutting down the Hazelcast Jet member. 
+Note that it may take some time depending on your data size. 
+
+To use graceful shutdown approach, set the following properties:
+- `terminationGracePeriodSeconds`:  in your StatefulSet (or Deployment) configuration; the value defines how much time Kubernetes waits 
+before terminating the pod and it should be high enough to cover the data migration process. Default value is 30 seconds
+- `-Dhazelcast.shutdownhook.policy=GRACEFUL`: in the JVM parameters (`JAVA_OPTS` environment variable) 
+- `-Dhazelcast.graceful.shutdown.max.wait`: in the JVM parameters(`JAVA_OPTS` environment variable) ; the value should be high enough to cover the data migration process. 
+Default value is 600 seconds
+
+The graceful shutdown configuration is already included in https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet[Hazelcast Jet Helm Chart].
+
+With the https://docs.hazelcast.org/docs/jet/latest-dev/manual/#automatic-elasticity[Automatic Elasticity] feature, your jobs will 
+be automatically restarted from the latest known snapshot when you downscale your cluster. For more detauls about snapshotting 
+and processing guarantees see https://docs.hazelcast.org/docs/jet/latest-dev/manual/#fault-tolerance[Fault Tolerance] section on 
+the https://docs.hazelcast.org/docs/jet/latest-dev/manual/[Hazelcast Jet Reference Manual].
