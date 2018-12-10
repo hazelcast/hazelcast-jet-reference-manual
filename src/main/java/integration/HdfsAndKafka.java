@@ -56,6 +56,7 @@ public class HdfsAndKafka {
 
         Pipeline p = Pipeline.create();
         p.drawFrom(KafkaSources.kafka(props, "t1", "t2"))
+         .withoutTimestamps()
          .drainTo(KafkaSinks.kafka(props, "t3"));
         //end::s3[]
     }

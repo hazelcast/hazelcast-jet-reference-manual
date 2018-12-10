@@ -19,6 +19,7 @@ import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
 import com.hazelcast.jet.pipeline.StreamHashJoinBuilder;
 import com.hazelcast.jet.pipeline.StreamSource;
+import com.hazelcast.jet.pipeline.StreamSourceStage;
 import com.hazelcast.jet.pipeline.StreamStage;
 import datamodel.AddToCart;
 import datamodel.Broker;
@@ -65,10 +66,14 @@ class BuildComputation {
     }
 
     static void s2() {
+        JetInstance instance = Jet.newJetInstance();
         //tag::s2[]
         Pipeline p = Pipeline.create();
-        StreamStage<Trade> trades = p.drawFrom(Sources.mapJournal("trades",
-                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
+        IMap<Long, Trade> tradesMap = instance.getMap("trades");
+        StreamSource<Trade> source = Sources.mapJournal(tradesMap,
+                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT);
+        StreamStage<Trade> trades = p.drawFrom(source)
+                                     .withoutTimestamps();
         BatchStage<Entry<Integer, Product>> products =
                 p.drawFrom(Sources.map("products"));
         StreamStage<Tuple2<Trade, Product>> joined = trades.hashJoin(
@@ -255,16 +260,22 @@ class BuildComputation {
     }
 
     static void s10() {
+        JetInstance instance = Jet.newJetInstance();
         //tag::s10[]
         Pipeline p = Pipeline.create();
 
         // The primary stream (stream to be enriched): trades
-        StreamStage<Trade> trades = p.drawFrom(Sources.mapJournal(
-                "trades", mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
+        IMap<Long, Trade> tradesMap = instance.getMap("trades");
+        StreamStage<Trade> trades = p.drawFrom(
+                Sources.mapJournal(tradesMap, mapPutEvents(),
+                        mapEventNewValue(), START_FROM_CURRENT))
+                .withoutTimestamps();
 
         // The enriching streams: products and brokers
-        BatchStage<Entry<Integer, Product>> prodEntries = p.drawFrom(Sources.map("products"));
-        BatchStage<Entry<Integer, Broker>> brokEntries = p.drawFrom(Sources.map("brokers"));
+        BatchStage<Entry<Integer, Product>> prodEntries =
+                p.drawFrom(Sources.map("products"));
+        BatchStage<Entry<Integer, Broker>> brokEntries =
+                p.drawFrom(Sources.map("brokers"));
 
         // Join the trade stream with the product and broker streams
         StreamStage<Tuple3<Trade, Product, Broker>> joined = trades.hashJoin2(
@@ -276,12 +287,16 @@ class BuildComputation {
     }
 
     static void s11() {
+        JetInstance instance = Jet.newJetInstance();
         //tag::s11[]
         Pipeline p = Pipeline.create();
 
         // The stream to be enriched: trades
-        StreamStage<Trade> trades = p.drawFrom(Sources.mapJournal(
-                "trades", mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
+        IMap<Long, Trade> tradesMap = instance.getMap("trades");
+        StreamStage<Trade> trades = p.drawFrom(
+                Sources.mapJournal(tradesMap, mapPutEvents(),
+                        mapEventNewValue(), START_FROM_CURRENT))
+                .withoutTimestamps();
 
         // The enriching streams: products, brokers and markets
         BatchStage<Entry<Integer, Product>> prodEntries =
@@ -307,14 +322,15 @@ class BuildComputation {
         //end::s11[]
 
         //tag::s12[]
-        StreamStage<String> mapped = joined.map((Tuple2<Trade, ItemsByTag> tuple) -> {
-            Trade trade = tuple.f0();
-            ItemsByTag ibt = tuple.f1();
-            Product product = ibt.get(productTag);
-            Broker broker = ibt.get(brokerTag);
-            Market market = ibt.get(marketTag);
-            return trade + ": " + product + ", " + broker + ", " + market;
-        });
+        StreamStage<String> mapped = joined.map(
+                (Tuple2<Trade, ItemsByTag> tuple) -> {
+                    Trade trade = tuple.f0();
+                    ItemsByTag ibt = tuple.f1();
+                    Product product = ibt.get(productTag);
+                    Broker broker = ibt.get(brokerTag);
+                    Market market = ibt.get(marketTag);
+                    return trade + ": " + product + ", " + broker + ", " + market;
+                });
         //end::s12[]
     }
 
@@ -333,13 +349,15 @@ class BuildComputation {
 
     static void s13() {
         Pipeline p = Pipeline.create();
+        JetInstance instance = Jet.newJetInstance();
         //tag::s13[]
-        StreamStage<String> tweets = p.drawFrom(Sources.mapJournal("tweets",
+        IMap<Long, String> tweetsMap = instance.getMap("tweets");
+        StreamSourceStage<String> tweets = p.drawFrom(Sources.mapJournal(tweetsMap,
                 mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
 
-        tweets.flatMap(tweet -> traverseArray(tweet.toLowerCase().split("\\W+")))
+        tweets.withIngestionTimestamps()
+              .flatMap(tweet -> traverseArray(tweet.toLowerCase().split("\\W+")))
               .filter(word -> !word.isEmpty())
-              .addTimestamps()
               .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
               .groupingKey(wholeItem())
               .aggregate(counting())
@@ -348,10 +366,13 @@ class BuildComputation {
     }
 
     static void s14() {
+        JetInstance instance = Jet.newJetInstance();
         //tag::s14[]
         Pipeline p = Pipeline.create();
-        p.<Tweet>drawFrom(Sources.mapJournal("tweets",
+        IMap<Long, Tweet> tweetsMap = instance.getMap("tweets");
+        p.drawFrom(Sources.mapJournal(tweetsMap,
                 mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT))
+         .withoutTimestamps()
          .flatMap(tweet -> traverseArray(tweet.text().toLowerCase().split("\\W+"))
                  .map(word -> new TweetWord(tweet.timestamp(), word)))
          .filter(tweetWord -> !tweetWord.word().isEmpty())
@@ -368,7 +389,7 @@ class BuildComputation {
         Pipeline p = Pipeline.create();
         p.<Tweet>drawFrom(Sources.mapJournal("tweets",
                 mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT))
-         .addTimestamps(Tweet::timestamp, SECONDS.toMillis(5))
+         .withTimestamps(Tweet::timestamp, SECONDS.toMillis(5))
          .flatMap(tweet -> traverseArray(tweet.text().toLowerCase().split("\\W+")))
          .filter(word -> !word.isEmpty())
          .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
@@ -387,6 +408,7 @@ class BuildComputation {
 
         Pipeline p = Pipeline.create();
         p.drawFrom(tradesSource)
+         .withoutTimestamps()
          .groupingKey(Trade::ticker) // <2>
          .mapUsingIMap(stockMap, Trade::setStockInfo) //<3>
          .drainTo(Sinks.list("result"));
@@ -398,7 +420,8 @@ class BuildComputation {
         ContextFactory<IMap<String, StockInfo>> ctxFac = ContextFactory
                 .<IMap<String, StockInfo>>withCreateFn(x -> {
                     ClientConfig cc = new ClientConfig();
-                    cc.getNearCacheConfigMap().put("stock-info", new NearCacheConfig());
+                    cc.getNearCacheConfigMap().put("stock-info",
+                            new NearCacheConfig());
                     return Jet.newJetClient(cc).getMap("stock-info");
                 })
                 .shareLocally()
@@ -408,8 +431,10 @@ class BuildComputation {
 
         Pipeline p = Pipeline.create();
         p.drawFrom(tradesSource)
+         .withoutTimestamps()
          .groupingKey(Trade::ticker)
-         .mapUsingContext(ctxFac, (map, key, trade) -> trade.setStockInfo(map.get(key)))
+         .mapUsingContext(ctxFac,
+                 (map, key, trade) -> trade.setStockInfo(map.get(key)))
          .drainTo(Sinks.list("result"));
         //end::s16a[]
     }
@@ -426,12 +451,19 @@ class BuildComputation {
     }
 
     static void s18() {
+        JetInstance instance = Jet.newJetInstance();
         //tag::s18[]
         Pipeline p = Pipeline.create();
-        StreamStage<Trade> tradesNewYork = p.drawFrom(Sources.mapJournal(
-                "trades-newyork", mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
-        StreamStage<Trade> tradesTokyo = p.drawFrom(Sources.mapJournal(
-                "trades-tokyo", mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
+        IMap<Long, Trade> tradesNewYorkMap = instance.getMap("trades-newyork");
+        IMap<Long, Trade> tradesTokyoMap = instance.getMap("trades-tokyo");
+        StreamStage<Trade> tradesNewYork = p.drawFrom(
+                Sources.mapJournal(tradesNewYorkMap, mapPutEvents(),
+                        mapEventNewValue(), START_FROM_CURRENT))
+                .withDefaultTimestamps(5_000);
+        StreamStage<Trade> tradesTokyo = p.drawFrom(
+                Sources.mapJournal(tradesTokyoMap, mapPutEvents(),
+                        mapEventNewValue(), START_FROM_CURRENT))
+                .withDefaultTimestamps(5_000);
         StreamStage<Trade> merged = tradesNewYork.merge(tradesTokyo);
         //end::s18[]
     }
@@ -443,7 +475,9 @@ class BuildComputation {
                 mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT);
         StreamStage<Trade> currLargestTrade =
                 p.drawFrom(tradesSource)
-                 .rollingAggregate(maxBy(DistributedComparator.comparing(Trade::worth)));
+                 .withoutTimestamps()
+                 .rollingAggregate(maxBy(
+                         DistributedComparator.comparing(Trade::worth)));
         //end::s19[]
     }
 }

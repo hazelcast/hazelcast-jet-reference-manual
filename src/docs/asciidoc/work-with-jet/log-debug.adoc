@@ -44,7 +44,7 @@ individual stage. You can achieve it by using the
 include::{javasource}/LogDebug.java[tag=s3]
 ----
 
-<1> Captures all the word tokens entering the aggregating stage
+<1> Logs all the word tokens emitted by the filtering stage
 
 If you run it like this:
 

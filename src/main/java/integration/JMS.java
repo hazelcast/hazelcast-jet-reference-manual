@@ -26,6 +26,7 @@ public class JMS {
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.jmsQueue(() -> new ActiveMQConnectionFactory(
                 "tcp://localhost:61616"), "queue"))
+         .withoutTimestamps()
          .drainTo(Sinks.logger());
         //end::s1[]
     }
@@ -35,6 +36,7 @@ public class JMS {
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.jmsTopic(() -> new ActiveMQConnectionFactory(
                 "tcp://localhost:61616"), "topic"))
+         .withoutTimestamps()
          .drainTo(Sinks.logger());
         //end::s2[]
     }

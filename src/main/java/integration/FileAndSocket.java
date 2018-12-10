@@ -19,6 +19,7 @@ public class FileAndSocket {
         //tag::s2[]
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.fileWatcher("/home/jet/input"))
+         .withoutTimestamps()
          .drainTo(Sinks.logger());
         //end::s2[]
     }
@@ -35,6 +36,7 @@ public class FileAndSocket {
         //tag::s4[]
         Pipeline p = Pipeline.create();
         p.drawFrom(Sources.socket("localhost", 8080, StandardCharsets.UTF_8))
+         .withoutTimestamps()
          .drainTo(Sinks.logger());
         //end::s4[]
     }

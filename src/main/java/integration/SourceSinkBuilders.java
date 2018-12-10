@@ -7,7 +7,7 @@ import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sink;
 import com.hazelcast.jet.pipeline.SourceBuilder;
 import com.hazelcast.jet.pipeline.StreamSource;
-import com.hazelcast.jet.pipeline.StreamStage;
+import com.hazelcast.jet.pipeline.StreamSourceStage;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -77,7 +77,7 @@ public class SourceSinkBuilders {
                 )
             .build();
         Pipeline p = Pipeline.create();
-        StreamStage<String> srcStage = p.drawFrom(httpSource);
+        StreamSourceStage<String> srcStage = p.drawFrom(httpSource);
         //end::s2[]
     }
 
@@ -95,7 +95,6 @@ public class SourceSinkBuilders {
                                  buf.add(item.substring(9), timestamp);
                              })
                 )
-                .allowedLateness(2000)
                 .build();
         //end::s2a[]
     }

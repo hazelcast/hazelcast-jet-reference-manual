@@ -10,7 +10,7 @@ import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
-import com.hazelcast.jet.pipeline.StreamStage;
+import com.hazelcast.jet.pipeline.StreamSourceStage;
 import com.hazelcast.map.EntryBackupProcessor;
 import com.hazelcast.map.EntryProcessor;
 import com.hazelcast.map.journal.EventJournalMapEvent;
@@ -147,9 +147,9 @@ public class ImdgConnectors {
     static void s11() {
         //tag::s11[]
         Pipeline p = Pipeline.create();
-        StreamStage<Entry<String, Long>> fromMap = p.drawFrom(
+        StreamSourceStage<Entry<String, Long>> fromMap = p.drawFrom(
                 Sources.mapJournal("inputMap", START_FROM_CURRENT));
-        StreamStage<Entry<String, Long>> fromCache = p.drawFrom(
+        StreamSourceStage<Entry<String, Long>> fromCache = p.drawFrom(
                 Sources.cacheJournal("inputCache", START_FROM_CURRENT));
         //end::s11[]
     }
@@ -157,10 +157,10 @@ public class ImdgConnectors {
     static void s12() {
         //tag::s12[]
         Pipeline p = Pipeline.create();
-        StreamStage<EventJournalMapEvent<String, Long>> allFromMap = p.drawFrom(
+        StreamSourceStage<EventJournalMapEvent<String, Long>> allFromMap = p.drawFrom(
             Sources.mapJournal("inputMap",
                     alwaysTrue(), identity(), START_FROM_CURRENT));
-        StreamStage<EventJournalCacheEvent<String, Long>> allFromCache = p.drawFrom(
+        StreamSourceStage<EventJournalCacheEvent<String, Long>> allFromCache = p.drawFrom(
             Sources.cacheJournal("inputMap",
                     alwaysTrue(), identity(), START_FROM_CURRENT));
         //end::s12[]
@@ -170,10 +170,10 @@ public class ImdgConnectors {
         ClientConfig someClientConfig = new ClientConfig();
         //tag::s13[]
         Pipeline p = Pipeline.create();
-        StreamStage<Entry<String, Long>> fromRemoteMap = p.drawFrom(
+        StreamSourceStage<Entry<String, Long>> fromRemoteMap = p.drawFrom(
             Sources.remoteMapJournal("inputMap",
                     someClientConfig, START_FROM_CURRENT));
-        StreamStage<Entry<String, Long>> fromRemoteCache = p.drawFrom(
+        StreamSourceStage<Entry<String, Long>> fromRemoteCache = p.drawFrom(
             Sources.remoteCacheJournal("inputCache",
                     someClientConfig, START_FROM_CURRENT));
         //end::s13[]

@@ -188,9 +188,9 @@ don't get the result in the return value of a method call. The pipeline
 explicitly specifies where it will store the results (to a
 <<pipeline-source-sink, data sink>>).
 
-- Whereas in the Stream API aggregation is the terminal step, the one
-that immediately makes your pipeline execute, in Jet it is just another
-transformation (an intermediate step).
+- Whereas in the Stream API the aggregation is the terminal step, the
+one that immediately makes your pipeline execute, in Jet it is just
+another transformation (an intermediate step).
 
 Finally, you'll notice that Jet's Pipeline API is much more powerful
 than the Stream API. Here are a few highlights:
