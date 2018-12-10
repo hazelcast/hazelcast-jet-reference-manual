@@ -37,7 +37,7 @@ public class JobUpgrade {
         // Now make sure the new job is running and restored from the
         // state correctly. When you no longer need the snapshot, delete
         // it. Jet never deletes exported snapshots automatically.
-        client.getExportedSnapshot("foo-state-name").destroy();
+        client.getJobStateSnapshot("foo-state-name").destroy();
         //end::s1[]
     }
 }
