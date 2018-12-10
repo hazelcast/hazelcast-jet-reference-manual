@@ -53,10 +53,9 @@ If you delete the watched directory, the job will complete.
 
 == File Sink
 
-The
-{jet-javadoc}/pipeline/Sinks.html#files-java.lang.String-[file sink]
+The {jet-javadoc}/pipeline/Sinks.html#files-java.lang.String-[file sink]
 can work with either a local or a shared network file system. Each
-member will write to different filenames. You can achieve the effect of
+member will write to different file names. You can achieve the effect of
 a distributed sink if you manually collect all the output files on all
 members and combine their contents.
 
