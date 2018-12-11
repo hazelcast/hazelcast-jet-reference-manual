@@ -741,6 +741,42 @@ computation job stops and restarts, this state will be restored from the
 snapshot and then the source will replay `x1` and `x2`. The processor
 will think it got two new items.
 
+== Dropped Late Events
+
+At times, you might encounter a line like the following in your logs:
+
+```plain
+Event dropped, late by 123ms. currentWatermark=14:23:10.256, eventTime=14:23:10.123, event=FooEvent
+```
+
+The most obvious cause to check is to make sure that there are no two
+events `E1` and `E2` in any source partition where `E2` occurs after
+`E1` and `E1.timestamp - allowedLag > E2.timestamp`.
+
+Besides this obvious reason, there are few more possible causes:
+
+- If timestamps are not added in source, source streams might be split
+and merged in an unpredictable way. See
+<<not-adding-timestamps-in-source>>. Also Map Journal and Cache Journal
+sources currently don't coalesce watermarks in source, they fall into
+this category too.
+
+- Source partitions can be marked as idle. The idle timeout is hardcoded
+for pipeline api to
+{jet-javadoc}/core/EventTimePolicy.html#DEFAULT_IDLE_TIMEOUT[`DEFAULT_IDLE_TIMEOUT`].
+If the partition isn't really idle, but rather is stalled, after it
+resumes, events from it can be late because it was excluded from
+coalescing.
+
+- There are other watermark policies in Core API (not available in
+Pipeline API) which can advance the watermark in the absence of events.
+See their javadoc.
+
+_Note:_ items are not dropped unless there is need to. For example,
+`map` operation never drops items, even if they come late. Currently
+only windowing aggregations drop events, because they purge data from
+memory as the event time passes.
+
 == Stream Skew
 
 We <<time-ordering, explained>> how we use the concept of watermark to

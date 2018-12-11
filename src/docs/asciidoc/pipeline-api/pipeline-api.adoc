@@ -565,6 +565,7 @@ first enrich the item or if you need to first flat-map the item and
 extract the timestamps from the flat-mapped items. However in this case,
 the watermarks won't be emitted by the source.
 
+[[not-adding-timestamps-in-source]]
 === Caveats of Not Adding Timestamps in the Source
 
 When you set the timestamps in the source using `withTimestamps()` or
