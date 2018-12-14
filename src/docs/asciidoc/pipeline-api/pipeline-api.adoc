@@ -549,8 +549,8 @@ You can specify windows only on streams, that have timestamps added.
 The `drawFrom(StreamSource)` method returns a `StreamSourceStage`, on
 which you have to configure how timestamps are added to the stream:
 
-- {jet-javadoc}/pipeline/StreamSourceStage.html#withDefaultTimestamps--[`withDefaultTimestamps()`]:
-declares that the stream will use source's default timestamp. This
+- {jet-javadoc}/pipeline/StreamSourceStage.html#withNativeTimestamps--[`withNativeTimestamps()`]:
+declares that the stream will use source's native timestamp. This
 typically is the message timestamp of the external system.
 
 - {jet-javadoc}/pipeline/StreamSourceStage.html#withTimestamps-com.hazelcast.jet.function.DistributedToLongFunction-long-[`withTimestamps()`]:
@@ -569,7 +569,7 @@ the watermarks won't be emitted by the source.
 === Caveats of Not Adding Timestamps in the Source
 
 When you set the timestamps in the source using `withTimestamps()` or
-`withDefaultTimestamps()`, Jet is able to push the timestamping logic
+`withNativeTimestamps()`, Jet is able to push the timestamping logic
 into the source. Some source implementations, especially partitioned
 ones such as Kafka, have advanced logic that keeps track of the
 timestamps on each partition and knows how to reconcile the temporary

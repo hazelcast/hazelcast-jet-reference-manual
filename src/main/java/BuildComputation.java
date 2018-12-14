@@ -459,11 +459,11 @@ class BuildComputation {
         StreamStage<Trade> tradesNewYork = p.drawFrom(
                 Sources.mapJournal(tradesNewYorkMap, mapPutEvents(),
                         mapEventNewValue(), START_FROM_CURRENT))
-                .withDefaultTimestamps(5_000);
+                .withNativeTimestamps(5_000);
         StreamStage<Trade> tradesTokyo = p.drawFrom(
                 Sources.mapJournal(tradesTokyoMap, mapPutEvents(),
                         mapEventNewValue(), START_FROM_CURRENT))
-                .withDefaultTimestamps(5_000);
+                .withNativeTimestamps(5_000);
         StreamStage<Trade> merged = tradesNewYork.merge(tradesTokyo);
         //end::s18[]
     }
