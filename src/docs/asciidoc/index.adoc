@@ -31,7 +31,7 @@ programming language.
 
 = Summary of Contents
 
-. <<overview, Overview>> presents the basic concepts of Hazelast Jet
+. <<overview, Overview>> presents the basic concepts of Hazelcast Jet
 and provides high-level orientation.
 
 . <<get-started>> leads you through the steps to get Hazelcast Jet up

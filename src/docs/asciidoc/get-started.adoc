@@ -168,7 +168,7 @@ If you've already used Java's Stream API, you'll find many similarities
 in Jet's Pipeline API. They both construct a processing pipeline by
 adding processing steps (stages). Both are FP-oriented APIs with lambdas
 playing a key role. Simple transformations like map/filter even look
-exactly the same. The main concern is knowing where the similiarities
+exactly the same. The main concern is knowing where the similarities
 end. Here are some typical gotchas if the Stream API has set some
 expectations for you:
 
@@ -188,9 +188,9 @@ don't get the result in the return value of a method call. The pipeline
 explicitly specifies where it will store the results (to a
 <<pipeline-source-sink, data sink>>).
 
-- Whereas in the Stream API aggregation is the terminal step, the one
-that immediately makes your pipeline execute, in Jet it is just another
-transformation (an intermediate step).
+- Whereas in the Stream API the aggregation is the terminal step, the
+one that immediately makes your pipeline execute, in Jet it is just
+another transformation (an intermediate step).
 
 Finally, you'll notice that Jet's Pipeline API is much more powerful
 than the Stream API. Here are a few highlights:
@@ -369,8 +369,8 @@ The following command will create a ConfigMap object in the Kubernetes Cluster.
 kubectl apply -f hazelcast-jet-config.yaml
 ```
 
-This object holds our Kubernetes Discovery enabled Hazelcast Jet configuration. 
-You will use this configuration when you create pods as explanied below. 
+This object holds our Kubernetes Discovery enabled Hazelcast Jet configuration.
+You will use this configuration when you create pods as explained below.
 
 You need to create a StatefulSet, which manages pods that are based on an identical container spec,
 and a Service, which is an abstraction defining a logical set of pods and a policy using which to access them. 

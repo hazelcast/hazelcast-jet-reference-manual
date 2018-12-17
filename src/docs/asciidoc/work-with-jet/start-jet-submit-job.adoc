@@ -235,7 +235,7 @@ explained next.
 
 Jet comes with the `jet-submit.sh` script, which allows you to submit a
 Jet job packaged in a JAR file. You can find it in the Jet distribution
-zipfile, in the `bin` directory. On Windows use `jet-submit.bat`. To use
+zip file, in the `bin` directory. On Windows use `jet-submit.bat`. To use
 it, follow these steps:
 
 * Write your `main()` method and your Jet code the usual way, but call

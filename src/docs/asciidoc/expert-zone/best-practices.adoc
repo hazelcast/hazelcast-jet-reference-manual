@@ -106,7 +106,9 @@ The optional snapshot+restore test procedure:
 * restore the snapshot using `restoreFromSnapshot()`
 * call `finishSnapshotRestore()`
 
-The test optionally asserts that the processor made progress on each call to any processing method. To be judged as having made progress, the callback method must do at least one of these:
+The test optionally asserts that the processor made progress on each
+call to any processing method. To be judged as having made progress, the
+callback method must do at least one of these:
 
 * take something from the inbox
 * put something to the outbox

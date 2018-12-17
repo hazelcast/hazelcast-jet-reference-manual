@@ -542,6 +542,50 @@ The process of data aggregation takes a finite batch of data and
 produces a result. We can make it work with an infinite stream if we
 break up the stream into finite chunks. This is called _windowing_.
 
+You can specify windows only on streams, that have timestamps added.
+
+== Adding Timestamps to the Stream
+
+The `drawFrom(StreamSource)` method returns a `StreamSourceStage`, on
+which you have to configure how timestamps are added to the stream:
+
+- {jet-javadoc}/pipeline/StreamSourceStage.html#withNativeTimestamps--[`withNativeTimestamps()`]:
+declares that the stream will use source's native timestamp. This
+typically is the message timestamp of the external system.
+
+- {jet-javadoc}/pipeline/StreamSourceStage.html#withTimestamps-com.hazelcast.jet.function.DistributedToLongFunction-long-[`withTimestamps()`]:
+declares that the source will extract timestamps from the stream items.
+
+- {jet-javadoc}/pipeline/StreamSourceStage.html#withoutTimestamps--[`withoutTimestamps()`]:
+if you don't need the timestamps (if you don't do window aggregation)
+
+- `withoutTimestamps() ... .addTimestamps()`: use this if you can't
+extract the timestamp from the source item. For example, if you have to
+first enrich the item or if you need to first flat-map the item and
+extract the timestamps from the flat-mapped items. However in this case,
+the watermarks won't be emitted by the source.
+
+[[not-adding-timestamps-in-source]]
+=== Caveats of Not Adding Timestamps in the Source
+
+When you set the timestamps in the source using `withTimestamps()` or
+`withNativeTimestamps()`, Jet is able to push the timestamping logic
+into the source. Some source implementations, especially partitioned
+ones such as Kafka, have advanced logic that keeps track of the
+timestamps on each partition and knows how to reconcile the temporary
+differences in timestamps that occur between them. This often results in
+less events dropped as late.
+
+There's also the so called _catching-up issue_ when timestamps are added
+after the source: if the job is restarted, there can be very recent
+event in partition1 and a very old one in partition2. If the difference
+between them is more than the allowed lag and the partition1 happens to
+be read first, the event from the partition2 can be dropped.
+
+So, if possible, avoid the `addTimestamps` method for unbounded sources.
+
+== Specifying the Window
+
 Let's demonstrate windowing on the example of the Word Count task. If
 you have a finite batch of tweets you want to analyze for word
 frequencies, this is how the pipeline can look:
@@ -551,8 +595,8 @@ frequencies, this is how the pipeline can look:
 include::{javasource}/BuildComputation.java[tag=s13a]
 ----
 
-To make it work for an infinite stream, you have to add two things --
-event timestamps and the specification of the window:
+To make it work for an infinite stream, let's add the event timestamps
+and the specification of the window:
 
 [source]
 ----
@@ -586,7 +630,7 @@ lag we want to tolerate. We said that the timestamp of an event we
 receive can be at most five seconds behind the highest timestamp we
 already received. This also means that Jet will have to delay emitting a
 windowed result until it receives an event that's five seconds past the
-window's end, so the latency will typically be five seconds or more.
+window's end, so the latency will be five seconds or more.
 
 Notice how we had to struggle a bit to hold on to the timestamp through
 the flatmapping transformation. We needed two classes: `Tweet` and
@@ -600,14 +644,8 @@ include::{javasource}/BuildComputation.java[tag=s15]
 Now the `flatMap` stage emits just the words as strings. This will work
 correctly because Jet keeps the event timestamps internally and
 correlates the input item with all the output items of a transformation
-such as `flatMap` and `filter`, propagating the timestamp value.
-
-When you set the timestamps as the first thing after a source stage,
-Jet is able to push the timestamping logic into the source. Some sources,
-especially partitioned ones such as Kafka, have advanced logic that
-keeps track of the timestamps on each partition and knows how to
-reconcile the temporary differences in timestamps that occur between
-them. This often results in less latency and less events dropped as late.
+such as `flatMap` and `filter`, propagating the timestamp value. See
+also <<caveats-of-not-adding-timestamps-in-the-source>>.
 
 = Kinds of Windows
 

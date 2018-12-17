@@ -9,6 +9,7 @@ import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
 import com.hazelcast.jet.pipeline.StreamSource;
+import com.hazelcast.jet.pipeline.StreamSourceStage;
 import com.hazelcast.jet.pipeline.StreamStage;
 import com.hazelcast.jet.pipeline.StreamStageWithKey;
 import datamodel.PageVisit;
@@ -78,6 +79,7 @@ public class CheatSheet {
 
         Pipeline p = Pipeline.create();
         p.drawFrom(tradesSource)
+         .withoutTimestamps()
          .groupingKey(Trade::ticker)
          .mapUsingIMap(stockMap, Trade::setStockInfo)
          .drainTo(Sinks.list("result"));
@@ -102,10 +104,10 @@ public class CheatSheet {
 
     static void s7() {
         //tag::s7[]
-        StreamStage<Entry<Long, String>> tweetWords = p.drawFrom(
+        StreamSourceStage<Entry<Long, String>> tweetWords = p.drawFrom(
                 Sources.mapJournal("tweet-words", START_FROM_OLDEST));
         StreamStage<TimestampedEntry<String, Long>> wordFreqs =
-                tweetWords.addTimestamps(e -> e.getKey(), 1000)
+                tweetWords.withTimestamps(e -> e.getKey(), 1000)
                           .window(sliding(1000, 10))
                           .groupingKey(entryValue())
                           .aggregate(counting());
@@ -130,12 +132,12 @@ public class CheatSheet {
         StreamStageWithKey<PageVisit, Integer> pageVisits =
                 p.<PageVisit>drawFrom(Sources.mapJournal("pageVisits",
                         mapPutEvents(), mapEventNewValue(), START_FROM_OLDEST))
-                        .addTimestamps(PageVisit::timestamp, 1000)
+                        .withTimestamps(PageVisit::timestamp, 1000)
                         .groupingKey(PageVisit::userId);
         StreamStageWithKey<Payment, Integer> payments =
                 p.<Payment>drawFrom(Sources.mapJournal("payments",
                         mapPutEvents(), mapEventNewValue(), START_FROM_OLDEST))
-                        .addTimestamps(Payment::timestamp, 1000)
+                        .withTimestamps(Payment::timestamp, 1000)
                         .groupingKey(Payment::userId);
         StreamStage<TimestampedEntry<Integer,
                                     Tuple2<List<PageVisit>, List<Payment>>>>
@@ -151,6 +153,7 @@ public class CheatSheet {
                 mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT);
         StreamStage<Trade> currLargestTrade =
                 p.drawFrom(tradesSource)
+                 .withoutTimestamps()
                  .rollingAggregate(maxBy(comparing(Trade::worth)));
         //end::s10[]
     }
