@@ -20,7 +20,7 @@ import com.hazelcast.jet.Job;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.pipeline.Pipeline;
 
-public class JobUpgrade {
+public class JobUpdate {
     public static void main(String[] args) {
         //tag::s1[]
         JetInstance client = Jet.newJetClient();

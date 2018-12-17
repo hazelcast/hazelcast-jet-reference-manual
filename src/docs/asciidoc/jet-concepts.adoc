@@ -447,7 +447,7 @@ coordinator may fail and the cluster will automatically re-elect another
 one. If any other member fails, the coordinator restarts the job on the
 remaining members.
 
-== Upgrading Job without Losing State
+== Updating the DAG without Losing the State
 
 If you need to do a change in the pipeline or DAG, you need to submit a
 new job. The old job has to be cancelled and a new one with modified
@@ -468,7 +468,7 @@ state to the test environment
 
 [source]
 ----
-include::{javasource}/JobUpgrade.java[tag=s1]
+include::{javasource}/JobUpdate.java[tag=s1]
 ----
 
 === State Compatibility
