@@ -2,7 +2,7 @@
 
 The general shape of any data processing pipeline is `drawFromSource ->
 transform -> drainToSink` and the natural way to build it is from source
-to sink. The {jet-javadoc}/Pipeline.html[Pipeline] API follows this
+to sink. The {jet-javadoc}/pipeline/Pipeline.html[Pipeline] API follows this
 pattern. For example,
 
 [source]
@@ -514,7 +514,7 @@ include::{javasource}/BuildComputation.java[tag=nonEmptyStream]
 ==  Join Four or More Streams Using the Aggregate Builder
 
 If you need to join more than three streams, you'll have to use the
-{jet-javadoc}/pipeline/StageWithGroupingAndWindow.html#aggregateBuilder--[builder]
+{jet-javadoc}/pipeline/StageWithKeyAndWindow.html#aggregateBuilder--[builder]
 object. For example, your goal may be correlating events coming from
 different systems, where all the systems serve the same user base. In an
 online store you may have separate event streams for product page visits,
