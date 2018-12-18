@@ -477,7 +477,7 @@ Members {size:2, ver:2} [
 ```
 
 For more details about deployment and information on how to submit the 
-Hazelcast Jet jobs to your cluster, see the https://github.com/hazelcast/hazelcast-jet-code-samples/tree/master/integration/kubernetes[Kubernetes Integration] 
+Hazelcast Jet jobs to your cluster, see the {jet-samples}/integration/kubernetes[Kubernetes Integration] 
 code sample
 
 == Deployment using Helm
@@ -539,8 +539,8 @@ cover the data migration process. Default value is 600 seconds
 
 The graceful shutdown configuration is already included in https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet[Hazelcast Jet Helm Chart].
 
-With the https://docs.hazelcast.org/docs/jet/latest-dev/manual/#automatic-elasticity[Automatic Elasticity] 
+With the <<automatic-elasticity, Automatic Elasticity>>
 feature, your jobs will be automatically restarted from the latest known
 snapshot when you downscale your cluster. For more detauls about 
-snapshotting and processing guarantees see https://docs.hazelcast.org/docs/jet/latest-dev/manual/#fault-tolerance[Fault Tolerance] 
-section on the https://docs.hazelcast.org/docs/jet/latest-dev/manual/[Hazelcast Jet Reference Manual].
+snapshotting and processing guarantees see <<fault-tolerance, Fault Tolerance>>
+section.
