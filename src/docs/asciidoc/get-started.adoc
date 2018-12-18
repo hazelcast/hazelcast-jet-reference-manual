@@ -39,7 +39,7 @@ compile 'com.hazelcast.jet:hazelcast-jet:{jet-version}'
 ----
 
 Alternatively you can download the latest
-http://jet.hazelcast.org/download[distribution package of Hazelcast Jet]
+https://jet.hazelcast.org/download[distribution package of Hazelcast Jet]
 and add the `hazelcast-jet-{jet-version}.jar` file to your classpath.
 
 == Install Hazelcast Jet Enterprise (Optional)
@@ -51,9 +51,7 @@ following features:
 * <<configuring-tls-enterprise-only, Security Suite>>
 * Lossless Recovery (in Jet 1.0)
 * Rolling Job Upgrades (in Jet 1.0)
-* Enterprise PaaS Deployment Environment
-(https://docs.pivotal.io/partners/hazelcast-jet/index.html[Pivotal Cloud
-Foundry], Openshift Container Platform (Jet 1.0))
+* Enterprise PaaS Deployment Environment (Pivotal Cloud Foundry, Openshift Container Platform (Jet 1.0))
 
 Hazelcast Jet Enterprise is available on a Hazelcast Maven repository.
 Add the following lines to your `pom.xml`:

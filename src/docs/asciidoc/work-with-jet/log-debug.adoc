@@ -37,7 +37,7 @@ refer to the {hz-refman}#logging-configuration[IMDG reference manual].
 
 While debugging your pipeline you'll want to see the output of an
 individual stage. You can achieve it by using the
-{jet-javadoc}/GeneralStage.html#peek--[`peek()`] stage. For example:
+{jet-javadoc}/pipeline/GeneralStage.html#peek--[`peek()`] stage. For example:
 
 [source]
 ----
