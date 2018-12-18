@@ -333,9 +333,9 @@ processor which gives you the ability:
 You need to configure Hazelcast Jet with `<hz:spring-aware/>`
 tag or set `SpringManagedContext` programmatically to enable
 spring-aware objects. Code samples for
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/spring/src/main/java/jet/spring/XmlConfigurationWithSchemaSample.java[declarative]
+{jet-samples}/integration/spring/src/main/java/jet/spring/XmlConfigurationWithSchemaSample.java[declarative]
 and
-https://github.com/hazelcast/hazelcast-jet-code-samples/blob/master/spring/src/main/java/jet/spring/AnnotationBasedConfigurationSample.java[annotation-based]
+{jet-samples}/integration/spring/src/main/java/jet/spring/AnnotationBasedConfigurationSample.java[annotation-based]
 configurations are available at our Code Samples repo.
 
 == Configuring TLS (Enterprise only)
