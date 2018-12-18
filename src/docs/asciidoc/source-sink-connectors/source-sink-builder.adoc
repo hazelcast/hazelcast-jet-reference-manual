@@ -138,7 +138,7 @@ watermark items that account for the lagging partitions. It is available
 if you create a custom source processor using the Core API, but it's not
 currently exposed through the source builder. Refer to the section on
 <<custom-source-sink-vertex, custom source vertices>> and to the Javadoc
-of {jet-javadoc}/core/WatermarkSourceUtil[`WatermarkSourceUtil`].
+of {jet-javadoc}/core/WatermarkSourceUtil.html[`WatermarkSourceUtil`].
 
 === Fault Tolerance
 

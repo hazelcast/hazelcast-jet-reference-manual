@@ -450,8 +450,7 @@ remaining members.
 [[jet-execution-model]]
 == Jet's Execution Model
 
-At the heart of Jet is the
-https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/TaskletExecutionService.java[`TaskletExecutionService`].
+At the heart of Jet is the :jet-core:[`TaskletExecutionService`].
 It manages the threads that perform all the computation in a Jet job.
 Although this class is not formally a part of Jet's public API,
 understanding how it schedules code for execution is essential if you
@@ -485,7 +484,7 @@ to make progress (by inspecting its input/output buffers).
 
 The execution service doesn't deal with processors directly; instead it
 deals with _tasklets_.
-:jet-master:/impl/execution/Tasklet.java[`Tasklet`]
+:jet-core:/impl/execution/Tasklet.java[`Tasklet`]
 is a very simple functional interface derived from the standard Java
 `Callable<ProgressState>`. The execution service manages a pool of
 worker threads, each being responsible for a list of tasklets. The
@@ -677,7 +676,7 @@ handled specially:
   _watermark coalescing_.
 
 Jet's internal class
-https://github.com/hazelcast/hazelcast-jet/blob/master/hazelcast-jet-core/src/main/java/com/hazelcast/jet/impl/execution/WatermarkCoalescer.java[`WatermarkCoalescer`]
+:jet-core:/impl/execution/WatermarkCoalescer.java[`WatermarkCoalescer`]
  manages watermarks received from multiple inputs. As it receives
 watermark items from them, its duty is to decide when to forward the
 watermark downstream. This happens at two levels:

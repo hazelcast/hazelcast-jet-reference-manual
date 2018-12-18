@@ -31,7 +31,7 @@ The Jet team provides support to its community via these channels:
 (ask a question on how to use Jet properly and troubleshoot your setup)
 * https://groups.google.com/forum/#!forum/hazelcast-jet[Hazelcast Jet mailing list]
 (propose features and discuss your ideas with the team)
-* https://github.com/hazelcast/hazelcast-jet/isses[GitHub's issue tracking]
+* https://github.com/hazelcast/hazelcast-jet/issues[GitHub's issue tracking]
 (report your confirmed issues)
 
 For information on the commercial support for Hazelcast Jet, please see
