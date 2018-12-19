@@ -1,6 +1,6 @@
-:jet-javadoc: https://docs.hazelcast.org/docs/jet/0.7/javadoc/com/hazelcast/jet
+:jet-javadoc: https://docs.hazelcast.org/docs/jet/0.7.1/javadoc/com/hazelcast/jet
 :jet-samples: https://github.com/hazelcast/hazelcast-jet-code-samples/blob/0.7-maintenance
-:jet-refman-src: https://github.com/hazelcast/hazelcast-jet-reference-manual/blob/master
+:jet-refman-src: https://github.com/hazelcast/hazelcast-jet-reference-manual/blob/0.7-maintenance
 :jet-core: https://github.com/hazelcast/hazelcast-jet/blob/0.7-maintenance/hazelcast-jet-core/src/main/java/com/hazelcast/jet
 :hz-refman: https://docs.hazelcast.org/docs/{hz-version}/manual/html-single/index.html
 :hz-javadoc: https://docs.hazelcast.org/docs/{hz-version}/javadoc/com/hazelcast
