@@ -19,10 +19,9 @@ import java.time.format.DateTimeFormatter;
 
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.core.Edge.between;
+import static com.hazelcast.jet.core.EventTimePolicy.eventTimePolicy;
 import static com.hazelcast.jet.core.Partitioner.HASH_CODE;
 import static com.hazelcast.jet.core.SlidingWindowPolicy.slidingWinPolicy;
-import static com.hazelcast.jet.core.WatermarkEmissionPolicy.emitByFrame;
-import static com.hazelcast.jet.core.EventTimePolicy.eventTimePolicy;
 import static com.hazelcast.jet.core.WatermarkPolicies.limitingLag;
 import static com.hazelcast.jet.core.processor.Processors.mapUsingContextP;
 import static com.hazelcast.jet.function.DistributedFunctions.entryKey;
@@ -57,7 +56,8 @@ public class StockExchangeCoreApi {
                         eventTimePolicy(
                                 timestampFn,                       // <3>
                                 limitingLag(SECONDS.toMillis(3)),  // <4>
-                                emitByFrame(winPolicy),            // <5>
+                                winPolicy.frameSize(),             // <5>
+                                winPolicy.frameOffset(),
                                 SECONDS.toMillis(3)                // <6>
                         )));
         Vertex slidingStage1 = dag.newVertex("sliding-stage-1",
