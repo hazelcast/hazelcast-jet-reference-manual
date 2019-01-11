@@ -100,8 +100,7 @@ distribution of partitions among processors. You should watch out for
 and avoid the possibility that the global parallelism exceeds the number
 of partitions because that would mean some processors get no
 input/produce no output. This has severe consequences in a streaming job
-with watermarks: the <<max-watermark-retention, event skew>> grows
-without bound.
+with watermarks: the event skew grows without bound.
 
 [[edge-original]]
 == Edge Ordinal

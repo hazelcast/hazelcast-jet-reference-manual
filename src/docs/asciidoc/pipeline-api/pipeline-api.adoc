@@ -565,7 +565,7 @@ first enrich the item or if you need to first flat-map the item and
 extract the timestamps from the flat-mapped items. However in this case,
 the watermarks won't be emitted by the source.
 
-[[not-adding-timestamps-in-source]]
+[[caveats-of-not-adding-timestamps-in-source]]
 === Caveats of Not Adding Timestamps in the Source
 
 When you set the timestamps in the source using `withTimestamps()` or
@@ -645,7 +645,7 @@ Now the `flatMap` stage emits just the words as strings. This will work
 correctly because Jet keeps the event timestamps internally and
 correlates the input item with all the output items of a transformation
 such as `flatMap` and `filter`, propagating the timestamp value. See
-also <<caveats-of-not-adding-timestamps-in-the-source>>.
+also <<caveats-of-not-adding-timestamps-in-source>>.
 
 = Kinds of Windows
 
@@ -669,6 +669,10 @@ seconds, and so on.
 of quiescence. You define the "session timeout", i.e., the length of the
 quiet period that causes the window to close. If you define a grouping
 key, there is a separate, independent session window for each key.
+
+You can find a more in-depth explanation of Jet's windows in the
+<<unbounded-stream-processing, Jet Concepts>> chapter.
+
 
 = Rolling Aggregation
 

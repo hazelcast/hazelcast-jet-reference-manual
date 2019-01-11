@@ -756,9 +756,9 @@ Besides this obvious reason, there are few more possible causes:
 
 - If timestamps are not added in source, source streams might be split
 and merged in an unpredictable way. See
-<<not-adding-timestamps-in-source>>. Also Map Journal and Cache Journal
-sources currently don't coalesce watermarks in source, they fall into
-this category too.
+<<caveats-of-not-adding-timestamps-in-source>>. Also Map Journal and
+Cache Journal sources currently don't coalesce watermarks in source,
+they fall into this category too.
 
 - Source partitions can be marked as idle. The idle timeout is hardcoded
 for pipeline api to
@@ -825,12 +825,10 @@ have no events while others do.
 
 When an _idle message_ is received from an input, that input will be
 excluded from watermark coalescing. This means that we will not wait to
-receive watermark from idle input. It will cause that other active
-inputs can be processed without any delay. When idle timeout is disabled
-and some processor doesn't emit any watermarks (because it sees no
-events), the processing will stall indefinitely (unless
-<<max-watermark-retention, maximum retention>>
-is configured).
+receive watermark from the idle input. It will allow the other active
+inputs to be processed without further delay. When the idle timeout is
+disabled and some processor doesn't emit any watermarks (because it sees
+no events), the processing will stall indefinitely.
 
 [[pitfalls-alo]]
 == The Pitfalls of At-Least-Once Processing

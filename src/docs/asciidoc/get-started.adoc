@@ -268,7 +268,8 @@ must preserve the accumulator's state and `finish` doesn't. Jet uses
 In this example we use the same lambda for both primitives.
 
 
-== Deployment using Docker
+== Deploy Using Docker
+
 You can deploy your Hazelcast Jet projects using the Docker containers.
 Hazelcast Jet has the following images on Docker:
 
@@ -276,31 +277,33 @@ Hazelcast Jet has the following images on Docker:
 - Hazelcast Jet Enterprise
 - Hazelcast Jet Management Center
 
-After you pull an image from the Docker registry, you can run your 
-image to start the Jet Management Center or a Jet 
-instance with its default configuration. All repositories 
-provide the latest stable releases but you can pull a specific release, 
-too. You can also specify environment variables when running the image.
+After you pull an image from the Docker registry, you can run your image
+to start the Jet Management Center or a Jet instance with its default
+configuration. All repositories provide the latest stable releases but
+you can pull a specific release, too. You can also specify environment
+variables when running the image.
 
-If you want to start customized instances of Jet or Jet Management Center, 
-you can extend the the above listed images by providing your own 
-configuration file.
-This feature is provided as a Hazelcast Jet plugin. Please see their own 
-GitHub repos at https://github.com/hazelcast/hazelcast-jet-docker[Hazelcast Jet Docker] 
-and https://github.com/hazelcast/hazelcast-jet-management-center-docker[Hazelcast Jet Management Center Docker]
+If you want to start customized instances of Jet or Jet Management Center,
+you can extend the the above listed images by providing your own
+configuration file. This feature is provided as a Hazelcast Jet plugin.
+Please see their own GitHub repos at
+https://github.com/hazelcast/hazelcast-jet-docker[Hazelcast Jet Docker]
+and
+https://github.com/hazelcast/hazelcast-jet-management-center-docker[Hazelcast Jet Management Center Docker]
 for details on configurations and usages.
 
-== Deployment using Kubernetes
+== Deploy Using Kubernetes
 
-Hazelcast Jet provides Kubernetes-ready Docker images which you can easily
-deploy into Kubernetes environments.These images use the https://github.com/hazelcast/hazelcast-kubernetes[Hazelcast Kubernetes]
-plugin to discover other Hazelcast Jet members in the Kubernetes environment 
-by interacting with the Kubernetes API. 
+Hazelcast Jet provides Kubernetes-ready Docker images which you can
+easily deploy into Kubernetes environments. These images use the
+https://github.com/hazelcast/hazelcast-kubernetes[Hazelcast Kubernetes]
+plugin to discover other Hazelcast Jet members in the Kubernetes
+environment by interacting with the Kubernetes API.
 
-Using Kubernetes API requires granting certain permissions. Therefore, 
-you need to create Role Based Access Control definition, (`rbac.yaml`), 
-with the following content. 
-You can check https://github.com/hazelcast/hazelcast-kubernetes[Hazelcast Kubernetes] 
+Using Kubernetes API requires granting certain permissions. Therefore,
+you need to create Role Based Access Control definition, (`rbac.yaml`),
+with the following content. You can check out the
+https://github.com/hazelcast/hazelcast-kubernetes[Hazelcast Kubernetes]
 plugin for more details on this manner.
 
 Here is the content of `rbac.yaml`:
@@ -320,16 +323,16 @@ subjects:
   namespace: default
 ```
 
-You can grant the required permissions stated above using the following 
-command: 
+You can grant the required permissions stated above using the following
+command:
 
 ```bash
 kubectl apply -f rbac.yaml
 ```
 
-Then, you need to configure Hazelcast Jet to use Kubernetes Discovery to 
-discover other members, to do so create a file named (`hazelcast-jet-config.yaml`) 
-with the contents as shown below.
+Then, you need to configure Hazelcast Jet to use Kubernetes Discovery to
+discover other members, to do so create a file named
+`hazelcast-jet-config.yaml` with the contents as shown below.
 
 Here is the content of `hazelcast-jet-config.yaml`:
 
@@ -364,21 +367,22 @@ data:
     </hazelcast>
 ```
 
-The following command will create a ConfigMap object in the Kubernetes 
+The following command will create a ConfigMap object in the Kubernetes
 Cluster.
 
 ```bash
 kubectl apply -f hazelcast-jet-config.yaml
 ```
 
-This object holds our Kubernetes Discovery enabled Hazelcast Jet configuration.
-You will use this configuration when you create pods as explained below.
+This object holds our Kubernetes Discovery enabled Hazelcast Jet
+configuration. You will use this configuration when you create pods as
+explained below.
 
-You need to create a StatefulSet, which manages pods that are based on 
-an identical container spec, and a Service, which is an abstraction 
-defining a logical set of pods and a policy using which to access them. 
-These two should be defined in the (`hazelcast-jet.yaml`) file, as shown 
-below
+You need to create a StatefulSet, which manages pods that are based on
+an identical container spec, and a Service, which is an abstraction
+defining a logical set of pods and a policy using which to access them.
+These two should be defined in the (`hazelcast-jet.yaml`) file, as shown
+below.
 
 Here is the content of `hazelcast-jet.yaml`:
 
@@ -448,26 +452,26 @@ spec:
     port: 5701
 ```
 
-After creating the (`hazelcast-jet.yaml`) file with the content above, 
+After creating the (`hazelcast-jet.yaml`) file with the content above,
 run the following command to create the Service and StatefulSet:
 
 ```bash
 kubectl apply -f hazelcast-jet.yaml
 ```
 
-After that, you can inspect the pod logs to see that they formed a 
+After that, you can inspect the pod logs to see that they formed a
 cluster using the following command:
 
 ```bash
 kubectl logs hazelcast-jet-0
 ```
 
-It should output a log similar to the one below: 
+It should output a log similar to the one below:
 
 ```bash
 ....
 Nov 15, 2018 9:39:15 AM com.hazelcast.internal.cluster.ClusterService
-INFO: [172.17.0.2]:5701 [dev] [0.7] 
+INFO: [172.17.0.2]:5701 [dev] [0.7]
 
 Members {size:2, ver:2} [
 	Member [172.17.0.2]:5701 - d935437e-143e-4e3f-81d6-f3ece16eb23e this
@@ -476,71 +480,74 @@ Members {size:2, ver:2} [
 ....
 ```
 
-For more details about deployment and information on how to submit the 
-Hazelcast Jet jobs to your cluster, see the {jet-samples}/integration/kubernetes[Kubernetes Integration] 
-code sample
+For more details about deployment and information on how to submit the
+Hazelcast Jet jobs to your cluster, see the
+{jet-samples}/integration/kubernetes[Kubernetes Integration] code sample.
 
 == Deployment using Helm
 
-You can deploy Hazelcast Jet using the Helm charts. These charts provide 
-an easy way to package and deploy applications on Kubernetes. 
+You can deploy Hazelcast Jet using the Helm charts. These charts provide
+an easy way to package and deploy applications on Kubernetes.
 
-To deploy Hazelcast Jet using Helm, you need to add the Hazelcast Helm 
+To deploy Hazelcast Jet using Helm, you need to add the Hazelcast Helm
 Charts repository to Helm using the following command:
 
 ```bash
 helm repo add hazelcast https://hazelcast.github.io/charts/
-``` 
+```
 
-Then, update information of available charts locally from chart 
+Then, update information of available charts locally from chart
 repositories using the following command:
 
 ```bash
 helm repo update
-``` 
+```
 
 Then, you can install the chart using the following command:
 
 ```bash
 helm install hazelcast/hazelcast-jet
-``` 
+```
 
-See https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet[Hazelcast Jet Helm Chart]
-for more details on configuration and the https://github.com/hazelcast/charts#troubleshooting-in-kubernetes-environments[Troubleshooting in Kubernetes Environments] 
+See
+https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet[Hazelcast Jet Helm Chart]
+for more details on configuration and the
+https://github.com/hazelcast/charts#troubleshooting-in-kubernetes-environments[Troubleshooting in Kubernetes Environments]
 section if you encounter any issues.
 
-## Scaling Hazelcast Jet cluster in Kubernetes
+== Scaling the Cluster in Kubernetes
 
-Hazelcast Jet cluster is easily scalable within Kubernetes. You can use 
-the standard `kubectl scale` (See https://kubernetes.io/docs/tasks/run-application/scale-stateful-set/#scaling-statefulsets[Scaling StatefulSets] 
-for more information.) command to change the cluster size.
+Hazelcast Jet cluster is easily scalable within Kubernetes. You can use
+the standard `kubectl scale` command to change the cluster size. See
+https://kubernetes.io/docs/tasks/run-application/scale-stateful-set/#scaling-statefulsets[Scaling StatefulSets]
+for more information.
 
-Note however that, by default, Hazelcast Jet is configured to `TERMINATE` 
-on receiving the `SIGTERM` signal from Kubernetes, which means that a 
-container stops quickly, but the cluster's data safety relies on the 
+Note however that, by default, Hazelcast Jet is configured to `TERMINATE`
+on receiving the `SIGTERM` signal from Kubernetes, which means that a
+container stops quickly, but the cluster's data safety relies on the
 backup stored by other Hazelcast Jet members. If you suddenly scale down
-by more than your `backup-count` property (1 by default), you may lose 
-the cluster data. 
+by more than your `backup-count` property (1 by default), you may lose
+the cluster data.
 
-The other option is to use the `GRACEFUL` shutdown, which triggers the 
-partition migration before shutting down the Hazelcast Jet member. 
-Note that it may take some time depending on your data size. 
+The other option is to use the `GRACEFUL` shutdown, which triggers the
+partition migration before shutting down the Hazelcast Jet member.
+Note that it may take some time depending on your data size.
 
 To use graceful shutdown approach, set the following properties:
-- `terminationGracePeriodSeconds`:  in your StatefulSet (or Deployment) 
-configuration; the value defines how much time Kubernetes waits 
-before terminating the pod and it should be high enough to cover the 
+- `terminationGracePeriodSeconds`:  in your StatefulSet (or Deployment)
+configuration; the value defines how much time Kubernetes waits
+before terminating the pod and it should be high enough to cover the
 data migration process. Default value is 30 seconds
-- `-Dhazelcast.shutdownhook.policy=GRACEFUL`: in the JVM parameters 
-(`JAVA_OPTS` environment variable) 
-- `-Dhazelcast.graceful.shutdown.max.wait`: in the JVM parameters 
-(`JAVA_OPTS` environment variable) ; the value should be high enough to 
+- `-Dhazelcast.shutdownhook.policy=GRACEFUL`: in the JVM parameters
+(`JAVA_OPTS` environment variable)
+- `-Dhazelcast.graceful.shutdown.max.wait`: in the JVM parameters
+(`JAVA_OPTS` environment variable) ; the value should be high enough to
 cover the data migration process. Default value is 600 seconds
 
-The graceful shutdown configuration is already included in https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet[Hazelcast Jet Helm Chart].
+The graceful shutdown configuration is already included in
+https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet[Hazelcast Jet Helm Chart].
 
-With the <<automatic-elasticity, Automatic Elasticity>>
-feature, your jobs will be automatically restarted from the latest known
-snapshot when you downscale your cluster. For more detauls about 
-snapshotting and processing guarantees see <<fault-tolerance, Fault Tolerance>>
-section.
+With the <<automatic-elasticity, Automatic Elasticity>> feature, your
+jobs will be automatically restarted from the latest known snapshot when
+you downscale your cluster. For more detauls about snapshotting and
+processing guarantees see <<fault-tolerance, Fault Tolerance>> section.
