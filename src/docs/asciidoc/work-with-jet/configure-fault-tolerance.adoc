@@ -128,3 +128,76 @@ the moment you are introducing new members to the cluster. If that
 happens, both sub-clusters may grow to more than half of the previous
 size. This will defuse the split-brain protection mechanism.
 
+= Configure Lossless Cluster Restart (Enterprise Only)
+
+The fault tolerance feature we described in the previous section is
+entirely RAM-based, the snapshotted state isn't persisted. Given the
+redundancy present in the cluster, this is sufficient to maintain a
+running cluster across single-node failures (or multiple-node, depending
+on the backup count), but it doesn't cover the case when the entire
+cluster must shut down.
+
+Hazelcast IMDG Enterprise HD has the Hot Restart Persistence feature
+which Jet uses to allow you to gracefully shut down the cluster at any
+time and have the snapshot data of all the jobs preserved. After you
+restart the cluster, Jet automatically restores the data and resumes the
+jobs.
+
+Hot Restart Persistence works by continuously persisting the RAM-based
+snapshot data. Even with the fastest solid-state storage, this
+dramatically reduces the maximum snapshotting throughput available to
+Jet: while DRAM can take up to 50 GB/s, a high-end storage device caps
+at 2 GB/s. Keep in mind that this is throughput per member, so even on a
+minimal cluster of 3 machines, this is actually 6 GB/s available to Jet.
+
+Lossless Cluster Restart is automatically enabled if the Hot Restart
+persistence is enabled in Jet's
+{hz-refman}#global-hot-restart-configuration[IMDG configuration].
+Quick XML example:
+
+[source]
+----
+<hazelcast xmlns="http://www.hazelcast.com/schema/config"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           http://www.hazelcast.com/schema/config/hazelcast-config-3.12.xsd">
+    <hot-restart-persistence enabled="true">
+        <base-dir>/mnt/hot-restart</base-dir>
+        <parallelism>2</parallelism>
+    </hot-restart-persistence>
+</hazelcast>
+----
+
+Quick programmatic example:
+
+[source]
+----
+include::{javasource}/ConfigureFaultTolerance.java[tag=s4]
+----
+
+To have the cluster shut down gracefully, as required for this feature
+to work, do not kill the Jet instances one by one. As you are killing
+them, the cluster starts working hard to rebalance the data on the
+remaining members. This usually leads to out-of-memory failures and the
+loss of all data.
+
+The entire cluster can be shut down gracefully in several ways:
+
+- on the command line:
+[source]
+----
+$ cluster.sh -o shutdown
+----
+
+- using the Jet Management Center
+- programmatically:
+
+[source]
+----
+include::{javasource}/ConfigureFaultTolerance.java[tag=s5]
+----
+
+When you start the cluster again, it must consist of exactly the same
+members as before the shutdown. There's no special action to take: as
+soon as the cluster re-forms, it will automatically reload the persisted
+snapshots and resume the jobs.
+

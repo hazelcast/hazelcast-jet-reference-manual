@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+import com.hazelcast.config.HotRestartPersistenceConfig;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.config.JetConfig;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.config.ProcessingGuarantee;
+
+import java.io.File;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -30,10 +33,6 @@ public class ConfigureFaultTolerance {
         jobConfig.setProcessingGuarantee(ProcessingGuarantee.EXACTLY_ONCE);
         jobConfig.setSnapshotIntervalMillis(SECONDS.toMillis(10));
         //end::s1[]
-
-        //tag::s3[]
-        jobConfig.setSplitBrainProtection(true);
-        //end::s3[]
     }
 
     static void s2() {
@@ -42,5 +41,30 @@ public class ConfigureFaultTolerance {
         config.getInstanceConfig().setBackupCount(2);
         JetInstance instance = Jet.newJetInstance(config);
         //end::s2[]
+    }
+
+    static void s3() {
+        JobConfig jobConfig = null;
+        //tag::s3[]
+        jobConfig.setSplitBrainProtection(true);
+        //end::s3[]
+    }
+
+    static void s4() {
+        //tag::s4[]
+        JetConfig cfg = new JetConfig();
+        HotRestartPersistenceConfig hrCfg =
+                cfg.getHazelcastConfig().getHotRestartPersistenceConfig();
+        hrCfg.setEnabled(true)
+             .setBaseDir(new File("/mnt/hot-restart"))
+             .setParallelism(2);
+        //end::s4[]
+    }
+
+    static void s5() {
+        JetInstance jet = null;
+        //tag::s5[]
+        jet.getCluster().shutdown();
+        //end::s5[]
     }
 }
