@@ -197,7 +197,7 @@ include::{javasource}/ConfigureFaultTolerance.java[tag=s5]
 ----
 
 When you start the cluster again, it must consist of exactly the same
-members as before the shutdown. There's no special action to take: as
-soon as the cluster re-forms, it will automatically reload the persisted
-snapshots and resume the jobs.
+members as before the shutdown. Beyond that, there's no special action
+to take: as soon as the cluster re-forms, it will automatically reload
+the persisted snapshots and resume the jobs.
 
