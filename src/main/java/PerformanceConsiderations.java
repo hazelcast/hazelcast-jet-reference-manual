@@ -18,6 +18,7 @@ import com.hazelcast.jet.server.JetBootstrap;
 import com.hazelcast.nio.serialization.Serializer;
 
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -43,7 +44,7 @@ public class PerformanceConsiderations {
 
     static
     //tag::s4[]
-    class JetJob2 {
+    class JetJob2 implements Serializable {
         private String instanceVar;
         private OutputStream fileOut; // <1>
 
