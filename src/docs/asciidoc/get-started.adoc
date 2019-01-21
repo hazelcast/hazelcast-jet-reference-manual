@@ -489,31 +489,22 @@ Hazelcast Jet jobs to your cluster, see the
 You can deploy Hazelcast Jet using the Helm charts. These charts provide
 an easy way to package and deploy applications on Kubernetes.
 
-To deploy Hazelcast Jet using Helm, you need to add the Hazelcast Helm
-Charts repository to Helm using the following command:
+You can install the chart using the following command:
 
 ```bash
-helm repo add hazelcast https://hazelcast.github.io/charts/
-```
-
-Then, update information of available charts locally from chart
-repositories using the following command:
-
-```bash
-helm repo update
-```
-
-Then, you can install the chart using the following command:
-
-```bash
-helm install hazelcast/hazelcast-jet
+helm install stable/hazelcast-jet
 ```
 
 See
-https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet[Hazelcast Jet Helm Chart]
+https://github.com/helm/charts/tree/master/stable/hazelcast-jet[Hazelcast Jet Helm Chart]
 for more details on configuration and the
 https://github.com/hazelcast/charts#troubleshooting-in-kubernetes-environments[Troubleshooting in Kubernetes Environments]
 section if you encounter any issues.
+
+Apart from the official Helm charts for Hazelcast Jet, we do also provide
+Helm charts for https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet[Hazelcast Jet with Hazelcast Jet Management Center]
+and https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet-enterprise[Hazelcast Jet Enterprise] 
+on the https://github.com/hazelcast/charts[Hazelcast Enterprise Helm Chart Repository].
 
 == Scaling the Cluster in Kubernetes
 
