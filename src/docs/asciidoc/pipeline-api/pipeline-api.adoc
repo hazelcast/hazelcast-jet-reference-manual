@@ -221,12 +221,12 @@ basically takes a snapshot of the enriching dataset at the beginning of
 the job. You may also encounter RAM shortage if your enriching dataset
 is very large.
 
-The `xUsingY` transforms (such as <<map-using-imap, `mapUsingIMap`>> or
-<<map-using-context, `filterUsingContext`>>) can enrich a stream by
-looking up from the original data source each time. There's direct
-support for <<map-using-imap, Hazelcast maps>> and Jet <<map-using-context,
-exposes the underlying machinery>> as well so you can write your own
-code to join with an arbitrary external dataset.
+The `xUsingY` transforms (such as <<map-using-context,
+`filterUsingContext`>> or <<map-using-imap, `mapUsingIMapAsync`>>) can
+enrich a stream by looking up from the original data source each time.
+There's direct support for <<map-using-imap, Hazelcast maps>> and Jet
+<<map-using-context, exposes the underlying machinery>> as well so you
+can write your own code to join with an arbitrary external dataset.
 
 [[map-using-imap]]
 == Look Up from Hazelcast Map
@@ -277,23 +277,36 @@ include::{javasource}/BuildComputation.java[tag=s16]
 In the example above the syntax looks very simple, but it hides a layer
 of complexity: you can't just fetch a Hazelcast map instance and add it
 to the pipeline. It's a proxy object that's valid only in the JVM
-process where you obtained it. `mapUsingIMap` actually remembers just
-the name of the map and will obtain a map with the same name from the
-Jet cluster where the job runs.
+process where you obtained it. `mapUsingIMapAsync` actually remembers
+just the name of the map and will obtain a map with the same name from
+the Jet cluster on which the job runs.
 
 [[map-using-context]]
 == Look Up From an External System
 
 Hazelcast Jet exposes the facility to look up from an external system.
 In this case you must define a factory object that creates a client
-instance and fetches the data from the remote system of record.
+instance and through which you will fetch the data from the remote
+system. Jet will use the factory to create a context object for each
+`Processor` in the cluster that executes your transforming step.
 
-Jet will use the factory to create a context object for each `Processor`
-in the cluster that executes your transforming step. You can also
-specify a function that extracts the key from your items. Even though
-Jet won't do any lookup or grouping by that key, it will set up the job
-so that all the items with the same key get paired with the same context
-object.
+The feature is available in two variants:
+
+- asynchronous: the functions return a `CompletableFuture`. This version
+provides higher throughput thanks to making more parallel calls possible
+without blocking a thread
+
+- synchronous: the functions return the result directly. Use it if your
+external service doesn't provide async api. It's also useful if the
+context is for example a pre-loaded machine learning model which is only
+cpu-bound and doesn't do any IO.
+
+You can also specify a function that extracts a key from your items
+using
+{jet-javadoc}/pipeline/GeneralStage.html#groupingKey-com.hazelcast.jet.function.DistributedFunction-[`groupingKey()`].
+Even though Jet won't do any lookup or grouping by that key, it will set
+up the job so that all the items with the same key get paired with the
+same context object.
 
 For example, you may be fetching data from a remote Hazelcast cluster.
 To optimize performance, you can enable the near-cache on the client and

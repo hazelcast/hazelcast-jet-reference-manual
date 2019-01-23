@@ -1,5 +1,6 @@
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.config.NearCacheConfig;
+import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IList;
 import com.hazelcast.core.IMap;
 import com.hazelcast.jet.Jet;
@@ -38,11 +39,13 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 
+import static com.hazelcast.client.HazelcastClient.newHazelcastClient;
 import static com.hazelcast.jet.Traversers.traverseArray;
 import static com.hazelcast.jet.Traversers.traverseStream;
 import static com.hazelcast.jet.Util.entry;
 import static com.hazelcast.jet.Util.mapEventNewValue;
 import static com.hazelcast.jet.Util.mapPutEvents;
+import static com.hazelcast.jet.Util.toCompletableFuture;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.aggregate.AggregateOperations.maxBy;
 import static com.hazelcast.jet.aggregate.AggregateOperations.toList;
@@ -410,7 +413,7 @@ class BuildComputation {
         p.drawFrom(tradesSource)
          .withoutTimestamps()
          .groupingKey(Trade::ticker) // <2>
-         .mapUsingIMap(stockMap, Trade::setStockInfo) //<3>
+         .mapUsingIMapAsync(stockMap, Trade::setStockInfo) //<3>
          .drainTo(Sinks.list("result"));
         //end::s16[]
     }
@@ -418,14 +421,15 @@ class BuildComputation {
     static void s16a() {
         //tag::s16a[]
         ContextFactory<IMap<String, StockInfo>> ctxFac = ContextFactory
-                .<IMap<String, StockInfo>>withCreateFn(x -> {
+                .withCreateFn(x -> {
                     ClientConfig cc = new ClientConfig();
                     cc.getNearCacheConfigMap().put("stock-info",
                             new NearCacheConfig());
-                    return Jet.newJetClient(cc).getMap("stock-info");
+                    HazelcastInstance client = newHazelcastClient(cc);
+                    IMap<String, StockInfo> map = client.getMap("stock-info");
+                    return map;
                 })
-                .shareLocally()
-                .nonCooperative();
+                .shareLocally();
         StreamSource<Trade> tradesSource = Sources.mapJournal("trades",
                 mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT);
 
@@ -433,8 +437,9 @@ class BuildComputation {
         p.drawFrom(tradesSource)
          .withoutTimestamps()
          .groupingKey(Trade::ticker)
-         .mapUsingContext(ctxFac,
-                 (map, key, trade) -> trade.setStockInfo(map.get(key)))
+         .mapUsingContextAsync(ctxFac,
+                 (map, key, trade) -> toCompletableFuture(map.getAsync(key))
+                         .thenApply(trade::setStockInfo))
          .drainTo(Sinks.list("result"));
         //end::s16a[]
     }
