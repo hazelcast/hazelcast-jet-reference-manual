@@ -81,7 +81,7 @@ public class CheatSheet {
         p.drawFrom(tradesSource)
          .withoutTimestamps()
          .groupingKey(Trade::ticker)
-         .mapUsingIMap(stockMap, Trade::setStockInfo)
+         .mapUsingIMapAsync(stockMap, Trade::setStockInfo)
          .drainTo(Sinks.list("result"));
         //end::s4a[]
     }
