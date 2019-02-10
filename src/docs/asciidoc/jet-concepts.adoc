@@ -447,7 +447,7 @@ coordinator may fail and the cluster will automatically re-elect another
 one. If any other member fails, the coordinator restarts the job on the
 remaining members.
 
-== Updating the DAG without Losing the State
+== Update a DAG Without Losing the State
 
 If you need to do a change in the pipeline or DAG, you need to submit a
 new job. The old job has to be cancelled and a new one with modified
@@ -491,7 +491,7 @@ or adding a new aggregation path from existing sources (see also
 - you can freely add, remove or change stateless stages, such as
 filter/map/flatMap stages, sinks and others
 
-==== Recombining Frames of Sliding Windows
+==== Recombining the Frames of Sliding Windows
 
 Jet supports changing of sliding window size or sliding step. In some
 situations, however, you can have incorrect data on the output.
@@ -552,37 +552,40 @@ type
 * assign a different name to a stage
 
 [[non-unique-name-update]]
-==== Updating jobs with auto-assigned stage names
+==== Update a Job with Auto-Assigned Stage Names
 
-The Pipeline API allows you to set the name using
+The Pipeline API allows you to set the name of a stage using
 {jet-javadoc}/pipeline/Stage.html#setName-java.lang.String-[`Stage.setName`],
-but if one is not specified, a default name is used. If multiple stages
-have the same name, Jet appends `-N` to the name, where the `N` is a
-sequence number. For example, if you have 3 sliding window aggregations
-in the job, their names will be `sliding-window`, `sliding-window-2` and
-`sliding-window-3`. The sequence number is added in the order they are
-added to the `Pipeline`.
+but if you don't set it, Jet generates the name based on the stage type.
+If this would result in the same name for multiple stages, Jet appends
+`-N` to the name, where the `N` is a sequence number. For example, if
+you have 3 sliding window aggregations in the job, their names will be
+`sliding-window`, `sliding-window-2` and `sliding-window-3`. The number
+sequence follows the order in which you added the stages to the
+`Pipeline`.
 
-Since the vertex name is an identifier of the state in a state snapshot,
-it's very important to keep it equal with previous job version. For
-example, you can't reorder the aggregations or remove the first one,
-because the names will change and incorrect state will be restored to
-the processors. Therefore we recommend that you explicitly assign a
-unique name in more complex pipelines.
+When Jet translates the pipeline into the Core API DAG, it uses the
+name of the stage to name the vertex that implements it. Since the
+vertex name identifies the data element in the state snapshot, it's very
+important to keep it equal when you change the pipeline to a new version.
+For example, you can't reorder the aggregations or remove the first one
+because that would change the names and incorrect state will be restored
+to the vertex. Therefore we recommend that you explicitly assign a
+unique name to every stage in the pipeline you intend to use and
+maintain over a long term.
 
-==== Changing of the grouping key
+==== Caveats When Changing the Grouping Key
 
-You can change the `groupingKey`'s key extractor. But keep in mind that
-the old state will be restored with keys extracted using the previous
-key extractor and if the new keys aren't equal, they will create new
-groups.
+You can change the key-extracting function for a `groupingKey`'s, but
+keep in mind that the snapshotted state has keys extracted with the old
+key extractor. If the new keys aren't equal, they will create new groups.
 
-You can also change the key type. In this case, however, runtime
-`ClassCastException` can occur because the downstream might expect
-another type than it will actually receive. For example, if you change
+You can also change the key type. In this case, however, the job may
+fail with a `ClassCastException` because the downstream might expect a
+different type than it will actually receive. For example, if you change
 the key type from `Integer` to `Long`, the downstream stage of a window
 aggregation will expect `TimestampedEntry<Long, V>`, but can actually
-`TimestampedEntry<Integer, V>`.
+get `TimestampedEntry<Integer, V>`.
 
 ==== State compatibility with Further Versions
 
