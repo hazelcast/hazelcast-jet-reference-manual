@@ -293,13 +293,13 @@ system. Jet will use the factory to create a context object for each
 The feature is available in two variants:
 
 - asynchronous: the functions return a `CompletableFuture`. This version
-provides higher throughput thanks to making more parallel calls possible
-without blocking a thread
+provides higher throughput because Jet can issue many concurrent
+requests without blocking a thread
 
 - synchronous: the functions return the result directly. Use it if your
-external service doesn't provide async api. It's also useful if the
-context is for example a pre-loaded machine learning model which is only
-cpu-bound and doesn't do any IO.
+external service doesn't provide an async API. It's also useful if the
+context is, for example, a pre-loaded machine learning model which is
+only CPU-bound and doesn't do any IO.
 
 You can also specify a function that extracts a key from your items
 using
