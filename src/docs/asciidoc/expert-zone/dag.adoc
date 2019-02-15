@@ -93,14 +93,22 @@ In most cases the only level of local parallelism that you'll want to
 explicitly configure is `1` for the cases where no parallelism is
 desirable (e.g. on a source processor reading from a file).
 
-The **global parallelism** of a vertex is the total number of its
-processors running in the whole cluster, equal to local parallelism
-multiplied by cluster size. It is especially relevant to the
-distribution of partitions among processors. You should watch out for
-and avoid the possibility that the global parallelism exceeds the number
-of partitions because that would mean some processors get no
-input/produce no output. This has severe consequences in a streaming job
-with watermarks: the event skew grows without bound.
+The **total parallelism** of a vertex is the total number of its
+processors running in the whole cluster. In Jet this is always equal to
+_local parallelism_ times _cluster size_ because it allocates the same
+number of processors on each member. This number can be critical to the
+proper functioning of a vertex that represents a distributed,
+partitioned data source. If you let the total parallelism of such a
+vertex exceed the number of partitions in the data source, some
+processors will end up with no partitions assigned to them. This has
+serious consequences in an event time-based streaming job: Jet must
+produce a unique value of the watermark that doesn't overtake the
+timestamps coming out of any processors. A processor with no source
+partitions will emit no data and its local watermark will permanently
+stay at the initial value of `Long.MIN_VALUE`. This will keep the
+global watermark from advancing until the _idle partition detection_
+mechanism kicks in. Jet will produce no output until this happens and
+the default "partition idle" timeout is 60 seconds.
 
 [[edge-original]]
 == Edge Ordinal

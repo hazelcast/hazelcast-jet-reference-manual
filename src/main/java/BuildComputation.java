@@ -6,6 +6,7 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.datamodel.ItemsByTag;
+import com.hazelcast.jet.datamodel.KeyedWindowResult;
 import com.hazelcast.jet.datamodel.Tag;
 import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.datamodel.Tuple3;
@@ -20,7 +21,6 @@ import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
 import com.hazelcast.jet.pipeline.StreamHashJoinBuilder;
 import com.hazelcast.jet.pipeline.StreamSource;
-import com.hazelcast.jet.pipeline.StreamSourceStage;
 import com.hazelcast.jet.pipeline.StreamStage;
 import datamodel.AddToCart;
 import datamodel.Broker;
@@ -33,7 +33,6 @@ import datamodel.Product;
 import datamodel.StockInfo;
 import datamodel.Trade;
 import datamodel.Tweet;
-import datamodel.TweetWord;
 
 import java.util.List;
 import java.util.Map.Entry;
@@ -69,13 +68,9 @@ class BuildComputation {
     }
 
     static void s2() {
-        JetInstance instance = Jet.newJetInstance();
         //tag::s2[]
         Pipeline p = Pipeline.create();
-        IMap<Long, Trade> tradesMap = instance.getMap("trades");
-        StreamSource<Trade> source = Sources.mapJournal(tradesMap,
-                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT);
-        StreamStage<Trade> trades = p.drawFrom(source)
+        StreamStage<Trade> trades = p.drawFrom(tradeStream())
                                      .withoutTimestamps();
         BatchStage<Entry<Integer, Product>> products =
                 p.drawFrom(Sources.map("products"));
@@ -145,8 +140,7 @@ class BuildComputation {
         return p;
     }
 
-//    static void s7() {
-    public static void main(String... args) {
+    static void s7() {
         //tag::s7[]
         // <1>
         JetInstance jet = Jet.newJetInstance();
@@ -340,9 +334,9 @@ class BuildComputation {
     static void s13a() {
         Pipeline p = Pipeline.create();
         //tag::s13a[]
-        BatchStage<String> tweets = p.drawFrom(Sources.list("tweets"));
+        BatchStage<Tweet> tweets = p.drawFrom(Sources.list("tweets"));
 
-        tweets.flatMap(tweet -> traverseArray(tweet.toLowerCase().split("\\W+")))
+        tweets.flatMap(tweet -> traverseArray(tweet.text().toLowerCase().split("\\W+")))
               .filter(word -> !word.isEmpty())
               .groupingKey(wholeItem())
               .aggregate(counting())
@@ -352,16 +346,13 @@ class BuildComputation {
 
     static void s13() {
         Pipeline p = Pipeline.create();
-        JetInstance instance = Jet.newJetInstance();
         //tag::s13[]
-        IMap<Long, String> tweetsMap = instance.getMap("tweets");
-        StreamSourceStage<String> tweets = p.drawFrom(Sources.mapJournal(tweetsMap,
-                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT));
+        StreamStage<Tweet> tweets = p.drawFrom(twitterStream())
+                                     .withNativeTimestamps(0); // <1>
 
-        tweets.withIngestionTimestamps()
-              .flatMap(tweet -> traverseArray(tweet.toLowerCase().split("\\W+")))
+        tweets.flatMap(tweet -> traverseArray(tweet.text().toLowerCase().split("\\W+")))
               .filter(word -> !word.isEmpty())
-              .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
+              .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1))) // <2>
               .groupingKey(wholeItem())
               .aggregate(counting())
               .drainTo(Sinks.list("result"));
@@ -369,21 +360,10 @@ class BuildComputation {
     }
 
     static void s14() {
-        JetInstance instance = Jet.newJetInstance();
-        //tag::s14[]
         Pipeline p = Pipeline.create();
-        IMap<Long, Tweet> tweetsMap = instance.getMap("tweets");
-        p.drawFrom(Sources.mapJournal(tweetsMap,
-                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT))
-         .withoutTimestamps()
-         .flatMap(tweet -> traverseArray(tweet.text().toLowerCase().split("\\W+"))
-                 .map(word -> new TweetWord(tweet.timestamp(), word)))
-         .filter(tweetWord -> !tweetWord.word().isEmpty())
-         .addTimestamps(TweetWord::timestamp, SECONDS.toMillis(5))
-         .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
-         .groupingKey(TweetWord::word)
-         .aggregate(counting())
-         .drainTo(Sinks.list("result"));
+        //tag::s14[]
+        StreamStage<Tweet> tweets = p.drawFrom(twitterStream())
+                         .withTimestamps(Tweet::timestamp, SECONDS.toMillis(5));
         //end::s14[]
     }
 
@@ -393,7 +373,8 @@ class BuildComputation {
         p.<Tweet>drawFrom(Sources.mapJournal("tweets",
                 mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT))
          .withTimestamps(Tweet::timestamp, SECONDS.toMillis(5))
-         .flatMap(tweet -> traverseArray(tweet.text().toLowerCase().split("\\W+")))
+         .flatMap(tweet ->
+                 traverseArray(tweet.text().toLowerCase().split("\\W+")))
          .filter(word -> !word.isEmpty())
          .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
          .groupingKey(wholeItem())
@@ -484,6 +465,14 @@ class BuildComputation {
                  .rollingAggregate(maxBy(
                          ComparatorEx.comparing(Trade::worth)));
         //end::s19[]
+    }
+
+    private static StreamSource<Trade> tradeStream() {
+        return null;
+    }
+
+    private static StreamSource<Tweet> twitterStream() {
+        return null;
     }
 }
 
