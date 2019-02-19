@@ -187,6 +187,24 @@ human-readable name:
 include::{javasource}/ManageJob.java[tag=s3]
 ----
 
+Please note that you can have a single active job, i.e., running / suspended /
+waiting to be run, in the cluster with the same name. You get
+`JobAlreadyExistsException` if you make another submission. You can reuse
+the job name after the active job is completed.
+
+If you have a microservice deployment where each package contains a jet member
+and makes the same job submission, you can ensure that the job runs only once
+by using the `newJobIfAbsent()` API. If a named job is submitted with this API,
+Jet does not create a second job if there is already an active job
+with the same name. Instead, it returns you a reference for the active job,
+as shown in the following snippet.
+
+[source]
+----
+include::{javasource}/ManageJob.java[tag=s6]
+----
+
+
 == Remember that a Jet Job is Distributed
 
 The API to submit a job to Jet is in a way deceptively simple: "just

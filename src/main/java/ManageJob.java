@@ -80,6 +80,13 @@ public class ManageJob {
 
     static void s6() {
         //tag::s6[]
+        Pipeline pipeline = buildPipeline();
+        JobConfig cfg = new JobConfig();
+        cfg.setName("my-job");
+        Job job1 = jet.newJobIfAbsent(pipeline, cfg);
+        Job job2 = jet.newJobIfAbsent(pipeline, cfg);
+
+        assert job1.getId() == job2.getId();
         //end::s6[]
     }
 }
