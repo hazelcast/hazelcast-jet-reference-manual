@@ -116,7 +116,7 @@ class Dag {
 
     static void s9() {
         //tag::s9[]
-        dag.edge(between(stage1, stage2).distributed().allToOne());
+        dag.edge(between(stage1, stage2).distributed().allToOne(123));
         //end::s9[]
     }
 

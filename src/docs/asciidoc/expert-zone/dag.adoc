@@ -278,10 +278,19 @@ performance of the whole job is hardly affected by this choice.
 === All-To-One
 
 The all-to-one routing policy is a special case of the `partitioned`
-policy which assigns the same partition ID to all items. Jet randomly
-chooses the partition while initializing the job. This policy makes
-sense on a distributed edge when all the items from all the members must
-go to the same member and the same processor instance running on it.
+policy which assigns the same partition ID to all items. `allToOne(key)`
+is semantically equivalent to `partitioned(t -> key)`, the former is
+slightly faster because Jet avoids recalculation of the partition ID for
+each stream item.
+
+Two edges with equal key will go to the same partition and will be
+processed by the same member. If you have multiple all-to-one edges in
+the job or in multiple jobs, you should assign different key to each of
+them so that they all don't run on the same member. On the other hand,
+if you have two all-to-one edges going to the same vertex, they should
+have the same key so that all the items are really processed by the same
+member.
+
 You should always set the local parallelism of the target vertex to 1,
 otherwise there will be idle processors that never get any items.
 
