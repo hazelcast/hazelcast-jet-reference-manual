@@ -53,11 +53,11 @@ public class ConfigureFaultTolerance {
     static void s4() {
         //tag::s4[]
         JetConfig cfg = new JetConfig();
-        HotRestartPersistenceConfig hrCfg =
-                cfg.getHazelcastConfig().getHotRestartPersistenceConfig();
-        hrCfg.setEnabled(true)
-             .setBaseDir(new File("/mnt/hot-restart"))
-             .setParallelism(2);
+        cfg.getInstanceConfig().setLosslessRestartEnabled(true);
+        cfg.getHazelcastConfig().getHotRestartPersistenceConfig()
+                .setEnabled(true)
+                .setBaseDir(new File("/mnt/hot-restart"))
+                .setParallelism(2);
         //end::s4[]
     }
 

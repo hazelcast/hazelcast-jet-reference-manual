@@ -150,10 +150,22 @@ Jet: while DRAM can take up to 50 GB/s, a high-end storage device caps
 at 2 GB/s. Keep in mind that this is throughput per member, so even on a
 minimal cluster of 3 machines, this is actually 6 GB/s available to Jet.
 
-Lossless Cluster Restart is automatically enabled if the Hot Restart
-persistence is enabled in Jet's
-{hz-refman}#global-hot-restart-configuration[IMDG configuration].
-Quick XML example:
+Tu use Lossless Cluster Restart, you have to enable it in
+`hazelcast-jet.xml`:
+
+[source]
+----
+<hazelcast-jet xsi:schemaLocation="http://www.hazelcast.com/schema/jet-config hazelcast-jet-config-0.8.xsd"
+               xmlns="http://www.hazelcast.com/schema/jet-config"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <instance>
+        <lossless-recovery-enabled>false</lossless-recovery-enabled>
+    </instance>
+</hazelcast-jet>
+----
+
+In addition to that, you have to configure Hot Restart in
+{hz-refman}#global-hot-restart-configuration[IMDG configuration]:
 
 [source]
 ----
@@ -200,4 +212,3 @@ When you start the cluster again, it must consist of exactly the same
 members as before the shutdown. Beyond that, there's no special action
 to take: as soon as the cluster re-forms, it will automatically reload
 the persisted snapshots and resume the jobs.
-
