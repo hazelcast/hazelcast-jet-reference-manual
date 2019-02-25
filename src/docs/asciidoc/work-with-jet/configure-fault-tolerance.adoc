@@ -159,7 +159,7 @@ Tu use Lossless Cluster Restart, you have to enable it in
                xmlns="http://www.hazelcast.com/schema/jet-config"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <instance>
-        <lossless-recovery-enabled>false</lossless-recovery-enabled>
+        <lossless-restart-enabled>false</lossless-restart-enabled>
     </instance>
 </hazelcast-jet>
 ----
