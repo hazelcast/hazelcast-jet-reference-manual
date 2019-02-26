@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import com.hazelcast.config.HotRestartPersistenceConfig;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.config.JetConfig;

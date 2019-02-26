@@ -1,7 +1,6 @@
 package expertzone;
 
 import com.hazelcast.jet.core.AbstractProcessor;
-import com.hazelcast.jet.core.DAG;
 
 import static com.hazelcast.jet.Traversers.traverseIterable;
 import static java.util.Arrays.asList;
