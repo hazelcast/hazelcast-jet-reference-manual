@@ -429,7 +429,7 @@ class BuildComputation {
                     IMap<String, StockInfo> map = client.getMap("stock-info");
                     return map;
                 })
-                .shareLocally();
+                .withLocalSharing();
         StreamSource<Trade> tradesSource = Sources.mapJournal("trades",
                 mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT);
 
