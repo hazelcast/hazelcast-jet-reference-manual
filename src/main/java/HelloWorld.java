@@ -9,7 +9,7 @@ import java.util.Map;
 
 import static com.hazelcast.jet.Traversers.traverseArray;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
-import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
+import static com.hazelcast.jet.function.Functions.wholeItem;
 
 public class HelloWorld {
     public static void main(String[] args) {

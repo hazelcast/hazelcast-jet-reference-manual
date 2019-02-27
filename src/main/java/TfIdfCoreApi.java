@@ -21,8 +21,8 @@ import com.hazelcast.jet.core.DAG;
 import com.hazelcast.jet.core.Vertex;
 import com.hazelcast.jet.core.processor.Processors;
 import com.hazelcast.jet.core.processor.SinkProcessors;
-import com.hazelcast.jet.function.DistributedBiFunction;
-import com.hazelcast.jet.function.DistributedFunction;
+import com.hazelcast.jet.function.BiFunctionEx;
+import com.hazelcast.jet.function.FunctionEx;
 import com.hazelcast.jet.pipeline.ContextFactory;
 
 import javax.annotation.Nonnull;
@@ -51,7 +51,7 @@ import static com.hazelcast.jet.core.Partitioner.HASH_CODE;
 import static com.hazelcast.jet.core.processor.Processors.aggregateByKeyP;
 import static com.hazelcast.jet.core.processor.Processors.flatMapUsingContextP;
 import static com.hazelcast.jet.core.processor.SourceProcessors.readMapP;
-import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
+import static com.hazelcast.jet.function.Functions.wholeItem;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -63,8 +63,8 @@ public class TfIdfCoreApi {
     private static final String INVERTED_INDEX = "inverted-index";
 
     private static DAG createDag() {
-        DistributedFunction<Entry<Entry<?, String>, ?>, String> byWord = item -> item.getKey().getValue();
-        DistributedBiFunction<Long, Object, Long> counter = (count, x) -> count + 1;
+        FunctionEx<Entry<Entry<?, String>, ?>, String> byWord = item -> item.getKey().getValue();
+        BiFunctionEx<Long, Object, Long> counter = (count, x) -> count + 1;
 
         DAG dag = new DAG();
 

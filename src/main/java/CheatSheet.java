@@ -26,9 +26,9 @@ import static com.hazelcast.jet.Util.mapPutEvents;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.aggregate.AggregateOperations.maxBy;
 import static com.hazelcast.jet.aggregate.AggregateOperations.toList;
-import static com.hazelcast.jet.function.DistributedComparator.comparing;
-import static com.hazelcast.jet.function.DistributedFunctions.entryValue;
-import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
+import static com.hazelcast.jet.function.ComparatorEx.comparing;
+import static com.hazelcast.jet.function.Functions.entryValue;
+import static com.hazelcast.jet.function.Functions.wholeItem;
 import static com.hazelcast.jet.pipeline.JoinClause.joinMapEntries;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_CURRENT;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_OLDEST;
@@ -81,7 +81,7 @@ public class CheatSheet {
         p.drawFrom(tradesSource)
          .withoutTimestamps()
          .groupingKey(Trade::ticker)
-         .mapUsingIMapAsync(stockMap, Trade::setStockInfo)
+         .mapUsingIMap(stockMap, Trade::setStockInfo)
          .drainTo(Sinks.list("result"));
         //end::s4a[]
     }

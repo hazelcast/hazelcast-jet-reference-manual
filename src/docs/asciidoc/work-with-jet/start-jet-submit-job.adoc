@@ -62,7 +62,7 @@ None of the functional interfaces in the JDK extend `Serializable`, so
 we had to mirror the entire `java.util.function` package in our own
 `com.hazelcast.jet.function` with all the interfaces subtyped and made
 `Serializable`. Each subtype has the name of the original with
-`Distributed` prepended. For example, a `DistributedFunction` is just
+`Distributed` prepended. For example, a `FunctionEx` is just
 like `Function`, but implements `Serializable`. We use these types
 everywhere in the Pipeline API.
 
@@ -231,7 +231,7 @@ may get a quite confusing exception:
 java.lang.ClassCastException:
 cannot assign instance of java.lang.invoke.SerializedLambda
 to field com.hazelcast.jet.core.ProcessorMetaSupplier$1.val$addressToSupplier
-of type com.hazelcast.jet.function.DistributedFunction
+of type com.hazelcast.jet.function.FunctionEx
 in instance of com.hazelcast.jet.core.ProcessorMetaSupplier$1
 ----
 
@@ -241,7 +241,7 @@ interface type. If this method throws an exception, Java doesn't report
 it but keeps the `SerializedLambda` instance and continues the
 deserialization. Later in the process it will try to assign it to
 a field whose type is the target type of the lambda
-(`DistributedFunction` in the example above) and at that point it will
+(`FunctionEx` in the example above) and at that point it will
 fail with the `ClassCastException`. If you see this kind of error,
 double-check the list of classes you have added to the Jet job.
 

@@ -9,7 +9,7 @@ import com.hazelcast.jet.datamodel.ItemsByTag;
 import com.hazelcast.jet.datamodel.Tag;
 import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.datamodel.Tuple3;
-import com.hazelcast.jet.function.DistributedComparator;
+import com.hazelcast.jet.function.ComparatorEx;
 import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.BatchStageWithKey;
@@ -50,7 +50,7 @@ import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.aggregate.AggregateOperations.maxBy;
 import static com.hazelcast.jet.aggregate.AggregateOperations.toList;
 import static com.hazelcast.jet.datamodel.Tuple2.tuple2;
-import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
+import static com.hazelcast.jet.function.Functions.wholeItem;
 import static com.hazelcast.jet.pipeline.JoinClause.joinMapEntries;
 import static com.hazelcast.jet.pipeline.JournalInitialPosition.START_FROM_CURRENT;
 import static com.hazelcast.jet.pipeline.WindowDefinition.sliding;
@@ -413,7 +413,7 @@ class BuildComputation {
         p.drawFrom(tradesSource)
          .withoutTimestamps()
          .groupingKey(Trade::ticker) // <2>
-         .mapUsingIMapAsync(stockMap, Trade::setStockInfo) //<3>
+         .mapUsingIMap(stockMap, Trade::setStockInfo) //<3>
          .drainTo(Sinks.list("result"));
         //end::s16[]
     }
@@ -482,7 +482,7 @@ class BuildComputation {
                 p.drawFrom(tradesSource)
                  .withoutTimestamps()
                  .rollingAggregate(maxBy(
-                         DistributedComparator.comparing(Trade::worth)));
+                         ComparatorEx.comparing(Trade::worth)));
         //end::s19[]
     }
 }

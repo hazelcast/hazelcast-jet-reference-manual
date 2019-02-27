@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
 import static com.hazelcast.jet.Traversers.traverseArray;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
 import static com.hazelcast.jet.core.Edge.between;
-import static com.hazelcast.jet.function.DistributedFunctions.entryKey;
-import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
+import static com.hazelcast.jet.function.Functions.entryKey;
+import static com.hazelcast.jet.function.Functions.wholeItem;
 import static java.util.Collections.singletonList;
 
 public class WordCountCoreApi {
