@@ -11,4 +11,6 @@ include::performance-considerations.adoc[]
 
 include::log-debug.adoc[]
 
+include::job-management.adoc[]
+
 :leveloffset: -1
