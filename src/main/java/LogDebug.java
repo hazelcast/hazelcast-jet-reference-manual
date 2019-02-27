@@ -7,7 +7,7 @@ import com.hazelcast.jet.pipeline.Sources;
 
 import static com.hazelcast.jet.Traversers.traverseArray;
 import static com.hazelcast.jet.aggregate.AggregateOperations.counting;
-import static com.hazelcast.jet.function.DistributedFunctions.wholeItem;
+import static com.hazelcast.jet.function.Functions.wholeItem;
 import static java.util.Arrays.asList;
 
 public class LogDebug {

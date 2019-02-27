@@ -6,8 +6,8 @@ import com.hazelcast.jet.core.processor.Processors;
 import com.hazelcast.jet.core.processor.SinkProcessors;
 import com.hazelcast.jet.core.processor.SourceProcessors;
 import com.hazelcast.jet.datamodel.TimestampedEntry;
-import com.hazelcast.jet.function.DistributedFunction;
-import com.hazelcast.jet.function.DistributedToLongFunction;
+import com.hazelcast.jet.function.FunctionEx;
+import com.hazelcast.jet.function.ToLongFunctionEx;
 import com.hazelcast.jet.pipeline.ContextFactory;
 import com.hazelcast.jet.pipeline.JournalInitialPosition;
 import com.hazelcast.map.journal.EventJournalMapEvent;
@@ -24,8 +24,8 @@ import static com.hazelcast.jet.core.Partitioner.HASH_CODE;
 import static com.hazelcast.jet.core.SlidingWindowPolicy.slidingWinPolicy;
 import static com.hazelcast.jet.core.WatermarkPolicy.limitingLag;
 import static com.hazelcast.jet.core.processor.Processors.mapUsingContextP;
-import static com.hazelcast.jet.function.DistributedFunctions.entryKey;
-import static com.hazelcast.jet.function.DistributedPredicate.alwaysTrue;
+import static com.hazelcast.jet.function.Functions.entryKey;
+import static com.hazelcast.jet.function.PredicateEx.alwaysTrue;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -41,8 +41,8 @@ public class StockExchangeCoreApi {
 
     static DAG buildDag() {
 //tag::s1[]
-        DistributedToLongFunction<? super Trade> timestampFn = Trade::timestamp;
-        DistributedFunction<? super Trade, ?> keyFn = Trade::productId;
+        ToLongFunctionEx<? super Trade> timestampFn = Trade::timestamp;
+        FunctionEx<? super Trade, ?> keyFn = Trade::productId;
         SlidingWindowPolicy winPolicy = slidingWinPolicy(
                 SLIDING_WINDOW_LENGTH_MILLIS, SLIDE_STEP_MILLIS);
 

@@ -49,7 +49,7 @@ identifier and the supplier of processors. The latter can be provided in
 three variants, differing in the degree of explicit control over the
 lifecycle management of the processors. From simple to complex they are:
 
-1. {jet-javadoc}/function/DistributedSupplier.html[`DistributedSupplier<Processor>`]
+1. {jet-javadoc}/function/SupplierEx.html[`SupplierEx<Processor>`]
    directly returns processor instances from its `get()` method. It is
    expected to be stateless and return equivalent instances on each
    call. It doesn't provide any initialization or cleanup code.
@@ -66,7 +66,7 @@ lifecycle management of the processors. From simple to complex they are:
    retrieve the `ProcessorSupplier` specialized for the given member.
 
 `ProcessorMetaSupplier` is the most fundamental facility. It is a
-factory of `ProcessorSupplier` s. `DistributedSupplier<Processor>`
+factory of `ProcessorSupplier` s. `SupplierEx<Processor>`
 exists purely as convenience over `ProcessorSupplier` for the simplest
 kinds of vertices.
 
