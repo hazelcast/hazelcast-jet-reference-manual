@@ -344,3 +344,42 @@ include::{javasource}/ManageJob.java[tag=s5]
 ----
 
 *Note:* data about about completed jobs are evicted after 7 days.
+
+== Cancelling the Job, Exporting its State and Updating the Pipeline
+
+If you want to terminate the job before it completes or to terminate a
+streaming job which normally never completes, use:
+
+[source]
+----
+include::{javasource}/ManageJob.java[tag=s7]
+----
+
+If you want to preserve the state of the cancelled job, use
+`cancelAndExportSnapshot`:
+
+[source]
+----
+include::{javasource}/ManageJob.java[tag=s8]
+----
+
+You can also export the state and keep the job running:
+
+[source]
+----
+include::{javasource}/ManageJob.java[tag=s9]
+----
+
+Then you can use the exported state to submit a new job that will use the
+state as its initial state:
+
+[source]
+----
+include::{javasource}/ManageJob.java[tag=s10]
+----
+
+The new pipeline has to be compatible with the old one, for more details
+about what you can change in the pipeline, see
+<<update-a-dag-without-losing-the-state>>.
+
+*Note:* exporting of the snapshot is only available in Jet Enterprise.
