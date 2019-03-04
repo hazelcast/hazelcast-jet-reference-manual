@@ -5,7 +5,7 @@ import com.hazelcast.jet.core.Vertex;
 import com.hazelcast.jet.core.processor.Processors;
 import com.hazelcast.jet.core.processor.SinkProcessors;
 import com.hazelcast.jet.core.processor.SourceProcessors;
-import com.hazelcast.jet.datamodel.TimestampedEntry;
+import com.hazelcast.jet.datamodel.KeyedWindowResult;
 import com.hazelcast.jet.function.FunctionEx;
 import com.hazelcast.jet.function.ToLongFunctionEx;
 import com.hazelcast.jet.pipeline.ContextFactory;
@@ -69,14 +69,14 @@ public class StockExchangeCoreApi {
                 ));
         Vertex slidingStage2 = dag.newVertex("sliding-stage-2",
             Processors.combineToSlidingWindowP(winPolicy, counting(),
-                    TimestampedEntry::fromWindowResult));
+                    KeyedWindowResult::new));
         Vertex formatOutput = dag.newVertex("format-output", mapUsingContextP(    // <7>
             ContextFactory.withCreateFn(x -> DateTimeFormatter.ofPattern("HH:mm:ss.SSS")),
-            (DateTimeFormatter timeFormat, TimestampedEntry<String, Long> tse) ->
+            (DateTimeFormatter timeFormat, KeyedWindowResult<String, Long> kwr) ->
                 String.format("%s %5s %4d",
-                    timeFormat.format(Instant.ofEpochMilli(tse.getTimestamp())
+                    timeFormat.format(Instant.ofEpochMilli(kwr.end())
                                              .atZone(ZoneId.systemDefault())),
-                    tse.getKey(), tse.getValue())
+                        kwr.getKey(), kwr.getValue())
         ));
         Vertex sink = dag.newVertex("sink", SinkProcessors.writeFileP(
                 OUTPUT_DIR_NAME, Object::toString, UTF_8, false));
