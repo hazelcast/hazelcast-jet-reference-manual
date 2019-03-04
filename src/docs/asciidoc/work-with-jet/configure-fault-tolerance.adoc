@@ -40,7 +40,7 @@ latency. In some cases it is good enough.
 
 In some other cases, however, duplicate processing of data items can
 have quite surprising consequences. There is more information about this
-in our <<pitfalls-alo, Under the Hood>> chapter.
+in our <<pitfalls-alo, Jet Concepts>> chapter.
 
 == Enable Fault Tolerance
 

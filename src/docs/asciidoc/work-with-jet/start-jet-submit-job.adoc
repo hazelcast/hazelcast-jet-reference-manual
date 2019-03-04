@@ -343,4 +343,4 @@ Here's how you can check the statistics on a job named `my-job`:
 include::{javasource}/ManageJob.java[tag=s5]
 ----
 
-*Note:* data about about completed jobs are evicted after 7 days.
+*Note:* data about completed jobs are evicted after 7 days.

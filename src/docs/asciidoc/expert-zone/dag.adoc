@@ -187,7 +187,7 @@ on each item in isolation.
 
 This is a more restricted kind of unicast policy: any given downstream
 processor receives data from exactly one upstream processor. In some DAG
-setups yoo may need to apply selective backpressure to individual
+setups you may need to apply selective backpressure to individual
 upstream processors, with this policy you can achieve it. If the
 connected vertices have equal parallelism, an isolated edge creates a
 one-to-one mapping between their processors, preserving the encounter
