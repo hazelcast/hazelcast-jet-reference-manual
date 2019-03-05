@@ -422,7 +422,7 @@ apply an aggregate function to all the grouped items, separated by the
 originating stream. The aggregate function can produce a summary value
 like an average or linear trend, but it can also keep a list of all the
 items, effectively <<join-without-aggregating, avoiding actual
-aggregation>>. You can achieve any kind of join: inner/outer(full, left
+aggregation>>. You can achieve any kind of join: inner/outer (full, left
 and right). The constraint, as already noted, is that the join condition
 cannot be fully general, but must amount to matching a computed key.
 

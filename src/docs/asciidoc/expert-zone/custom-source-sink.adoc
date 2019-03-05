@@ -50,7 +50,7 @@ of.
 
 The client serializes an instance of `ProcessorMetaSupplier` as part of
 each `Vertex` in the `DAG`. The **coordinator** member deserializes the
-instance and uses it to create `ProcessorSupplier` 's by calling the
+instance and uses it to create `ProcessorSupplier` s by calling the
 `ProcessorMetaSupplier.get()` method. Before that, coordinator calls the
 `init()` method with a context object that you can use to get useful
 information. The `get()` method takes `List<Address>` as a parameter,
