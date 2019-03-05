@@ -584,8 +584,8 @@ You can also change the key type. In this case, however, the job may
 fail with a `ClassCastException` because the downstream might expect a
 different type than it will actually receive. For example, if you change
 the key type from `Integer` to `Long`, the downstream stage of a window
-aggregation will expect `TimestampedEntry<Long, V>`, but can actually
-get `TimestampedEntry<Integer, V>`.
+aggregation will expect `KeyedWindowResult<Long, V>`, but can actually
+get `KeyedWindowResult<Integer, V>`.
 
 ==== State compatibility with Further Versions
 

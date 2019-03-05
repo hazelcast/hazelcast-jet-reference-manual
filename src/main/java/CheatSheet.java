@@ -1,7 +1,7 @@
 import com.hazelcast.core.IMap;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
-import com.hazelcast.jet.datamodel.TimestampedEntry;
+import com.hazelcast.jet.datamodel.KeyedWindowResult;
 import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.BatchStageWithKey;
@@ -106,7 +106,7 @@ public class CheatSheet {
         //tag::s7[]
         StreamSourceStage<Entry<Long, String>> tweetWords = p.drawFrom(
                 Sources.mapJournal("tweet-words", START_FROM_OLDEST));
-        StreamStage<TimestampedEntry<String, Long>> wordFreqs =
+        StreamStage<KeyedWindowResult<String, Long>> wordFreqs =
                 tweetWords.withTimestamps(e -> e.getKey(), 1000)
                           .window(sliding(1000, 10))
                           .groupingKey(entryValue())
@@ -139,7 +139,7 @@ public class CheatSheet {
                         mapPutEvents(), mapEventNewValue(), START_FROM_OLDEST))
                         .withTimestamps(Payment::timestamp, 1000)
                         .groupingKey(Payment::userId);
-        StreamStage<TimestampedEntry<Integer,
+        StreamStage<KeyedWindowResult<Integer,
                                     Tuple2<List<PageVisit>, List<Payment>>>>
             joined = pageVisits.window(sliding(60_000, 1000))
                                .aggregate2(toList(), payments, toList());
