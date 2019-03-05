@@ -148,7 +148,7 @@ key in the stream-to-be-enriched with the primary key in the enriching
 dataset. You can perform several such joins in one operation, enriching
 your stream from arbitrarily many sources.
 
-The stream-to-be-enriched (we'll call in the _primary_ stream for short)
+The stream-to-be-enriched (we'll call it the _primary_ stream for short)
 can be an unbounded data stream. The _enriching streams_ must be bounded
 and Jet will consume them in full before starting to enrich the primary
 stream. It will store their contents in hash tables for fast lookup,
@@ -422,8 +422,8 @@ apply an aggregate function to all the grouped items, separated by the
 originating stream. The aggregate function can produce a summary value
 like an average or linear trend, but it can also keep a list of all the
 items, effectively <<join-without-aggregating, avoiding actual
-aggregation>>. You can achieve any kind of join: inner/outer/full, left
-and right. The constraint, as already noted, is that the join condition
+aggregation>>. You can achieve any kind of join: inner/outer (full, left
+and right). The constraint, as already noted, is that the join condition
 cannot be fully general, but must amount to matching a computed key.
 
 Here's a simple example where we calculate the ratio of page visits to

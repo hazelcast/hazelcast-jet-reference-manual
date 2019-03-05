@@ -39,7 +39,7 @@ contains the partitioning logic.
 
 We'll take one specific problem, the Word Count, dissect it and explain
 how it gets computed in a Jet cluster. Let us first see the definition
-of the computation in the Pipeline API]:
+of the computation in the Pipeline API:
 
 [source]
 ----
@@ -719,8 +719,8 @@ is called a "`distributed snapshot`", described in a
 https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/Determining-Global-States-of-a-Distributed-System.pdf[paper by Chandy and Lamport].
 At regular intervals, Jet raises a global flag that says "it's time for
 another snapshot". All processors belonging to source vertices observe
-the flag, create a checkpoint on their source, and emit a barrier item
-to the downstream processors and resumes processing.
+the flag, create a checkpoint on their source, emit a barrier item
+to the downstream processors and resume processing.
 
 As the barrier item reaches a processor, it stops what it's doing and
 emits its state to the snapshot storage. Once complete, it forwards the
