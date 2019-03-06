@@ -319,6 +319,51 @@ actual job in the cluster changes to that state. Not to confuse the
 users with these differences we decided to make `future.cancel()` fail
 with an exception.
 
+== Job Upgrade
+
+*Note:* Job Upgrade is only available in <<install-hazelcast-jet-enterprise-optional, Jet Enterprise>>
+
+Jet allows you to upgrade a job while preserving its state. This is useful 
+for bugfixing or to improve the application.
+
+The new pipeline has to be compatible with the old one, for more details
+about what you can change in the pipeline, see
+<<update-a-dag-without-losing-the-state>>.
+
+Job Upgrades use the snapshots. Job state is exported to the snapshot 
+and the new job version starts from from the snapshot.
+
+If you want to preserve the state of the cancelled job, use
+`cancelAndExportSnapshot`:
+
+[source]
+----
+include::{javasource}/ManageJob.java[tag=s8]
+----
+
+You can also export the state and keep the job running. Both
+old and new version will run in parallel. This is useful e.g. 
+for an A/B testing.
+
+[source]
+----
+include::{javasource}/ManageJob.java[tag=s9]
+----
+
+Then you can use the exported state to submit a new job that will use the
+state as its initial state:
+
+[source]
+----
+include::{javasource}/ManageJob.java[tag=s10]
+----
+
+The exported snapshots used for Job Upgrades differ from the 
+snapshots used for the <<fault-tolerance, fault tolerance>>. 
+Exported snapshots aren't deleted automatically by Jet. Therefore you can
+also use exported snapshot as a point of recovery.
+When  you no longer need the exported snapshot, delete it.
+
 == Get a List of All Submitted Jobs
 
 Jet keeps an inventory of all the jobs submitted to it, including those
@@ -344,42 +389,3 @@ include::{javasource}/ManageJob.java[tag=s5]
 ----
 
 *Note:* data about completed jobs are evicted after 7 days.
-
-== Cancelling the Job, Exporting its State and Updating the Pipeline
-
-If you want to terminate the job before it completes or to terminate a
-streaming job which normally never completes, use:
-
-[source]
-----
-include::{javasource}/ManageJob.java[tag=s7]
-----
-
-If you want to preserve the state of the cancelled job, use
-`cancelAndExportSnapshot`:
-
-[source]
-----
-include::{javasource}/ManageJob.java[tag=s8]
-----
-
-You can also export the state and keep the job running:
-
-[source]
-----
-include::{javasource}/ManageJob.java[tag=s9]
-----
-
-Then you can use the exported state to submit a new job that will use the
-state as its initial state:
-
-[source]
-----
-include::{javasource}/ManageJob.java[tag=s10]
-----
-
-The new pipeline has to be compatible with the old one, for more details
-about what you can change in the pipeline, see
-<<update-a-dag-without-losing-the-state>>.
-
-*Note:* exporting of the snapshot is only available in Jet Enterprise.
