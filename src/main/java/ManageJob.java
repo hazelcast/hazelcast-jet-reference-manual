@@ -63,8 +63,9 @@ public class ManageJob {
             }
         }
         System.out.format(
-            "In the last five minutes %d jobs were submitted to Jet, of which %d" +
-            " already completed, %d jobs failed, and %d jobs are still running.%n",
+            "In the last five minutes %d jobs were submitted to Jet, of "
+            + "which %d already completed, %d jobs failed, and %d jobs "
+            + "are still running.%n",
             total, completed, failed, inProgress);
         //end::s4[]
     }
@@ -88,5 +89,38 @@ public class ManageJob {
 
         assert job1.getId() == job2.getId();
         //end::s6[]
+    }
+
+    static void s7() {
+        Job job = null;
+        //tag::s7[]
+        job.cancel();
+        //end::s7[]
+    }
+
+    static void s8() {
+        Job job = null;
+        //tag::s8[]
+        job.cancelAndExportSnapshot("foo-snapshot");
+        //end::s8[]
+    }
+
+    static void s9() {
+        Job job = null;
+        //tag::s9[]
+        job.exportSnapshot("foo-snapshot");
+        //end::s9[]
+    }
+
+    static void s10() {
+        JetInstance instance = null;
+        //tag::s10[]
+        Pipeline updatedPipeline = Pipeline.create();
+        // create the pipeline...
+
+        JobConfig jobConfig = new JobConfig();
+        jobConfig.setInitialSnapshotName("foo-snapshot");
+        instance.newJob(updatedPipeline, jobConfig);
+        //end::s10[]
     }
 }

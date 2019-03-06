@@ -7,16 +7,16 @@ and do basic management of their lifecycle. The following commands are provided:
 [%header]
 |===
 |Command|Description
-|cluster|Shows current cluster state and information about members
-|list-jobs|Lists running jobs on the cluster
-|submit|Submits a job to the cluster
-|cancel|Cancels a running job
-|suspend|Suspends a running job
-|resume|Resumes a suspended job
-|restart|Restarts a running job
-|list-snapshots|Lists saved snapshots on the cluster
-|save-snapshot|Saves a named snapshot from a job
-|delete-snapshot|Deletes a named snapshot
+|`cluster`|Shows current cluster state and information about members
+|`list-jobs`|Lists running jobs on the cluster
+|`submit`|Submits a job to the cluster
+|`cancel`|Cancels a running job
+|`suspend`|Suspends a running job
+|`resume`|Resumes a suspended job
+|`restart`|Restarts a running job
+|`list-snapshots`|Lists saved snapshots on the cluster
+|`save-snapshot`|Saves a named snapshot from a job
+|`delete-snapshot`|Deletes a named snapshot
 |===
 
 For more details on how to use the command line tool please refer to its own
