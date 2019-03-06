@@ -163,8 +163,8 @@ restored state.
 [[alo-behavior]]
 == Best Practice: Document At-Least-Once Behavior
 
-As we discuss in the <<pitfalls-alo, Under the
-Hood>> chapter, the behavior of a processor under _at-least-once_ semantics
+As we discuss in the <<pitfalls-alo, Jet Concepts>>
+chapter, the behavior of a processor under _at-least-once_ semantics
 can deviate from correctness in extremely non-trivial and unexpected
 ways. Therefore the processor should always document its possible
 behaviors for that case.

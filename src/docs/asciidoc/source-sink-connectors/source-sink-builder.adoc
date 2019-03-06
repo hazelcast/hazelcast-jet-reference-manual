@@ -146,7 +146,7 @@ The source you get from the builder doesn't participate in Jet's fault
 tolerance protocol. You won't be able to save the state to the snapshot
 to be able to resume from it after a restart, replaying the items you
 emitted since that point. That means you can't use these sources in jobs
-with the _at-least_once_ or _exactly-once_ processing guarantee.
+with the _at-least-once_ or _exactly-once_ processing guarantee.
 
 == Sink Builder
 

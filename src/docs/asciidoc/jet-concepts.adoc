@@ -39,7 +39,7 @@ contains the partitioning logic.
 
 We'll take one specific problem, the Word Count, dissect it and explain
 how it gets computed in a Jet cluster. Let us first see the definition
-of the computation in the Pipeline API]:
+of the computation in the Pipeline API:
 
 [source]
 ----
@@ -584,8 +584,8 @@ You can also change the key type. In this case, however, the job may
 fail with a `ClassCastException` because the downstream might expect a
 different type than it will actually receive. For example, if you change
 the key type from `Integer` to `Long`, the downstream stage of a window
-aggregation will expect `TimestampedEntry<Long, V>`, but can actually
-get `TimestampedEntry<Integer, V>`.
+aggregation will expect `KeyedWindowResult<Long, V>`, but can actually
+get `KeyedWindowResult<Integer, V>`.
 
 ==== State compatibility with Further Versions
 
@@ -719,8 +719,8 @@ is called a "`distributed snapshot`", described in a
 https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/Determining-Global-States-of-a-Distributed-System.pdf[paper by Chandy and Lamport].
 At regular intervals, Jet raises a global flag that says "it's time for
 another snapshot". All processors belonging to source vertices observe
-the flag, create a checkpoint on their source, and emit a barrier item
-to the downstream processors and resumes processing.
+the flag, create a checkpoint on their source, emit a barrier item
+to the downstream processors and resume processing.
 
 As the barrier item reaches a processor, it stops what it's doing and
 emits its state to the snapshot storage. Once complete, it forwards the
