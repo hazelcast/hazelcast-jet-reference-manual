@@ -368,18 +368,18 @@ class BuildComputation {
     }
 
     static void s15() {
-        //tag::s15[]
         Pipeline p = Pipeline.create();
-        p.<Tweet>drawFrom(Sources.mapJournal("tweets",
-                mapPutEvents(), mapEventNewValue(), START_FROM_CURRENT))
-         .withTimestamps(Tweet::timestamp, SECONDS.toMillis(5))
-         .flatMap(tweet ->
-                 traverseArray(tweet.text().toLowerCase().split("\\W+")))
-         .filter(word -> !word.isEmpty())
-         .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1)))
-         .groupingKey(wholeItem())
-         .aggregate(counting())
-         .drainTo(Sinks.list("result"));
+
+        //tag::s15[]
+        StreamStage<KeyedWindowResult<String, Long>> result =
+            p.drawFrom(twitterStream())
+             .withTimestamps(Tweet::timestamp, SECONDS.toMillis(15))
+             .flatMap(tweet -> traverseArray(tweet.text().toLowerCase().split("\\W+")))
+             .filter(word -> !word.isEmpty())
+             .window(sliding(MINUTES.toMillis(1), SECONDS.toMillis(1))
+                     .setEarlyResultsPeriod(SECONDS.toMillis(1)))
+             .groupingKey(wholeItem())
+             .aggregate(counting());
         //end::s15[]
     }
 
