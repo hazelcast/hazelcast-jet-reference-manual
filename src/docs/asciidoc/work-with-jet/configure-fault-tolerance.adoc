@@ -143,12 +143,16 @@ time and have the snapshot data of all the jobs preserved. After you
 restart the cluster, Jet automatically restores the data and resumes the
 jobs.
 
-Hot Restart Persistence works by continuously persisting the RAM-based
-snapshot data. Even with the fastest solid-state storage, this
-dramatically reduces the maximum snapshotting throughput available to
-Jet: while DRAM can take up to 50 GB/s, a high-end storage device caps
-at 2 GB/s. Keep in mind that this is throughput per member, so even on a
-minimal cluster of 3 machines, this is actually 6 GB/s available to Jet.
+Hot Restart Persistence works by persisting the RAM-based snapshot data.
+Even with the fastest solid-state storage, this dramatically reduces the
+maximum snapshotting throughput available to Jet: while DRAM can take up
+to 50 GB/s, a high-end storage device caps at 2 GB/s. Keep in mind that
+this is throughput per member, so even on a minimal cluster of 3
+machines, this is actually 6 GB/s available to Jet. Also, this
+throughput limit does not apply to the data going through the Jet
+pipeline, but only to the periodic saving of the state present in the
+pipeline. Typically the state scales with the number of distinct keys
+seen within the time window.
 
 Tu use Lossless Cluster Restart, you have to enable it in
 `hazelcast-jet.xml`:
