@@ -1,8 +1,9 @@
 [[command-line]]
 = Jet Command Line Tool
 
-Jet comes with a command line tool, `jet.sh` which can be used to submit jobs
-and do basic management of their lifecycle. The following commands are provided:
+Jet comes with a command line tool, `jet.sh` which you can use to submit
+jobs and do basic management of their lifecycle. It supports these
+commands:
 
 [%header]
 |===
@@ -19,8 +20,8 @@ and do basic management of their lifecycle. The following commands are provided:
 |`delete-snapshot`|Deletes a named snapshot
 |===
 
-For more details on how to use the command line tool please refer to its own
-documentation which can be retrieved by the command `jet.sh --help`
+Here we give just a basic pointer, refer to the output of `jet.sh --help`
+to get the full details on the commands.
 
 [[management-center]]
 = Management Center

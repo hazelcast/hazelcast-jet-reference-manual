@@ -426,9 +426,11 @@ aggregation>>. You can achieve any kind of join: inner/outer (full, left
 and right). The constraint, as already noted, is that the join condition
 cannot be fully general, but must amount to matching a computed key.
 
-Here's a simple example where we calculate the ratio of page visits to
-add-to-cart actions for each user. We accumulate the event counts and
-then do the maths on them in the end:
+We have a full code sample at our
+{jet-samples}/co-group/src/main/java/BatchCoGroup.java[code samples
+repository]. Here we'll show a simple example where we calculate the
+ratio of page visits to add-to-cart actions for each user. We accumulate
+the event counts and then do the maths on them in the end:
 
 [source]
 ----
@@ -452,9 +454,7 @@ Given that, we should expect to see the following output:
 
 Note how we supplied a separate aggregate operation for each input stage.
 We calculate the overall result based on the results obtained for each
-input stage in isolation. We have a full code sample at our
-{jet-samples}/co-group/src/main/java/BatchCoGroup.java[code samples
-repository].
+input stage in isolation.
 
 You also have the option of constructing a two-input aggregate operation
 that has immediate access to all the items. Refer to the
@@ -549,58 +549,73 @@ operation to perform on each
 results using the tags you got in step 3 (`ibt` is an `ItemsByTag`)
 
 [[windowed-aggregation]]
-= Windowed Aggregation
+= Aggregate an Unbounded Stream over a Window
 
 The process of data aggregation takes a finite batch of data and
 produces a result. We can make it work with an infinite stream if we
-break up the stream into finite chunks. This is called _windowing_.
+break up the stream into finite chunks. This is called _windowing_ and
+it's almost always defined in terms of a range of event timestamps (a
+_time window_). For this reason Jet requires you to set up the policy of
+determining an event's timestamp before you can apply windowing to your
+stream.
 
-You can specify windows only on streams, that have timestamps added.
+== Add Timestamps to the Stream
 
-== Adding Timestamps to the Stream
+The Pipeline API guides you to set up the timestamp policy right after
+you obtain a source stage. `pipeline.drawFrom(someStreamSource)` returns
+a `SourceStreamStage` which offers just these methods:
 
-The `drawFrom(StreamSource)` method returns a `StreamSourceStage`, on
-which you have to configure how timestamps are added to the stream:
+- {jet-javadoc}/pipeline/StreamSourceStage.html#withNativeTimestamps--[`withNativeTimestamps()`]
+declares that the stream will use source's native timestamps. This
+typically refers to the timestamps that the external source system sets
+on each event.
 
-- {jet-javadoc}/pipeline/StreamSourceStage.html#withNativeTimestamps--[`withNativeTimestamps()`]:
-declares that the stream will use source's native timestamp. This
-typically is the message timestamp of the external system.
+- {jet-javadoc}/pipeline/StreamSourceStage.html#withTimestamps-com.hazelcast.jet.function.ToLongFunctionEx-long-[`withTimestamps(timestampFn)`]
+provides a function to the source that determines the timestamp of
+each event.
 
-- {jet-javadoc}/pipeline/StreamSourceStage.html#withTimestamps-com.hazelcast.jet.function.ToLongFunctionEx-long-[`withTimestamps()`]:
-declares that the source will extract timestamps from the stream items.
+- {jet-javadoc}/pipeline/StreamSourceStage.html#withoutTimestamps--[`withoutTimestamps()`]
+declares that the source stage has no timestamps. Use this if you don't
+need them (i.e., your pipeline won't perform windowed aggregation).
 
-- {jet-javadoc}/pipeline/StreamSourceStage.html#withoutTimestamps--[`withoutTimestamps()`]:
-if you don't need the timestamps (if you don't do window aggregation)
-
-- `withoutTimestamps() ... .addTimestamps()`: use this if you can't
-extract the timestamp from the source item. For example, if you have to
-first enrich the item or if you need to first flat-map the item and
-extract the timestamps from the flat-mapped items. However in this case,
-the watermarks won't be emitted by the source.
+Exceptionally, you may need to call `withoutTimestamps()` on the source
+stage, then perform some transformations that determine the event
+timestamps, and then call `addTimestamps(timestampFn)` to instruct Jet
+where to find them in the events. Some examples include an enrichment
+stage that retrieves the timestamps from a side input or flat-mapping
+the stream to unpack a series of events from each original item. If you
+do this, however, it will no longer be the source that determines the
+watermark.
 
 [[caveats-of-not-adding-timestamps-in-source]]
-=== Caveats of Not Adding Timestamps in the Source
+=== Prefer Assigning Timestamps at the Source
 
-When you set the timestamps in the source using `withTimestamps()` or
-`withNativeTimestamps()`, Jet is able to push the timestamping logic
-into the source. Some source implementations, especially partitioned
-ones such as Kafka, have advanced logic that keeps track of the
-timestamps on each partition and knows how to reconcile the temporary
-differences in timestamps that occur between them. This often results in
-less events dropped as late.
+In some source implementations, especially partitioned ones like Kafka,
+there is a risk of high event time skew occuring across partitions as
+the Jet processor pulls the data from them in batches, in a round-robin
+fashion. This problem is especially pronounced when Jet recovers from a
+failure and restarts your job. In this case Jet must catch up with all
+the events that arrived since taking the last snapshot. It will receive
+these events at the maximum system throughput and thus each partition
+will have a lot of data each time Jet polls it. This means that the
+interleaving of data from different partitions will become much more
+coarse-grained and there will be sudden jumps in event time at the
+points of transition from one partition to the next. The jumps can
+easily exceed the configured `allowedLateness` and cause Jet to drop
+whole swaths of events as late.
 
-There's also the so called _catching-up issue_ when timestamps are added
-after the source: if the job is restarted, there can be very recent
-event in partition1 and a very old one in partition2. If the difference
-between them is more than the allowed lag and the partition1 happens to
-be read first, the event from the partition2 can be dropped.
+In order to mitigate this issue, Jet has special logic in its
+partitioned source implementations that keeps separate track of the
+timestamps within each partition and knows how to reconcile the
+temporary differences that occur between them.
 
-So, if possible, avoid the `addTimestamps` method for unbounded sources.
+This feature works only if you set the timestamping policy in the source
+using `withTimestamps()` or `withNativeTimestamps()`.
 
-== Specifying the Window
+== Specify the Window
 
-Let's demonstrate windowing on the example of the Word Count task. If
-you have a finite batch of tweets you want to analyze for word
+In order to explain windowing, let's start with a simple batch job, the
+Word Count. If you have a batch of tweets you want to analyze for word
 frequencies, this is how the pipeline can look:
 
 [source]
@@ -608,57 +623,86 @@ frequencies, this is how the pipeline can look:
 include::{javasource}/BuildComputation.java[tag=s13a]
 ----
 
-To make it work for an infinite stream, let's add the event timestamps
-and the specification of the window:
+To make the same kind of computation work on an infinite stream of
+tweets, we must add the event timestamps and the specification of the
+window:
 
 [source]
 ----
 include::{javasource}/BuildComputation.java[tag=s13]
 ----
 
+<1> use the source system's native timestamps, don't tolerate event time
+disorder (`allowedLateness` parameter set to `0`)
+<2> specify the window (one minute long, slides by one second)
+
 Now we've got a Jet job that does live tracking of words currently
 trending in tweets. The sliding window definition tells Jet to aggregate
 the events that occurred within the last minute and update this result
 every second.
 
-We employed the simplest way of dealing with the notion of time: we
-ignored the time when the event actually happened and just slapped the
-current time on it. Usually the event contains its own timestamp and
-Jet must honor it. To achieve that you must pass a function that
-extracts the timestamp from the event. When you do that, you must also
-deal with the fact that events can arrive in an order different from
-their timestamp order. We discuss these concerns in the <<time-ordering,
-Jet Concepts chapter>>.
+Using native timestamps often works well, but it's not the most precise
+way of determining the event time. It records the time when the event
+was submitted to the system that Jet uses as the source and that may
+happen quite a bit after the event originally occurred. The best
+approach is to provide Jet with the function that extracts the timestamp
+directly from the event object. In this case you must also deal with the
+fact that Jet can receive events in an order different from their
+timestamp order. We discuss these concerns in the <<time-ordering, Jet
+Concepts chapter>>.
 
-Here's an example with `Tweet` objects that carry their own timestamp:
+To extract the event timestamp, create the source stage like this:
 
 [source]
 ----
 include::{javasource}/BuildComputation.java[tag=s14]
 ----
 
-In the line `.addTimestamps(TweetWord::timestamp, SECONDS.toMillis(5))`
-we specified two things: how to extract the timestamp and how much event
-lag we want to tolerate. We said that the timestamp of an event we
-receive can be at most five seconds behind the highest timestamp we
-already received. This also means that Jet will have to delay emitting a
-windowed result until it receives an event that's five seconds past the
-window's end, so the latency will be five seconds or more.
+We specified two things: how to extract the timestamp and how much event
+"lateness" we want to tolerate. We said that any event we receive can be
+at most five seconds behind the highest timestamp we already received. If
+it's older than that, we'll have to ignore it. On the flip side, this
+means that we'll have to _wait_ for an event that occurred five seconds
+after the given window's end before we can assume we have all the data to
+emit that result.
 
-Notice how we had to struggle a bit to hold on to the timestamp through
-the flatmapping transformation. We needed two classes: `Tweet` and
-`TweetWord`. We can avoid this need if we assign timestamps earlier on:
+== Get Early Results Before the Window is Complete
+
+If you had to allow a lot of event lateness, or if you just use large
+time windows, you may want to track the progress of a window while it is
+still accumulating events. You can order Jet to give you, at regular
+intervals, the current status on all the windows it has some data for,
+but aren't yet complete. On our running example of trending words, it
+may look like this:
 
 [source]
 ----
 include::{javasource}/BuildComputation.java[tag=s15]
 ----
 
-Now the `flatMap` stage emits just the words as strings. This will work
-correctly because Jet keeps the event timestamps internally and
-correlates the input item with all the output items of a transformation
-such as `flatMap` and `filter`, propagating the timestamp value. See
-also <<caveats-of-not-adding-timestamps-in-source>>.
+In the above snippet we set up an aggregation stage whose window size is
+one minute and there's an additional 15-second wait time for the
+late-coming events. This amounts to waiting up to 75 seconds from
+receiving a given event to getting the result it contributed to.
+Therefore we ask Jet to give us updates on the current progress every
+second.
+
+The output of the windowing stage is in the form of `KeyedWindowResult<String,
+Long>`, where `String` is the word and `Long` is the frequency of the
+word in the given window. `KeyedWindowResult` also has an `isEarly`
+property that says whether the result is early or final.
+
+[WARNING]
+====
+Generally, Jet doesn't guarantee that a stage will receive the items in
+the same order its upstream stage emitted them. For example, it executes
+a `map` transform with many parallel tasks. One task may get the early
+result and another one the final result. They may emit the transformed
+result to the sink in any order.
+
+This can lead to a situation where your sink receives an early result
+after it has already received the final result.
+====
 
 = Kinds of Windows
 
@@ -685,6 +729,8 @@ key, there is a separate, independent session window for each key.
 
 You can find a more in-depth explanation of Jet's windows in the
 <<unbounded-stream-processing, Jet Concepts>> chapter.
+
+
 
 
 = Rolling Aggregation
