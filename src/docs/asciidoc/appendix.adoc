@@ -91,6 +91,14 @@ rights to add, use, modify, and distribute the source code as the Apache
 License 2.0 that Hazelcast uses. However, some other restrictions might
 apply.
 
+=== picocli
+
+picocli is a command line parser which is used for the implementation of
+`jet.sh` command line tool.
+
+picocli is distributed under the terms of the
+http://www.apache.org/licenses/LICENSE-2.0[Apache License 2].
+
 === Runtime Dependencies
 
 Depending on the used features, additional dependencies might be added
