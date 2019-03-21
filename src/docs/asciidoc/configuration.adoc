@@ -1,9 +1,144 @@
 = Configuration
 
+This chapter starts with a reference table describing all the options to configure Hazelcast Jet.
+Then it provides the ways of configuration, i.e., programmatic, declarative and within Spring context.
+
+== Configuration Options
+
+The following tables list and describe all the methods and/or properties used to configure Hazelcast Jet, grouped
+by the features they are used for. Some of the listed options below can also be configured declaratively. See the
+<<declarative-configuration, Declarative Configuration section>> for an example.
+
+[[jet-instance-configuration]]
+=== Jet Instance
+
+[cols="1,5a"]
+|===
+|Configuration API Method|Description
+
+|`setCooperativeThreadCount`
+|The number of threads Jet creates in its cooperative multithreading pool. Its default value is
+`Runtime.getRuntime().availableProcessors()`.
+
+|`setFlowControlPeriodMs`
+|Jet uses a flow control mechanism between
+cluster members to prevent a slower vertex from getting overflowed with
+data from a faster upstream vertex. Each receiver regularly reports to
+each sender how much more data it may send over a given DAG edge. This
+method sets the duration (in milliseconds) of the interval between
+flow-control packets. Its default value is `100` milliseconds.
+
+|`setBackupCount`
+|The number of synchronous backups to configure on
+IMaps that Jet needs internally to store job metadata and snapshots. The
+maximum allowed value is 6. Its default value is `1`.
+
+|`setScaleUpDelayMillis`
+|The delay after which the auto-scaled jobs restart if a new member is added to the
+cluster. It has no effect on jobs with auto scaling disabled. Its default value is `10000` milliseconds.
+
+|`setLosslessRestartEnabled`
+|Specifies whether the lossless job restart feature is enabled. With this feature,
+you can restart the whole cluster without losing the jobs and
+their state. It is implemented on top of Hazelcast IMDG's Hot Restart
+Store feature, which persists the data to disk. You need to have the Hazelcast Jet
+Enterprise edition and configure Hazelcast IMDG's Hot Restart Store to use this feature.
+Its default value is `false`, i.e., disabled.
+|===
+
+[[fault-tolerance-configuration]]
+=== Fault Tolerance
+
+[cols="1,5a"]
+|===
+|Configuration API Method|Description
+
+|`setProcessingGuarantee`
+|Processing guarantee for failures. If a cluster member leaves the cluster during a job execution and the job 
+is restarted automatically, it defines the semantics of at which point in the stream the job is resumed from.
+Available values are `EXACTLY_ONCE`, `AT_LEAST_ONCE` and `NONE`. If you choose one of the first two values, 
+distributed snapshotting is for the job. See the {jet-javadoc}/config/ProcessingGuarantee.html[Javadoc] for a detailed
+explanation. Its default value is `NONE`.
+
+|`setSnapshotIntervalMillis`
+|The interval in milliseconds between the completion of the previous snapshot and the start of a new one. It must be a 
+positive value and it is only relevant when the processing guarantee is set as either `EXACTLY_ONCE` or `AT_LEAST_ONCE`.
+Its default value is set to `10000` milliseconds.
+
+|`setAutoScaling`
+|Specifies whether Jet scales the job up or down when a member is added or removed from the cluster. Its default
+value is `true`, i.e., enabled.
+
+|`setSplitBrainProtection`
+|Specifies whether the split-brain protection feature is enabled. When enabled, Jet restarts the job after a topology
+change, only if the cluster quorum is satisfied. See the <<split-brain-protection, Split-Brain Protection section>>.
+|===
+
+[[performance-configuration]]
+=== Performance
+
+[cols="1,5a"]
+|===
+|Configuration API Method|Description
+
+|`setPacketSizeLimit`
+|For a distributed edge, data is sent to a remote member via Hazelcast network packets. Each packet
+is dedicated to the data of a single edge, but may contain any number of data items. This setting
+limits the size of the packet in bytes. Packets should be large enough to drown out any fixed 
+overheads, but small enough to allow good interleaving with other packets. Its default value is `16384`.
+
+|`setQueueSize`
+|The capacity of processor-to-processor concurrent queues. The value is rounded upwards to the
+next power of 2. Its default value is `1024`.
+
+|`setReceiveWindowMultiplier`
+|The scaling factor used by the adaptive receive window sizing function.
+Its default value is `3`.
+|===
+
+[[security-configuration]]
+=== Security
+
+[cols="1,5a"]
+|===
+|Configuration Element|Description
+
+|`ssl`
+|Provides properties to configure TLS for all member to member and member to
+client communications. You need to have the Hazelcast Jet
+Enterprise edition to use this feature. See the <<security, Security chapter>> for more information.
+|===
+
+
+[[monitoring-configuration]]
+=== Monitoring
+
+[cols="1,5a"]
+|===
+|Configuration Method/Property|Description
+
+|`hazelcast.logging.type`
+|The predefined types of built-in logging adapters. See the <<configure-logging, Configure Logging section>>.
+
+|`peek`
+|Used to provide outputs of individual stages when debugging a pipeline.
+See the related <<inspect-output-of-individual-stages, inspecting a pipeline section>>.
+
+|`MetricsConfig`
+| Provides configuration options for metrics collection. You can configure the metrics collection interval, 
+whether to use JMX to expose metrics and the duration for which the metrics will be retained on a Jet instance.
+See the
+https://docs.hazelcast.org/docs/jet/latest-dev/javadoc/com/hazelcast/jet/config/MetricsConfig.html[Javadoc] for more information.
+
+2+| You can also use Hazelcast Jet Management Center to monitor your Jet clusters. See its ???link???[documentation] for more information.
+|===
+
+== Ways of Configuration
+
 You can configure Hazelcast Jet either programmatically or
 declaratively (XML).
 
-== Programmatic Configuration
+=== Programmatic Configuration
 
 Programmatic configuration is the simplest way to configure Jet. You
 instantiate a {jet-javadoc}/config/JetConfig.html[`JetConfig`] and set
@@ -15,75 +150,41 @@ use only two threads in its _cooperative multithreading_ pool:
 include::{javasource}/Configuration.java[tag=s1]
 ----
 
-== Declarative Configuration
+=== Declarative Configuration
 
 If you don't pass an explicit `JetConfig` object when constructing a Jet
 instance, it will perform the following lookup procedure:
 
-1. Read the system property `hazelcast.jet.config`. If it starts with
-   `classpath:`, treat it as a classpath resource, otherwise it's a file
-   pathname. If it's defined but Jet can't find the file it specifies,
-   startup fails.
-2. Look for `hazelcast-jet.xml` in the working directory.
-3. Look for `hazelcast-jet.xml` in the classpath.
-4. Load the default XML configuration packaged in Jet's JAR.
+. Read the system property `hazelcast.jet.config`. If it starts with
+`classpath:`, treat it as a classpath resource, otherwise it's a file
+pathname. If it's defined but Jet can't find the file it specifies,
+startup fails.
+. Look for `hazelcast-jet.xml` in the working directory.
+. Look for `hazelcast-jet.xml` in the classpath.
+. Load the default XML configuration packaged in Jet's JAR.
 
-An example configuration looks like the following:
+An example `hazelcast-jet.xml` is shown below :
 
 [source,xml]
 ----
-<hazelcast-jet xsi:schemaLocation="http://www.hazelcast.com/schema/jet-config hazelcast-jet-config-0.6.xsd"
-               xmlns="http://www.hazelcast.com/schema/jet-config"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<hazelcast-jet>
     <instance>
-        <!-- number of threads in the cooperative thread pool -->
        <cooperative-thread-count>8</cooperative-thread-count>
-        <!-- period between flow control packets in milliseconds -->
        <flow-control-period>100</flow-control-period>
-        <!-- directory for temporary files -->
        <temp-dir>/var/tmp/jet</temp-dir>
-        <!-- number of backup copies to configure for Hazelcast IMaps used internally in a Jet job -->
        <backup-count>1</backup-count>
-        <!-- the delay after which auto-scaled jobs will restart if a new member is added to the
-        cluster. The default is 10 seconds. Has no effect on jobs with auto scaling disabled -->
         <scale-up-delay-millis>10000</scale-up-delay-millis>
     </instance>
     <properties>
        <property name="custom.property">custom property</property>
     </properties>
     <edge-defaults>
-        <!-- capacity of the concurrent SPSC queue between each two processors -->
        <queue-size>1024</queue-size>
-
-        <!-- maximum packet size in bytes, only applies to distributed edges -->
        <packet-size-limit>16384</packet-size-limit>
-
-        <!-- receive window size multiplier, only applies to distributed edges -->
        <receive-window-multiplier>3</receive-window-multiplier>
     </edge-defaults>
-    <!-- custom properties which can be read within a ProcessorSupplier -->
 </hazelcast-jet>
 ----
-
-The following are the configuration elements for Hazelcast Jet:
-
-* Cooperative Thread Count: number of threads Jet will create in its
-_cooperative multithreading_ pool. The default value is
-`Runtime.getRuntime().availableProcessors()`
-* Temp Directory: directory where Jet can create temporary files such
-as JAR files submitted by clients. Jet will create a temp directory and
-delete it on exit.
-* Flow Control Period: Jet uses a flow control mechanism between
-cluster members to prevent a slower vertex from getting overflowed with
-data from a faster upstream vertex. Each receiver regularly reports to
-each sender how much more data it may send over a given DAG edge. This
-option sets the duration (in milliseconds) of the interval between
-flow-control packets. Its default value is 100ms.
-* Backup Count: Sets the number of synchronous backups to configure on
-IMaps that Jet needs internally to store job metadata and snapshots. The
-maximum allowed value is 6. The default value is 1.
-* Edge Defaults: The default values to be used for all edges. See the
-section on <<fine-tuning-edges, Tuning Edges>>.
 
 == Configure the Underlying Hazelcast Instance
 
@@ -324,11 +425,9 @@ by Hazelcast Jet on each member. By marking your processor with
 `@SpringAware`, you make spring context accessible to your
 processor which gives you the ability:
 
- - to apply bean properties
- - to apply factory callbacks such as `ApplicationContextAware`,
-   `BeanNameAware`
- - to apply bean post-processing annotations such as
-   `InitializingBean`, `@PostConstruct`
+* to apply bean properties
+* to apply factory callbacks such as `ApplicationContextAware`, `BeanNameAware`
+* to apply bean post-processing annotations such as `InitializingBean`, `@PostConstruct`
 
 You need to configure Hazelcast Jet with `<hz:spring-aware/>`
 tag or set `SpringManagedContext` programmatically to enable
@@ -337,100 +436,3 @@ spring-aware objects. Code samples for
 and
 {jet-samples}/integration/spring/src/main/java/jet/spring/AnnotationBasedConfigurationSample.java[annotation-based]
 configurations are available at our Code Samples repo.
-
-== Configuring TLS (Enterprise only)
-
-It is possible to configure Jet to use TLS for all member to member
-and member to client communications. TLS requires the use of Jet
-Enterprise version.
-
-Once TLS is enabled on a member, all other members in the same cluster
-and all clients connecting to the cluster must also have TLS enabled.
-
-The way TLS is configured is same as how it's done in Hazelcast IMDG
-Enterprise. To configure TLS, you need a server certificate and a
-matching private key and do the necessary configuration on the member side.
-
-The following is an example configuration snippet for `hazelcast.xml`. The
-configuration must be present on all the members.
-
-[source,xml]
-----
-<network>
-    <ssl enabled="true">
-        <factory-class-name>com.hazelcast.nio.ssl.BasicSSLContextFactory</factory-class-name>
-        <properties>
-            <property name="protocol">TLS</property>
-            <property name="keyStore">/opt/hazelcast.keystore</property>
-            <property name="keyStorePassword">password12345</property>
-            <property name="trustStore">/opt/hazelcast.truststore</property>
-            <property name="trustStorePassword">password12345</property>
-            <property name="keyManagerAlgorithm">SunX509</property>
-            <property name="trustManagerAlgorithm">SunX509</property>
-            <property name="mutualAuthentication">REQUIRED</property>
-        </properties>
-    </ssl>
-</network>
-----
-
-And similarly, a matching snippet must be present on the clients
-inside the `hazelcast-client.xml` file:
-
-[source,xml]
-----
-<network>
-    <ssl enabled="true">
-        <factory-class-name>com.hazelcast.nio.ssl.BasicSSLContextFactory</factory-class-name>
-        <properties>
-            <property name="protocol">TLS</property>
-
-            <property name="trustStore">/opt/hazelcast-client.truststore</property>
-            <property name="trustStorePassword">secret.123456</property>
-            <property name="trustStoreType">JKS</property>
-
-            <!-- Following properties are only needed when the mutual authentication is used. -->
-            <property name="keyStore">/opt/hazelcast-client.keystore</property>
-            <property name="keyStorePassword">keystorePassword123</property>
-            <property name="keyStoreType">JKS</property>
-            <property name="mutualAuthentication">REQUIRED</property>
-        </properties>
-    </ssl>
-</network>
-----
-
-A detailed list of TLS configuration options can be found in the
-{hz-refman}#tlsssl[Hazelcast IMDG Reference Manual].
-
-=== Mutual Authentication
-
-When a client connects to a node, the node can authenticate the client
-by using mutual authentication. In this mode, the client also has to
-present a certificate to the member upon connection. This requires
-some additional configuration. See the
-{hz-refman}#mutual-authentication[Mutual Authentication] section on
-the IMDG Reference Manual for further details.
-
-=== OpenSSL Configuration
-
-By default Jet uses the Java implementation of SSL. For better performance,
-it is also possible to use Jet with OpenSSL instead. For configuring OpenSSL
-please refer to the {hz-refman}#integrating-openssl[Hazelcast IMDG Reference Manual].
-
-=== TLS Impact on Performance
-
-TLS can have some effect on performance when running jobs, as all
-node to node communications need to be encrypted. During an aggregation
-or another partitioned operation in a job, large amounts of data might
-be transferred from one node to another.
-
-Jet makes use of <<concepts,several techniques>> that reduce the need
-for data to be transferred across the nodes, however this is sometimes unavoidable.
-When using Java SSL, the performance impact can be between 5-30% depending on how
-much network is utilized. When using OpenSSL, we measured the impact to be minimal
-regardless of the amount of network traffic. Detailed benchmarks are available
-upon request.
-
-=== Remote Hazelcast Sources and Sinks
-
-Currently it's not possible to connect to remote Hazelcast sources and sinks
-using TLS. This issue will be resolved in a further patch release.
