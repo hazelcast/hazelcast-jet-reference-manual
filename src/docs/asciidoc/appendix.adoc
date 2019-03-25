@@ -1,3 +1,113 @@
+
+[appendix]
+= Jet Version Compatibility
+
+The following rules currently apply for Jet for compile time
+and runtime compatibility.
+
+== Semantic Versioning
+
+Hazelcast Jet uses https://semver.org/[Semantic Versioning] which
+can be summarized as follows:
+
+* MAJOR version when you make incompatible API changes,
+* MINOR version when you add functionality in a backwards-compatible manner, and
+* PATCH version when you make backwards-compatible bug fixes.
+
+This means that a Jet job written using Pipeline API in a previous
+minor version should compile in later minor versions.
+
+However some exceptions apply:
+
+* Classes in `com.hazelcast.jet.core` package which form the
+<<expert-zone, Core API>> of Jet only provide PATCH level compatibility guarantee.
+* Classes in `impl` packages do not provide any compatibility
+guarantees between versions.
+
+== Summary Table
+
+The compatibility guarantees can be summarized as follows:
+
+[%header]
+|===
+|Type|Component|Guarantee
+|Compile Time|Job API|MINOR
+|Compile Time|Pipeline API|MINOR
+|Compile Time|Core API|PATCH
+|Runtime|Member to Member|NONE
+|Runtime|Management Center to Member|NONE
+|Runtime|Client to Member|PATCH
+|Runtime|Job State|PATCH
+|Runtime|Command Line Tools|MINOR
+|Runtime|Configuration XML files|PATCH
+|Runtime|Metrics (JMX)|PATCH
+|===
+
+== Runtime Compatibility
+
+=== Members
+
+Jet requires that all members in a cluster use the same PATCH version.
+When updating Jet to a newer PATCH version, the whole cluster must be
+shutdown and restarted with the newer version at once.
+
+=== Management Center
+
+Management Center, like members, is only compatible with the same
+PATCH version. This means that Management Center and the cluster
+must have the exact same PATCH version to be compatible.
+
+=== Clients
+
+Jet clients are compatible with the members running on the same MINOR
+version. This means that a client using an older or newer PATCH version
+should be able to connect and work with a cluster that's running a different
+PATCH version.
+
+== Job State Compatibility
+
+Job state is only compatible across the same MINOR version and only
+backwards-compatible i.e. a newer PATCH version is be able to understand
+the job state from a previous PATCH version.
+
+This means that if you have a running job, using the job upgrades
+and lossless recovery features you are able to upgrade the cluster to a
+newer PATCH version without losing the state of a running job.
+
+== Command Line Tools and Configuration Files
+
+The command line tools provided such as `jet.sh` and the configuration
+XML files are backwards-compatible between MINOR versions. This means
+that when upgrading a cluster to a new minor version, the XML configuration
+for the previous version can be used without any modification.
+
+== Metrics
+
+Jet currently provides metrics to Management Center and also through
+other means such as JMX. The metrics names may change between MINOR
+versions but not PATCH versions.
+
+[appendix]
+= Common Exceptions
+
+You may see the following exceptions thrown when working with Jet:
+
+* {jet-javadoc}/JetException.html[`JetException`]:
+A general exception thrown if a job failure occurs. It has the original
+exception as its cause.
+* {jet-javadoc}/core/TopologyChangedException.html[`TopologyChangedException`]:
+Thrown when a member participating in a job leaves the cluster. If
+auto-restart is enabled, Jet will restart the job automatically, without
+throwing the exception to the user.
+* {jet-javadoc}/core/JobNotFoundException.html[`JobNotFoundException`]:
+Thrown when the coordinator node is not able to find the metadata for a
+given job.
+
+There are also several Hazelcast exceptions that might be thrown when
+interacting with `JetInstance`. For a description of Hazelcast IMDG
+exceptions, please refer to the
+{hz-refman}#common-exception-types[IMDG Reference manual].
+
 [appendix]
 [[phone-homes]]
 = Phone Homes
@@ -56,6 +166,14 @@ The URL used for phone home requests is
 ----
 http://phonehome.hazelcast.com/ping
 ----
+
+[appendix]
+= FAQ
+
+You can refer to the https://jet.hazelcast.org/faq/[FAQ] page to see the
+answers to frequently asked questions related to topics such as the
+relationship and differences between Hazelcast Jet and Hazelcast IMDG,
+Jet's APIs and roadmap.
 
 [appendix]
 = License Questions
@@ -132,32 +250,3 @@ Spring context.
 Spring is distributed under the terms of the
 http://www.apache.org/licenses/LICENSE-2.0[Apache License 2].
 
-
-[appendix]
-= FAQ
-
-You can refer to the https://jet.hazelcast.org/faq/[FAQ] page to see the
-answers to frequently asked questions related to topics such as the
-relationship and differences between Hazelcast Jet and Hazelcast IMDG,
-Jet's APIs and roadmap.
-
-[appendix]
-= Common Exceptions
-
-You may see the following exceptions thrown when working with Jet:
-
-* {jet-javadoc}/JetException.html[`JetException`]:
-A general exception thrown if a job failure occurs. It has the original
-exception as its cause.
-* {jet-javadoc}/core/TopologyChangedException.html[`TopologyChangedException`]:
-Thrown when a member participating in a job leaves the cluster. If
-auto-restart is enabled, Jet will restart the job automatically, without
-throwing the exception to the user.
-* {jet-javadoc}/core/JobNotFoundException.html[`JobNotFoundException`]:
-Thrown when the coordinator node is not able to find the metadata for a
-given job.
-
-There are also several Hazelcast exceptions that might be thrown when
-interacting with `JetInstance`. For a description of Hazelcast IMDG
-exceptions, please refer to the
-{hz-refman}#common-exception-types[IMDG Reference manual].

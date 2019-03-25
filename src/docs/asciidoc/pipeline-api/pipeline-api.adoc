@@ -222,7 +222,7 @@ the job. You may also encounter RAM shortage if your enriching dataset
 is very large.
 
 The `xUsingY` transforms (such as <<map-using-context,
-`filterUsingContext`>> or <<map-using-imap, `mapUsingIMapAsync`>>) can
+`filterUsingContext`>> or <<map-using-imap, `mapUsingIMap`>>) can
 enrich a stream by looking up from the original data source each time.
 There's direct support for <<map-using-imap, Hazelcast maps>> and Jet
 <<map-using-context, exposes the underlying machinery>> as well so you
@@ -277,7 +277,7 @@ include::{javasource}/BuildComputation.java[tag=s16]
 In the example above the syntax looks very simple, but it hides a layer
 of complexity: you can't just fetch a Hazelcast map instance and add it
 to the pipeline. It's a proxy object that's valid only in the JVM
-process where you obtained it. `mapUsingIMapAsync` actually remembers
+process where you obtained it. `mapUsingIMap` actually remembers
 just the name of the map and will obtain a map with the same name from
 the Jet cluster on which the job runs.
 
