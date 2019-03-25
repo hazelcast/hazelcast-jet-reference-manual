@@ -169,10 +169,6 @@ more information.
 |The predefined types of built-in logging adapters. Available values are `jdk`, `log4j`,
 `log4j2`, `slf4j` and `none`. See the <<configure-logging, Configure Logging section>>.
 
-|`peek`
-|Used to provide outputs of individual stages when debugging a pipeline.
-See the related <<inspect-output-of-individual-stages, inspecting a pipeline section>>.
-
 |`MetricsConfig`
 | Allows you to provide the following configuration options for metrics collection: 
 
