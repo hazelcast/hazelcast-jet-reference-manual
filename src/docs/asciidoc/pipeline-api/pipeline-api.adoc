@@ -441,7 +441,8 @@ include::{javasource}/BuildComputation.java[tag=s7]
 <3> Construct the pipeline
 <4> Supply the aggregate operation for `pageVisits`
 <5> Supply the aggregate operation for `addToCarts`
-<6> Run the job, print the results
+<6> Compute the ratio of page visits to add-to-cart actions
+<7> Run the job, print the results
 
 The way we prepared the data, user `1` made two visits and added one
 item to the shopping cart; user `2` made one visit and added one item.
