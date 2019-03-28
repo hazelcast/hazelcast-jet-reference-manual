@@ -164,14 +164,18 @@ class BuildComputation {
         BatchStageWithKey<AddToCart, Integer> addToCart =
                 p.drawFrom(Sources.list(addToCarts))
                  .groupingKey(atc -> atc.userId());
-        BatchStage<Entry<Integer, Double>> coAggregated =
-                pageVisit.aggregate2(counting(),            // <4>
-                    addToCart, counting(),                  // <5>
-                    (userId, visitCount, addCount) ->
-                            entry(userId, (double) addCount / visitCount));
 
-        // <6>
-        coAggregated.drainTo(Sinks.list(results));
+        BatchStage<Entry<Integer, Tuple2<Long, Long>>> coAggregated = pageVisit
+                .aggregate2(counting(),         // <4>
+                        addToCart, counting()); // <5>
+        coAggregated
+                .map(e -> {                     // <6>
+                    long visitCount = e.getValue().f0();
+                    long addToCartCount = e.getValue().f1();
+                    return entry(e.getKey(), (double) (addToCartCount / visitCount));
+                })
+                .drainTo(Sinks.list(results));
+        // <7>
         jet.newJob(p).join();
         results.forEach(System.out::println);
         Jet.shutdownAll();
@@ -192,8 +196,8 @@ class BuildComputation {
 
         //tag::s8a[]
         BatchStage<Tuple2<List<PageVisit>, List<AddToCart>>> joinedLists =
-            pageVisit.aggregate2(toList(), addToCart, toList(),
-                (userId, pageVisits, addToCarts) -> tuple2(pageVisits, addToCarts));
+            pageVisit.aggregate2(toList(), addToCart, toList())
+                     .map(Entry::getValue);
         //end::s8a[]
 
         //tag::s8b[]
@@ -248,11 +252,15 @@ class BuildComputation {
         Tag<List<Delivery>> deliveryTag = builder.add(deliveries, toList());
 
         //<4>
-        BatchStage<String> coGrouped = builder.build((key, ibt) ->
-                String.format("User ID %d: %d visits, %d add-to-carts," +
-                                " %d payments, %d deliveries",
-                        key, ibt.get(visitTag).size(), ibt.get(cartTag).size(),
-                        ibt.get(payTag).size(), ibt.get(deliveryTag).size()));
+        BatchStage<String> coGrouped = builder
+                .build()
+                .map(e -> {
+                    ItemsByTag ibt = e.getValue();
+                    return String.format("User ID %d: %d visits, %d add-to-carts," +
+                                    " %d payments, %d deliveries",
+                            e.getKey(), ibt.get(visitTag).size(), ibt.get(cartTag).size(),
+                            ibt.get(payTag).size(), ibt.get(deliveryTag).size());
+                });
         //end::s9[]
     }
 
