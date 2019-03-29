@@ -76,6 +76,8 @@ include::source-sink-connectors/index.adoc[]
 
 include::configuration.adoc[]
 
+include::security.adoc[]
+
 include::jet-concepts.adoc[]
 
 include::expert-zone/index.adoc[]
