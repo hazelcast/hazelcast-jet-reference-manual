@@ -66,4 +66,36 @@ public class ConfigureFaultTolerance {
         jet.getCluster().shutdown();
         //end::s5[]
     }
+
+    static void s6() {
+        //tag::s6[]
+        JetConfig config = new JetConfig();
+        config.getProperties().setProperty("hazelcast.rest.enabled", "true");
+        //end::s6[]
+    }
+
+    static void s7() {
+        //tag::s7[]
+        //end::s7[]
+    }
+
+    static void s8() {
+        //tag::s8[]
+        //end::s8[]
+    }
+
+    static void s9() {
+        //tag::s9[]
+        //end::s9[]
+    }
+
+    static void s10() {
+        //tag::s10[]
+        //end::s10[]
+    }
+
+    static void s11() {
+        //tag::s11[]
+        //end::s11[]
+    }
 }

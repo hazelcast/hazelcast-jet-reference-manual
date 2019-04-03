@@ -154,28 +154,24 @@ pipeline, but only to the periodic saving of the state present in the
 pipeline. Typically the state scales with the number of distinct keys
 seen within the time window.
 
-Tu use Lossless Cluster Restart, you have to enable it in
-`hazelcast-jet.xml`:
+Tu use Lossless Cluster Restart, enable it in `hazelcast-jet.xml`:
 
 [source]
 ----
-<hazelcast-jet xsi:schemaLocation="http://www.hazelcast.com/schema/jet-config hazelcast-jet-config-3.0.xsd"
-               xmlns="http://www.hazelcast.com/schema/jet-config"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<hazelcast-jet xmlns="http://www.hazelcast.com/schema/jet-config">
     <instance>
         <lossless-restart-enabled>false</lossless-restart-enabled>
     </instance>
 </hazelcast-jet>
 ----
 
-In addition to that, you have to configure Hot Restart in
-{hz-refman}#global-hot-restart-configuration[IMDG configuration]:
+To set the base directory where the data will be stored, configure Hot
+Restart in the {hz-refman}#global-hot-restart-configuration[IMDG
+configuration]:
 
 [source]
 ----
-<hazelcast xmlns="http://www.hazelcast.com/schema/config"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           http://www.hazelcast.com/schema/config/hazelcast-config-3.12.xsd">
+<hazelcast xmlns="http://www.hazelcast.com/schema/config">
     <hot-restart-persistence enabled="true">
         <base-dir>/mnt/hot-restart</base-dir>
         <parallelism>2</parallelism>
@@ -205,6 +201,7 @@ $ cluster.sh -o shutdown
 ----
 
 - using the Jet Management Center
+
 - programmatically:
 
 [source]
@@ -212,7 +209,33 @@ $ cluster.sh -o shutdown
 include::{javasource}/ConfigureFaultTolerance.java[tag=s5]
 ----
 
-When you start the cluster again, it must consist of exactly the same
-members as before the shutdown. Beyond that, there's no special action
-to take: as soon as the cluster re-forms, it will automatically reload
-the persisted snapshots and resume the jobs.
+The first two ways make use of Jet's REST endpoint, which isn't enabled
+by default. You can enable it by setting the property
+
+----
+hazelcast.rest.enabled=true
+----
+
+This can be either a system property (`-Dhazelcast.rest.enabled=true`)
+or a property in the Hazelcast Jet configuration:
+
+----
+<hazelcast-jet xmlns="http://www.hazelcast.com/schema/jet-config">
+    <properties>
+       <property name="hazelcast.rest.enabled">true</property>
+    </properties>
+</hazelcast-jet>
+----
+
+or
+
+[source]
+----
+include::{javasource}/ConfigureFaultTolerance.java[tag=s6]
+----
+
+Since the Hot Restart data is saved locally on each member, all the
+members must be present after the restart for Jet to be able to reload
+the data. Beyond that, there's no special action to take: as soon as the
+cluster re-forms, it will automatically reload the persisted snapshots
+and resume the jobs.
