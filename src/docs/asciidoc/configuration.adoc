@@ -250,6 +250,9 @@ startup fails.
 . Look for `hazelcast-jet.yaml` in the classpath.
 . Load the default XML configuration packaged in Jet's JAR.
 
+NOTE: The YAML files needs to have a `.yaml` or `.yml` extension if
+they are passed in via `hazelcast.jet.config` property.
+
 An example `hazelcast-jet.xml` is shown below :
 
 [source,xml]
@@ -304,12 +307,11 @@ hazelcast-jet:
 
 ==== Composing Declarative Configuration
 
-Declarative configurations (either XML or YAML) has support for 
+Declarative configurations (either XML or YAML) have the support for 
 composing multiple declarative configuration snippets into a single one. 
 
 In order to compose a declarative configuration, you can `import` 
-different declarative configuration files. Composing configuration files
-is supported both in XML and YAML configurations.
+different declarative configuration files. 
 
 Let’s say you want to compose the declarative configuration for 
 Hazelcast Jet out of two XML configurations: `development-metrics-config.xml`
@@ -391,20 +393,19 @@ hazelcast-jet:
     - development-instance-config.yaml
 ----
 
-NOTE: Use the `<import/>` element on top level of the XML hierarchy.
+NOTE: Use the `<import/>` element and `import` mapping on top level of 
+the XML and YAML hierarchies.
 
-NOTE: Use the `import` mapping on top level of the YAML hierarchy.
-
-Hazelcast Jet and Hazelcast IMDG share same syntax for declarative
-configuration composition. For more examples on importing resources from
-the classpath and file system or resources with variables in their 
+Hazelcast Jet and Hazelcast IMDG shares the same syntax for declarative
+configuration composition. For more examples on importing the resources 
+from the classpath and file system, or resources with variables in their 
 names, refer to the {hz-refman}#composing-declarative-configuration[relevant section] 
-of Hazelcast IMDG reference manual.
+in the Hazelcast IMDG Reference Manual.
 
 === Using Variables
 In your Hazelcast Jet declarative configuration, you can use variables 
 to set the values of the elements. This is valid when you set a system 
-property programmatically or you use the command line interface. You can
+property programmatically or use the command line interface. You can
 use a variable in the declarative configuration to access the values of
 the system properties you set.
 
@@ -460,9 +461,9 @@ custom strings during loading the configuration.
 
 Hazelcast Jet and Hazelcast IMDG share same syntax for variable
 replacers. You can configure your variable replacers in Hazelcast Jet 
-configuration via XML or YAML. Please see {hz-refman}#variable-replacers[Variable Replacers]
-section for more information and examples about variable replacers on 
-Hazelcast IMDG reference manual.
+configuration via XML or YAML. Please see {hz-refman}#variable-replacers[Variable Replacers section]
+in the Hazelcast IMDG reference manual for more information and examples
+on the variable replacers.
 
 == Configure the Underlying Hazelcast Instance
 
