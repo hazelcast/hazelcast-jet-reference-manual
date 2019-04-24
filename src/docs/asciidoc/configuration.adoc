@@ -245,8 +245,8 @@ instance, it will perform the following lookup procedure:
 pathname. If it's defined but Jet can't find the file it specifies,
 startup fails.
 . Look for `hazelcast-jet.xml` in the working directory.
-. Look for `hazelcast-jet.yaml` in the working directory.
 . Look for `hazelcast-jet.xml` in the classpath.
+. Look for `hazelcast-jet.yaml` in the working directory.
 . Look for `hazelcast-jet.yaml` in the classpath.
 . Load the default XML configuration packaged in Jet's JAR.
 
