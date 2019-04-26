@@ -191,7 +191,7 @@ its ???link???[documentation] for more information.
 == Ways of Configuration
 
 You can configure Hazelcast Jet either programmatically or
-declaratively (XML).
+declaratively (XML or YAML).
 
 === Programmatic Configuration
 
@@ -205,6 +205,31 @@ use only two threads in its _cooperative multithreading_ pool:
 include::{javasource}/Configuration.java[tag=s1]
 ----
 
+If you want to specify your own configuration file to create `JetConfig`,
+Hazelcast Jet supports several ways including filesystem, classpath,
+InputStream and in-memory string.
+
+Building JetConfig from the XML declarative configuration:
+
+- `JetConfig cfg = JetConfig.loadXmlFromStream(inputStream);`
+
+- `JetConfig cfg = JetConfig.loadFromClasspath(classloader, xmlFileName);`
+
+- `JetConfig cfg = JetConfig.loadFromFile(configFile);`
+
+- `JetConfig cfg = JetConfig.loadXmlFromString(xml);`
+
+Building JetConfig from the YAML declarative JetConfiguration:
+
+- `JetConfig cfg = JetConfig.loadYamlFromStream(inputStream);`
+
+- `JetConfig cfg = JetConfig.loadFromClasspath(classloader, yamlFileName);`
+
+- `JetConfig cfg = JetConfig.loadFromFile(configFile);`
+
+- `JetConfig cfg = JetConfig.loadYamlFromString(yaml);`
+
+
 === Declarative Configuration
 
 If you don't pass an explicit `JetConfig` object when constructing a Jet
@@ -216,7 +241,12 @@ pathname. If it's defined but Jet can't find the file it specifies,
 startup fails.
 . Look for `hazelcast-jet.xml` in the working directory.
 . Look for `hazelcast-jet.xml` in the classpath.
+. Look for `hazelcast-jet.yaml` in the working directory.
+. Look for `hazelcast-jet.yaml` in the classpath.
 . Load the default XML configuration packaged in Jet's JAR.
+
+NOTE: The YAML files needs to have a `.yaml` or `.yml` extension if
+they are passed in via `hazelcast.jet.config` property.
 
 An example `hazelcast-jet.xml` is shown below :
 
@@ -228,7 +258,7 @@ An example `hazelcast-jet.xml` is shown below :
        <flow-control-period>100</flow-control-period>
        <temp-dir>/var/tmp/jet</temp-dir>
        <backup-count>1</backup-count>
-        <scale-up-delay-millis>10000</scale-up-delay-millis>
+       <scale-up-delay-millis>10000</scale-up-delay-millis>
     </instance>
     <properties>
        <property name="custom.property">custom property</property>
@@ -238,8 +268,197 @@ An example `hazelcast-jet.xml` is shown below :
        <packet-size-limit>16384</packet-size-limit>
        <receive-window-multiplier>3</receive-window-multiplier>
     </edge-defaults>
+    <metrics>
+       <retention-seconds>5</retention-seconds>
+       <collection-interval-seconds>5</collection-interval-seconds>
+       <metrics-for-data-structures>false</metrics-for-data-structures>
+    </metrics>
 </hazelcast-jet>
 ----
+
+The identical part of the configuration extracted from `hazelcast-jet.yaml` 
+is shown as below:
+
+[source,yaml]
+----
+hazelcast-jet:
+  instance:
+    cooperative-thread-count: 8
+    flow-control-period: 100
+    backup-count: 1
+    scale-up-delay-millis: 10000
+    lossless-restart-enabled: false
+  edge-defaults:
+    queue-size: 1024
+    packet-size-limit: 16384
+    receive-window-multiplier: 3
+  metrics:
+    enabled: true
+    jmx-enabled: true
+    collection-interval-seconds: 5
+    retention-seconds: 5
+    metrics-for-data-structures: false
+----
+
+==== Composing Declarative Configuration
+
+Declarative configurations (either XML or YAML) have the support for 
+composing multiple declarative configuration snippets into a single one. 
+
+In order to compose a declarative configuration, you can `import` 
+different declarative configuration files. 
+
+Let’s say you want to compose the declarative configuration for 
+Hazelcast Jet out of two XML configurations: `development-metrics-config.xml`
+and `development-instance-config.xml`. These two configurations are shown
+below.
+
+`development-metrics-config.xml`:
+
+[source,xml]
+----
+<hazelcast-jet>
+    <metrics enabled="true" jmxEnabled="true">
+        <retention-seconds>5</retention-seconds>
+        <collection-interval-seconds>5</collection-interval-seconds>
+        <metrics-for-data-structures>true</metrics-for-data-structures>
+    </metrics>
+</hazelcast-jet>
+----
+
+`development-instance-config.xml`:
+
+[source,xml]
+----
+<hazelcast-jet>
+    <instance>
+        <flow-control-period>100</flow-control-period>
+        <backup-count>1</backup-count>
+        <scale-up-delay-millis>10000</scale-up-delay-millis>
+        <lossless-restart-enabled>false</lossless-restart-enabled>
+    </instance>
+</hazelcast-jet>
+----
+
+To get your example Hazelcast Jet declarative configuration out of the 
+above two, use the `<import/>` element as shown below.
+
+[source,xml]
+----
+<hazelcast-jet>
+    <import resource="development-metrics-config.xml"/>
+    <import resource="development-instance-config.xml"/>
+</hazelcast-jet>
+----
+
+The above example using the YAML configuration files looks like the following:
+
+`development-metrics-config.yaml`:
+
+[source,yaml]
+----
+hazelcast-jet:
+   metrics:
+      enabled: true
+      jmx-enabled: true
+      collection-interval-seconds: 5
+      retention-seconds: 5
+      metrics-for-data-structures: true
+----
+
+`development-instance-config.yaml`:
+
+[source,yaml]
+----
+hazelcast-jet:
+  instance:
+    flow-control-period: 100
+    backup-count: 1
+    scale-up-delay-millis: 10000
+    lossless-restart-enabled: false
+----
+
+Composing the above two YAML configuration files needs them to be imported as shown below.
+
+[source,yaml]
+----
+hazelcast-jet:
+  import:
+    - development-metrics-config.yaml
+    - development-instance-config.yaml
+----
+
+NOTE: Use the `<import/>` element and `import` mapping on top level of 
+the XML and YAML hierarchies.
+
+Hazelcast Jet and Hazelcast IMDG shares the same syntax for declarative
+configuration composition. For more examples on importing the resources 
+from the classpath and file system, or resources with variables in their 
+names, refer to the {hz-refman}#composing-declarative-configuration[relevant section] 
+in the Hazelcast IMDG Reference Manual.
+
+=== Using Variables
+In your Hazelcast Jet declarative configuration, you can use variables 
+to set the values of the elements. This is valid when you set a system 
+property programmatically or use the command line interface. You can
+use a variable in the declarative configuration to access the values of
+the system properties you set.
+
+For example, see the following command that sets two system properties.
+
+```
+-Dcooperative.thread.count=16
+```
+
+Let's get the values of these system properties in the declarative 
+configuration of Hazelcast Jet, as shown below.
+
+In the XML configuration:
+
+[source,xml]
+----
+<hazelcast-jet>
+    <instance>
+       <cooperative-thread-count>${cooperative.thread.count}</cooperative-thread-count>
+    </instance>
+</hazelcast-jet>
+----
+
+In the YAML configuration:
+
+[source,yaml]
+----
+hazelcast-jet:
+  instance:
+    cooperative-thread-count: ${cooperative.thread.count}
+----
+
+If you do not want to rely on the system properties, you can use the 
+`XmlJetConfigBuilder` or `YamlJetConfigBuilder` and explicitly set a 
+`Properties` instance, as shown below.
+
+[source,java]
+----
+Properties properties = new Properties();
+
+// fill the properties, e.g., from database/LDAP, etc.
+
+XmlJetConfigBuilder builder = new XmlJetConfigBuilder();
+builder.setProperties(properties);
+JetConfig config = builder.build();
+JetInstance hz = Jet.newJetInstance(config);
+----
+
+=== Variable Replacers
+
+Hazelcast Jet supports variable replacers which are used to replace 
+custom strings during loading the configuration.
+
+Hazelcast Jet and Hazelcast IMDG share same syntax for variable
+replacers. You can configure your variable replacers in Hazelcast Jet 
+configuration via XML or YAML. Please see {hz-refman}#variable-replacers[Variable Replacers section]
+in the Hazelcast IMDG reference manual for more information and examples
+on the variable replacers.
 
 == Configure the Underlying Hazelcast Instance
 
