@@ -207,32 +207,27 @@ include::{javasource}/Configuration.java[tag=s1]
 
 If you want to specify your own configuration file to create `JetConfig`,
 Hazelcast Jet supports several ways including filesystem, classpath,
-InputStream and URL.
+InputStream and in-memory string.
 
 Building JetConfig from the XML declarative configuration:
 
-- `JetConfig cfg = new XmlJetConfigBuilder(inputStream).build();`
+- `JetConfig cfg = JetConfig.loadXmlFromStream(inputStream);`
 
-- `JetConfig cfg = new ClasspathXmlJetConfig(xmlFileName);`
+- `JetConfig cfg = JetConfig.loadFromClasspath(classloader, xmlFileName);`
 
-- `JetConfig cfg = new FileSystemXmlJetConfig(cnfigFilename);`
+- `JetConfig cfg = JetConfig.loadFromFile(configFile);`
 
-- `JetConfig cfg = new UrlXmlJetConfig(url);`
-
-- `JetConfig cfg = new InMemoryXmlJetConfig(xml);`
+- `JetConfig cfg = JetConfig.loadXmlFromString(xml);`
 
 Building JetConfig from the YAML declarative JetConfiguration:
 
-- `JetConfig cfg = new YamlJetConfigBuilder(inputStream).build();`
+- `JetConfig cfg = JetConfig.loadYamlFromStream(inputStream);`
 
-- `JetConfig cfg = new ClasspathYamlJetConfig(yamlFileName);`
+- `JetConfig cfg = JetConfig.loadFromClasspath(classloader, yamlFileName);`
 
-- `JetConfig cfg = new FileSystemYamlJetConfig(configFilename);`
+- `JetConfig cfg = JetConfig.loadFromFile(configFile);`
 
-- `JetConfig cfg = new UrlYamlJetConfig(url);`
-
-- `JetConfig cfg = new InMemoryYamlJetConfig(yaml);`
-
+- `JetConfig cfg = JetConfig.loadYamlFromString(yaml);`
 
 
 === Declarative Configuration
