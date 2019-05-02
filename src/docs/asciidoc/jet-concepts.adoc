@@ -833,15 +833,16 @@ handled specially:
   increasing. Jet will throw an exception if it detects a non-increasing
   watermark.
 
-* When a processor receives and handles a watermark, it is automatically
-  emitted to the outbox. Therefore there should be only one processor
-  emitting watermarks in the pipeline.
+* When a processor receives a watermark, it should add it to the outbox
+  after handling it. The watermark should be emitted after all items
+  that came before it were processed and results based on them emitted.
+  Sink processors don't have to emit watermarks.
 
 * The watermark item is always broadcast, regardless of the edge type.
   This means that all N upstream processors send their watermark to all
   M downstream processors.
 
-* The processor will observe only the highest watermark received from
+* The processor will observe only a watermark that was received from
   all upstream processors and from all upstream edges. This is called
   _watermark coalescing_.
 
