@@ -245,7 +245,7 @@ startup fails.
 . Look for `hazelcast-jet.yaml` in the classpath.
 . Load the default XML configuration packaged in Jet's JAR.
 
-NOTE: The YAML files needs to have a `.yaml` or `.yml` extension if
+NOTE: The YAML files need to have a `.yaml` or `.yml` extension if
 they are passed in via `hazelcast.jet.config` property.
 
 An example `hazelcast-jet.xml` is shown below :
@@ -391,7 +391,7 @@ hazelcast-jet:
 NOTE: Use the `<import/>` element and `import` mapping on top level of 
 the XML and YAML hierarchies.
 
-Hazelcast Jet and Hazelcast IMDG shares the same syntax for declarative
+Hazelcast Jet and Hazelcast IMDG share the same syntax for declarative
 configuration composition. For more examples on importing the resources 
 from the classpath and file system, or resources with variables in their 
 names, refer to the {hz-refman}#composing-declarative-configuration[relevant section] 
@@ -454,17 +454,17 @@ JetInstance hz = Jet.newJetInstance(config);
 Hazelcast Jet supports variable replacers which are used to replace 
 custom strings during loading the configuration.
 
-Hazelcast Jet and Hazelcast IMDG share same syntax for variable
-replacers. You can configure your variable replacers in Hazelcast Jet 
-configuration via XML or YAML. Please see {hz-refman}#variable-replacers[Variable Replacers section]
-in the Hazelcast IMDG reference manual for more information and examples
+Hazelcast Jet and Hazelcast IMDG share the same syntax for variable
+replacers. You can configure your variable replacers in the Hazelcast Jet 
+configuration via XML or YAML. Please see the {hz-refman}#variable-replacers[Variable Replacers section]
+in the Hazelcast IMDG Reference Manual for more information and examples
 on the variable replacers.
 
 == Configure the Underlying Hazelcast Instance
 
 Each Jet member or client has its underlying Hazelcast member or client.
 Please refer to the
-{hz-refman}#understanding-configuration[Hazelcast Reference Manual]
+{hz-refman}#understanding-configuration[Hazelcast IMDG Reference Manual]
 for specific configuration options for Hazelcast IMDG.
 
 === Programmatic
@@ -486,7 +486,7 @@ include::{javasource}/Configuration.java[tag=s3]
 === Declarative
 
 Hazelcast IMDG can also be configured declaratively. Please refer to the
-{hz-refman}#configuring-declaratively[Hazelcast Reference Manual]
+{hz-refman}#configuring-declaratively[Hazelcast IMDG Reference Manual]
 for information on how to do this.
 
 == Spring Integration
