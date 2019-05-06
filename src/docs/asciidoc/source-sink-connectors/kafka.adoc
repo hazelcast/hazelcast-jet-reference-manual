@@ -53,3 +53,15 @@ The Kafka sink creates one `KafkaProducer` per cluster member and shares
 it among all the sink processors on that member. You can provide a
 mapping function that transforms the items the sink receives into
 `ProducerRecord`s.
+
+== Limitations
+
+Apache Kafka introduced client backward compatibility with version 1.0.0.
+The compatibility is `two way`, new brokers support older clients and
+new clients support older broker.
+
+The Kafka sink and source are based on version 2.2.0, this means Kafka
+connector will work with any client and broker having version equal to
+or greater than 1.0.0.
+
+
