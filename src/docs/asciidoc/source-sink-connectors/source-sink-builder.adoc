@@ -14,9 +14,9 @@ To make your custom source connector you need two basic ingredients:
 . a stateless function, `fillBufferFn`, taking two parameters: the state
 object and a buffer object provided by Jet
 
-Jet repeatedly calls `fillBufferFn` whenever it needs more data items.
-Optimally, the function will fill the buffer with the items it can
-acquire without blocking. A hundred items at a time is enough to
+Jet will repeatedly call the `fillBufferFn` whenever it needs more data
+items. Optimally, the function will fill the buffer with the items it
+can acquire without blocking. A hundred items at a time is enough to
 eliminate any per-call overheads within Jet. The function may block as
 well (it's running inside a <<non-cooperative-processor, non-cooperative
 processor>>), but taking longer than a second to complete can have
@@ -79,16 +79,6 @@ timestamp. We can extract them as follows:
 include::{javasource}/integration/SourceSinkBuilders.java[tag=s2a]
 ----
 
-Note the line `allowedLateness(2000)`. The events aren't necessarily
-ordered by timestamp, for example they may come from many users over
-different connections and distances. On the other hand, to complete a
-windowed computation Jet must know when it has received all the events
-from a given time range. The "allowed lateness" parameter specifies
-how much (in milliseconds) an event's timestamp can lag behind the
-highest timestamp received so far. With the parameter set as above, Jet
-will wait to receive an item with `t = 01:00:02` or higher in order to
-complete the processing of events up to `t = 01:00:00`.
-
 === Distributed Stream Source
 
 In the examples we showed so far the source was non-distributed: Jet
@@ -116,12 +106,15 @@ include::{javasource}/integration/SourceSinkBuilders.java[tag=s3]
 ----
 <1> we request two parallel processors on each Jet member
 
-We have presented a toy example of accessing a partitioned, distributed
-data source. In the real world there are some fundamental differences.
-The data source is partitioned in advance and you cannot request the
-number of partitions that perfectly matches your topology. Instead you
-must write some logic that distributes, more or less evenly, M
-partitions over N processors.
+We have presented an example of a distributed sequence generator. If
+there are 2 members there will be 4 parallel generators. The 1st will
+generate numbers 0, 4, 8..., the second will generate 1, 5, 9... etc.
+
+In the real world there are some fundamental differences. The data
+source is partitioned in advance and you cannot request the number of
+partitions that perfectly matches your topology. Instead you must write
+some logic that distributes, more or less evenly, M partitions over N
+processors.
 
 There's a specifically nasty problem hiding in this scheme: when we
 assign several partitions to a single processor and consume the data
@@ -138,15 +131,30 @@ watermark items that account for the lagging partitions. It is available
 if you create a custom source processor using the Core API, but it's not
 currently exposed through the source builder. Refer to the section on
 <<custom-source-sink-vertex, custom source vertices>> and to the Javadoc
-of {jet-javadoc}/core/WatermarkSourceUtil.html[`WatermarkSourceUtil`].
+of {jet-javadoc}/core/EventTimeMapper.html[`EventTimeMapper`].
 
-=== Fault Tolerance
+=== Fault-Tolerant Source
 
-The source you get from the builder doesn't participate in Jet's fault
-tolerance protocol. You won't be able to save the state to the snapshot
-to be able to resume from it after a restart, replaying the items you
-emitted since that point. That means you can't use these sources in jobs
-with the _at-least-once_ or _exactly-once_ processing guarantee.
+To add fault tolerance to your source, call `createSnapshotFn` and
+`restoreSnapshotFn` to save and restore the state.
+
+[source]
+----
+include::{javasource}/integration/SourceSinkBuilders.java[tag=s3a]
+----
+
+The source above generates an infinite sequence of integers and is
+fault-tolerant. It saves the current value to the snapshot and restores
+it, if the job is restarted, to correctly continue from the saved value.
+
+Note that the `restoreSnapshotFn` receives a `List` of state objects.
+The reason for this is that if the source is distributed, all parallel
+instances receive all saved state objects, they need to extract from
+them the part that pertains to each parallel instance. In the case of
+non-distributed source the list contains exactly one element.
+
+You can add fault tolerance only to streaming sources, batch sources
+don't support it.
 
 == Sink Builder
 
