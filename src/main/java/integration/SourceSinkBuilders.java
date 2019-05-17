@@ -6,6 +6,7 @@ import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sink;
 import com.hazelcast.jet.pipeline.SourceBuilder;
+import com.hazelcast.jet.pipeline.SourceBuilder.SourceBuffer;
 import com.hazelcast.jet.pipeline.StreamSource;
 import com.hazelcast.jet.pipeline.StreamSourceStage;
 
@@ -15,7 +16,6 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 
 import static com.hazelcast.jet.pipeline.SinkBuilder.sinkBuilder;
@@ -29,7 +29,7 @@ public class SourceSinkBuilders {
         BatchSource<String> fileSource = SourceBuilder
             .batch("file-source", x ->                               //<1>
                     new BufferedReader(new FileReader("input.txt")))
-            .<String>fillBufferFn((in, buf) -> {                          //<2>
+            .<String>fillBufferFn((in, buf) -> {                     //<2>
                 String line = in.readLine();
                 if (line != null) {
                     buf.add(line);
@@ -69,9 +69,10 @@ public class SourceSinkBuilders {
         StreamSource<String> httpSource = SourceBuilder
             .stream("http-source", ctx -> newHttpClient())
             .<String>fillBufferFn((httpc, buf) ->
-                    httpc.send(HttpRequest.newBuilder()
-                                          .uri(URI.create("http://localhost:8008"))
-                                          .build(), ofLines())
+                    httpc
+                         .send(HttpRequest.newBuilder()
+                                 .uri(URI.create("http://localhost:8008"))
+                                 .build(), ofLines())
                          .body()
                          .forEach(buf::add)
                 )
@@ -86,12 +87,14 @@ public class SourceSinkBuilders {
         StreamSource<String> httpSource = SourceBuilder
             .timestampedStream("http-source", ctx -> newHttpClient())
                 .<String>fillBufferFn((httpc, buf) ->
-                        httpc.send(HttpRequest.newBuilder()
-                                              .uri(URI.create("http://localhost:8008"))
-                                              .build(), ofLines())
+                        httpc
+                             .send(HttpRequest.newBuilder()
+                                    .uri(URI.create("http://localhost:8008"))
+                                    .build(), ofLines())
                              .body()
                              .forEach(item -> {
-                                 long timestamp = Long.valueOf(item.substring(0, 9));
+                                 long timestamp =
+                                         Long.valueOf(item.substring(0, 9));
                                  buf.add(item.substring(9), timestamp);
                              })
                 )
@@ -101,28 +104,46 @@ public class SourceSinkBuilders {
 
     static void s3() {
         //tag::s3[]
-        class SourceState {
-            final HttpClient client = HttpClient.newHttpClient();
-            final int myIndex;
-            final int numProcessors;
+        class SourceContext {
+            private final int limit;
+            private final int step;
+            private int currentValue;
 
-            SourceState(Processor.Context ctx) {
-                this.myIndex = ctx.globalProcessorIndex();
-                this.numProcessors = ctx.totalParallelism();
+            SourceContext(Processor.Context ctx, int limit) {
+                this.limit = limit;
+                this.step = ctx.totalParallelism();
+                this.currentValue = ctx.globalProcessorIndex();
+            }
+
+            void addToBuffer(SourceBuffer<Integer> buffer) {
+                if (currentValue < limit) {
+                    buffer.add(currentValue);
+                    currentValue += step;
+                } else {
+                    buffer.close();
+                }
             }
         }
-        StreamSource<String> socketSource = SourceBuilder
-                .stream("http-source", SourceState::new)
-                .<String>fillBufferFn((st, buf) ->
-                        st.client.send(HttpRequest.newBuilder()
-                                                  .uri(URI.create("http://localhost:8008"))
-                                                  .build(), ofLines())
-                                 .body()
-                                 .forEach(buf::add)
-                )
+
+        BatchSource<Integer> sequenceSource = SourceBuilder
+                .batch("seq-source", procCtx -> new SourceContext(procCtx, 1_000))
+                .fillBufferFn(SourceContext::addToBuffer)
                 .distributed(2)  //<1>
                 .build();
         //end::s3[]
+    }
+
+    static void s3a() {
+        //tag::s3a[]
+        StreamSource<Integer> faultTolerantSource = SourceBuilder
+                .stream("fault-tolerant-source", processorContext -> new int[1])
+                .<Integer>fillBufferFn((numToEmit, buffer) ->
+                        buffer.add(numToEmit[0]++))
+                .createSnapshotFn(numToEmit -> numToEmit[0])                //<1>
+                .restoreSnapshotFn(
+                        (numToEmit, saved) -> numToEmit[0] = saved.get(0))  //<2>
+                .build();
+        //end::s3a[]
     }
 
     static void s4() {
