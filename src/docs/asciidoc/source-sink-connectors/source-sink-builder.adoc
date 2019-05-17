@@ -10,13 +10,14 @@ build a connector for it yourself by using the
 
 To make your custom source connector you need two basic ingredients:
 
-. an object that will hold all the state you need to keep track of
+. a context object that holds all the resources and state you need to
+keep track of
 . a stateless function, `fillBufferFn`, taking two parameters: the state
 object and a buffer object provided by Jet
 
-Jet will repeatedly call the `fillBufferFn` whenever it needs more data
-items. Optimally, the function will fill the buffer with the items it
-can acquire without blocking. A hundred items at a time is enough to
+Jet repeatedly calls `fillBufferFn` whenever it needs more data items.
+Optimally, the function will fill the buffer with the items it can
+acquire without blocking. A hundred items at a time is enough to
 eliminate any per-call overheads within Jet. The function may block as
 well (it's running inside a <<non-cooperative-processor, non-cooperative
 processor>>), but taking longer than a second to complete can have
@@ -106,13 +107,14 @@ include::{javasource}/integration/SourceSinkBuilders.java[tag=s3]
 ----
 <1> we request two parallel processors on each Jet member
 
-We have presented an example of a distributed sequence generator. If
-there are 2 members there will be 4 parallel generators. The 1st will
-generate numbers 0, 4, 8..., the second will generate 1, 5, 9... etc.
+This is a distributed source that generates a bounded sequence of
+integers. If the Jet cluster has two members, the source will have
+four parallel generators. The first one will generate numbers 0, 4, 8,
+..., the second one 1, 5, 9, ..., etc.
 
 In the real world there are some fundamental differences. The data
-source is partitioned in advance and you cannot request the number of
-partitions that perfectly matches your topology. Instead you must write
+source is partitioned in advance and you cannot expect the number of
+partitions to perfectly match your topology. Instead you must write
 some logic that distributes, more or less evenly, M partitions over N
 processors.
 
@@ -133,28 +135,51 @@ currently exposed through the source builder. Refer to the section on
 <<custom-source-sink-vertex, custom source vertices>> and to the Javadoc
 of {jet-javadoc}/core/EventTimeMapper.html[`EventTimeMapper`].
 
-=== Fault-Tolerant Source
+=== Add Fault Tolerance to your Source
 
-To add fault tolerance to your source, call `createSnapshotFn` and
-`restoreSnapshotFn` to save and restore the state.
+If you want your source to behave correctly within a streaming Jet job
+that has a <<fault-tolerance, processing guarantee>> configured
+(at-least-once or exactly-once), you must help Jet with saving the
+operational state of your context object to the snapshot storage. There
+are two functions you must supply:
+
+. `createSnapshotFn` returns a serializable object that has all the data
+you'll need to restore the operational state
+. `restoreSnapshotFn` applies the previously saved snapshot to the
+current context object
+
+While a job is running, Jet calls `createSnapshotFn` at regular
+intervals to save the current state. When it resumes a job, it will:
+
+1. create your context object the usual way, by calling `createFn`
+2. retrieve the latest snapshot object from its storage
+3. pass the context and snapshot objects to `restoreSnapshotFn`
+4. start calling `fillBufferFn`, which must start by emitting the same
+item it was about to emit when `createSnapshotFn` was called.
+
+You'll find that `restoreSnapshotFn`, somewhat unexpectedly, accepts
+not one but a list of snapshot objects. If you're building a simple,
+non-distributed source, this list will have just one member. However,
+the same logic must work for distributed sources as well, and a
+distributed source runs on many parallel processors at the same
+time. Each of them will produce its own snapshot object. After a restart
+the number of parallel processors may be different than before (because
+you added a Jet cluster member, for example), so there's no one-to-one
+mapping between the processors before and after the restart. This is why
+Jet passes all the snapshot objects to all the processors, and your
+logic must work out which part of their data to use.
+
+Here's a brief example with a fault-tolerant streaming source that
+generates a sequece of integers:
 
 [source]
 ----
 include::{javasource}/integration/SourceSinkBuilders.java[tag=s3a]
 ----
 
-The source above generates an infinite sequence of integers and is
-fault-tolerant. It saves the current value to the snapshot and restores
-it, if the job is restarted, to correctly continue from the saved value.
-
-Note that the `restoreSnapshotFn` receives a `List` of state objects.
-The reason for this is that if the source is distributed, all parallel
-instances receive all saved state objects, they need to extract from
-them the part that pertains to each parallel instance. In the case of
-non-distributed source the list contains exactly one element.
-
-You can add fault tolerance only to streaming sources, batch sources
-don't support it.
+<1> the snapshotting function returns the current number to emit
+<2> the restoring function sets the number from the snapshot to the
+current state
 
 == Sink Builder
 

@@ -1,8 +1,6 @@
 package integration;
 
-import com.hazelcast.jet.Util;
 import com.hazelcast.jet.core.Processor;
-import com.hazelcast.jet.core.Processor.Context;
 import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.Pipeline;
@@ -11,7 +9,6 @@ import com.hazelcast.jet.pipeline.SourceBuilder;
 import com.hazelcast.jet.pipeline.SourceBuilder.SourceBuffer;
 import com.hazelcast.jet.pipeline.StreamSource;
 import com.hazelcast.jet.pipeline.StreamSourceStage;
-import com.hazelcast.util.MutableInteger;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -20,9 +17,6 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.http.HttpRequest;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import static com.hazelcast.jet.pipeline.SinkBuilder.sinkBuilder;
 import static com.hazelcast.jet.pipeline.Sources.list;
@@ -35,7 +29,7 @@ public class SourceSinkBuilders {
         BatchSource<String> fileSource = SourceBuilder
             .batch("file-source", x ->                               //<1>
                     new BufferedReader(new FileReader("input.txt")))
-            .<String>fillBufferFn((in, buf) -> {                          //<2>
+            .<String>fillBufferFn((in, buf) -> {                     //<2>
                 String line = in.readLine();
                 if (line != null) {
                     buf.add(line);
@@ -110,15 +104,15 @@ public class SourceSinkBuilders {
 
     static void s3() {
         //tag::s3[]
-        class SourceState {
-            final int limit;
-            final int step;
-            int currentValue;
+        class SourceContext {
+            private final int limit;
+            private final int step;
+            private int currentValue;
 
-            SourceState(Processor.Context ctx, int limit) {
+            SourceContext(Processor.Context ctx, int limit) {
                 this.limit = limit;
-                currentValue = ctx.globalProcessorIndex();
-                step = ctx.totalParallelism();
+                this.step = ctx.totalParallelism();
+                this.currentValue = ctx.globalProcessorIndex();
             }
 
             void addToBuffer(SourceBuffer<Integer> buffer) {
@@ -132,8 +126,8 @@ public class SourceSinkBuilders {
         }
 
         BatchSource<Integer> sequenceSource = SourceBuilder
-                .batch("seq-source", procCtx -> new SourceState(procCtx, 1_000))
-                .fillBufferFn(SourceState::addToBuffer)
+                .batch("seq-source", procCtx -> new SourceContext(procCtx, 1_000))
+                .fillBufferFn(SourceContext::addToBuffer)
                 .distributed(2)  //<1>
                 .build();
         //end::s3[]
@@ -142,13 +136,12 @@ public class SourceSinkBuilders {
     static void s3a() {
         //tag::s3a[]
         StreamSource<Integer> faultTolerantSource = SourceBuilder
-                .stream("ft-source", procCtx -> new MutableInteger())
-                .<Integer>fillBufferFn((ctx, buffer) ->
-                        buffer.add(ctx.getAndInc()))
-                // save the current value to the state
-                .createSnapshotFn(ctx -> ctx.value)
-                // restore saved value to the context
-                .restoreSnapshotFn((ctx, states) -> ctx.value = states.get(0))
+                .stream("fault-tolerant-source", processorContext -> new int[1])
+                .<Integer>fillBufferFn((numToEmit, buffer) ->
+                        buffer.add(numToEmit[0]++))
+                .createSnapshotFn(numToEmit -> numToEmit[0])                //<1>
+                .restoreSnapshotFn(
+                        (numToEmit, saved) -> numToEmit[0] = saved.get(0))  //<2>
                 .build();
         //end::s3a[]
     }
