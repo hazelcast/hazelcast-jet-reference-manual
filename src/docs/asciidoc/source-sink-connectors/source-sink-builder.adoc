@@ -149,7 +149,7 @@ you'll need to restore the operational state
 current context object
 
 While a job is running, Jet calls `createSnapshotFn` at regular
-intervals to save the current state. When it resumes a job, it will:
+intervals to save the current state. When Jet resumes a job, it will:
 
 1. create your context object the usual way, by calling `createFn`
 2. retrieve the latest snapshot object from its storage
@@ -167,10 +167,11 @@ the number of parallel processors may be different than before (because
 you added a Jet cluster member, for example), so there's no one-to-one
 mapping between the processors before and after the restart. This is why
 Jet passes all the snapshot objects to all the processors, and your
-logic must work out which part of their data to use.
+logic must work out which part of their data to use. See
+<<distributed-stream-source>> chapter for more information.
 
 Here's a brief example with a fault-tolerant streaming source that
-generates a sequece of integers:
+generates a sequence of integers:
 
 [source]
 ----

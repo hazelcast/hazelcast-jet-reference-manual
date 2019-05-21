@@ -208,7 +208,7 @@ include::{javasource}/ManageJob.java[tag=s6]
 == Remember that a Jet Job is Distributed
 
 The API to submit a job to Jet is in a way deceptively simple: "just
-call a method." As long as you're toying around with Jet instances
+call a method". As long as you're toying around with Jet instances
 started locally in a single JVM, everything will indeed work. However,
 as soon as you try to deploy to an actual cluster, you'll face the
 consequences of the fact that your job definition must travel over the
