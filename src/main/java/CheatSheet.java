@@ -1,8 +1,11 @@
 import com.hazelcast.core.IMap;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
+import com.hazelcast.jet.Traverser;
+import com.hazelcast.jet.core.AbstractProcessor;
 import com.hazelcast.jet.datamodel.KeyedWindowResult;
 import com.hazelcast.jet.datamodel.Tuple2;
+import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.BatchStage;
 import com.hazelcast.jet.pipeline.BatchStageWithKey;
 import com.hazelcast.jet.pipeline.Pipeline;
@@ -188,4 +191,61 @@ public class CheatSheet {
         //tag::s13[]
         //end::s13[]
     }
+
+    void apply() {
+        Pipeline p = Pipeline.create();
+        BatchSource<String> source = null;
+        //tag::apply1[]
+        p.drawFrom(source)
+         .map(t -> fooMap(t))
+         .flatMap(t -> fooFlatMap(t))
+         // ...
+        //end::apply1[]
+        ;
+
+        //tag::apply3[]
+        p.drawFrom(source)
+         .apply(Util::addSpecialMapping)
+         // ...
+        //end::apply3[]
+        ;
     }
+
+    private static Traverser<String> fooFlatMap(String t) {
+        return null;
+    }
+
+    private static String fooMap(String t) {
+        return null;
+    }
+
+    public static class Util {
+        //tag::apply2[]
+        public static BatchStage<String> addSpecialMapping(
+                BatchStage<String> inputStage
+        ) {
+            return inputStage
+                    .map(t -> fooMap(t))
+                    .flatMap(t -> fooFlatMap(t));
+        }
+        //end::apply2[]
+    }
+
+    //tag::custom-transform-1[]
+    public static class IdentityMapP extends AbstractProcessor {
+        protected boolean tryProcess(int ordinal, Object item) {
+            return tryEmit(item);
+        }
+    }
+    //end::custom-transform-1[]
+
+    static void customTransform2() {
+        Pipeline p = Pipeline.create();
+        BatchSource<String> source = null;
+        //tag::custom-transform-2[]
+        p.drawFrom(source)
+         .customTransform("name", IdentityMapP::new)
+        //end::custom-transform-2[]
+        ;
+    }
+}

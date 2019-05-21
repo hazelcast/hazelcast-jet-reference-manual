@@ -32,6 +32,10 @@ remain alive after the `main()` method completes:
 include::{javasource}/StartJet.java[tag=s2]
 ----
 
+It is important to use at least 2 members when developing because
+otherwise Jet doesn't serialize the stream items and serialization
+errors will not be discovered.
+
 [[build-pipeline]]
 = Build the Computation Pipeline
 

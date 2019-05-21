@@ -5,6 +5,7 @@ import com.hazelcast.core.IList;
 import com.hazelcast.core.IMap;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
+import com.hazelcast.jet.Traverser;
 import com.hazelcast.jet.datamodel.ItemsByTag;
 import com.hazelcast.jet.datamodel.KeyedWindowResult;
 import com.hazelcast.jet.datamodel.Tag;
@@ -481,6 +482,47 @@ class BuildComputation {
 
     private static StreamSource<Tweet> twitterStream() {
         return null;
+    }
+
+
+    ///// apply operator
+    void apply() {
+        Pipeline p = Pipeline.create();
+        BatchSource<String> source = null;
+        //tag::apply1[]
+        p.drawFrom(source)
+         .map(t -> fooMap(t))
+         .flatMap(t -> fooFlatMap(t))
+         // ...
+        //end::apply1[]
+        ;
+
+        //tag::apply3[]
+        p.drawFrom(source)
+         .apply(CheatSheet.Util::addSpecialMapping)
+         // ...
+        //end::apply3[]
+        ;
+    }
+
+    private static Traverser<String> fooFlatMap(String t) {
+        return null;
+    }
+
+    private static String fooMap(String t) {
+        return null;
+    }
+
+    public static class Util {
+        //tag::apply2[]
+        public static BatchStage<String> addSpecialMapping(
+                BatchStage<String> inputStage
+        ) {
+            return inputStage
+                    .map(t -> fooMap(t))
+                    .flatMap(t -> fooFlatMap(t));
+        }
+        //end::apply2[]
     }
 }
 

@@ -151,4 +151,44 @@ This example tracks the largest trade observed in a stream:
 include::{javasource}/CheatSheet.java[tag=s10]
 ----
 
+|Apply a Sub-Pipeline
+|You can extract parts of a pipeline to a method/library.
+
+For example in this pipeline:
+[source]
+----
+include::{javasource}/CheatSheet.java[tag=apply1]
+----
+
+you can extract the `map` and `flatMap` stages to a method:
+[source]
+----
+include::{javasource}/CheatSheet.java[tag=apply2]
+----
+
+and then use it in the following way:
+[source]
+----
+include::{javasource}/CheatSheet.java[tag=apply3]
+----
+
+|Custom transform
+|Add a stage with a custom Core API processor to the pipeline.
+
+Suppose you have this identity-mapping processor:
+[source]
+----
+include::{javasource}/CheatSheet.java[tag=custom-transform-1]
+----
+
+Then you can add it to the pipeline this way (suppose you added the
+method to the `Util` class:
+[source]
+----
+include::{javasource}/CheatSheet.java[tag=custom-transform-2]
+----
+
+Note that the Core API is for advanced use cases and you'll rarely need
+it.
+
 |===
