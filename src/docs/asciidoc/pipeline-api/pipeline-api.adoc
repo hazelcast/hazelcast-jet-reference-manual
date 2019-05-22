@@ -143,10 +143,10 @@ you should use this approach.
 
 {jet-javadoc}/pipeline/BatchStage.html#hashJoin-com.hazelcast.jet.pipeline.BatchStage-com.hazelcast.jet.pipeline.JoinClause-com.hazelcast.jet.function.BiFunctionEx-[Hash-join]
 is a kind of join operation optimized for the use case of data
-enrichment. It is like a many-to-one SQL JOIN that matches a foreign
-key in the stream-to-be-enriched with the primary key in the enriching
-dataset. You can perform several such joins in one operation, enriching
-your stream from arbitrarily many sources.
+enrichment. It is like a one-to-many or many-to-many SQL JOIN that
+matches a foreign key in the stream-to-be-enriched with a key in the
+enriching dataset. You can perform several such joins in one operation,
+enriching your stream from arbitrarily many sources.
 
 The stream-to-be-enriched (we'll call it the _primary_ stream for short)
 can be an unbounded data stream. The _enriching streams_ must be bounded
@@ -592,7 +592,7 @@ watermark.
 === Prefer Assigning Timestamps at the Source
 
 In some source implementations, especially partitioned ones like Kafka,
-there is a risk of high event time skew occuring across partitions as
+there is a risk of high event time skew occurring across partitions as
 the Jet processor pulls the data from them in batches, in a round-robin
 fashion. This problem is especially pronounced when Jet recovers from a
 failure and restarts your job. In this case Jet must catch up with all
@@ -769,12 +769,11 @@ The Pipeline API, due to limitations of the Java language, doesn't let
 you add methods to the various stages. You are limited to the methods
 provided out of the box.
 
-To address the limitation, Jet provides the `apply()` method on all
-stages of the pipeline. It allows you to extract any part of the
-pipeline into a method and the use that method when building your
-pipeline. For example you can extract multiple mapping and filtering
-steps, source declaration along with initial enrichment, saving to audit
-tables etc.
+To address the limitation, Jet provides the `apply()`. It allows you to
+extract a part of the pipeline into a method and the use that method
+when building your pipeline. For example you can extract multiple
+mapping and filtering steps, entire windowing aggregations etc. and then
+apply the extracted part to a pipeline in a fluent style.
 
 For example in this pipeline:
 [source]

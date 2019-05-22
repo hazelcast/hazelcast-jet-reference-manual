@@ -542,5 +542,5 @@ https://github.com/hazelcast/charts/tree/master/stable/hazelcast-jet[Hazelcast J
 
 With the <<automatic-elasticity, Automatic Elasticity>> feature, your
 jobs will be automatically restarted from the latest known snapshot when
-you downscale your cluster. For more detauls about snapshotting and
+you downscale your cluster. For more details about snapshotting and
 processing guarantees see <<fault-tolerance, Fault Tolerance>> section.
