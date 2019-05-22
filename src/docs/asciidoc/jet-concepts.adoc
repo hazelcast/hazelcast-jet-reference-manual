@@ -667,12 +667,65 @@ status and reports it to the execution service.
 === Non-Cooperative Processor
 
 If a processor declares itself as non-cooperative, the execution service
-will start a dedicated Java thread for its tasklet to run on.
+will start a dedicated Java thread for its tasklets to run on.
 
 Even if it's non-cooperative, the processor's callback methods must
 still make sure they don't run for longer than a second or so at a time.
 Otherwise the tasklet will never be able to initiate a snapshot on the
 processor.
+
+=== When are Items Serialized
+
+Jet only serializes items when it actually sends them to another member.
+If the item is processed on the same member, a downstream processor will
+receive the exact same instance the upstream processor emitted. That's
+why you should develop with 2-member cluster as a rule of thumb to
+discover serialization issues.
+
+If you do this, you should beware:
+
+* mutate the input items
+* continue using items after they are emitted
+
+No built-in Jet processor mutates input items or uses them after they
+are emitted. But, for example, a lambda function passes to `map()` can.
+
+==== Mutating the Input Items
+
+Mutating the input items is safe if there are no pipeline splits before the
+mutating stage. Consider this example:
+
+[source]
+----
+include::{javasource}/Serialization.java[tag=split-and-mutate]
+----
+
+The person emitted from the source is mutated concurrently by two
+downstream map stages. Data race will occur and the printed results might
+not be as expected.
+
+==== Using an Item after it is Emitted
+
+You should not mutate items that you emitted. You should not even read
+them because they can be mutated concurrently by the downstream.
+
+Consider this custom implementation of a rolling aggregation:
+
+[source]
+----
+include::{javasource}/Serialization.java[tag=modify-emitted]
+----
+
+This is also the raison d'être for two similar methods in
+`AggregateOperation`: the
+{jet-javadoc}/aggregate/AggregateOperation.html#exportFn--[`exportFn`]
+and the
+{jet-javadoc}/aggregate/AggregateOperation.html#finishFn--[`finishFn`].
+The former is called when the accumulator will no longer be used and the
+later when it will be used.
+
+
+
 
 [[running-a-jet-job]]
 == What Happens When you Submit a Job
