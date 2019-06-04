@@ -194,8 +194,8 @@ another transformation (an intermediate step).
 Finally, you'll notice that Jet's Pipeline API is much more powerful
 than the Stream API. Here are a few highlights:
 
-- splitting streams
 - <<cogroup, joining streams>>
+- forking streams
 - <<windowed-aggregation, windowed aggregation over infinite streams>>
 - <<fault-tolerance, fault tolerance>>
 - <<source-sink-connectors, connectors to 3rd party systems>>

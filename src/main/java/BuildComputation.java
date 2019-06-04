@@ -292,6 +292,23 @@ class BuildComputation {
         //end::s10[]
     }
 
+    static void s10a() {
+        Pipeline p = Pipeline.create();
+        StreamStage<Trade> trades = null;
+        BatchStage<Entry<Integer, Product>> prodEntries =
+                p.drawFrom(Sources.map("products"));
+
+        //tag::s10a[]
+        StreamStage<Trade> joined = trades.hashJoin(
+                prodEntries,
+                joinMapEntries(Trade::productId),
+                Trade::setProduct // <1>
+        );
+        //end::s10a[]
+    }
+
+
+
     static void s11() {
         JetInstance instance = Jet.newJetInstance();
         //tag::s11[]
