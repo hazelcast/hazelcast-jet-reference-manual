@@ -38,8 +38,8 @@ same instance. To catch (de)serialization issues early on, we recommend
 using a 2-member local Jet cluster for development and testing.
 
 Sharing the same objects between stages is good for performance, but it
-places a higher degree of responsibility on the developer. As a rule of
-thumb, follow these rules to avoid concurrency bugs:
+places a higher degree of responsibility on the developer. You can
+follow these rules of thumb to avoid concurrency bugs:
 
 * don't use an item after emitting it
 * don't mutate an item you received
@@ -50,7 +50,7 @@ a lot of GC pressure from short-lived objects. This is why we also
 present fine-grained rules you _must_ follow to stay safe while sharing
 the data between pipeline stages.
 
-**1. Never mutate an item you emitted**
+**1. Never mutate an item you emitted.**
 
 It is never safe to mutate an item you emitted. The downstream stages
 will see your changes and lose the original data you emitted, at best.
@@ -71,14 +71,15 @@ include::{javasource}/Serialization.java[tag=modify-emitted]
 Jet's `AggregateOperation` has a primitive specifically devoted to
 avoiding this problem: the
 {jet-javadoc}/aggregate/AggregateOperation.html#exportFn--[`exportFn`].
-Its contract states that the result won't be modified after emitting,
-unlike the
-{jet-javadoc}/aggregate/AggregateOperation.html#finishFn--[`finishFn`],
-which Jet uses only when it knows the whole operation is done and it
-will never touch the aggregated data again.
+It transforms the accumulator to a new object so the accumulator can be
+safely updated afterwards. By contrast,
+{jet-javadoc}/aggregate/AggregateOperation.html#finishFn--[`finishFn`]
+is allowed to return the accumulator itself and Jet calls it only when
+it knows the whole operation is done and the accumulator won't be
+modified again.
 
 **2. _Either_ keep using the item you emitted (read-only), _or_ mutate
-it downstream**
+it downstream.**
 
 There's little reason to keep reading an item after emitting it, but if
 you ever have that situation, make sure you don't mutate it in any
