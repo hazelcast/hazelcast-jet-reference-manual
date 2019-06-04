@@ -30,6 +30,76 @@ with Jet on startup because this is how it is supported in Hazelcast
 IMDG. There is a plan to improve this and allow serializers to be
 registered on individual Jet jobs.
 
+== Sharing Data Between Pipeline Stages
+
+Jet only serializes an item when it actually sends it to another member.
+If the target processor is on the same member, it will receive the exact
+same instance. To catch (de)serialization issues early on, we recommend
+using a 2-member local Jet cluster for development and testing.
+
+Sharing the same objects between stages is good for performance, but it
+places a higher degree of responsibility on the developer. As a rule of
+thumb, follow these rules to avoid concurrency bugs:
+
+* don't use an item after emitting it
+* don't mutate an item you received
+
+However, working with immutable objects has its price, especially when
+they are large. You spend CPU time on copying the data and you create
+a lot of GC pressure from short-lived objects. This is why we also
+present fine-grained rules you _must_ follow to stay safe while sharing
+the data between pipeline stages.
+
+**1. Never mutate an item you emitted**
+
+It is never safe to mutate an item you emitted. The downstream stages
+will see your changes and lose the original data you emitted, at best.
+Since the changes are concurrent, they may also see completely broken
+data.
+
+One use case where it's especially tempting to mutate the item after
+emitting is rolling aggregation. Consider this example where we use
+`mapUsingContext` to implement a custom rolling aggregation:
+
+[source]
+----
+include::{javasource}/Serialization.java[tag=modify-emitted]
+----
+
+<1>  You keep emitting the same list, changing it in-place
+
+Jet's `AggregateOperation` has a primitive specifically devoted to
+avoiding this problem: the
+{jet-javadoc}/aggregate/AggregateOperation.html#exportFn--[`exportFn`].
+Its contract states that the result won't be modified after emitting,
+unlike the
+{jet-javadoc}/aggregate/AggregateOperation.html#finishFn--[`finishFn`],
+which Jet uses only when it knows the whole operation is done and it
+will never touch the aggregated data again.
+
+**2. _Either_ keep using the item you emitted (read-only), _or_ mutate
+it downstream**
+
+There's little reason to keep reading an item after emitting it, but if
+you ever have that situation, make sure you don't mutate it in any
+downstream stage.
+
+**3. If you create a fork in the pipeline by attaching several
+downstream stages, only one of them may mutate the item.**
+
+In this example there are two downstream `map` stages that both mutate
+the same object they get from the upstream. This results in concurrent
+modification and causes erratic bugs:
+
+[source]
+----
+include::{javasource}/Serialization.java[tag=split-and-mutate]
+----
+
+<1> You modify the person object in one mapping stage
+<2> You modify it as well in the other mapping stage
+
+
 == Capacity of the Concurrent Queues
 
 By default, Jet runs each internal DAG vertex, roughly equivalent to

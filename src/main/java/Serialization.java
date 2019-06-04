@@ -23,24 +23,27 @@ import com.hazelcast.jet.pipeline.Sinks;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class Serialization {
 
     void splitAndMutate() {
-        BatchSource source = null;
         //tag::split-and-mutate[]
         class Person {
             String name;
             String note;
         }
+        //end::split-and-mutate[]
+        BatchSource<Person> personSource = null;
+        //tag::split-and-mutate[]
 
         Pipeline p = Pipeline.create();
-        BatchStage<Person> sourceStage = p.drawFrom(source);
+        BatchStage<Person> sourceStage = p.drawFrom(personSource);
         // don't do this!
         sourceStage
-                .map(person -> person.note = "note1")
+                .map(person -> person.note = "note1") // <1>
                 .drainTo(Sinks.logger());
         sourceStage
-                .map(person -> person.note = "note2")
+                .map(person -> person.note = "note2") // <2>
                 .drainTo(Sinks.logger());
         //end::split-and-mutate[]
     }
@@ -54,10 +57,9 @@ public class Serialization {
                 ContextFactory.withCreateFn(procCtx -> new ArrayList<>());
         p.drawFrom(source)
          .mapUsingContext(contextFactory, (list, item) -> {
+             // Don't do this!
              list.add(item);
-             // don't do this: you will emit an object that you're going to
-             // further use and mutate
-             return list;
+             return list; // <1>
          });
         //end::modify-emitted[]
     }
