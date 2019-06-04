@@ -85,20 +85,21 @@ There's little reason to keep reading an item after emitting it, but if
 you ever have that situation, make sure you don't mutate it in any
 downstream stage.
 
-**3. If you create a fork in the pipeline by attaching several
-downstream stages, only one of them may mutate the item.**
+**3. If you create a fork in the pipeline (send the output of one stage
+to several others), no stage after the fork may mutate the data.**
 
-In this example there are two downstream `map` stages that both mutate
-the same object they get from the upstream. This results in concurrent
-modification and causes erratic bugs:
+Here's an example with a stream of `Person` items. We attach two mapping
+stages to it: one reads the name and the other modifies it. The
+resulting Jet pipeline will have a data race and behave erratically,
+sometimes seeing the original name and sometimes the modified one:
 
 [source]
 ----
 include::{javasource}/Serialization.java[tag=split-and-mutate]
 ----
 
-<1> You modify the person object in one mapping stage
-<2> You modify it as well in the other mapping stage
+<1> Get the person's name
+<2> Modify the person's name
 
 
 == Capacity of the Concurrent Queues

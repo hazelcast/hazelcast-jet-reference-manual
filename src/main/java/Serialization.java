@@ -29,22 +29,28 @@ public class Serialization {
     void splitAndMutate() {
         //tag::split-and-mutate[]
         class Person {
-            String name;
-            String note;
+            private String name;
+
+            String name() {
+                return name;
+            }
+
+            Person addToName(String suffix) {
+                name += suffix;
+                return this;
+            }
         }
+
         //end::split-and-mutate[]
         BatchSource<Person> personSource = null;
         //tag::split-and-mutate[]
-
         Pipeline p = Pipeline.create();
         BatchStage<Person> sourceStage = p.drawFrom(personSource);
+        BatchStage<String> names = sourceStage
+                .map(person -> person.name()); // <1>
         // don't do this!
-        sourceStage
-                .map(person -> person.note = "note1") // <1>
-                .drainTo(Sinks.logger());
-        sourceStage
-                .map(person -> person.note = "note2") // <2>
-                .drainTo(Sinks.logger());
+        BatchStage<Person> juniors = sourceStage
+                .map(person -> person.addToName(" Jr.")); // <2>
         //end::split-and-mutate[]
     }
 
