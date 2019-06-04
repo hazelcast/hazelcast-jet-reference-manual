@@ -73,7 +73,7 @@ supposed to see it in the state as it was sent. In reality, the
 aggregating stage keeps changing the object concurrently while the
 downstream stage tries to observe it. In the best case it will crash
 with a `ConcurrentModificationException`, but it may also observe `null`
-or partially initialized objects in thi list and a number of other bugs.
+or partially initialized objects in the list and a number of other bugs.
 
 Jet's `AggregateOperation` has a primitive specifically devoted to
 avoiding this problem: the
@@ -84,6 +84,12 @@ safely updated afterwards. By contrast,
 is allowed to return the accumulator itself and Jet calls it only when
 it knows the whole operation is done and the accumulator won't be
 modified again.
+
+There's another case where a data race can sneak up on you: a
+many-to-many hash-join, where you enrich an item with several items
+matching the same join key. Refer to the <<hash-join, hash-join>>
+section for more details and an example.
+
 
 **2. _Either_ keep using the item you emitted (read-only), _or_ mutate
 it downstream.**
