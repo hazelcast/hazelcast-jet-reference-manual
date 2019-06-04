@@ -44,11 +44,11 @@ follow these rules of thumb to avoid concurrency bugs:
 * don't use an item after emitting it
 * don't mutate an item you received
 
-However, working with immutable objects has its price, especially when
-they are large. You spend CPU time on copying the data and you create
-a lot of GC pressure from short-lived objects. This is why we also
-present fine-grained rules you _must_ follow to stay safe while sharing
-the data between pipeline stages.
+Working with immutable objects has its price: you incur allocation and
+GC pressure by creating the copies and you waste additional CPU time
+copying the data. This is why we also present fine-grained rules you
+_must_ follow to stay safe while sharing the data between pipeline
+stages.
 
 **1. Never mutate an item you emitted.**
 
@@ -67,6 +67,13 @@ include::{javasource}/Serialization.java[tag=modify-emitted]
 ----
 
 <1>  You keep emitting the same list, changing it in-place
+
+The downstream stage receives the same object each time, but it's
+supposed to see it in the state as it was sent. In reality, the
+aggregating stage keeps changing the object concurrently while the
+downstream stage tries to observe it. In the best case it will crash
+with a `ConcurrentModificationException`, but it may also observe `null`
+or partially initialized objects in thi list and a number of other bugs.
 
 Jet's `AggregateOperation` has a primitive specifically devoted to
 avoiding this problem: the
