@@ -671,8 +671,8 @@ will start a dedicated Java thread for its tasklet to run on.
 
 Even if it's non-cooperative, the processor's callback methods must
 still make sure they don't run for longer than a second or so at a time.
-Otherwise the tasklet will never be able to initiate a snapshot on the
-processor.
+Jet can't start a snapshot until all the processors have yielded control
+back to it.
 
 [[running-a-jet-job]]
 == What Happens When you Submit a Job
