@@ -193,9 +193,9 @@ another output item for each combination of the enriching items (M x N
 items if there are M enriching items from one stream and N from the
 other).
 
-If you're doing many-to-many enrichment, be extra careful to avoid
-accidental data races. You are likely to do enrichment by setting the
-enriching item as a property of the main item:
+If you're doing many-to-many enrichment, never mutate the enriched item,
+otherwise you would break the rule of not mutating an item you emitted
+(see <<sharing-data-between-pipeline-stages>>). For example:
 
 [source]
 ----
@@ -209,8 +209,7 @@ With code as this and a many-to-many relationship between trades and
 products, Jet will re-emit the same `Trade` object several times, each
 time setting a different product on it. This will create a data race
 with the downstream stage, which may observe the same product several
-times while missing the other ones, and even completely broken product
-objects (partially initialized).
+times while missing the other ones.
 
 The safe way to perform a many-to-many hash join is to either package
 the individual objects into a tuple (as in the earlier examples) or to
