@@ -146,7 +146,8 @@ is a kind of join operation optimized for the use case of data
 enrichment. It is like a many-to-one SQL JOIN that matches a foreign key
 in the stream-to-be-enriched with the primary key in the enriching
 dataset. You can perform several such joins in one operation, enriching
-your stream from arbitrarily many sources.
+your stream from arbitrarily many sources. You can also apply a
+many-to-many join on a non-unique key (see below).
 
 The stream-to-be-enriched (we'll call it the _primary_ stream for short)
 can be an unbounded data stream. The _enriching streams_ must be bounded
@@ -737,6 +738,7 @@ This can lead to a situation where your sink receives an early result
 after it has already received the final result.
 ====
 
+
 = Kinds of Windows
 
 Jet supports these kinds of windows:
@@ -762,8 +764,6 @@ key, there is a separate, independent session window for each key.
 
 You can find a more in-depth explanation of Jet's windows in the
 <<unbounded-stream-processing, Jet Concepts>> chapter.
-
-
 
 
 = Rolling Aggregation
@@ -793,33 +793,34 @@ include::{javasource}/BuildComputation.java[tag=s19]
 ----
 
 
+= Apply a User-Defined Transformation
 
+Once you move past the basics, you'll notice it isn't always
+practical to write out the full pipeline definition in a single long
+chained expression. You'll want to apply the usual principles of
+modularization and code reuse.
 
-= Pipeline API Extensibility
+One way to do it without any API support is writing a method that takes
+pipeline stage, applies some transforms, and returns the resulting
+stage, like this:
 
-The Pipeline API, due to limitations of the Java language, doesn't let
-you add methods to the various stages. You are limited to the methods
-provided out of the box.
-
-To address the limitation, Jet provides the `apply()`. It allows you to
-extract a part of the pipeline into a method and the use that method
-when building your pipeline. For example you can extract multiple
-mapping and filtering steps, entire windowing aggregations etc. and then
-apply the extracted part to a pipeline in a fluent style.
-
-For example in this pipeline:
 [source]
 ----
 include::{javasource}/BuildComputation.java[tag=apply1]
 ----
 
-you can extract the `map` and `flatMap` stages to a method:
+You could use it like this:
+
 [source]
 ----
 include::{javasource}/BuildComputation.java[tag=apply2]
 ----
 
-and then use it in the following way:
+This has the unfortunate consequence of breaking up the method chain and
+forcing you to introduce more local variables. To allow you to seamlessy
+integrate such method calls with the pipeline expression, Jet defines
+the `apply` transform:
+
 [source]
 ----
 include::{javasource}/BuildComputation.java[tag=apply3]

@@ -22,6 +22,7 @@ import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
 import com.hazelcast.jet.pipeline.StreamHashJoinBuilder;
 import com.hazelcast.jet.pipeline.StreamSource;
+import com.hazelcast.jet.pipeline.StreamSourceStage;
 import com.hazelcast.jet.pipeline.StreamStage;
 import datamodel.AddToCart;
 import datamodel.Broker;
@@ -502,24 +503,31 @@ class BuildComputation {
     }
 
 
-    ///// apply operator
-    void apply() {
+    static void apply() {
         Pipeline p = Pipeline.create();
         BatchSource<String> source = null;
-        //tag::apply1[]
-        p.drawFrom(source)
-         .map(t -> fooMap(t))
-         .flatMap(t -> fooFlatMap(t))
-         // ...
-        //end::apply1[]
-        ;
-
+        {
+            //tag::apply2[]
+            BatchStage<String> stage = p.drawFrom(source);
+            var cleanedUp = PipelineTransforms.cleanUp(stage);
+            var counted = cleanedUp.aggregate(counting());
+            //end::apply2[]
+        }
         //tag::apply3[]
-        p.drawFrom(source)
-         .apply(CheatSheet.Util::addSpecialMapping)
-         // ...
+        var counted = p.drawFrom(source)
+                       .apply(PipelineTransforms::cleanUp)
+                       .aggregate(counting());
         //end::apply3[]
-        ;
+
+    }
+
+    static class PipelineTransforms {
+        //tag::apply1[]
+        static BatchStage<String> cleanUp(BatchStage<String> input) {
+            return input.map(String::toLowerCase)
+                        .filter(s -> s.startsWith("success"));
+        }
+        //end::apply1[]
     }
 
     private static Traverser<String> fooFlatMap(String t) {
@@ -528,18 +536,6 @@ class BuildComputation {
 
     private static String fooMap(String t) {
         return null;
-    }
-
-    public static class Util {
-        //tag::apply2[]
-        public static BatchStage<String> addSpecialMapping(
-                BatchStage<String> inputStage
-        ) {
-            return inputStage
-                    .map(t -> fooMap(t))
-                    .flatMap(t -> fooFlatMap(t));
-        }
-        //end::apply2[]
     }
 }
 

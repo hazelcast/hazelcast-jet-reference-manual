@@ -187,28 +187,32 @@ public class CheatSheet {
         throw new UnsupportedOperationException();
     }
 
-    static void s13() {
-        //tag::s13[]
-        //end::s13[]
-    }
-
-    void apply() {
+    static void apply() {
         Pipeline p = Pipeline.create();
         BatchSource<String> source = null;
         //tag::apply1[]
         p.drawFrom(source)
-         .map(t -> fooMap(t))
-         .flatMap(t -> fooFlatMap(t))
-         // ...
+         .map(String::toLowerCase)
+         .filter(s -> s.startsWith("success"))
+         .aggregate(counting())
         //end::apply1[]
         ;
 
         //tag::apply3[]
         p.drawFrom(source)
-         .apply(Util::addSpecialMapping)
-         // ...
+         .apply(PipelineTransforms::cleanUp)
+         .aggregate(counting())
         //end::apply3[]
         ;
+    }
+
+    static class PipelineTransforms {
+        //tag::apply2[]
+        static BatchStage<String> cleanUp(BatchStage<String> input) {
+            return input.map(String::toLowerCase)
+                        .filter(s -> s.startsWith("success"));
+        }
+        //end::apply2[]
     }
 
     private static Traverser<String> fooFlatMap(String t) {
@@ -217,18 +221,6 @@ public class CheatSheet {
 
     private static String fooMap(String t) {
         return null;
-    }
-
-    public static class Util {
-        //tag::apply2[]
-        public static BatchStage<String> addSpecialMapping(
-                BatchStage<String> inputStage
-        ) {
-            return inputStage
-                    .map(t -> fooMap(t))
-                    .flatMap(t -> fooFlatMap(t));
-        }
-        //end::apply2[]
     }
 
     //tag::custom-transform-1[]
