@@ -5,6 +5,7 @@ import com.hazelcast.core.IList;
 import com.hazelcast.core.IMap;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
+import com.hazelcast.jet.Traverser;
 import com.hazelcast.jet.datamodel.ItemsByTag;
 import com.hazelcast.jet.datamodel.KeyedWindowResult;
 import com.hazelcast.jet.datamodel.Tag;
@@ -21,6 +22,7 @@ import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
 import com.hazelcast.jet.pipeline.StreamHashJoinBuilder;
 import com.hazelcast.jet.pipeline.StreamSource;
+import com.hazelcast.jet.pipeline.StreamSourceStage;
 import com.hazelcast.jet.pipeline.StreamStage;
 import datamodel.AddToCart;
 import datamodel.Broker;
@@ -291,6 +293,23 @@ class BuildComputation {
         //end::s10[]
     }
 
+    static void s10a() {
+        Pipeline p = Pipeline.create();
+        StreamStage<Trade> trades = null;
+        BatchStage<Entry<Integer, Product>> prodEntries =
+                p.drawFrom(Sources.map("products"));
+
+        //tag::s10a[]
+        StreamStage<Trade> joined = trades.hashJoin(
+                prodEntries,
+                joinMapEntries(Trade::productId),
+                Trade::setProduct // <1>
+        );
+        //end::s10a[]
+    }
+
+
+
     static void s11() {
         JetInstance instance = Jet.newJetInstance();
         //tag::s11[]
@@ -480,6 +499,42 @@ class BuildComputation {
     }
 
     private static StreamSource<Tweet> twitterStream() {
+        return null;
+    }
+
+
+    static void apply() {
+        Pipeline p = Pipeline.create();
+        BatchSource<String> source = null;
+        {
+            //tag::apply2[]
+            BatchStage<String> stage = p.drawFrom(source);
+            var cleanedUp = PipelineTransforms.cleanUp(stage);
+            var counted = cleanedUp.aggregate(counting());
+            //end::apply2[]
+        }
+        //tag::apply3[]
+        var counted = p.drawFrom(source)
+                       .apply(PipelineTransforms::cleanUp)
+                       .aggregate(counting());
+        //end::apply3[]
+
+    }
+
+    static class PipelineTransforms {
+        //tag::apply1[]
+        static BatchStage<String> cleanUp(BatchStage<String> input) {
+            return input.map(String::toLowerCase)
+                        .filter(s -> s.startsWith("success"));
+        }
+        //end::apply1[]
+    }
+
+    private static Traverser<String> fooFlatMap(String t) {
+        return null;
+    }
+
+    private static String fooMap(String t) {
         return null;
     }
 }

@@ -30,4 +30,8 @@ public class Trade extends Event {
     public Trade setStockInfo(StockInfo info) {
         return this;
     }
+
+    public Trade setProduct(Product product) {
+        return this;
+    }
 }

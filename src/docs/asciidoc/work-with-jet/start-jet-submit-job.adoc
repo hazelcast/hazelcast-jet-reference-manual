@@ -32,6 +32,10 @@ remain alive after the `main()` method completes:
 include::{javasource}/StartJet.java[tag=s2]
 ----
 
+It is important to use at least 2 members when developing because
+otherwise Jet doesn't serialize the stream items and serialization
+errors will not be discovered.
+
 [[build-pipeline]]
 = Build the Computation Pipeline
 
@@ -324,7 +328,7 @@ with an exception.
 *Note:* Job Upgrade is only available in <<install-hazelcast-jet-enterprise-optional, Jet Enterprise>>
 
 Jet allows you to upgrade a job while preserving its state. This is useful 
-for bugfixing or to improve the application.
+for bug fixing or to improve the application.
 
 The new pipeline has to be compatible with the old one, for more details
 about what you can change in the pipeline, see

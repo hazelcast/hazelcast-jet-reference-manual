@@ -143,10 +143,11 @@ you should use this approach.
 
 {jet-javadoc}/pipeline/BatchStage.html#hashJoin-com.hazelcast.jet.pipeline.BatchStage-com.hazelcast.jet.pipeline.JoinClause-com.hazelcast.jet.function.BiFunctionEx-[Hash-join]
 is a kind of join operation optimized for the use case of data
-enrichment. It is like a many-to-one SQL JOIN that matches a foreign
-key in the stream-to-be-enriched with the primary key in the enriching
+enrichment. It is like a many-to-one SQL JOIN that matches a foreign key
+in the stream-to-be-enriched with the primary key in the enriching
 dataset. You can perform several such joins in one operation, enriching
-your stream from arbitrarily many sources.
+your stream from arbitrarily many sources. You can also apply a
+many-to-many join on a non-unique key (see below).
 
 The stream-to-be-enriched (we'll call it the _primary_ stream for short)
 can be an unbounded data stream. The _enriching streams_ must be bounded
@@ -182,6 +183,37 @@ projection function. This is what `joinMapEntries()` does for you. It
 takes just one function, primary stream's key extractor, and fills in
 `Entry::getKey` and `Entry::getValue` for the enriching stream key
 extractor and the projection function, respectively.
+
+You can also achieve a many-to-many join because the key in the
+enriching stream doesn't have to be unique. If a given item's foreign
+key matches several enriching items, Jet will produce another item
+in the output for each of them. If you're joining with two enriching
+streams, and in both of them you have several matches, Jet will produce
+another output item for each combination of the enriching items (M x N
+items if there are M enriching items from one stream and N from the
+other).
+
+If you're doing many-to-many enrichment, never mutate the enriched item,
+otherwise you would break the rule of not mutating an item you emitted
+(see <<sharing-data-between-pipeline-stages>>). For example:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=s10a]
+----
+
+<1> Sets the product on the trade object, returns `this`. Broken when
+there are several products for one trade!
+
+With code as this and a many-to-many relationship between trades and
+products, Jet will re-emit the same `Trade` object several times, each
+time setting a different product on it. This will create a data race
+with the downstream stage, which may observe the same product several
+times while missing the other ones.
+
+The safe way to perform a many-to-many hash join is to either package
+the individual objects into a tuple (as in the earlier examples) or to
+create a new `Trade` object each time.
 
 In the interest of performance Jet pulls the entire enriching dataset
 into each cluster member. That's why this operation is also known as a
@@ -592,7 +624,7 @@ watermark.
 === Prefer Assigning Timestamps at the Source
 
 In some source implementations, especially partitioned ones like Kafka,
-there is a risk of high event time skew occuring across partitions as
+there is a risk of high event time skew occurring across partitions as
 the Jet processor pulls the data from them in batches, in a round-robin
 fashion. This problem is especially pronounced when Jet recovers from a
 failure and restarts your job. In this case Jet must catch up with all
@@ -705,6 +737,7 @@ This can lead to a situation where your sink receives an early result
 after it has already received the final result.
 ====
 
+
 = Kinds of Windows
 
 Jet supports these kinds of windows:
@@ -730,8 +763,6 @@ key, there is a separate, independent session window for each key.
 
 You can find a more in-depth explanation of Jet's windows in the
 <<unbounded-stream-processing, Jet Concepts>> chapter.
-
-
 
 
 = Rolling Aggregation
@@ -760,3 +791,36 @@ after a new record-breaking trade.
 include::{javasource}/BuildComputation.java[tag=s19]
 ----
 
+
+= Apply a User-Defined Transformation
+
+Once you move past the basics, you'll notice it isn't always
+practical to write out the full pipeline definition in a single long
+chained expression. You'll want to apply the usual principles of
+modularization and code reuse.
+
+One way to do it without any API support is writing a method that takes
+pipeline stage, applies some transforms, and returns the resulting
+stage, like this:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=apply1]
+----
+
+You could use it like this:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=apply2]
+----
+
+This has the unfortunate consequence of breaking up the method chain and
+forcing you to introduce more local variables. To allow you to seamlessy
+integrate such method calls with the pipeline expression, Jet defines
+the `apply` transform:
+
+[source]
+----
+include::{javasource}/BuildComputation.java[tag=apply3]
+----
