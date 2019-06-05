@@ -55,7 +55,7 @@ stages.
 It is never safe to mutate an item you emitted. The downstream stages
 will see your changes and lose the original data you emitted, at best.
 Since the changes are concurrent, they may also see completely broken
-data.
+data, if the object is not thread-safe.
 
 One use case where it's especially tempting to mutate the item after
 emitting is rolling aggregation. Consider this example where we use
@@ -91,8 +91,8 @@ matching the same join key. Refer to the <<hash-join, hash-join>>
 section for more details and an example.
 
 
-**2. _Either_ keep using the item you emitted (read-only), _or_ mutate
-it downstream.**
+**2. If you keep using the item you emitted (for reading), don't
+mutate it downstream.**
 
 There's little reason to keep reading an item after emitting it, but if
 you ever have that situation, make sure you don't mutate it in any
