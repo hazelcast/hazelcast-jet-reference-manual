@@ -39,6 +39,6 @@ include::custom-source-sink.adoc[]
 
 include::best-practices.adoc[]
 
-include::jmx-integration.adoc[]
+include::management-center-integration.adoc[]
 
 :leveloffset: -1
