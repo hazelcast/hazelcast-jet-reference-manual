@@ -53,8 +53,7 @@ running Hazelcast Jet job. It provides a visualization of the computational
 stages and allows you to peek into the stats across the data flow graph
 enabling you to diagnose bottlenecks.
 
-Please refer to the 
-https://docs.hazelcast.org/docs/jet-management-center/latest/manual/[Hazelcast Jet Management Center Reference Manual] 
+Please refer to the {jet-mc-refman}[Hazelcast Jet Management Center Reference Manual]
 for installation and usage instructions.
 
 image::management-center-job-detail.png[Job Detail,align="center"]
