@@ -9,19 +9,20 @@ import com.hazelcast.jet.pipeline.SourceBuilder;
 import com.hazelcast.jet.pipeline.SourceBuilder.SourceBuffer;
 import com.hazelcast.jet.pipeline.StreamSource;
 import com.hazelcast.jet.pipeline.StreamSourceStage;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.net.URI;
-import java.net.http.HttpRequest;
 
 import static com.hazelcast.jet.pipeline.SinkBuilder.sinkBuilder;
 import static com.hazelcast.jet.pipeline.Sources.list;
-import static java.net.http.HttpClient.newHttpClient;
-import static java.net.http.HttpResponse.BodyHandlers.ofLines;
 
 public class SourceSinkBuilders {
     static void s1() {
@@ -67,38 +68,44 @@ public class SourceSinkBuilders {
     static void s2() {
         //tag::s2[]
         StreamSource<String> httpSource = SourceBuilder
-            .stream("http-source", ctx -> newHttpClient())
-            .<String>fillBufferFn((httpc, buf) ->
-                    httpc
-                         .send(HttpRequest.newBuilder()
-                                 .uri(URI.create("http://localhost:8008"))
-                                 .build(), ofLines())
-                         .body()
-                         .forEach(buf::add)
-                )
+            .stream("http-source", ctx -> HttpClients.createDefault())
+            .<String>fillBufferFn((httpc, buf) -> {
+                HttpGet request = new HttpGet("localhost:8008");
+                InputStream content = httpc.execute(request)
+                        .getEntity()
+                        .getContent();
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(content)
+                );
+                reader.lines().forEach(buf::add);
+            })
+            .destroyFn(CloseableHttpClient::close)
             .build();
         Pipeline p = Pipeline.create();
         StreamSourceStage<String> srcStage = p.drawFrom(httpSource);
         //end::s2[]
     }
 
+
     static void s2a() {
         //tag::s2a[]
         StreamSource<String> httpSource = SourceBuilder
-            .timestampedStream("http-source", ctx -> newHttpClient())
-                .<String>fillBufferFn((httpc, buf) ->
-                        httpc
-                             .send(HttpRequest.newBuilder()
-                                    .uri(URI.create("http://localhost:8008"))
-                                    .build(), ofLines())
-                             .body()
-                             .forEach(item -> {
-                                 long timestamp =
-                                         Long.valueOf(item.substring(0, 9));
-                                 buf.add(item.substring(9), timestamp);
-                             })
-                )
-                .build();
+            .timestampedStream("http-source", ctx -> HttpClients.createDefault())
+            .<String>fillBufferFn((httpc, buf) -> {
+                HttpGet request = new HttpGet("localhost:8008");
+                InputStream content = httpc.execute(request)
+                        .getEntity()
+                        .getContent();
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(content)
+                );
+                reader.lines().forEach(item -> {
+                    long timestamp = Long.valueOf(item.substring(0, 9));
+                    buf.add(item.substring(9), timestamp);
+                });
+            })
+            .destroyFn(CloseableHttpClient::close)
+            .build();
         //end::s2a[]
     }
 
@@ -150,26 +157,26 @@ public class SourceSinkBuilders {
         //tag::s4[]
         Sink<Object> sink = sinkBuilder(
                 "file-sink", x -> new PrintWriter(new FileWriter("output.txt")))
-            .receiveFn((out, item) -> out.println(item.toString()))
-            .destroyFn(PrintWriter::close)
-            .build();
+                .receiveFn((out, item) -> out.println(item.toString()))
+                .destroyFn(PrintWriter::close)
+                .build();
         Pipeline p = Pipeline.create();
         p.drawFrom(list("input"))
-         .drainTo(sink);
+                .drainTo(sink);
         //end::s4[]
     }
 
     static void s5() {
         //tag::s5[]
         Sink<Object> sink = sinkBuilder("file-sink", x -> new StringBuilder())
-            .receiveFn((buf, item) -> buf.append(item).append('\n'))
-            .flushFn(buf -> {
-                try (Writer out = new FileWriter("output.txt", true)) {
-                    out.write(buf.toString());
-                    buf.setLength(0);
-                }
-            })
-            .build();
+                .receiveFn((buf, item) -> buf.append(item).append('\n'))
+                .flushFn(buf -> {
+                    try (Writer out = new FileWriter("output.txt", true)) {
+                        out.write(buf.toString());
+                        buf.setLength(0);
+                    }
+                })
+                .build();
         //end::s5[]
     }
 
