@@ -509,12 +509,12 @@ class BuildComputation {
         {
             //tag::apply2[]
             BatchStage<String> stage = p.drawFrom(source);
-            var cleanedUp = PipelineTransforms.cleanUp(stage);
-            var counted = cleanedUp.aggregate(counting());
+            BatchStage<String> cleanedUp = PipelineTransforms.cleanUp(stage);
+            BatchStage<Long> counted = cleanedUp.aggregate(counting());
             //end::apply2[]
         }
         //tag::apply3[]
-        var counted = p.drawFrom(source)
+        BatchStage<Long> counted = p.drawFrom(source)
                        .apply(PipelineTransforms::cleanUp)
                        .aggregate(counting());
         //end::apply3[]
