@@ -15,7 +15,7 @@ apply plugin: 'idea'
 apply plugin: 'java'
 
 ext {
-    jetVersion = '3.1-SNAPSHOT'
+    jetVersion = '3.2-SNAPSHOT'
     hadoopVersion = '2.7.3'
     activeMQVersion = '5.15.3'
     httpClientVersion = '4.5.6'
