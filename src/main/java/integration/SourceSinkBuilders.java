@@ -29,7 +29,7 @@ public class SourceSinkBuilders {
         //tag::s1[]
         BatchSource<String> fileSource = SourceBuilder
             .batch("file-source", x ->                               //<1>
-                    new BufferedReader(new FileReader("input.txt")))
+                new BufferedReader(new FileReader("input.txt")))
             .<String>fillBufferFn((in, buf) -> {                     //<2>
                 String line = in.readLine();
                 if (line != null) {
@@ -49,7 +49,7 @@ public class SourceSinkBuilders {
         //tag::s1a[]
         BatchSource<String> fileSource = SourceBuilder
             .batch("file-source", x ->
-                    new BufferedReader(new FileReader("input.txt")))
+                new BufferedReader(new FileReader("input.txt")))
             .<String>fillBufferFn((in, buf) -> {
                 for (int i = 0; i < 128; i++) {
                     String line = in.readLine();
@@ -72,10 +72,10 @@ public class SourceSinkBuilders {
             .<String>fillBufferFn((httpc, buf) -> {
                 HttpGet request = new HttpGet("localhost:8008");
                 InputStream content = httpc.execute(request)
-                        .getEntity()
-                        .getContent();
+                                           .getEntity()
+                                           .getContent();
                 BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(content)
+                    new InputStreamReader(content)
                 );
                 reader.lines().forEach(buf::add);
             })
@@ -94,10 +94,10 @@ public class SourceSinkBuilders {
             .<String>fillBufferFn((httpc, buf) -> {
                 HttpGet request = new HttpGet("localhost:8008");
                 InputStream content = httpc.execute(request)
-                        .getEntity()
-                        .getContent();
+                                           .getEntity()
+                                           .getContent();
                 BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(content)
+                    new InputStreamReader(content)
                 );
                 reader.lines().forEach(item -> {
                     long timestamp = Long.valueOf(item.substring(0, 9));
@@ -133,50 +133,50 @@ public class SourceSinkBuilders {
         }
 
         BatchSource<Integer> sequenceSource = SourceBuilder
-                .batch("seq-source", procCtx -> new SourceContext(procCtx, 1_000))
-                .fillBufferFn(SourceContext::addToBuffer)
-                .distributed(2)  //<1>
-                .build();
+            .batch("seq-source", procCtx -> new SourceContext(procCtx, 1_000))
+            .fillBufferFn(SourceContext::addToBuffer)
+            .distributed(2)  //<1>
+            .build();
         //end::s3[]
     }
 
     static void s3a() {
         //tag::s3a[]
         StreamSource<Integer> faultTolerantSource = SourceBuilder
-                .stream("fault-tolerant-source", processorContext -> new int[1])
-                .<Integer>fillBufferFn((numToEmit, buffer) ->
-                        buffer.add(numToEmit[0]++))
-                .createSnapshotFn(numToEmit -> numToEmit[0])                //<1>
-                .restoreSnapshotFn(
-                        (numToEmit, saved) -> numToEmit[0] = saved.get(0))  //<2>
-                .build();
+            .stream("fault-tolerant-source", processorContext -> new int[1])
+            .<Integer>fillBufferFn((numToEmit, buffer) ->
+                buffer.add(numToEmit[0]++))
+            .createSnapshotFn(numToEmit -> numToEmit[0])                //<1>
+            .restoreSnapshotFn(
+                (numToEmit, saved) -> numToEmit[0] = saved.get(0))  //<2>
+            .build();
         //end::s3a[]
     }
 
     static void s4() {
         //tag::s4[]
         Sink<Object> sink = sinkBuilder(
-                "file-sink", x -> new PrintWriter(new FileWriter("output.txt")))
-                .receiveFn((out, item) -> out.println(item.toString()))
-                .destroyFn(PrintWriter::close)
-                .build();
+            "file-sink", x -> new PrintWriter(new FileWriter("output.txt")))
+            .receiveFn((out, item) -> out.println(item.toString()))
+            .destroyFn(PrintWriter::close)
+            .build();
         Pipeline p = Pipeline.create();
         p.drawFrom(list("input"))
-                .drainTo(sink);
+         .drainTo(sink);
         //end::s4[]
     }
 
     static void s5() {
         //tag::s5[]
         Sink<Object> sink = sinkBuilder("file-sink", x -> new StringBuilder())
-                .receiveFn((buf, item) -> buf.append(item).append('\n'))
-                .flushFn(buf -> {
-                    try (Writer out = new FileWriter("output.txt", true)) {
-                        out.write(buf.toString());
-                        buf.setLength(0);
-                    }
-                })
-                .build();
+            .receiveFn((buf, item) -> buf.append(item).append('\n'))
+            .flushFn(buf -> {
+                try (Writer out = new FileWriter("output.txt", true)) {
+                    out.write(buf.toString());
+                    buf.setLength(0);
+                }
+            })
+            .build();
         //end::s5[]
     }
 
