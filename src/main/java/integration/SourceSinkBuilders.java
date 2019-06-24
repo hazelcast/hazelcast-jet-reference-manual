@@ -9,26 +9,27 @@ import com.hazelcast.jet.pipeline.SourceBuilder;
 import com.hazelcast.jet.pipeline.SourceBuilder.SourceBuffer;
 import com.hazelcast.jet.pipeline.StreamSource;
 import com.hazelcast.jet.pipeline.StreamSourceStage;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.net.URI;
-import java.net.http.HttpRequest;
 
 import static com.hazelcast.jet.pipeline.SinkBuilder.sinkBuilder;
 import static com.hazelcast.jet.pipeline.Sources.list;
-import static java.net.http.HttpClient.newHttpClient;
-import static java.net.http.HttpResponse.BodyHandlers.ofLines;
 
 public class SourceSinkBuilders {
     static void s1() {
         //tag::s1[]
         BatchSource<String> fileSource = SourceBuilder
             .batch("file-source", x ->                               //<1>
-                    new BufferedReader(new FileReader("input.txt")))
+                new BufferedReader(new FileReader("input.txt")))
             .<String>fillBufferFn((in, buf) -> {                     //<2>
                 String line = in.readLine();
                 if (line != null) {
@@ -48,7 +49,7 @@ public class SourceSinkBuilders {
         //tag::s1a[]
         BatchSource<String> fileSource = SourceBuilder
             .batch("file-source", x ->
-                    new BufferedReader(new FileReader("input.txt")))
+                new BufferedReader(new FileReader("input.txt")))
             .<String>fillBufferFn((in, buf) -> {
                 for (int i = 0; i < 128; i++) {
                     String line = in.readLine();
@@ -67,38 +68,44 @@ public class SourceSinkBuilders {
     static void s2() {
         //tag::s2[]
         StreamSource<String> httpSource = SourceBuilder
-            .stream("http-source", ctx -> newHttpClient())
-            .<String>fillBufferFn((httpc, buf) ->
-                    httpc
-                         .send(HttpRequest.newBuilder()
-                                 .uri(URI.create("http://localhost:8008"))
-                                 .build(), ofLines())
-                         .body()
-                         .forEach(buf::add)
-                )
+            .stream("http-source", ctx -> HttpClients.createDefault())
+            .<String>fillBufferFn((httpc, buf) -> {
+                HttpGet request = new HttpGet("localhost:8008");
+                InputStream content = httpc.execute(request)
+                                           .getEntity()
+                                           .getContent();
+                BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(content)
+                );
+                reader.lines().forEach(buf::add);
+            })
+            .destroyFn(CloseableHttpClient::close)
             .build();
         Pipeline p = Pipeline.create();
         StreamSourceStage<String> srcStage = p.drawFrom(httpSource);
         //end::s2[]
     }
 
+
     static void s2a() {
         //tag::s2a[]
         StreamSource<String> httpSource = SourceBuilder
-            .timestampedStream("http-source", ctx -> newHttpClient())
-                .<String>fillBufferFn((httpc, buf) ->
-                        httpc
-                             .send(HttpRequest.newBuilder()
-                                    .uri(URI.create("http://localhost:8008"))
-                                    .build(), ofLines())
-                             .body()
-                             .forEach(item -> {
-                                 long timestamp =
-                                         Long.valueOf(item.substring(0, 9));
-                                 buf.add(item.substring(9), timestamp);
-                             })
-                )
-                .build();
+            .timestampedStream("http-source", ctx -> HttpClients.createDefault())
+            .<String>fillBufferFn((httpc, buf) -> {
+                HttpGet request = new HttpGet("localhost:8008");
+                InputStream content = httpc.execute(request)
+                                           .getEntity()
+                                           .getContent();
+                BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(content)
+                );
+                reader.lines().forEach(item -> {
+                    long timestamp = Long.valueOf(item.substring(0, 9));
+                    buf.add(item.substring(9), timestamp);
+                });
+            })
+            .destroyFn(CloseableHttpClient::close)
+            .build();
         //end::s2a[]
     }
 
@@ -126,30 +133,30 @@ public class SourceSinkBuilders {
         }
 
         BatchSource<Integer> sequenceSource = SourceBuilder
-                .batch("seq-source", procCtx -> new SourceContext(procCtx, 1_000))
-                .fillBufferFn(SourceContext::addToBuffer)
-                .distributed(2)  //<1>
-                .build();
+            .batch("seq-source", procCtx -> new SourceContext(procCtx, 1_000))
+            .fillBufferFn(SourceContext::addToBuffer)
+            .distributed(2)  //<1>
+            .build();
         //end::s3[]
     }
 
     static void s3a() {
         //tag::s3a[]
         StreamSource<Integer> faultTolerantSource = SourceBuilder
-                .stream("fault-tolerant-source", processorContext -> new int[1])
-                .<Integer>fillBufferFn((numToEmit, buffer) ->
-                        buffer.add(numToEmit[0]++))
-                .createSnapshotFn(numToEmit -> numToEmit[0])                //<1>
-                .restoreSnapshotFn(
-                        (numToEmit, saved) -> numToEmit[0] = saved.get(0))  //<2>
-                .build();
+            .stream("fault-tolerant-source", processorContext -> new int[1])
+            .<Integer>fillBufferFn((numToEmit, buffer) ->
+                buffer.add(numToEmit[0]++))
+            .createSnapshotFn(numToEmit -> numToEmit[0])                //<1>
+            .restoreSnapshotFn(
+                (numToEmit, saved) -> numToEmit[0] = saved.get(0))  //<2>
+            .build();
         //end::s3a[]
     }
 
     static void s4() {
         //tag::s4[]
         Sink<Object> sink = sinkBuilder(
-                "file-sink", x -> new PrintWriter(new FileWriter("output.txt")))
+            "file-sink", x -> new PrintWriter(new FileWriter("output.txt")))
             .receiveFn((out, item) -> out.println(item.toString()))
             .destroyFn(PrintWriter::close)
             .build();
