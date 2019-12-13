@@ -1,13 +1,4 @@
-=== Hazelcast Jet Reference Manual
+# Hazelcast Jet Reference Manual
 
 This repository is now moved as a subproject to: http://github.com/hazelcast/hazelcast-jet/
 
----
-This is an AsciiDoc project.
-
-.Build The Documentation:
-----
-./gradlew build
-----
-
-The resulting document can be found in `build/asciidoc/html5`.
